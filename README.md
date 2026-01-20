@@ -2,6 +2,16 @@
 
 Este proyecto es desarrollado como parte de un trabajo universitario. Su objetivo es contribuir a la resolución de uno de los Objetivos de Desarrollo Sostenible (ODS), específicamente **Bienestar y Salud**.
 
+## 📅 Gestión del Proyecto
+
+**Fecha Límite:** 10 de Abril, 2026
+
+📖 **Documentación del Proyecto:**
+- [**Guía Completa de GitHub Projects**](./GITHUB_PROJECTS_GUIDE.md) - Paso a paso para dominar GitHub Projects
+- [**Estructura del Proyecto**](./PROJECT_STRUCTURE.md) - Fases, entregables y cronograma
+- [**Quick Reference**](./QUICK_REFERENCE.md) - Referencia rápida de las 5 fases
+- [**Templates de Issues**](./ISSUE_TEMPLATES.md) - Templates listos para crear issues
+
 ## Descripción
 
 El sistema está diseñado para ayudar en la gestión de la salud de los estudiantes del plantel. Entre sus principales funcionalidades se encuentran:
