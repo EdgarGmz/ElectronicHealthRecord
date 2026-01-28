@@ -1,0 +1,510 @@
+<div align="center">
+
+# 🏥 Electronic Health Record System
+
+### Sistema de Registro de Salud Electrónico Institucional
+#### Nursing & Psychology Department
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Electron](https://img.shields.io/badge/Electron-47848F?style=for-the-badge&logo=electron&logoColor=white)](https://www.electronjs.org/)
+
+</div>
+
+---
+
+## 📋 Descripción
+
+Sistema integral de gestión de registros de salud electrónicos diseñado específicamente para departamentos de enfermería y psicología en entornos institucionales. Proporciona una plataforma completa para el manejo de expedientes médicos, citas, historiales clínicos y administración de pacientes, cumpliendo con estándares de seguridad HIPAA.
+
+### ✨ Características Principales
+
+- 📊 **Gestión de Expedientes Médicos** - Creación, edición y consulta de historiales clínicos completos
+- 👥 **Registro de Pacientes** - Sistema completo de información demográfica y médica
+- 📅 **Sistema de Citas** - Programación y seguimiento de consultas
+- 💊 **Control de Medicamentos** - Registro y seguimiento de prescripciones
+- 🔐 **Seguridad Avanzada** - Autenticación JWT, encriptación de datos sensibles
+- 📱 **Aplicación Desktop** - Multiplataforma con Electron (Windows, macOS, Linux)
+- 📈 **Reportes y Estadísticas** - Generación de informes médicos en PDF
+- 🌐 **Interfaz Intuitiva** - Diseño moderno con TailwindCSS y Atomic Design
+- 🔄 **Tiempo Real** - Notificaciones y actualizaciones instantáneas
+- 🌍 **Multiidioma** - Soporte de internacionalización
+
+---
+
+## 🏗️ Arquitectura del Sistema
+
+```
+┌─────────────────────────────────────────────────┐
+│           Electron Desktop App                  │
+│  ┌─────────────────────────────────────────┐   │
+│  │        React Frontend (Client)          │   │
+│  │   • React Router • TailwindCSS          │   │
+│  │   • Redux Toolkit • React Query         │   │
+│  │   • Atomic Design Pattern               │   │
+│  └─────────────────┬───────────────────────┘   │
+└────────────────────┼───────────────────────────┘
+                     │ HTTP/REST API
+                     │ WebSocket (Socket.io)
+┌────────────────────▼───────────────────────────┐
+│          Express.js Backend (API)              │
+│   • TypeScript • TypeORM • JWT                 │
+│   • Repository Pattern • Redis Cache           │
+└────────────────────┬───────────────────────────┘
+                     │
+┌────────────────────▼───────────────────────────┐
+│              MySQL Database                     │
+│   • Expedientes • Pacientes • Citas            │
+│   • Medicamentos • Usuarios • Audit Logs       │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+## 🛠️ Stack Tecnológico
+
+### **Frontend**
+
+| Categoría | Tecnologías |
+|-----------|-------------|
+| **Core** | TypeScript, React 18+, React Router, Axios |
+| **UI/Styling** | TailwindCSS, shadcn/ui, Material-UI, React Icons |
+| **Estado** | Redux Toolkit, Zustand, React Query |
+| **Formularios** | React Hook Form, Zod, Yup |
+| **Testing** | Vitest, React Testing Library, Cypress, Playwright |
+| **Desktop** | Electron |
+| **Build Tools** | Vite, ESLint, Prettier |
+| **Arquitectura** | Atomic Design, Observer Pattern |
+| **i18n** | react-i18next |
+| **Documentación** | Storybook |
+
+### **Backend**
+
+| Categoría | Tecnologías |
+|-----------|-------------|
+| **Core** | TypeScript, Node.js, Express.js |
+| **Base de Datos** | MySQL, TypeORM, TypeORM Migrations |
+| **Seguridad** | JWT, Bcrypt, Helmet, CORS, OAuth2 |
+| **Validación** | class-validator, class-transformer, Joi, Zod |
+| **Cache** | Redis, ioredis |
+| **Testing** | Jest, Supertest, ts-jest |
+| **Logging** | Winston, Morgan, winston-daily-rotate-file |
+| **Archivos** | Multer, Sharp, PDFKit, Puppeteer |
+| **Email** | Nodemailer |
+| **Documentación** | Swagger/OpenAPI, TypeDoc |
+| **Utilidades** | date-fns, uuid, validator.js |
+| **Tiempo Real** | Socket.io |
+| **Tareas** | node-cron, node-schedule |
+| **Arquitectura** | Repository Pattern, Dependency Injection |
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+ElectronicHealthRecord/
+├── api/                          # Backend (Express + TypeScript)
+│   ├── src/
+│   │   ├── controllers/          # Controladores de rutas
+│   │   ├── services/             # Lógica de negocio
+│   │   ├── repositories/         # Capa de datos
+│   │   ├── entities/             # Modelos TypeORM
+│   │   ├── middlewares/          # Middlewares Express
+│   │   ├── routes/               # Definición de rutas
+│   │   ├── utils/                # Utilidades
+│   │   ├── config/               # Configuraciones
+│   │   └── index.ts              # Entry point
+│   ├── tests/                    # Tests unitarios e integración
+│   ├── migrations/               # Migraciones de BD
+│   ├── .env.example              # Variables de entorno ejemplo
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── client/                       # Frontend (React + TypeScript)
+│   ├── src/
+│   │   ├── components/           # Componentes Atomic Design
+│   │   │   ├── atoms/            # Componentes básicos
+│   │   │   ├── molecules/        # Combinaciones simples
+│   │   │   ├── organisms/        # Componentes complejos
+│   │   │   ├── templates/        # Layouts
+│   │   │   └── pages/            # Páginas completas
+│   │   ├── hooks/                # Custom React Hooks
+│   │   ├── store/                # Redux store
+│   │   ├── services/             # API calls
+│   │   ├── utils/                # Utilidades
+│   │   ├── types/                # TypeScript types
+│   │   ├── styles/               # Estilos globales
+│   │   ├── assets/               # Imágenes, iconos
+│   │   ├── i18n/                 # Traducciones
+│   │   ├── App.tsx               # Componente principal
+│   │   └── main.tsx              # Entry point
+│   ├── public/                   # Assets públicos
+│   ├── tests/                    # Tests
+│   ├── .env.example              # Variables de entorno ejemplo
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tsconfig.json
+│
+├── documents/                    # Documentación del proyecto
+│   ├── architecture/             # Diagramas de arquitectura
+│   ├── database/                 # Esquemas de BD
+│   ├── api/                      # Documentación API
+│   └── user-guides/              # Guías de usuario
+│
+├── .vscode/                      # Configuración VS Code
+│   ├── settings.json
+│   └── extensions.json
+│
+├── .gitignore
+├── README.md                     # Este archivo
+├── GITHUB_PROJECTS_GUIDE.md      # Guía de GitHub Projects
+├── ISSUE_TEMPLATES.md            # Templates de issues
+├── PROJECT_STRUCTURE.md          # Estructura detallada
+└── QUICK_REFERENCE.md            # Referencia rápida
+```
+
+---
+
+## 🚀 Inicio Rápido
+
+### **Prerrequisitos**
+
+Asegúrate de tener instalado:
+
+- **Node.js** v18+ o v20+ ([Descargar](https://nodejs.org/))
+- **npm** v9+ o **Yarn** v1.22+
+- **MySQL** v8.0+ ([Descargar](https://dev.mysql.com/downloads/))
+- **Git** v2.40+ ([Descargar](https://git-scm.com/))
+- **Redis** (opcional, para cache) ([Descargar](https://redis.io/download))
+
+### **Instalación**
+
+#### **1. Clonar el repositorio**
+
+```bash
+git clone https://github.com/tu-usuario/ElectronicHealthRecord.git
+cd ElectronicHealthRecord
+```
+
+#### **2. Configurar Base de Datos**
+
+```sql
+-- Crear base de datos MySQL
+CREATE DATABASE ehr_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'ehr_user'@'localhost' IDENTIFIED BY 'tu_password_seguro';
+GRANT ALL PRIVILEGES ON ehr_db.* TO 'ehr_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+#### **3. Configurar Backend**
+
+```bash
+cd api
+
+# Instalar dependencias
+npm install
+
+# Copiar archivo de variables de entorno
+cp .env.example .env
+
+# Editar .env con tus configuraciones
+# Configurar DB_HOST, DB_USERNAME, DB_PASSWORD, JWT_SECRET, etc.
+
+# Ejecutar migraciones de base de datos
+npm run migration:run
+
+# (Opcional) Ejecutar seeds para datos de prueba
+npm run seed:run
+```
+
+#### **4. Configurar Frontend**
+
+```bash
+cd ../client
+
+# Instalar dependencias
+npm install
+
+# Copiar archivo de variables de entorno
+cp .env.example .env
+
+# Editar .env con la URL del backend
+# VITE_API_URL=http://localhost:5000/api
+```
+
+#### **5. Ejecutar en Desarrollo**
+
+Abre **dos terminales** diferentes:
+
+**Terminal 1 - Backend:**
+```bash
+cd api
+npm run dev
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd client
+npm run dev
+```
+
+El backend estará disponible en `http://localhost:5000`  
+El frontend estará disponible en `http://localhost:5173`
+
+---
+
+## 📜 Scripts Disponibles
+
+### **Backend (api/)**
+
+```bash
+npm run dev              # Ejecutar en modo desarrollo con hot-reload
+npm run build            # Compilar TypeScript a JavaScript
+npm start                # Ejecutar versión de producción
+npm test                 # Ejecutar tests unitarios
+npm run test:watch       # Tests en modo watch
+npm run lint             # Ejecutar linter
+npm run format           # Formatear código con Prettier
+npm run migration:generate   # Generar nueva migración
+npm run migration:run        # Ejecutar migraciones pendientes
+npm run migration:revert     # Revertir última migración
+```
+
+### **Frontend (client/)**
+
+```bash
+npm run dev              # Ejecutar en modo desarrollo
+npm run build            # Compilar para producción
+npm run preview          # Preview de build de producción
+npm test                 # Ejecutar tests con Vitest
+npm run test:ui          # UI de tests de Vitest
+npm run lint             # Ejecutar linter
+npm run format           # Formatear código con Prettier
+npm run storybook        # Ejecutar Storybook
+npm run build-storybook  # Compilar Storybook
+```
+
+---
+
+## 🔐 Variables de Entorno
+
+### **Backend (.env)**
+
+```env
+# Server Configuration
+NODE_ENV=development
+PORT=5000
+HOST=localhost
+
+# Database
+DB_HOST=localhost
+DB_PORT=3306
+DB_USERNAME=ehr_user
+DB_PASSWORD=tu_password_seguro
+DB_DATABASE=ehr_db
+
+# JWT Authentication
+JWT_SECRET=tu_secret_key_muy_seguro_aqui
+JWT_EXPIRE=7d
+JWT_REFRESH_SECRET=otro_secret_key_para_refresh
+JWT_REFRESH_EXPIRE=30d
+
+# Redis (opcional)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# Email Configuration (Nodemailer)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=tu_email@institucional.com
+SMTP_PASS=tu_password_app
+SMTP_FROM=noreply@ehr-system.com
+
+# File Upload
+MAX_FILE_SIZE=10485760  # 10MB
+UPLOAD_PATH=./uploads
+
+# CORS
+CORS_ORIGIN=http://localhost:5173
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000  # 15 minutos
+RATE_LIMIT_MAX_REQUESTS=100
+```
+
+### **Frontend (.env)**
+
+```env
+# API Configuration
+VITE_API_URL=http://localhost:5000/api
+VITE_API_TIMEOUT=30000
+VITE_WS_URL=ws://localhost:5000
+
+# Environment
+VITE_ENV=development
+
+# App Configuration
+VITE_APP_NAME=EHR System
+VITE_APP_VERSION=1.0.0
+```
+
+---
+
+## 🧪 Testing
+
+### **Ejecutar Tests**
+
+```bash
+# Backend
+cd api
+npm test                    # Todos los tests
+npm run test:watch          # Modo watch
+npm run test:coverage       # Con cobertura
+
+# Frontend
+cd client
+npm test                    # Tests unitarios con Vitest
+npm run test:e2e            # Tests E2E con Cypress/Playwright
+```
+
+### **Cobertura de Tests**
+
+El proyecto mantiene una cobertura mínima de:
+- **Backend:** 80% de cobertura
+- **Frontend:** 70% de cobertura
+
+---
+
+## 📖 Documentación
+
+- **[Guía de GitHub Projects](./GITHUB_PROJECTS_GUIDE.md)** - Gestión del proyecto
+- **[Templates de Issues](./ISSUE_TEMPLATES.md)** - Plantillas para issues
+- **[Estructura del Proyecto](./PROJECT_STRUCTURE.md)** - Detalles de arquitectura
+- **[Referencia Rápida](./QUICK_REFERENCE.md)** - Comandos y referencias
+- **[API Documentation](http://localhost:5000/api-docs)** - Swagger UI (en desarrollo)
+- **[Frontend Docs](./client/README.md)** - Stack tecnológico frontend
+- **[Backend Docs](./api/README.md)** - Stack tecnológico backend
+
+---
+
+## 🤝 Contribución
+
+### **Workflow de Desarrollo**
+
+1. **Fork** el proyecto
+2. Crea una **rama** para tu feature (`git checkout -b feature/nueva-funcionalidad`)
+3. **Commit** tus cambios usando [Conventional Commits](https://www.conventionalcommits.org/):
+   ```bash
+   git commit -m "feat: agregar módulo de prescripciones médicas"
+   git commit -m "fix: corregir validación de fechas en citas"
+   git commit -m "docs: actualizar README con nuevas instrucciones"
+   ```
+4. **Push** a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Abre un **Pull Request**
+
+### **Convenciones de Código**
+
+- **TypeScript** estricto habilitado
+- **ESLint** + **Prettier** configurados
+- **Pre-commit hooks** con Husky
+- **Code reviews** obligatorios antes de merge
+- **Tests** requeridos para nuevas funcionalidades
+
+### **Tipos de Commits**
+
+- `feat:` Nueva funcionalidad
+- `fix:` Corrección de bugs
+- `docs:` Cambios en documentación
+- `style:` Formato, sin cambios de código
+- `refactor:` Refactorización de código
+- `test:` Agregar o modificar tests
+- `chore:` Tareas de mantenimiento
+
+---
+
+## 🔒 Seguridad y Compliance
+
+Este sistema cumple con:
+
+- ✅ **HIPAA** (Health Insurance Portability and Accountability Act)
+- ✅ **Encriptación** de datos sensibles (AES-256)
+- ✅ **Audit Logs** completos de acciones críticas
+- ✅ **Autenticación** JWT con refresh tokens
+- ✅ **Rate Limiting** contra ataques DDoS
+- ✅ **Validación** y sanitización de inputs
+- ✅ **Backups** automáticos programados
+
+### **Reportar Vulnerabilidades**
+
+Si encuentras una vulnerabilidad de seguridad, por favor **NO** abras un issue público. En su lugar, envía un email a: [security@ehr-system.com](mailto:security@ehr-system.com)
+
+---
+
+## 📊 Roadmap
+
+### **Versión 1.0 (Actual)**
+- [x] Gestión de pacientes
+- [x] Sistema de citas
+- [x] Expedientes médicos básicos
+- [x] Autenticación y autorización
+
+### **Versión 1.5 (Q2 2026)**
+- [ ] Módulo de reportes avanzados
+- [ ] Integración con laboratorios
+- [ ] Notificaciones push
+- [ ] App móvil (React Native)
+
+### **Versión 2.0 (Q4 2026)**
+- [ ] Telemedicina integrada
+- [ ] IA para diagnóstico asistido
+- [ ] Blockchain para historial médico
+- [ ] Interoperabilidad HL7 FHIR
+
+---
+
+## 👥 Equipo
+
+| Rol | Responsabilidad |
+|-----|-----------------|
+| **Project Manager** | Coordinación general y planning |
+| **Tech Lead** | Arquitectura y decisiones técnicas |
+| **Backend Developers** | API, base de datos, seguridad |
+| **Frontend Developers** | Interfaz de usuario, UX |
+| **QA Engineers** | Testing y aseguramiento de calidad |
+| **DevOps** | CI/CD, deployment, infraestructura |
+
+---
+
+## 📄 Licencia
+
+Este proyecto es propiedad de [Tu Institución] y está protegido bajo licencia privada. Todos los derechos reservados.
+
+**Uso Interno:** Este software es de uso exclusivo para personal autorizado de la institución.
+
+---
+
+## 📞 Contacto y Soporte
+
+- **Email:** support@ehr-system.com
+- **Issues:** [GitHub Issues](https://github.com/tu-usuario/ElectronicHealthRecord/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/tu-usuario/ElectronicHealthRecord/discussions)
+- **Wiki:** [GitHub Wiki](https://github.com/tu-usuario/ElectronicHealthRecord/wiki)
+
+---
+
+## 🙏 Agradecimientos
+
+Gracias a todos los desarrolladores y al equipo médico que han contribuido a hacer este proyecto una realidad.
+
+---
+
+<div align="center">
+
+**[⬆ Volver arriba](#-electronic-health-record-system)**
+
+Hecho con ❤️ por el equipo de desarrollo EHR
+
+</div>
