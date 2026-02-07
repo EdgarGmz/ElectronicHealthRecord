@@ -1,0 +1,481 @@
+// Electronic Health Record (EHR) Database Design
+// Use at https://dbdiagram.io to generate visual diagram
+// Copy and paste this entire file into dbdiagram.io
+
+// ===================================
+// USERS AND PROFILES
+// ===================================
+
+Table users {
+  id uuid [pk]
+  enrollment_number varchar(20) [unique]
+  email varchar(255) [unique, not null]
+  password_hash varchar(255) [not null]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  date_of_birth date [not null]
+  phone varchar(20)
+  role varchar(50) [not null, note: 'student, psychologist, nurse, coordinator_psych, coordinator_nurse, admin']
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    email
+    enrollment_number
+    (first_name, last_name)
+    (role, is_active)
+  }
+  
+  Note: 'All system users including students, professionals, and administrators'
+}
+
+Table student_profiles {
+  id uuid [pk]
+  user_id uuid [unique, not null, ref: - users.id]
+  marital_status varchar(50)
+  guardian_name varchar(200)
+  guardian_phone varchar(20)
+  career varchar(100) [not null]
+  group varchar(20)
+  occupation varchar(100)
+  semester integer
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  Note: 'Student-specific information and academic details'
+}
+
+Table emergency_contacts {
+  id uuid [pk]
+  student_profile_id uuid [not null, ref: > student_profiles.id]
+  name varchar(200) [not null]
+  relationship varchar(50) [not null]
+  phone varchar(20) [not null]
+  phone_secondary varchar(20)
+  priority integer [not null, default: 1]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    student_profile_id
+    (student_profile_id, priority)
+  }
+  
+  Note: 'Emergency contacts for students'
+}
+
+// ===================================
+// MEDICAL RECORDS
+// ===================================
+
+Table medical_records {
+  id uuid [pk]
+  student_profile_id uuid [unique, not null, ref: - student_profiles.id]
+  blood_type varchar(10)
+  allergies text
+  chronic_conditions text
+  current_medications text
+  family_history text
+  notes text
+  created_at timestamp [not null, default: `now()`]
+  created_by uuid [not null, ref: > users.id]
+  updated_at timestamp [not null, default: `now()`]
+  updated_by uuid [not null, ref: > users.id]
+  
+  indexes {
+    student_profile_id
+  }
+  
+  Note: 'General medical record shared between departments'
+}
+
+// ===================================
+// PSYCHOLOGY MODULE
+// ===================================
+
+Table psychology_records {
+  id uuid [pk]
+  medical_record_id uuid [unique, not null, ref: - medical_records.id]
+  initial_evaluation_date date
+  chief_complaint text
+  psychological_history text
+  psychiatric_history text
+  substance_use text
+  suicide_risk_level varchar(20) [not null, default: 'none', note: 'none, low, medium, high']
+  violence_risk_level varchar(20) [not null, default: 'none']
+  current_diagnosis_dsm5 varchar(100)
+  current_diagnosis_cie10 varchar(100)
+  support_network text
+  assigned_psychologist_id uuid [ref: > users.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    medical_record_id
+    assigned_psychologist_id
+  }
+  
+  Note: 'Psychology-specific records with restricted access'
+}
+
+Table psychometric_evaluations {
+  id uuid [pk]
+  psychology_record_id uuid [not null, ref: > psychology_records.id]
+  evaluation_type varchar(100) [not null, note: 'WISC, WAIS, Beck Depression, Beck Anxiety, etc.']
+  application_date date [not null]
+  raw_score decimal(10,2)
+  standard_score decimal(10,2)
+  percentile integer
+  interpretation text
+  administered_by uuid [not null, ref: > users.id]
+  file_url varchar(500)
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    psychology_record_id
+    application_date
+    evaluation_type
+  }
+  
+  Note: 'Psychometric test results'
+}
+
+Table therapy_sessions {
+  id uuid [pk]
+  psychology_record_id uuid [not null, ref: > psychology_records.id]
+  session_number integer [not null]
+  session_date timestamp [not null]
+  therapy_type varchar(50) [not null, note: 'individual, group, family, couple']
+  session_duration integer [not null, default: 50]
+  evolution_notes text
+  patient_progress text
+  assigned_tasks text
+  observations text
+  next_session_plan text
+  therapist_id uuid [not null, ref: > users.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    psychology_record_id
+    session_date
+    therapist_id
+    (psychology_record_id, session_number) [unique]
+  }
+  
+  Note: 'Individual therapy session records'
+}
+
+Table treatment_plans {
+  id uuid [pk]
+  psychology_record_id uuid [not null, ref: > psychology_records.id]
+  start_date date [not null]
+  end_date date
+  therapeutic_approach varchar(100)
+  goals text [not null]
+  interventions text
+  status varchar(20) [not null, default: 'active', note: 'active, completed, discontinued']
+  created_by uuid [not null, ref: > users.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    psychology_record_id
+    status
+  }
+  
+  Note: 'Treatment plans with goals and interventions'
+}
+
+// ===================================
+// NURSING MODULE
+// ===================================
+
+Table nursing_consultations {
+  id uuid [pk]
+  medical_record_id uuid [not null, ref: > medical_records.id]
+  consultation_date timestamp [not null]
+  chief_complaint text
+  vital_signs_temperature decimal(4,2)
+  vital_signs_blood_pressure_sys integer
+  vital_signs_blood_pressure_dia integer
+  vital_signs_heart_rate integer
+  vital_signs_respiratory_rate integer
+  vital_signs_oxygen_saturation integer
+  vital_signs_weight decimal(5,2)
+  vital_signs_height decimal(5,2)
+  physical_examination text
+  diagnosis text
+  treatment_plan text
+  observations text
+  nurse_id uuid [not null, ref: > users.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    medical_record_id
+    consultation_date
+    nurse_id
+  }
+  
+  Note: 'Nursing consultations with vital signs'
+}
+
+Table nursing_procedures {
+  id uuid [pk]
+  nursing_consultation_id uuid [not null, ref: > nursing_consultations.id]
+  procedure_type varchar(100) [not null]
+  procedure_date timestamp [not null]
+  description text [not null]
+  materials_used text
+  observations text
+  performed_by uuid [not null, ref: > users.id]
+  created_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    nursing_consultation_id
+    procedure_type
+    procedure_date
+  }
+  
+  Note: 'Nursing procedures performed'
+}
+
+// ===================================
+// MEDICATIONS
+// ===================================
+
+Table medications {
+  id uuid [pk]
+  name varchar(200) [not null]
+  generic_name varchar(200) [not null]
+  category varchar(100)
+  dosage_forms text
+  common_dosages text
+  administration_routes text
+  contraindications text
+  side_effects text
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    name
+    generic_name
+    is_active
+    (name, generic_name) [unique]
+  }
+  
+  Note: 'Medication catalog'
+}
+
+Table medication_administrations {
+  id uuid [pk]
+  nursing_consultation_id uuid [not null, ref: > nursing_consultations.id]
+  medication_id uuid [not null, ref: > medications.id]
+  dosage varchar(100) [not null]
+  route varchar(50) [not null, note: 'oral, IV, IM, SC, topical, inhalation, rectal, other']
+  administration_date timestamp [not null]
+  administered_by uuid [not null, ref: > users.id]
+  patient_verified boolean [not null, default: false]
+  medication_verified boolean [not null, default: false]
+  dosage_verified boolean [not null, default: false]
+  route_verified boolean [not null, default: false]
+  time_verified boolean [not null, default: false]
+  adverse_reaction text
+  observations text
+  created_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    nursing_consultation_id
+    medication_id
+    administration_date
+  }
+  
+  Note: 'Medication administration with 5 rights verification'
+}
+
+// ===================================
+// APPOINTMENTS AND SCHEDULING
+// ===================================
+
+Table appointments {
+  id uuid [pk]
+  student_profile_id uuid [not null, ref: > student_profiles.id]
+  professional_id uuid [not null, ref: > users.id]
+  appointment_type varchar(50) [not null, note: 'psychology_initial, psychology_followup, nursing, emergency']
+  department varchar(50) [not null, note: 'psychology, nursing']
+  scheduled_date timestamp [not null]
+  duration_minutes integer [not null]
+  status varchar(20) [not null, default: 'scheduled', note: 'scheduled, confirmed, in_progress, completed, cancelled, no_show']
+  cancellation_reason text
+  notes text
+  created_by uuid [not null, ref: > users.id]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    student_profile_id
+    professional_id
+    scheduled_date
+    status
+    department
+    (professional_id, scheduled_date)
+  }
+  
+  Note: 'Appointment scheduling for psychology and nursing'
+}
+
+Table appointment_reminders {
+  id uuid [pk]
+  appointment_id uuid [not null, ref: > appointments.id]
+  reminder_type varchar(20) [not null, note: 'email, sms, notification']
+  scheduled_for timestamp [not null]
+  sent_at timestamp
+  status varchar(20) [not null, default: 'pending', note: 'pending, sent, failed']
+  created_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    appointment_id
+    scheduled_for
+    status
+  }
+  
+  Note: 'Automatic appointment reminders'
+}
+
+Table waiting_list {
+  id uuid [pk]
+  student_profile_id uuid [not null, ref: > student_profiles.id]
+  department varchar(50) [not null]
+  preferred_professional_id uuid [ref: > users.id]
+  requested_date date
+  priority varchar(20) [not null, default: 'normal', note: 'normal, urgent, emergency']
+  reason text
+  status varchar(20) [not null, default: 'waiting', note: 'waiting, scheduled, cancelled']
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    student_profile_id
+    department
+    priority
+    status
+  }
+  
+  Note: 'Waiting list when no availability'
+}
+
+Table professional_schedules {
+  id uuid [pk]
+  professional_id uuid [not null, ref: > users.id]
+  day_of_week integer [not null, note: '0=Sunday, 6=Saturday']
+  start_time time [not null]
+  end_time time [not null]
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    professional_id
+    day_of_week
+  }
+  
+  Note: 'Professional availability schedules'
+}
+
+// ===================================
+// INTERCONSULTATIONS
+// ===================================
+
+Table interconsultations {
+  id uuid [pk]
+  student_profile_id uuid [not null, ref: > student_profiles.id]
+  from_department varchar(50) [not null]
+  to_department varchar(50) [not null]
+  from_professional_id uuid [not null, ref: > users.id]
+  to_professional_id uuid [ref: > users.id]
+  reason text [not null]
+  relevant_information text
+  urgency varchar(20) [not null, default: 'routine', note: 'routine, urgent, emergency']
+  status varchar(20) [not null, default: 'pending', note: 'pending, in_review, completed, rejected']
+  response text
+  responded_by uuid [ref: > users.id]
+  responded_at timestamp
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    student_profile_id
+    from_professional_id
+    to_professional_id
+    status
+  }
+  
+  Note: 'Inter-department consultations'
+}
+
+// ===================================
+// AUDIT AND REPORTS
+// ===================================
+
+Table audit_logs {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  action varchar(50) [not null, note: 'create, read, update, delete']
+  table_name varchar(100) [not null]
+  record_id uuid [not null]
+  old_values jsonb
+  new_values jsonb
+  ip_address varchar(45)
+  user_agent text
+  created_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    user_id
+    table_name
+    record_id
+    created_at
+    action
+  }
+  
+  Note: 'Audit trail for compliance and security'
+}
+
+Table reports {
+  id uuid [pk]
+  report_type varchar(100) [not null]
+  department varchar(50) [not null, note: 'psychology, nursing, general']
+  period_start date [not null]
+  period_end date [not null]
+  filters jsonb
+  generated_by uuid [not null, ref: > users.id]
+  file_url varchar(500)
+  created_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    report_type
+    department
+    created_at
+    generated_by
+  }
+  
+  Note: 'Generated reports metadata'
+}
+
+Table system_settings {
+  id uuid [pk]
+  setting_key varchar(100) [unique, not null]
+  setting_value text [not null]
+  description text
+  updated_by uuid [ref: > users.id]
+  updated_at timestamp [not null, default: `now()`]
+  
+  indexes {
+    setting_key
+  }
+  
+  Note: 'System-wide configuration settings'
+}
