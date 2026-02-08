@@ -71,6 +71,12 @@
 
 </div>
 
+#### 📄 Documentación Disponible
+
+- **[📚 Guía Completa de la API](./API_DOCUMENTATION.md)** - Documentación detallada de endpoints, ejemplos y guías de uso
+- **[📄 Especificación OpenAPI 3.0](./openapi.yaml)** - Definición completa de la API REST
+- **[🚀 Swagger UI](http://localhost:5000/api-docs)** - Interfaz interactiva para probar endpoints (cuando el servidor esté corriendo)
+
 ### 📝 Logging y Monitoreo
 
 <div align="center">

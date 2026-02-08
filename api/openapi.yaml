@@ -1,0 +1,2598 @@
+openapi: 3.0.3
+info:
+  title: Electronic Health Record API
+  description: |
+    Sistema integral de gestión de registros de salud electrónicos para departamentos de enfermería y psicología.
+    
+    ## Características
+    - Gestión completa de expedientes médicos
+    - Sistema de citas y agendamiento
+    - Control de medicamentos y prescripciones
+    - Seguimiento de sesiones terapéuticas
+    - Interconsultas entre departamentos
+    - Reportes y estadísticas
+    - Auditoría completa de acciones
+    
+    ## Autenticación
+    La API utiliza JWT (JSON Web Tokens) para autenticación. Incluya el token en el header Authorization:
+    ```
+    Authorization: Bearer <token>
+    ```
+    
+    ## Roles de Usuario
+    - **admin**: Administrador del sistema con acceso completo
+    - **psychologist**: Psicólogo con acceso a expedientes y sesiones terapéuticas
+    - **nurse**: Enfermero/a con acceso a medicamentos y procedimientos
+    - **doctor**: Médico general con acceso a expedientes médicos
+    - **receptionist**: Recepcionista con acceso a citas y datos básicos de pacientes
+    
+  version: 1.0.0
+  contact:
+    name: EHR System Support
+    email: support@ehr-system.com
+  license:
+    name: Proprietary
+    
+servers:
+  - url: http://localhost:5000/api
+    description: Development server
+  - url: https://staging-api.ehr-system.com/api
+    description: Staging server
+  - url: https://api.ehr-system.com/api
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: Endpoints de autenticación y autorización
+  - name: Patients
+    description: Gestión de pacientes y expedientes básicos
+  - name: Medical Records
+    description: Expedientes médicos completos
+  - name: Appointments
+    description: Sistema de citas y agendamiento
+  - name: Medications
+    description: Gestión de medicamentos y prescripciones
+  - name: Therapy Sessions
+    description: Registro y seguimiento de sesiones terapéuticas
+  - name: Psychometric Tests
+    description: Evaluaciones psicométricas
+  - name: Interconsultations
+    description: Interconsultas entre departamentos
+  - name: Reports
+    description: Reportes y estadísticas
+  - name: Audit Logs
+    description: Logs de auditoría
+  - name: Users
+    description: Gestión de usuarios del sistema
+  - name: Notifications
+    description: Sistema de notificaciones
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ==================== AUTHENTICATION ====================
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Iniciar sesión
+      description: Autentica un usuario y retorna tokens JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: doctor@hospital.com
+                password:
+                  type: string
+                  format: password
+                  example: SecurePass123!
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      accessToken:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      refreshToken:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      expiresIn:
+                        type: integer
+                        example: 604800
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Cerrar sesión
+      description: Invalida el token actual del usuario
+      responses:
+        '200':
+          description: Logout exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refrescar token
+      description: Genera un nuevo access token usando el refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: Token refrescado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                      expiresIn:
+                        type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+      summary: Solicitar recuperación de contraseña
+      description: Envía un email con link para resetear contraseña
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Email enviado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Authentication
+      summary: Resetear contraseña
+      description: Resetea la contraseña usando el token recibido por email
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - password
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Contraseña reseteada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # ==================== PATIENTS ====================
+  /patients:
+    get:
+      tags:
+        - Patients
+      summary: Listar pacientes
+      description: Obtiene lista paginada de pacientes con filtros opcionales
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Order'
+        - name: search
+          in: query
+          description: Búsqueda por nombre, matrícula o síntomas
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filtrar por estado
+          schema:
+            type: string
+            enum: [active, inactive, discharged]
+      responses:
+        '200':
+          description: Lista de pacientes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Patient'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags:
+        - Patients
+      summary: Registrar nuevo paciente
+      description: Crea un nuevo registro de paciente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientInput'
+      responses:
+        '201':
+          description: Paciente creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Patient'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /patients/{id}:
+    get:
+      tags:
+        - Patients
+      summary: Obtener paciente por ID
+      description: Retorna información detallada de un paciente
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+      responses:
+        '200':
+          description: Datos del paciente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Patient'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Patients
+      summary: Actualizar paciente
+      description: Actualiza información del paciente
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientInput'
+      responses:
+        '200':
+          description: Paciente actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Patient'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Patients
+      summary: Eliminar paciente
+      description: Elimina lógicamente un paciente (soft delete)
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+      responses:
+        '200':
+          description: Paciente eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== MEDICAL RECORDS ====================
+  /medical-records:
+    get:
+      tags:
+        - Medical Records
+      summary: Listar expedientes médicos
+      description: Obtiene lista de expedientes médicos
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: patientId
+          in: query
+          description: Filtrar por ID de paciente
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de expedientes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MedicalRecord'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Medical Records
+      summary: Crear expediente médico
+      description: Crea un nuevo expediente médico para un paciente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicalRecordInput'
+      responses:
+        '201':
+          description: Expediente creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/MedicalRecord'
+
+  /medical-records/{id}:
+    get:
+      tags:
+        - Medical Records
+      summary: Obtener expediente médico
+      description: Retorna expediente médico completo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Expediente médico
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/MedicalRecord'
+
+    put:
+      tags:
+        - Medical Records
+      summary: Actualizar expediente médico
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicalRecordInput'
+      responses:
+        '200':
+          description: Expediente actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/MedicalRecord'
+
+  /medical-records/{id}/diagnoses:
+    post:
+      tags:
+        - Medical Records
+      summary: Agregar diagnóstico
+      description: Agrega un nuevo diagnóstico al expediente (DSM-5 o CIE-10/11)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiagnosisInput'
+      responses:
+        '201':
+          description: Diagnóstico agregado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Diagnosis'
+
+  # ==================== APPOINTMENTS ====================
+  /appointments:
+    get:
+      tags:
+        - Appointments
+      summary: Listar citas
+      description: Obtiene lista de citas con filtros
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: date
+          in: query
+          description: Filtrar por fecha
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          description: Filtrar por estado
+          schema:
+            type: string
+            enum: [scheduled, completed, cancelled, no-show]
+        - name: type
+          in: query
+          description: Filtrar por tipo de consulta
+          schema:
+            type: string
+            enum: [psychology, nursing, general]
+        - name: professionalId
+          in: query
+          description: Filtrar por profesional
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de citas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Appointment'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Appointments
+      summary: Agendar cita
+      description: Crea una nueva cita
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentInput'
+      responses:
+        '201':
+          description: Cita agendada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Appointment'
+
+  /appointments/{id}:
+    get:
+      tags:
+        - Appointments
+      summary: Obtener cita por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalles de la cita
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Appointment'
+
+    put:
+      tags:
+        - Appointments
+      summary: Actualizar/Reprogramar cita
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentInput'
+      responses:
+        '200':
+          description: Cita actualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Appointment'
+
+    delete:
+      tags:
+        - Appointments
+      summary: Cancelar cita
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Cita cancelada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /appointments/availability:
+    get:
+      tags:
+        - Appointments
+      summary: Consultar disponibilidad
+      description: Obtiene horarios disponibles para agendar
+      parameters:
+        - name: professionalId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [psychology, nursing, general]
+      responses:
+        '200':
+          description: Horarios disponibles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      availableSlots:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            startTime:
+                              type: string
+                              format: time
+                            endTime:
+                              type: string
+                              format: time
+                            duration:
+                              type: integer
+                              description: Duración en minutos
+
+  # ==================== MEDICATIONS ====================
+  /medications:
+    get:
+      tags:
+        - Medications
+      summary: Listar medicamentos
+      description: Catálogo de medicamentos disponibles
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: search
+          in: query
+          description: Búsqueda por nombre
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de medicamentos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Medication'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Medications
+      summary: Registrar nuevo medicamento
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicationInput'
+      responses:
+        '201':
+          description: Medicamento registrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Medication'
+
+  /prescriptions:
+    get:
+      tags:
+        - Medications
+      summary: Listar prescripciones
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: patientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, completed, cancelled]
+      responses:
+        '200':
+          description: Lista de prescripciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Prescription'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Medications
+      summary: Crear prescripción
+      description: Prescribe medicamento a un paciente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrescriptionInput'
+      responses:
+        '201':
+          description: Prescripción creada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Prescription'
+
+  /prescriptions/{id}/administrations:
+    post:
+      tags:
+        - Medications
+      summary: Registrar administración de medicamento
+      description: Registra la administración de un medicamento con verificación de las 5 normas correctas
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicationAdministrationInput'
+      responses:
+        '201':
+          description: Administración registrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/MedicationAdministration'
+
+  # ==================== THERAPY SESSIONS ====================
+  /therapy-sessions:
+    get:
+      tags:
+        - Therapy Sessions
+      summary: Listar sesiones terapéuticas
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: patientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: psychologistId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [individual, group, family, couple]
+      responses:
+        '200':
+          description: Lista de sesiones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TherapySession'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Therapy Sessions
+      summary: Registrar sesión terapéutica
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TherapySessionInput'
+      responses:
+        '201':
+          description: Sesión registrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/TherapySession'
+
+  /therapy-sessions/{id}:
+    get:
+      tags:
+        - Therapy Sessions
+      summary: Obtener sesión por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalles de la sesión
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/TherapySession'
+
+    put:
+      tags:
+        - Therapy Sessions
+      summary: Actualizar sesión terapéutica
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TherapySessionInput'
+      responses:
+        '200':
+          description: Sesión actualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/TherapySession'
+
+  # ==================== PSYCHOMETRIC TESTS ====================
+  /psychometric-tests:
+    get:
+      tags:
+        - Psychometric Tests
+      summary: Listar evaluaciones psicométricas
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: patientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: testType
+          in: query
+          description: Tipo de test (Wizz, Wazz, Beck, etc.)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de evaluaciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PsychometricTest'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Psychometric Tests
+      summary: Registrar evaluación psicométrica
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PsychometricTestInput'
+      responses:
+        '201':
+          description: Evaluación registrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/PsychometricTest'
+
+  # ==================== INTERCONSULTATIONS ====================
+  /interconsultations:
+    get:
+      tags:
+        - Interconsultations
+      summary: Listar interconsultas
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: patientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, in-progress, completed, cancelled]
+      responses:
+        '200':
+          description: Lista de interconsultas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Interconsultation'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Interconsultations
+      summary: Crear interconsulta
+      description: Solicita interconsulta entre departamentos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterconsultationInput'
+      responses:
+        '201':
+          description: Interconsulta creada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Interconsultation'
+
+  /interconsultations/{id}/response:
+    post:
+      tags:
+        - Interconsultations
+      summary: Responder interconsulta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - response
+                - status
+              properties:
+                response:
+                  type: string
+                status:
+                  type: string
+                  enum: [completed, requires-followup]
+      responses:
+        '200':
+          description: Respuesta registrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Interconsultation'
+
+  # ==================== REPORTS ====================
+  /reports/statistics:
+    get:
+      tags:
+        - Reports
+      summary: Obtener estadísticas generales
+      description: Reportes y estadísticas del sistema
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: department
+          in: query
+          schema:
+            type: string
+            enum: [psychology, nursing, all]
+      responses:
+        '200':
+          description: Estadísticas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Statistics'
+
+  /reports/consultations:
+    get:
+      tags:
+        - Reports
+      summary: Reporte de consultas
+      description: Reporte detallado de consultas por período
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, pdf, excel]
+            default: json
+      responses:
+        '200':
+          description: Reporte de consultas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /reports/diagnoses:
+    get:
+      tags:
+        - Reports
+      summary: Reporte de diagnósticos
+      description: Estadísticas de diagnósticos más frecuentes
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Reporte de diagnósticos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        diagnosis:
+                          type: string
+                        code:
+                          type: string
+                        count:
+                          type: integer
+                        percentage:
+                          type: number
+                          format: float
+
+  # ==================== AUDIT LOGS ====================
+  /audit-logs:
+    get:
+      tags:
+        - Audit Logs
+      summary: Consultar logs de auditoría
+      description: Acceso a logs de auditoría del sistema (solo administradores)
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: userId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum: [create, read, update, delete, login, logout]
+        - name: resource
+          in: query
+          description: Tipo de recurso (patient, medical-record, etc.)
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Logs de auditoría
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditLog'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ==================== USERS ====================
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Listar usuarios
+      description: Lista de usuarios del sistema (solo administradores)
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [admin, psychologist, nurse, doctor, receptionist]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Users
+      summary: Crear usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Obtener usuario por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Datos del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+
+    put:
+      tags:
+        - Users
+      summary: Actualizar usuario
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '200':
+          description: Usuario actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+
+    delete:
+      tags:
+        - Users
+      summary: Desactivar usuario
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Usuario desactivado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  # ==================== NOTIFICATIONS ====================
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: Obtener notificaciones del usuario actual
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [read, unread, all]
+            default: all
+      responses:
+        '200':
+          description: Lista de notificaciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /notifications/{id}/read:
+    put:
+      tags:
+        - Notifications
+      summary: Marcar notificación como leída
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notificación marcada como leída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+# ==================== COMPONENTS ====================
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtenido del endpoint /auth/login
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Número de página
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    
+    Limit:
+      name: limit
+      in: query
+      description: Número de resultados por página
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    
+    Sort:
+      name: sort
+      in: query
+      description: Campo por el cual ordenar
+      schema:
+        type: string
+    
+    Order:
+      name: order
+      in: query
+      description: Orden ascendente o descendente
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: asc
+    
+    PatientId:
+      name: id
+      in: path
+      required: true
+      description: ID único del paciente
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    # ==================== COMMON SCHEMAS ====================
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operación exitosa
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Error de validación
+            details:
+              type: array
+              items:
+                type: object
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        totalPages:
+          type: integer
+          example: 5
+        totalItems:
+          type: integer
+          example: 95
+        hasNext:
+          type: boolean
+          example: true
+        hasPrev:
+          type: boolean
+          example: false
+
+    # ==================== USER SCHEMAS ====================
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+          enum: [admin, psychologist, nurse, doctor, receptionist]
+        specialization:
+          type: string
+        licenseNumber:
+          type: string
+        phone:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserInput:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+          enum: [admin, psychologist, nurse, doctor, receptionist]
+        specialization:
+          type: string
+        licenseNumber:
+          type: string
+        phone:
+          type: string
+
+    # ==================== PATIENT SCHEMAS ====================
+    Patient:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        registrationNumber:
+          type: string
+          description: Matrícula del estudiante
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        age:
+          type: integer
+        gender:
+          type: string
+          enum: [male, female, other]
+        maritalStatus:
+          type: string
+          enum: [single, married, divorced, widowed]
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        address:
+          type: string
+        emergencyContact:
+          type: object
+          properties:
+            name:
+              type: string
+            relationship:
+              type: string
+            phone:
+              type: string
+        guardian:
+          type: object
+          properties:
+            name:
+              type: string
+            relationship:
+              type: string
+            phone:
+              type: string
+        academicInfo:
+          type: object
+          properties:
+            career:
+              type: string
+            group:
+              type: string
+            semester:
+              type: integer
+        occupation:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, discharged]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PatientInput:
+      type: object
+      required:
+        - registrationNumber
+        - firstName
+        - lastName
+        - dateOfBirth
+        - phone
+      properties:
+        registrationNumber:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female, other]
+        maritalStatus:
+          type: string
+          enum: [single, married, divorced, widowed]
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        address:
+          type: string
+        emergencyContact:
+          type: object
+          properties:
+            name:
+              type: string
+            relationship:
+              type: string
+            phone:
+              type: string
+        guardian:
+          type: object
+          properties:
+            name:
+              type: string
+            relationship:
+              type: string
+            phone:
+              type: string
+        academicInfo:
+          type: object
+          properties:
+            career:
+              type: string
+            group:
+              type: string
+            semester:
+              type: integer
+        occupation:
+          type: string
+
+    # ==================== MEDICAL RECORD SCHEMAS ====================
+    MedicalRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        chiefComplaint:
+          type: string
+          description: Motivo de consulta
+        psychologicalHistory:
+          type: string
+        familyHistory:
+          type: string
+        personalHistory:
+          type: string
+        allergies:
+          type: array
+          items:
+            type: string
+        diagnoses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Diagnosis'
+        createdBy:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MedicalRecordInput:
+      type: object
+      required:
+        - patientId
+        - chiefComplaint
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        chiefComplaint:
+          type: string
+        psychologicalHistory:
+          type: string
+        familyHistory:
+          type: string
+        personalHistory:
+          type: string
+        allergies:
+          type: array
+          items:
+            type: string
+
+    Diagnosis:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          description: Código DSM-5 o CIE-10/11
+        classification:
+          type: string
+          enum: [DSM-5, ICD-10, ICD-11]
+        name:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [mild, moderate, severe]
+        diagnosedBy:
+          type: string
+          format: uuid
+        diagnosedAt:
+          type: string
+          format: date-time
+
+    DiagnosisInput:
+      type: object
+      required:
+        - code
+        - classification
+        - name
+      properties:
+        code:
+          type: string
+        classification:
+          type: string
+          enum: [DSM-5, ICD-10, ICD-11]
+        name:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [mild, moderate, severe]
+
+    # ==================== APPOINTMENT SCHEMAS ====================
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        professionalId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [psychology, nursing, general]
+        date:
+          type: string
+          format: date
+        startTime:
+          type: string
+          format: time
+        endTime:
+          type: string
+          format: time
+        duration:
+          type: integer
+          description: Duración en minutos
+        status:
+          type: string
+          enum: [scheduled, completed, cancelled, no-show]
+        reason:
+          type: string
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AppointmentInput:
+      type: object
+      required:
+        - patientId
+        - professionalId
+        - type
+        - date
+        - startTime
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        professionalId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [psychology, nursing, general]
+        date:
+          type: string
+          format: date
+        startTime:
+          type: string
+          format: time
+        duration:
+          type: integer
+        reason:
+          type: string
+        notes:
+          type: string
+
+    # ==================== MEDICATION SCHEMAS ====================
+    Medication:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        genericName:
+          type: string
+        category:
+          type: string
+        presentation:
+          type: string
+        concentration:
+          type: string
+        manufacturer:
+          type: string
+        requiresPrescription:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    MedicationInput:
+      type: object
+      required:
+        - name
+        - category
+      properties:
+        name:
+          type: string
+        genericName:
+          type: string
+        category:
+          type: string
+        presentation:
+          type: string
+        concentration:
+          type: string
+        manufacturer:
+          type: string
+        requiresPrescription:
+          type: boolean
+
+    Prescription:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        medicationId:
+          type: string
+          format: uuid
+        prescribedBy:
+          type: string
+          format: uuid
+        dosage:
+          type: string
+        frequency:
+          type: string
+        route:
+          type: string
+          enum: [oral, intravenous, intramuscular, subcutaneous, topical, other]
+        duration:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        instructions:
+          type: string
+        status:
+          type: string
+          enum: [active, completed, cancelled]
+        createdAt:
+          type: string
+          format: date-time
+
+    PrescriptionInput:
+      type: object
+      required:
+        - patientId
+        - medicationId
+        - dosage
+        - frequency
+        - route
+        - startDate
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        medicationId:
+          type: string
+          format: uuid
+        dosage:
+          type: string
+        frequency:
+          type: string
+        route:
+          type: string
+          enum: [oral, intravenous, intramuscular, subcutaneous, topical, other]
+        duration:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        instructions:
+          type: string
+
+    MedicationAdministration:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        prescriptionId:
+          type: string
+          format: uuid
+        administeredBy:
+          type: string
+          format: uuid
+        administeredAt:
+          type: string
+          format: date-time
+        dosageAdministered:
+          type: string
+        route:
+          type: string
+        verifications:
+          type: object
+          description: Verificación de las 5 normas correctas
+          properties:
+            correctPatient:
+              type: boolean
+            correctMedication:
+              type: boolean
+            correctDose:
+              type: boolean
+            correctRoute:
+              type: boolean
+            correctTime:
+              type: boolean
+        adverseReaction:
+          type: boolean
+        adverseReactionDetails:
+          type: string
+        notes:
+          type: string
+
+    MedicationAdministrationInput:
+      type: object
+      required:
+        - administeredAt
+        - dosageAdministered
+        - route
+      properties:
+        administeredAt:
+          type: string
+          format: date-time
+        dosageAdministered:
+          type: string
+        route:
+          type: string
+        adverseReaction:
+          type: boolean
+        adverseReactionDetails:
+          type: string
+        notes:
+          type: string
+
+    # ==================== THERAPY SESSION SCHEMAS ====================
+    TherapySession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        psychologistId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [individual, group, family, couple]
+        date:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+          description: Duración en minutos
+        progressNotes:
+          type: string
+          description: Notas de evolución
+        interventions:
+          type: string
+        homework:
+          type: string
+          description: Tareas asignadas
+        observations:
+          type: string
+        nextSessionDate:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TherapySessionInput:
+      type: object
+      required:
+        - patientId
+        - type
+        - date
+        - progressNotes
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [individual, group, family, couple]
+        date:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+        progressNotes:
+          type: string
+        interventions:
+          type: string
+        homework:
+          type: string
+        observations:
+          type: string
+        nextSessionDate:
+          type: string
+          format: date
+
+    # ==================== PSYCHOMETRIC TEST SCHEMAS ====================
+    PsychometricTest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        administeredBy:
+          type: string
+          format: uuid
+        testType:
+          type: string
+          description: Tipo de test (Wizz, Wazz, Beck, etc.)
+        testDate:
+          type: string
+          format: date-time
+        rawScore:
+          type: number
+        scaledScore:
+          type: number
+        interpretation:
+          type: string
+        results:
+          type: object
+          description: Resultados detallados del test
+        recommendations:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PsychometricTestInput:
+      type: object
+      required:
+        - patientId
+        - testType
+        - testDate
+        - rawScore
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        testType:
+          type: string
+        testDate:
+          type: string
+          format: date-time
+        rawScore:
+          type: number
+        scaledScore:
+          type: number
+        interpretation:
+          type: string
+        results:
+          type: object
+        recommendations:
+          type: string
+
+    # ==================== INTERCONSULTATION SCHEMAS ====================
+    Interconsultation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        requestedBy:
+          type: string
+          format: uuid
+        requestedTo:
+          type: string
+          format: uuid
+        fromDepartment:
+          type: string
+          enum: [psychology, nursing, general]
+        toDepartment:
+          type: string
+          enum: [psychology, nursing, general]
+        reason:
+          type: string
+        urgency:
+          type: string
+          enum: [low, medium, high, urgent]
+        status:
+          type: string
+          enum: [pending, in-progress, completed, cancelled]
+        requestDate:
+          type: string
+          format: date-time
+        response:
+          type: string
+        responseDate:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    InterconsultationInput:
+      type: object
+      required:
+        - patientId
+        - requestedTo
+        - toDepartment
+        - reason
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        requestedTo:
+          type: string
+          format: uuid
+        toDepartment:
+          type: string
+          enum: [psychology, nursing, general]
+        reason:
+          type: string
+        urgency:
+          type: string
+          enum: [low, medium, high, urgent]
+          default: medium
+
+    # ==================== STATISTICS SCHEMAS ====================
+    Statistics:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            startDate:
+              type: string
+              format: date
+            endDate:
+              type: string
+              format: date
+        consultations:
+          type: object
+          properties:
+            total:
+              type: integer
+            byType:
+              type: object
+              properties:
+                psychology:
+                  type: integer
+                nursing:
+                  type: integer
+                general:
+                  type: integer
+            byStatus:
+              type: object
+              properties:
+                completed:
+                  type: integer
+                cancelled:
+                  type: integer
+                noShow:
+                  type: integer
+        patients:
+          type: object
+          properties:
+            total:
+              type: integer
+            new:
+              type: integer
+            active:
+              type: integer
+        diagnoses:
+          type: object
+          properties:
+            total:
+              type: integer
+            mostFrequent:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  count:
+                    type: integer
+        therapySessions:
+          type: object
+          properties:
+            total:
+              type: integer
+            byType:
+              type: object
+              properties:
+                individual:
+                  type: integer
+                group:
+                  type: integer
+                family:
+                  type: integer
+                couple:
+                  type: integer
+
+    # ==================== AUDIT LOG SCHEMAS ====================
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum: [create, read, update, delete, login, logout]
+        resource:
+          type: string
+          description: Tipo de recurso afectado
+        resourceId:
+          type: string
+          format: uuid
+        changes:
+          type: object
+          description: Detalle de cambios realizados
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    # ==================== NOTIFICATION SCHEMAS ====================
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [appointment-reminder, interconsultation, system, alert]
+        title:
+          type: string
+        message:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+        isRead:
+          type: boolean
+        metadata:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Solicitud incorrecta
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: BAD_REQUEST
+              message: La solicitud contiene datos inválidos
+
+    Unauthorized:
+      description: No autenticado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: UNAUTHORIZED
+              message: Token inválido o expirado
+
+    Forbidden:
+      description: Sin permisos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: FORBIDDEN
+              message: No tienes permisos para acceder a este recurso
+
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: NOT_FOUND
+              message: El recurso solicitado no existe
+
+    ValidationError:
+      description: Error de validación
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: VALIDATION_ERROR
+              message: Errores de validación en los datos enviados
+              details:
+                - field: email
+                  message: Email inválido
+                - field: password
+                  message: La contraseña debe tener al menos 8 caracteres
+
+    InternalServerError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: INTERNAL_SERVER_ERROR
+              message: Ha ocurrido un error interno en el servidor

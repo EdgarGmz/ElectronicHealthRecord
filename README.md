@@ -385,7 +385,9 @@ El proyecto mantiene una cobertura mínima de:
 - **[Estructura del Proyecto](./PROJECT_STRUCTURE.md)** - Detalles de arquitectura
 - **[Referencia Rápida](./QUICK_REFERENCE.md)** - Comandos y referencias
 - **[Análisis de Riesgos y Amenazas](./documents/Analisis-Riesgos-Amenazas.md)** - Evaluación de seguridad y cumplimiento
-- **[API Documentation](http://localhost:5000/api-docs)** - Swagger UI (en desarrollo)
+- **[📚 Documentación API REST](./api/API_DOCUMENTATION.md)** - Guía completa de endpoints y uso
+- **[📄 Especificación OpenAPI](./api/openapi.yaml)** - Definición OpenAPI 3.0 de la API
+- **[API Documentation (Swagger UI)](http://localhost:5000/api-docs)** - Documentación interactiva (en desarrollo)
 - **[Frontend Docs](./client/README.md)** - Stack tecnológico frontend
 - **[Backend Docs](./api/README.md)** - Stack tecnológico backend
 
