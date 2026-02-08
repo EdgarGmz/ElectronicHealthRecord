@@ -1,0 +1,456 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String              @id @default(uuid()) @db.Uuid
+  enrollmentNumber String?             @map("enrollment_number") @db.VarChar(20)
+  email            String              @unique @db.VarChar(255)
+  passwordHash     String              @map("password_hash") @db.VarChar(255)
+  firstName        String              @map("first_name") @db.VarChar(100)
+  lastName         String              @map("last_name") @db.VarChar(100)
+  dateOfBirth      DateTime            @map("date_of_birth") @db.Date
+  phone            String?             @db.VarChar(20)
+  role             String              @db.VarChar(50)
+  isActive         Boolean             @map("is_active") @default(true)
+  createdAt        DateTime            @map("created_at") @default(now())
+  updatedAt        DateTime            @map("updated_at") @default(now())
+
+  patient               Patient?
+  createdMedicalRecords MedicalRecord[] @relation("MedicalRecordCreatedBy")
+  updatedMedicalRecords MedicalRecord[] @relation("MedicalRecordUpdatedBy")
+  psychologyAssignments PsychologyRecord[]
+  psychometricApplied   PsychometricEvaluation[] @relation("PsychometricAppliedBy")
+  therapySessions       TherapySession[]
+  treatmentPlans        TreatmentPlan[]
+  nursingConsultations  NursingConsultation[]
+  nursingProcedures     NursingProcedure[]
+  medicationAdmins      MedicationAdministration[]
+  appointments          Appointment[] @relation("AppointmentProfessional")
+  appointmentsCreated   Appointment[] @relation("AppointmentCreatedBy")
+  schedules             ProfessionalSchedule[]
+  interconsultFrom      Interconsultation[] @relation("InterconsultationFrom")
+  interconsultTo        Interconsultation[] @relation("InterconsultationTo")
+  interconsultResponded Interconsultation[] @relation("InterconsultationRespondedBy")
+  auditLogs             AuditLog[]
+  reports               Report[]
+  systemSettingsUpdated SystemSetting[]
+  psychologistCareers   PsychologistCareer[]
+
+  @@map("users")
+}
+
+model Career {
+  id         String               @id @default(uuid()) @db.Uuid
+  name       String               @unique @db.VarChar(150)
+  code       String?              @unique @db.VarChar(30)
+  isActive   Boolean              @map("is_active") @default(true)
+  createdAt  DateTime             @map("created_at") @default(now())
+  updatedAt  DateTime             @map("updated_at") @default(now())
+
+  patients   Patient[]
+  assignment PsychologistCareer?
+
+  @@map("careers")
+}
+
+model Patient {
+  id           String              @id @default(uuid()) @db.Uuid
+  userId       String              @unique @map("user_id") @db.Uuid
+  patientType  String              @map("patient_type") @db.VarChar(30)
+  maritalStatus String?            @map("marital_status") @db.VarChar(50)
+  guardianName String?             @map("guardian_name") @db.VarChar(200)
+  guardianPhone String?            @map("guardian_phone") @db.VarChar(20)
+  careerId     String              @map("career_id") @db.Uuid
+  group        String?             @map("group") @db.VarChar(20)
+  occupation   String?             @db.VarChar(100)
+  trimester    Int?                @db.Integer
+  createdAt    DateTime            @map("created_at") @default(now())
+  updatedAt    DateTime            @map("updated_at") @default(now())
+
+  user         User                @relation(fields: [userId], references: [id])
+  career       Career              @relation(fields: [careerId], references: [id])
+  emergencyContacts EmergencyContact[]
+  medicalRecord MedicalRecord?
+  appointments Appointment[]
+  waitingList  WaitingList[]
+  interconsultations Interconsultation[]
+
+  @@map("patients")
+}
+
+model PsychologistCareer {
+  id            String   @id @default(uuid()) @db.Uuid
+  psychologistId String  @map("psychologist_id") @db.Uuid
+  careerId      String   @unique @map("career_id") @db.Uuid
+  assignedAt    DateTime @map("assigned_at") @default(now())
+
+  psychologist  User     @relation(fields: [psychologistId], references: [id])
+  career        Career   @relation(fields: [careerId], references: [id])
+
+  @@unique([psychologistId, careerId])
+  @@map("psychologist_careers")
+}
+
+model EmergencyContact {
+  id            String   @id @default(uuid()) @db.Uuid
+  patientId     String   @map("patient_id") @db.Uuid
+  name          String   @db.VarChar(200)
+  relationship  String   @db.VarChar(50)
+  phone         String   @db.VarChar(20)
+  phoneSecondary String? @map("phone_secondary") @db.VarChar(20)
+  priority      Int      @default(1)
+  createdAt     DateTime @map("created_at") @default(now())
+  updatedAt     DateTime @map("updated_at") @default(now())
+
+  patient       Patient  @relation(fields: [patientId], references: [id])
+
+  @@map("emergency_contacts")
+}
+
+model MedicalRecord {
+  id               String   @id @default(uuid()) @db.Uuid
+  patientId        String   @unique @map("patient_id") @db.Uuid
+  bloodType        String?  @map("blood_type") @db.VarChar(10)
+  allergies        String?
+  chronicConditions String? @map("chronic_conditions")
+  currentMedications String? @map("current_medications")
+  familyHistory    String?  @map("family_history")
+  notes            String?
+  createdAt        DateTime @map("created_at") @default(now())
+  createdBy        String   @map("created_by") @db.Uuid
+  updatedAt        DateTime @map("updated_at") @default(now())
+  updatedBy        String   @map("updated_by") @db.Uuid
+
+  patient          Patient  @relation(fields: [patientId], references: [id])
+  createdByUser    User     @relation("MedicalRecordCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser    User     @relation("MedicalRecordUpdatedBy", fields: [updatedBy], references: [id])
+  psychologyRecord PsychologyRecord?
+  nursingConsultations NursingConsultation[]
+
+  @@map("medical_records")
+}
+
+model PsychologyRecord {
+  id                  String   @id @default(uuid()) @db.Uuid
+  medicalRecordId     String   @unique @map("medical_record_id") @db.Uuid
+  initialEvaluationDate DateTime? @map("initial_evaluation_date") @db.Date
+  chiefComplaint      String?  @map("chief_complaint")
+  psychologicalHistory String? @map("psychological_history")
+  psychiatricHistory  String?  @map("psychiatric_history")
+  substanceUse        String?  @map("substance_use")
+  suicideRiskLevel    String   @map("suicide_risk_level") @db.VarChar(20)
+  violenceRiskLevel   String   @map("violence_risk_level") @db.VarChar(20)
+  currentDiagnosisDsm5 String? @map("current_diagnosis_dsm5") @db.VarChar(100)
+  currentDiagnosisCie10 String? @map("current_diagnosis_cie10") @db.VarChar(100)
+  supportNetwork      String?  @map("support_network")
+  assignedPsychologistId String? @map("assigned_psychologist_id") @db.Uuid
+  createdAt          DateTime @map("created_at") @default(now())
+  updatedAt          DateTime @map("updated_at") @default(now())
+
+  medicalRecord       MedicalRecord @relation(fields: [medicalRecordId], references: [id])
+  assignedPsychologist User? @relation(fields: [assignedPsychologistId], references: [id])
+  psychometricEvaluations PsychometricEvaluation[]
+  therapySessions     TherapySession[]
+  treatmentPlans      TreatmentPlan[]
+
+  @@map("psychology_records")
+}
+
+model PsychometricEvaluation {
+  id                 String   @id @default(uuid()) @db.Uuid
+  psychologyRecordId String   @map("psychology_record_id") @db.Uuid
+  evaluationType     String   @map("evaluation_type") @db.VarChar(100)
+  applicationDate    DateTime @map("application_date") @db.Date
+  rawScore           Decimal? @map("raw_score") @db.Decimal(10,2)
+  standardScore      Decimal? @map("standard_score") @db.Decimal(10,2)
+  percentile         Int?
+  interpretation     String?
+  administeredBy     String   @map("administered_by") @db.Uuid
+  fileUrl            String?  @map("file_url") @db.VarChar(500)
+  createdAt          DateTime @map("created_at") @default(now())
+  updatedAt          DateTime @map("updated_at") @default(now())
+
+  psychologyRecord   PsychologyRecord @relation(fields: [psychologyRecordId], references: [id])
+  administeredByUser User             @relation("PsychometricAppliedBy", fields: [administeredBy], references: [id])
+
+  @@map("psychometric_evaluations")
+}
+
+model TherapySession {
+  id                 String   @id @default(uuid()) @db.Uuid
+  psychologyRecordId String   @map("psychology_record_id") @db.Uuid
+  sessionNumber      Int      @map("session_number")
+  sessionDate        DateTime @map("session_date")
+  sessionDuration    Int      @map("session_duration") @default(50)
+  mood               String   @db.VarChar(30)
+  evolutionNotes     String?  @map("evolution_notes")
+  patientProgress    String?  @map("patient_progress")
+  assignedTasks      String?  @map("assigned_tasks")
+  observations       String?
+  nextSessionPlan    String?  @map("next_session_plan")
+  therapistId        String   @map("therapist_id") @db.Uuid
+  createdAt          DateTime @map("created_at") @default(now())
+  updatedAt          DateTime @map("updated_at") @default(now())
+
+  psychologyRecord   PsychologyRecord @relation(fields: [psychologyRecordId], references: [id])
+  therapist          User             @relation(fields: [therapistId], references: [id])
+
+  @@unique([psychologyRecordId, sessionNumber])
+  @@map("therapy_sessions")
+}
+
+model TreatmentPlan {
+  id                 String   @id @default(uuid()) @db.Uuid
+  psychologyRecordId String   @map("psychology_record_id") @db.Uuid
+  startDate          DateTime @map("start_date") @db.Date
+  endDate            DateTime? @map("end_date") @db.Date
+  therapeuticApproach String? @map("therapeutic_approach") @db.VarChar(100)
+  goals              String
+  interventions      String?
+  status             String   @db.VarChar(20)
+  createdBy          String   @map("created_by") @db.Uuid
+  createdAt          DateTime @map("created_at") @default(now())
+  updatedAt          DateTime @map("updated_at") @default(now())
+
+  psychologyRecord   PsychologyRecord @relation(fields: [psychologyRecordId], references: [id])
+  createdByUser      User             @relation(fields: [createdBy], references: [id])
+
+  @@map("treatment_plans")
+}
+
+model NursingConsultation {
+  id                 String   @id @default(uuid()) @db.Uuid
+  medicalRecordId    String   @map("medical_record_id") @db.Uuid
+  consultationDate   DateTime @map("consultation_date")
+  chiefComplaint     String?  @map("chief_complaint")
+  vitalSignsTemperature Decimal? @map("vital_signs_temperature") @db.Decimal(4,2)
+  vitalSignsBloodPressureSys Int? @map("vital_signs_blood_pressure_sys")
+  vitalSignsBloodPressureDia Int? @map("vital_signs_blood_pressure_dia")
+  vitalSignsHeartRate Int? @map("vital_signs_heart_rate")
+  vitalSignsRespiratoryRate Int? @map("vital_signs_respiratory_rate")
+  vitalSignsOxygenSaturation Int? @map("vital_signs_oxygen_saturation")
+  vitalSignsWeight   Decimal? @map("vital_signs_weight") @db.Decimal(5,2)
+  vitalSignsHeight   Decimal? @map("vital_signs_height") @db.Decimal(5,2)
+  physicalExamination String? @map("physical_examination")
+  diagnosis          String?
+  treatmentPlan      String? @map("treatment_plan")
+  observations       String?
+  nurseId            String   @map("nurse_id") @db.Uuid
+  createdAt          DateTime @map("created_at") @default(now())
+  updatedAt          DateTime @map("updated_at") @default(now())
+
+  medicalRecord      MedicalRecord @relation(fields: [medicalRecordId], references: [id])
+  nurse              User          @relation(fields: [nurseId], references: [id])
+  nursingProcedures  NursingProcedure[]
+  medicationAdministrations MedicationAdministration[]
+
+  @@map("nursing_consultations")
+}
+
+model NursingProcedure {
+  id                 String   @id @default(uuid()) @db.Uuid
+  nursingConsultationId String @map("nursing_consultation_id") @db.Uuid
+  procedureType      String   @map("procedure_type") @db.VarChar(100)
+  procedureDate      DateTime @map("procedure_date")
+  description        String
+  materialsUsed      String?  @map("materials_used")
+  observations       String?
+  performedBy        String   @map("performed_by") @db.Uuid
+  createdAt          DateTime @map("created_at") @default(now())
+
+  consultation       NursingConsultation @relation(fields: [nursingConsultationId], references: [id])
+  performedByUser    User                @relation(fields: [performedBy], references: [id])
+
+  @@map("nursing_procedures")
+}
+
+model Medication {
+  id                 String   @id @default(uuid()) @db.Uuid
+  name               String   @db.VarChar(200)
+  genericName        String   @map("generic_name") @db.VarChar(200)
+  category           String?  @db.VarChar(100)
+  dosageForms        String?  @map("dosage_forms")
+  commonDosages      String?  @map("common_dosages")
+  administrationRoutes String? @map("administration_routes")
+  contraindications  String?
+  sideEffects        String?  @map("side_effects")
+  isActive           Boolean  @map("is_active") @default(true)
+  createdAt          DateTime @map("created_at") @default(now())
+  updatedAt          DateTime @map("updated_at") @default(now())
+
+  administrations    MedicationAdministration[]
+
+  @@unique([name, genericName])
+  @@map("medications")
+}
+
+model MedicationAdministration {
+  id                 String   @id @default(uuid()) @db.Uuid
+  nursingConsultationId String @map("nursing_consultation_id") @db.Uuid
+  medicationId       String   @map("medication_id") @db.Uuid
+  dosage             String   @db.VarChar(100)
+  route              String   @db.VarChar(50)
+  administrationDate DateTime @map("administration_date")
+  administeredBy     String   @map("administered_by") @db.Uuid
+  patientVerified    Boolean  @map("patient_verified") @default(false)
+  medicationVerified Boolean  @map("medication_verified") @default(false)
+  dosageVerified     Boolean  @map("dosage_verified") @default(false)
+  routeVerified      Boolean  @map("route_verified") @default(false)
+  timeVerified       Boolean  @map("time_verified") @default(false)
+  adverseReaction    String?  @map("adverse_reaction")
+  observations       String?
+  createdAt          DateTime @map("created_at") @default(now())
+
+  consultation       NursingConsultation @relation(fields: [nursingConsultationId], references: [id])
+  medication         Medication         @relation(fields: [medicationId], references: [id])
+  administeredByUser User               @relation(fields: [administeredBy], references: [id])
+
+  @@map("medication_administrations")
+}
+
+model Appointment {
+  id                 String   @id @default(uuid()) @db.Uuid
+  patientId          String   @map("patient_id") @db.Uuid
+  professionalId     String   @map("professional_id") @db.Uuid
+  appointmentType    String   @map("appointment_type") @db.VarChar(50)
+  department         String   @db.VarChar(50)
+  scheduledDate      DateTime @map("scheduled_date")
+  durationMinutes    Int      @map("duration_minutes")
+  status             String   @db.VarChar(20)
+  cancellationReason String?  @map("cancellation_reason")
+  notes              String?
+  createdBy          String   @map("created_by") @db.Uuid
+  createdAt          DateTime @map("created_at") @default(now())
+  updatedAt          DateTime @map("updated_at") @default(now())
+
+  patient            Patient  @relation(fields: [patientId], references: [id])
+  professional       User     @relation("AppointmentProfessional", fields: [professionalId], references: [id])
+  createdByUser      User     @relation("AppointmentCreatedBy", fields: [createdBy], references: [id])
+  reminders          AppointmentReminder[]
+
+  @@map("appointments")
+}
+
+model AppointmentReminder {
+  id            String   @id @default(uuid()) @db.Uuid
+  appointmentId String   @map("appointment_id") @db.Uuid
+  reminderType  String   @map("reminder_type") @db.VarChar(20)
+  scheduledFor  DateTime @map("scheduled_for")
+  sentAt        DateTime? @map("sent_at")
+  status        String   @db.VarChar(20)
+  createdAt     DateTime @map("created_at") @default(now())
+
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  @@map("appointment_reminders")
+}
+
+model WaitingList {
+  id                    String   @id @default(uuid()) @db.Uuid
+  patientId             String   @map("patient_id") @db.Uuid
+  department            String   @db.VarChar(50)
+  preferredProfessionalId String? @map("preferred_professional_id") @db.Uuid
+  requestedDate         DateTime? @map("requested_date") @db.Date
+  priority              String   @db.VarChar(20)
+  reason                String?
+  status                String   @db.VarChar(20)
+  createdAt             DateTime @map("created_at") @default(now())
+  updatedAt             DateTime @map("updated_at") @default(now())
+
+  patient               Patient @relation(fields: [patientId], references: [id])
+  preferredProfessional User?   @relation(fields: [preferredProfessionalId], references: [id])
+
+  @@map("waiting_list")
+}
+
+model ProfessionalSchedule {
+  id               String   @id @default(uuid()) @db.Uuid
+  professionalId   String   @map("professional_id") @db.Uuid
+  dayOfWeek        Int      @map("day_of_week")
+  startTime        DateTime @map("start_time") @db.Time
+  endTime          DateTime @map("end_time") @db.Time
+  isActive         Boolean  @map("is_active") @default(true)
+  createdAt        DateTime @map("created_at") @default(now())
+  updatedAt        DateTime @map("updated_at") @default(now())
+
+  professional     User     @relation(fields: [professionalId], references: [id])
+
+  @@map("professional_schedules")
+}
+
+model Interconsultation {
+  id                 String   @id @default(uuid()) @db.Uuid
+  patientId          String   @map("patient_id") @db.Uuid
+  fromDepartment     String   @map("from_department") @db.VarChar(50)
+  toDepartment       String   @map("to_department") @db.VarChar(50)
+  fromProfessionalId String   @map("from_professional_id") @db.Uuid
+  toProfessionalId   String?  @map("to_professional_id") @db.Uuid
+  reason             String
+  relevantInformation String? @map("relevant_information")
+  urgency            String   @db.VarChar(20)
+  status             String   @db.VarChar(20)
+  response           String?
+  respondedBy        String?  @map("responded_by") @db.Uuid
+  respondedAt        DateTime? @map("responded_at")
+  createdAt          DateTime @map("created_at") @default(now())
+  updatedAt          DateTime @map("updated_at") @default(now())
+
+  patient            Patient @relation(fields: [patientId], references: [id])
+  fromProfessional   User    @relation("InterconsultationFrom", fields: [fromProfessionalId], references: [id])
+  toProfessional     User?   @relation("InterconsultationTo", fields: [toProfessionalId], references: [id])
+  respondedByUser    User?   @relation("InterconsultationRespondedBy", fields: [respondedBy], references: [id])
+
+  @@map("interconsultations")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  action    String   @db.VarChar(50)
+  tableName String   @map("table_name") @db.VarChar(100)
+  recordId  String   @map("record_id") @db.Uuid
+  oldValues Json?    @map("old_values")
+  newValues Json?    @map("new_values")
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @map("created_at") @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Report {
+  id         String   @id @default(uuid()) @db.Uuid
+  reportType String   @map("report_type") @db.VarChar(100)
+  department String   @db.VarChar(50)
+  periodStart DateTime @map("period_start") @db.Date
+  periodEnd  DateTime @map("period_end") @db.Date
+  filters    Json?
+  generatedBy String  @map("generated_by") @db.Uuid
+  fileUrl    String?  @map("file_url") @db.VarChar(500)
+  createdAt  DateTime @map("created_at") @default(now())
+
+  generatedByUser User @relation(fields: [generatedBy], references: [id])
+
+  @@map("reports")
+}
+
+model SystemSetting {
+  id         String   @id @default(uuid()) @db.Uuid
+  settingKey String   @map("setting_key") @db.VarChar(100)
+  settingValue String @map("setting_value")
+  description String?
+  updatedBy   String? @map("updated_by") @db.Uuid
+  updatedAt   DateTime @map("updated_at") @default(now())
+
+  updatedByUser User?  @relation(fields: [updatedBy], references: [id])
+
+  @@map("system_settings")
+}
