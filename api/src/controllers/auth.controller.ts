@@ -81,7 +81,7 @@ export class AuthController {
     }
   }
 
-  async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async logout(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // In a production app, you might want to blacklist the token
       res.status(200).json({
