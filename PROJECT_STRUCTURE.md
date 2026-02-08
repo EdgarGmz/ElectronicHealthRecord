@@ -27,7 +27,7 @@ Este documento complementa la [Guía de GitHub Projects](./GITHUB_PROJECTS_GUIDE
 - ✅ Documento de requisitos no funcionales  
 - ✅ Casos de uso documentados
 - ✅ Historias de usuario
-- ✅ Análisis de riesgos
+- ✅ [Análisis de riesgos y amenazas](./documents/Analisis-Riesgos-Amenazas.md)
 - ✅ Análisis de tecnologías
 
 #### Tareas Principales:
@@ -43,10 +43,10 @@ Este documento complementa la [Guía de GitHub Projects](./GITHUB_PROJECTS_GUIDE
 5. Análisis de compliance (protección de datos médicos)
 
 #### Criterios de Salida:
-- [ ] Documento de requisitos aprobado por el equipo
-- [ ] Casos de uso validados
-- [ ] Stack tecnológico confirmado
-- [ ] Riesgos identificados y mitigaciones planteadas
+- [x] Documento de requisitos aprobado por el equipo
+- [x] Casos de uso validados
+- [x] Stack tecnológico confirmado
+- [x] [Riesgos identificados y mitigaciones planteadas](./documents/Analisis-Riesgos-Amenazas.md)
 
 ---
 
