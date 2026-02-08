@@ -30,35 +30,37 @@ Almacena información de todos los usuarios del sistema (estudiantes, profesiona
 
 ---
 
-### 2. **student_profiles** (Perfil de Estudiante/Paciente)
-Información detallada específica de estudiantes.
+### 2. **patients** (Perfil de Paciente)
+Información detallada específica de pacientes.
 
 **Atributos:**
 - `id` (PK): UUID - Identificador único
 - `user_id` (FK): UUID - Referencia a users
+- `patient_type`: ENUM - Tipo de paciente (student, faculty, administrative)
 - `marital_status`: VARCHAR(50) - Estado civil
 - `guardian_name`: VARCHAR(200) - Nombre del tutor
 - `guardian_phone`: VARCHAR(20) - Teléfono del tutor
-- `career`: VARCHAR(100) - Carrera
+- `career_id`: UUID - Referencia a careers
 - `group`: VARCHAR(20) - Grupo
 - `occupation`: VARCHAR(100) - Ocupación
-- `semester`: INTEGER - Semestre actual
+- `trimester`: INTEGER - Trimestre actual
 - `created_at`: TIMESTAMP
 - `updated_at`: TIMESTAMP
 
 **Relaciones:**
 - `user_id` → `users.id` (ONE-TO-ONE)
+- `career_id` → `careers.id` (MANY-TO-ONE)
 
 ---
 
 ### 3. **emergency_contacts** (Contactos de Emergencia)
-Contactos adicionales de emergencia para estudiantes.
+Contactos adicionales de emergencia para pacientes.
 
 **Atributos:**
 - `id` (PK): UUID
-- `student_profile_id` (FK): UUID - Referencia a student_profiles
+- `patient_id` (FK): UUID - Referencia a patients
 - `name`: VARCHAR(200) - Nombre completo
-- `relationship`: VARCHAR(50) - Relación con el estudiante
+- `relationship`: VARCHAR(50) - Relación con el paciente
 - `phone`: VARCHAR(20) - Teléfono
 - `phone_secondary`: VARCHAR(20) - Teléfono alternativo
 - `priority`: INTEGER - Prioridad de contacto (1 = primero)
@@ -66,16 +68,16 @@ Contactos adicionales de emergencia para estudiantes.
 - `updated_at`: TIMESTAMP
 
 **Relaciones:**
-- `student_profile_id` → `student_profiles.id` (MANY-TO-ONE)
+- `patient_id` → `patients.id` (MANY-TO-ONE)
 
 ---
 
 ### 4. **medical_records** (Expedientes Médicos)
-Expediente general de cada estudiante.
+Expediente general de cada paciente.
 
 **Atributos:**
 - `id` (PK): UUID
-- `student_profile_id` (FK): UUID - Referencia a student_profiles
+- `patient_id` (FK): UUID - Referencia a patients
 - `blood_type`: VARCHAR(10) - Tipo de sangre
 - `allergies`: TEXT - Alergias conocidas
 - `chronic_conditions`: TEXT - Condiciones crónicas
@@ -88,17 +90,17 @@ Expediente general de cada estudiante.
 - `updated_by` (FK): UUID - Referencia al último profesional que lo actualizó
 
 **Relaciones:**
-- `student_profile_id` → `student_profiles.id` (ONE-TO-ONE)
+- `patient_id` → `patients.id` (ONE-TO-ONE)
 - `created_by` → `users.id` (MANY-TO-ONE)
 - `updated_by` → `users.id` (MANY-TO-ONE)
 
 **Índices:**
-- `idx_medical_records_student` en `student_profile_id`
+- `idx_medical_records_patient` en `patient_id`
 
 ---
 
 ### 5. **psychology_records** (Expediente Psicológico)
-Información específica de psicología para cada estudiante.
+Información específica de psicología para cada paciente.
 
 **Atributos:**
 - `id` (PK): UUID
@@ -161,8 +163,8 @@ Registro de sesiones de terapia psicológica.
 - `psychology_record_id` (FK): UUID - Referencia a psychology_records
 - `session_number`: INTEGER - Número de sesión
 - `session_date`: TIMESTAMP - Fecha y hora de la sesión
-- `therapy_type`: VARCHAR(50) - Tipo de terapia (individual, group, family, couple)
 - `session_duration`: INTEGER - Duración en minutos (default 50)
+- `mood`: VARCHAR(30) - Estado de animo del paciente
 - `evolution_notes`: TEXT - Notas de evolución narrativas
 - `patient_progress`: TEXT - Avances del paciente
 - `assigned_tasks`: TEXT - Tareas asignadas
@@ -317,9 +319,11 @@ Registro de medicamentos administrados.
 ### 13. **appointments** (Citas)
 Sistema de agendamiento de citas.
 
+**Regla operativa**: Las citas se agendan solo para psicología. Enfermería atiende consultas ambulatorias en el momento (sin cita).
+
 **Atributos:**
 - `id` (PK): UUID
-- `student_profile_id` (FK): UUID - Referencia a student_profiles
+- `patient_id` (FK): UUID - Referencia a patients
 - `professional_id` (FK): UUID - Profesional asignado (psicólogo o enfermera)
 - `appointment_type`: VARCHAR(50) - Tipo de cita (psychology_initial, psychology_followup, nursing, emergency)
 - `department`: VARCHAR(50) - Departamento (psychology, nursing)
@@ -333,12 +337,12 @@ Sistema de agendamiento de citas.
 - `updated_at`: TIMESTAMP
 
 **Relaciones:**
-- `student_profile_id` → `student_profiles.id` (MANY-TO-ONE)
+- `patient_id` → `patients.id` (MANY-TO-ONE)
 - `professional_id` → `users.id` (MANY-TO-ONE)
 - `created_by` → `users.id` (MANY-TO-ONE)
 
 **Índices:**
-- `idx_appointments_student` en `student_profile_id`
+- `idx_appointments_patient` en `patient_id`
 - `idx_appointments_professional` en `professional_id`
 - `idx_appointments_date` en `scheduled_date`
 - `idx_appointments_status` en `status`
@@ -368,7 +372,7 @@ Lista de espera cuando no hay disponibilidad.
 
 **Atributos:**
 - `id` (PK): UUID
-- `student_profile_id` (FK): UUID - Referencia a student_profiles
+- `patient_id` (FK): UUID - Referencia a patients
 - `department`: VARCHAR(50) - Departamento solicitado
 - `preferred_professional_id` (FK): UUID - Profesional preferido (opcional)
 - `requested_date`: DATE - Fecha solicitada
@@ -379,7 +383,7 @@ Lista de espera cuando no hay disponibilidad.
 - `updated_at`: TIMESTAMP
 
 **Relaciones:**
-- `student_profile_id` → `student_profiles.id` (MANY-TO-ONE)
+- `patient_id` → `patients.id` (MANY-TO-ONE)
 - `preferred_professional_id` → `users.id` (MANY-TO-ONE)
 
 ---
@@ -411,7 +415,7 @@ Comunicación entre departamentos.
 
 **Atributos:**
 - `id` (PK): UUID
-- `student_profile_id` (FK): UUID - Referencia a student_profiles
+- `patient_id` (FK): UUID - Referencia a patients
 - `from_department`: VARCHAR(50) - Departamento origen
 - `to_department`: VARCHAR(50) - Departamento destino
 - `from_professional_id` (FK): UUID - Profesional que envía
@@ -427,13 +431,13 @@ Comunicación entre departamentos.
 - `updated_at`: TIMESTAMP
 
 **Relaciones:**
-- `student_profile_id` → `student_profiles.id` (MANY-TO-ONE)
+- `patient_id` → `patients.id` (MANY-TO-ONE)
 - `from_professional_id` → `users.id` (MANY-TO-ONE)
 - `to_professional_id` → `users.id` (MANY-TO-ONE)
 - `responded_by` → `users.id` (MANY-TO-ONE)
 
 **Índices:**
-- `idx_interconsult_student` en `student_profile_id`
+- `idx_interconsult_patient` en `patient_id`
 - `idx_interconsult_from` en `from_professional_id`
 - `idx_interconsult_to` en `to_professional_id`
 - `idx_interconsult_status` en `status`
@@ -506,6 +510,38 @@ Configuraciones globales del sistema.
 
 ---
 
+### 21. **careers** (Carreras)
+Catálogo de carreras institucionales.
+
+**Atributos:**
+- `id` (PK): UUID
+- `name`: VARCHAR(150) - Nombre de la carrera (único)
+- `code`: VARCHAR(30) - Código de la carrera (opcional, único)
+- `is_active`: BOOLEAN - Estado activo
+- `created_at`: TIMESTAMP
+- `updated_at`: TIMESTAMP
+
+**Relaciones:**
+- `careers.id` ← `patients.career_id` (ONE-TO-MANY)
+- `careers.id` ← `psychologist_careers.career_id` (ONE-TO-ONE por asignación)
+
+---
+
+### 22. **psychologist_careers** (Carreras a Cargo)
+Asignación de carreras a psicólogos.
+
+**Atributos:**
+- `id` (PK): UUID
+- `psychologist_id` (FK): UUID - Psicólogo asignado
+- `career_id` (FK): UUID - Carrera asignada (única por carrera)
+- `assigned_at`: TIMESTAMP - Fecha de asignación
+
+**Relaciones:**
+- `psychologist_id` → `users.id` (MANY-TO-ONE)
+- `career_id` → `careers.id` (ONE-TO-ONE por asignación)
+
+---
+
 ## Diagrama Visual (Descripción)
 
 ```
@@ -517,7 +553,7 @@ Configuraciones globales del sistema.
        │                                         │
        ▼                                         ▼
 ┌──────────────────┐                    ┌──────────────────┐
-│student_profiles  │                    │professional_     │
+│patients          │                    │professional_     │
 └────────┬─────────┘                    │   schedules      │
          │                              └──────────────────┘
          ├──────────────┬──────────────┐
@@ -547,9 +583,9 @@ Configuraciones globales del sistema.
 
 ## Cardinalidad de Relaciones
 
-1. **users (1) → student_profiles (1)**: Un usuario estudiante tiene un perfil
-2. **student_profiles (1) → emergency_contacts (N)**: Un estudiante tiene varios contactos
-3. **student_profiles (1) → medical_records (1)**: Un estudiante tiene un expediente médico
+1. **users (1) → patients (1)**: Un paciente tiene un perfil
+2. **patients (1) → emergency_contacts (N)**: Un paciente tiene varios contactos
+3. **patients (1) → medical_records (1)**: Un paciente tiene un expediente médico
 4. **medical_records (1) → psychology_records (1)**: Un expediente médico tiene un expediente psicológico
 5. **psychology_records (1) → psychometric_evaluations (N)**: Un expediente psicológico tiene varias evaluaciones
 6. **psychology_records (1) → therapy_sessions (N)**: Un expediente psicológico tiene varias sesiones
@@ -558,14 +594,17 @@ Configuraciones globales del sistema.
 9. **nursing_consultations (1) → nursing_procedures (N)**: Una consulta puede tener varios procedimientos
 10. **nursing_consultations (1) → medication_administrations (N)**: Una consulta puede tener varias administraciones de medicamentos
 11. **medications (1) → medication_administrations (N)**: Un medicamento puede ser administrado varias veces
-12. **student_profiles (1) → appointments (N)**: Un estudiante puede tener varias citas
+12. **patients (1) → appointments (N)**: Un paciente puede tener varias citas
 13. **users (1 - professional) → appointments (N)**: Un profesional puede tener varias citas
 14. **appointments (1) → appointment_reminders (N)**: Una cita puede tener varios recordatorios
-15. **student_profiles (1) → waiting_list (N)**: Un estudiante puede estar en lista de espera varias veces
+15. **patients (1) → waiting_list (N)**: Un paciente puede estar en lista de espera varias veces
 16. **users (1 - professional) → professional_schedules (N)**: Un profesional tiene varios horarios
-17. **student_profiles (1) → interconsultations (N)**: Un estudiante puede tener varias interconsultas
+17. **patients (1) → interconsultations (N)**: Un paciente puede tener varias interconsultas
 18. **users (1) → audit_logs (N)**: Un usuario genera varios logs de auditoría
 19. **users (1) → reports (N)**: Un usuario genera varios reportes
+20. **careers (1) → patients (N)**: Una carrera puede tener múltiples pacientes
+21. **users (1 - psychologist) → psychologist_careers (N)**: Un psicólogo puede tener varias carreras a cargo
+22. **careers (1) → psychologist_careers (1)**: Una carrera tiene un psicólogo asignado
 
 ---
 
@@ -582,3 +621,9 @@ Configuraciones globales del sistema.
 5. **Seguridad**: Los datos sensibles se separan en tablas específicas con controles de acceso granulares.
 
 6. **Rendimiento**: Los índices están diseñados para optimizar las consultas más frecuentes identificadas en los requisitos.
+
+7. **Acceso y agenda**:
+       - Todos los usuarios excepto estudiantes ingresan al sistema con usuario y contrasena.
+       - Pacientes tipo estudiante solo pueden registrar citas con psicología y ser atendidos en enfermería sin cita.
+8. **Acceso por carrera**:
+       - Los psicólogos solo pueden ver expedientes de pacientes en carreras asignadas.

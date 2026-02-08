@@ -11,31 +11,31 @@
 
 ## Relaciones entre Entidades
 
-### 1. users ↔ student_profiles (1:1)
+### 1. users ↔ patients (1:1)
 
-**Relación**: Un usuario con rol 'student' tiene exactamente un perfil de estudiante.
+**Relación**: Un usuario con rol 'student' tiene exactamente un perfil de paciente.
 
 **Justificación**:
 - Separación de responsabilidades: La tabla `users` maneja autenticación y datos básicos de TODOS los usuarios
-- La tabla `student_profiles` contiene información específica solo de estudiantes (carrera, matrícula, tutor)
+- La tabla `patients` contiene información específica del paciente (carrera, matrícula, tutor, tipo de paciente)
 - Permite tener usuarios de diferentes roles sin campos innecesarios
 - Facilita consultas de autenticación sin cargar datos médicos
 
 **Implementación**:
 ```sql
-student_profiles.user_id → users.id
-UNIQUE constraint en student_profiles.user_id
+patients.user_id → users.id
+UNIQUE constraint en patients.user_id
 ```
 
 ---
 
-### 2. student_profiles ↔ emergency_contacts (1:N)
+### 2. patients ↔ emergency_contacts (1:N)
 
-**Relación**: Un estudiante puede tener múltiples contactos de emergencia.
+**Relación**: Un paciente puede tener múltiples contactos de emergencia.
 
 **Justificación**:
 - Los requisitos funcionales especifican "contactos adicionales, especialmente de emergencia"
-- Un estudiante puede tener padre, madre, tutor, hermano, etc.
+- Un paciente puede tener padre, madre, tutor, hermano, etc.
 - El campo `priority` permite ordenar a quién contactar primero
 - Flexibilidad para agregar/eliminar contactos sin afectar otras tablas
 
@@ -43,13 +43,13 @@ UNIQUE constraint en student_profiles.user_id
 ```sql
 ON DELETE CASCADE
 ```
-Si se elimina un estudiante, sus contactos de emergencia ya no tienen sentido y deben eliminarse.
+Si se elimina un paciente, sus contactos de emergencia ya no tienen sentido y deben eliminarse.
 
 ---
 
-### 3. student_profiles ↔ medical_records (1:1)
+### 3. patients ↔ medical_records (1:1)
 
-**Relación**: Cada estudiante tiene exactamente un expediente médico.
+**Relación**: Cada paciente tiene exactamente un expediente médico.
 
 **Justificación**:
 - Requisito funcional: "Registro exhaustivo de información del paciente"
@@ -59,20 +59,80 @@ Si se elimina un estudiante, sus contactos de emergencia ya no tienen sentido y 
 
 **Implementación**:
 ```sql
-medical_records.student_profile_id → student_profiles.id (UNIQUE)
+medical_records.patient_id → patients.id (UNIQUE)
 medical_records.created_by → users.id
 medical_records.updated_by → users.id
 ```
 
 **Regla de Eliminación**:
 ```sql
-student_profile_id: ON DELETE CASCADE
+patient_id: ON DELETE CASCADE
 created_by/updated_by: ON DELETE RESTRICT
 ```
 
 **Justificación de reglas**:
-- Si se elimina el estudiante, su expediente debe eliminarse (CASCADE)
+- Si se elimina el paciente, su expediente debe eliminarse (CASCADE)
 - No se puede eliminar un profesional que creó/actualizó expedientes (RESTRICT) - mantiene integridad histórica
+
+---
+
+### 3.1 careers ↔ patients (1:N)
+
+**Relación**: Una carrera puede tener múltiples pacientes.
+
+**Justificación**:
+- Catálogo centralizado de carreras con cambios controlados (alta/baja de carreras)
+- Evita duplicidad de nombres de carrera en múltiples registros
+- Facilita reportes por carrera
+
+**Implementación**:
+```sql
+patients.career_id → careers.id
+```
+
+**Regla de Eliminación**:
+```sql
+career_id: ON DELETE RESTRICT
+```
+Evita eliminar una carrera con pacientes asociados.
+
+---
+
+### 3.2 users (psychologist) ↔ psychologist_careers (1:N)
+
+**Relación**: Un psicólogo puede tener múltiples carreras a cargo.
+
+**Justificación**:
+- Control de acceso por carrera
+- Asignación explícita de cobertura por psicólogo
+
+**Implementación**:
+```sql
+psychologist_careers.psychologist_id → users.id
+```
+
+---
+
+### 3.3 careers ↔ psychologist_careers (1:1)
+
+**Relación**: Cada carrera tiene un psicólogo asignado.
+
+**Justificación**:
+- Asegura que una carrera tenga un responsable único
+- Evita duplicidad de cobertura
+
+**Implementación**:
+```sql
+psychologist_careers.career_id → careers.id (UNIQUE)
+```
+
+**Regla de Eliminación**:
+```sql
+career_id: ON DELETE RESTRICT
+```
+
+**Nota de acceso**:
+- Los psicólogos solo pueden ver expedientes de pacientes en carreras asignadas.
 
 ---
 
@@ -141,7 +201,6 @@ administered_by: ON DELETE RESTRICT
 
 **Campos clave**:
 - `session_number`: Secuencia ordenada (1, 2, 3...)
-- `therapy_type`: individual, group, family, couple
 - `session_duration`: Default 50 minutos (requisito funcional)
 - `evolution_notes`, `patient_progress`, `assigned_tasks`: Requisitos específicos documentados
 
@@ -269,9 +328,9 @@ No se puede eliminar un medicamento que ha sido administrado (integridad histór
 
 ---
 
-### 12. student_profiles ↔ appointments (1:N)
+### 12. patients ↔ appointments (1:N)
 
-**Relación**: Un estudiante puede tener múltiples citas.
+**Relación**: Un paciente puede tener múltiples citas.
 
 **Justificación**:
 - Requisito funcional: "Gestión de citas y agendamiento"
@@ -330,20 +389,20 @@ Si la cita se elimina, sus recordatorios ya no son relevantes.
 
 ---
 
-### 15. student_profiles ↔ waiting_list (1:N)
+### 15. patients ↔ waiting_list (1:N)
 
-**Relación**: Un estudiante puede estar en lista de espera múltiples veces.
+**Relación**: Un paciente puede estar en lista de espera múltiples veces.
 
 **Justificación**:
 - Requisito funcional: "Lista de espera cuando no haya disponibilidad"
-- Un estudiante puede solicitar diferentes departamentos o fechas
+- Un paciente puede solicitar diferentes departamentos o fechas
 - `priority`: normal, urgent, emergency (para ordenar lista)
 - `status`: waiting, scheduled (cuando se agenda), cancelled
 
 **Ciclo de Vida**:
-1. Estudiante solicita cita pero no hay disponibilidad → `status = 'waiting'`
+1. Paciente solicita cita pero no hay disponibilidad → `status = 'waiting'`
 2. Se libera espacio → `status = 'scheduled'` + se crea appointment
-3. Estudiante cancela solicitud → `status = 'cancelled'`
+3. Paciente cancela solicitud → `status = 'cancelled'`
 
 ---
 
@@ -368,9 +427,9 @@ CHECK (end_time > start_time)
 
 ---
 
-### 17. student_profiles ↔ interconsultations (1:N)
+### 17. patients ↔ interconsultations (1:N)
 
-**Relación**: Un estudiante puede ser sujeto de múltiples interconsultas.
+**Relación**: Un paciente puede ser sujeto de múltiples interconsultas.
 
 **Justificación**:
 - Requisito funcional: "Módulo de interconsultas entre psicología, enfermería y administrativos"
@@ -448,12 +507,12 @@ Se utilizan tres estrategias principales para ON DELETE:
 **Cuándo**: Cuando el registro hijo no tiene sentido sin el padre.
 
 **Ejemplos**:
-- `student_profiles → emergency_contacts`
+- `patients → emergency_contacts`
 - `medical_records → psychology_records`
 - `appointments → appointment_reminders`
 - `nursing_consultations → medication_administrations`
 
-**Justificación**: Si se elimina el estudiante/expediente/cita, los registros dependientes deben eliminarse para mantener consistencia.
+**Justificación**: Si se elimina el paciente/expediente/cita, los registros dependientes deben eliminarse para mantener consistencia.
 
 #### 2. RESTRICT
 **Cuándo**: Cuando se debe preservar integridad histórica o prevenir eliminaciones accidentales.
@@ -558,7 +617,7 @@ medications.name NOT NULL      -- Un medicamento debe tener nombre identificable
 
 **Campos NULL permitido** (son opcionales por naturaleza):
 ```sql
-student_profiles.guardian_name NULL  -- No todos los estudiantes requieren tutor
+patients.guardian_name NULL  -- No todos los pacientes requieren tutor
 medical_records.allergies NULL       -- No todos tienen alergias conocidas
 therapy_sessions.assigned_tasks NULL -- No todas las sesiones tienen tareas
 ```
@@ -739,9 +798,11 @@ CREATE INDEX idx_nursing_consultations_date ON nursing_consultations(consultatio
 | Tabla | PK | FKs | UNIQUE | NOT NULL | CHECK | Índices |
 |-------|----|----|--------|----------|-------|---------|
 | users | id | 0 | email, enrollment_number | 8 | 1 | 3 |
-| student_profiles | id | 1 | user_id | 4 | 1 | 1 |
+| careers | id | 0 | name, code | 4 | 0 | 3 |
+| patients | id | 2 | user_id | 6 | 2 | 2 |
+| psychologist_careers | id | 2 | (psychologist_id, career_id), career_id | 4 | 0 | 2 |
 | emergency_contacts | id | 1 | 0 | 4 | 1 | 2 |
-| medical_records | id | 3 | student_profile_id | 4 | 0 | 1 |
+| medical_records | id | 3 | patient_id | 4 | 0 | 1 |
 | psychology_records | id | 2 | medical_record_id | 2 | 2 | 2 |
 | psychometric_evaluations | id | 2 | 0 | 4 | 2 | 3 |
 | therapy_sessions | id | 2 | (psych_id, session_num) | 6 | 3 | 4 |
@@ -759,7 +820,7 @@ CREATE INDEX idx_nursing_consultations_date ON nursing_consultations(consultatio
 | reports | id | 1 | 0 | 5 | 2 | 4 |
 | system_settings | id | 1 | setting_key | 3 | 0 | 1 |
 
-**Total**: 20 tablas, 33 relaciones FK, múltiples restricciones de integridad
+**Total**: 22 tablas, 33 relaciones FK, múltiples restricciones de integridad
 
 ---
 

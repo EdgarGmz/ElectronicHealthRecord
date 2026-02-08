@@ -34,10 +34,10 @@ Según el documento de requisitos no funcionales:
 -- Login (varias veces por día por usuario)
 SELECT * FROM users WHERE email = ?;
 
--- Búsqueda de estudiante por matrícula (muy frecuente)
-SELECT u.*, sp.* 
+-- Búsqueda de paciente por matrícula (muy frecuente)
+SELECT u.*, p.* 
 FROM users u 
-JOIN student_profiles sp ON sp.user_id = u.id 
+JOIN patients p ON p.user_id = u.id 
 WHERE u.enrollment_number = ?;
 
 -- Búsqueda por nombre (frecuente)
@@ -56,15 +56,15 @@ WHERE first_name ILIKE ? OR last_name ILIKE ?;
 
 #### 2. Consulta de Expediente Completo
 ```sql
--- Obtener expediente completo de un estudiante
+-- Obtener expediente completo de un paciente
 SELECT 
   u.*,
-  sp.*,
+  p.*,
   mr.*,
   pr.*
 FROM users u
-JOIN student_profiles sp ON sp.user_id = u.id
-JOIN medical_records mr ON mr.student_profile_id = sp.id
+JOIN patients p ON p.user_id = u.id
+JOIN medical_records mr ON mr.patient_id = p.id
 LEFT JOIN psychology_records pr ON pr.medical_record_id = mr.id
 WHERE u.enrollment_number = ?;
 ```
@@ -72,7 +72,7 @@ WHERE u.enrollment_number = ?;
 **Frecuencia estimada**: 50-100 veces/día (cada consulta médica)
 
 **Optimización**:
-- FK indexes automáticos en `student_profiles.user_id`, `medical_records.student_profile_id`
+-- FK indexes automáticos en `patients.user_id`, `medical_records.patient_id`
 - Considerar vista materializada para expedientes completos si degradación >15%
 
 ---
@@ -103,15 +103,15 @@ ORDER BY session_date;
 -- Citas de un profesional en un día específico
 SELECT a.*, u.first_name, u.last_name
 FROM appointments a
-JOIN student_profiles sp ON a.student_profile_id = sp.id
-JOIN users u ON sp.user_id = u.id
+JOIN patients p ON a.patient_id = p.id
+JOIN users u ON p.user_id = u.id
 WHERE a.professional_id = ?
   AND DATE(a.scheduled_date) = ?
 ORDER BY a.scheduled_date;
 
--- Citas pendientes de un estudiante
+-- Citas pendientes de un paciente
 SELECT * FROM appointments
-WHERE student_profile_id = ?
+WHERE patient_id = ?
   AND status IN ('scheduled', 'confirmed')
 ORDER BY scheduled_date;
 ```
@@ -120,7 +120,7 @@ ORDER BY scheduled_date;
 
 **Índices necesarios**:
 - `idx_appointments_professional_date` (composite: professional_id, scheduled_date)
-- `idx_appointments_student_status` (composite: student_profile_id, status)
+- `idx_appointments_patient_status` (composite: patient_id, status)
 
 ---
 
@@ -270,8 +270,8 @@ CREATE INDEX idx_users_role_active ON users(role, is_active);
 -- Agenda de profesional por fecha
 CREATE INDEX idx_appointments_prof_date ON appointments(professional_id, scheduled_date);
 
--- Citas de estudiante por estado
-CREATE INDEX idx_appointments_student_status ON appointments(student_profile_id, status, scheduled_date);
+-- Citas de paciente por estado
+CREATE INDEX idx_appointments_patient_status ON appointments(patient_id, status, scheduled_date);
 
 -- Búsqueda por departamento y fecha (para reportes)
 CREATE INDEX idx_appointments_dept_date ON appointments(department, scheduled_date);
@@ -283,7 +283,7 @@ WHERE status IN ('scheduled', 'confirmed');
 
 **Justificación**:
 - Prof + Date: Consulta de agenda ~150 veces/día
-- Student + Status: "Mis citas" ~80 veces/día
+-- Patient + Status: "Mis citas" ~80 veces/día
 - Dept + Date: Reportes estadísticos
 - Status: Partial index para citas activas (más eficiente)
 
@@ -369,7 +369,7 @@ CREATE INDEX idx_audit_created ON audit_logs(created_at DESC);
 
 #### 8. Tabla: interconsultations
 ```sql
-CREATE INDEX idx_interconsult_student_status ON interconsultations(student_profile_id, status);
+CREATE INDEX idx_interconsult_patient_status ON interconsultations(patient_id, status);
 CREATE INDEX idx_interconsult_to_prof_status ON interconsultations(to_professional_id, status) 
 WHERE to_professional_id IS NOT NULL;
 ```
@@ -382,7 +382,7 @@ Implementar solo si análisis de rendimiento lo justifica.
 
 #### 9. Tabla: emergency_contacts
 ```sql
-CREATE INDEX idx_emergency_student_priority ON emergency_contacts(student_profile_id, priority);
+CREATE INDEX idx_emergency_patient_priority ON emergency_contacts(patient_id, priority);
 ```
 
 #### 10. Tabla: professional_schedules
@@ -415,9 +415,9 @@ El diseño actual está en 3NF:
 ```sql
 CREATE TABLE consultations (
   id UUID,
-  student_name VARCHAR,
-  student_email VARCHAR,
-  student_career VARCHAR,
+  patient_name VARCHAR,
+  patient_email VARCHAR,
+  patient_career VARCHAR,
   -- Datos duplicados en cada consulta
 );
 ```
@@ -426,12 +426,12 @@ CREATE TABLE consultations (
 ```sql
 CREATE TABLE nursing_consultations (
   id UUID,
-  medical_record_id UUID,  -- FK, datos del estudiante en otra tabla
+  medical_record_id UUID,  -- FK, datos del paciente en otra tabla
   -- Solo datos específicos de la consulta
 );
 ```
 
-**Beneficio**: Actualizar carrera del estudiante solo requiere 1 UPDATE en `student_profiles`, no N UPDATEs en todas sus consultas.
+**Beneficio**: Actualizar carrera del paciente solo requiere 1 UPDATE en `patients`, no N UPDATEs en todas sus consultas.
 
 ---
 
@@ -497,23 +497,23 @@ CREATE TABLE medical_records (
 Si el rendimiento lo requiere, crear vistas materializadas:
 
 ```sql
-CREATE MATERIALIZED VIEW mv_student_summary AS
+CREATE MATERIALIZED VIEW mv_patient_summary AS
 SELECT 
-  sp.id,
+  p.id,
   u.first_name,
   u.last_name,
   u.enrollment_number,
-  sp.career,
+  p.career,
   mr.blood_type,
   pr.current_diagnosis_dsm5,
-  (SELECT COUNT(*) FROM appointments WHERE student_profile_id = sp.id) as appointment_count
-FROM student_profiles sp
-JOIN users u ON sp.user_id = u.id
-JOIN medical_records mr ON mr.student_profile_id = sp.id
+  (SELECT COUNT(*) FROM appointments WHERE patient_id = p.id) as appointment_count
+FROM patients p
+JOIN users u ON p.user_id = u.id
+JOIN medical_records mr ON mr.patient_id = p.id
 LEFT JOIN psychology_records pr ON pr.medical_record_id = mr.id;
 
 -- Refresh periódico (ej: cada hora)
-REFRESH MATERIALIZED VIEW mv_student_summary;
+REFRESH MATERIALIZED VIEW mv_patient_summary;
 ```
 
 **Cuándo implementar**: Solo si consultas de resumen >3 segundos en producción.
@@ -598,13 +598,13 @@ WHERE status = 'waiting';
 Índices que incluyen todas las columnas necesarias para una consulta:
 
 ```sql
--- Para query: "Nombre y carrera de estudiantes"
-CREATE INDEX idx_users_covering_student ON users(enrollment_number)
+-- Para query: "Nombre y carrera de pacientes"
+CREATE INDEX idx_users_covering_patient ON users(enrollment_number)
 INCLUDE (first_name, last_name, email);
 
 -- Para agenda: "Citas con nombre de paciente"
 CREATE INDEX idx_appointments_covering ON appointments(professional_id, scheduled_date)
-INCLUDE (student_profile_id, status, appointment_type);
+INCLUDE (patient_id, status, appointment_type);
 ```
 
 **Beneficio**: Evita acceso a la tabla (index-only scan), ~30% más rápido.
@@ -687,8 +687,8 @@ const pool = new Pool({
 EXPLAIN ANALYZE
 SELECT a.*, u.first_name, u.last_name
 FROM appointments a
-JOIN student_profiles sp ON a.student_profile_id = sp.id
-JOIN users u ON sp.user_id = u.id
+JOIN patients p ON a.patient_id = p.id
+JOIN users u ON p.user_id = u.id
 WHERE a.professional_id = 'some-uuid'
   AND DATE(a.scheduled_date) = '2026-02-07';
 ```
@@ -715,9 +715,9 @@ SELECT
   COUNT(DISTINCT ts.id) as total_sessions,
   AVG(ts.session_duration) as avg_session_duration
 FROM users u
-JOIN student_profiles sp ON sp.user_id = u.id
-JOIN appointments a ON a.student_profile_id = sp.id
-JOIN medical_records mr ON mr.student_profile_id = sp.id
+JOIN patients p ON p.user_id = u.id
+JOIN appointments a ON a.patient_id = p.id
+JOIN medical_records mr ON mr.patient_id = p.id
 JOIN psychology_records pr ON pr.medical_record_id = mr.id
 JOIN therapy_sessions ts ON ts.psychology_record_id = pr.id
 WHERE a.scheduled_date BETWEEN ? AND ?
@@ -735,8 +735,8 @@ SELECT ...
 
 2. **Tablas de agregación** actualizadas con triggers:
 ```sql
-CREATE TABLE student_statistics (
-  student_profile_id UUID PRIMARY KEY,
+CREATE TABLE patient_statistics (
+  patient_id UUID PRIMARY KEY,
   total_appointments INTEGER,
   total_sessions INTEGER,
   last_appointment_date DATE,
@@ -817,7 +817,7 @@ CREATE INDEX idx_users_deleted ON users(deleted_at) WHERE deleted_at IS NULL;
 
 2. **Eliminación en lote por transacciones**:
 ```sql
-DELETE FROM appointments WHERE student_profile_id = ? LIMIT 100;
+DELETE FROM appointments WHERE patient_id = ? LIMIT 100;
 -- Repetir hasta afectar 0 rows
 ```
 

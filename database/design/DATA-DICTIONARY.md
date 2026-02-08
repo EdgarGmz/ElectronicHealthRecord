@@ -1,32 +1,36 @@
-# Diccionario de Datos - Expediente Electrónico de Salud
+# 📘 Diccionario de Datos - Expediente Electrónico de Salud
 
-## Tabla de Contenidos
-1. [users](#1-users)
-2. [student_profiles](#2-student_profiles)
-3. [emergency_contacts](#3-emergency_contacts)
-4. [medical_records](#4-medical_records)
-5. [psychology_records](#5-psychology_records)
-6. [psychometric_evaluations](#6-psychometric_evaluations)
-7. [therapy_sessions](#7-therapy_sessions)
-8. [treatment_plans](#8-treatment_plans)
-9. [nursing_consultations](#9-nursing_consultations)
-10. [nursing_procedures](#10-nursing_procedures)
-11. [medications](#11-medications)
-12. [medication_administrations](#12-medication_administrations)
-13. [appointments](#13-appointments)
-14. [appointment_reminders](#14-appointment_reminders)
-15. [waiting_list](#15-waiting_list)
-16. [professional_schedules](#16-professional_schedules)
-17. [interconsultations](#17-interconsultations)
-18. [audit_logs](#18-audit_logs)
-19. [reports](#19-reports)
-20. [system_settings](#20-system_settings)
+## 📑 Tabla de Contenidos
+1. [👤 users](#1-users)
+2. [🧑‍⚕️ patients](#2-patients)
+3. [🚨 emergency_contacts](#3-emergency_contacts)
+4. [🩺 medical_records](#4-medical_records)
+5. [🧠 psychology_records](#5-psychology_records)
+6. [🧪 psychometric_evaluations](#6-psychometric_evaluations)
+7. [🗣️ therapy_sessions](#7-therapy_sessions)
+8. [🧩 treatment_plans](#8-treatment_plans)
+9. [🩹 nursing_consultations](#9-nursing_consultations)
+10. [🧰 nursing_procedures](#10-nursing_procedures)
+11. [💊 medications](#11-medications)
+12. [💉 medication_administrations](#12-medication_administrations)
+13. [📅 appointments](#13-appointments)
+14. [🔔 appointment_reminders](#14-appointment_reminders)
+15. [⏳ waiting_list](#15-waiting_list)
+16. [🗓️ professional_schedules](#16-professional_schedules)
+17. [🔁 interconsultations](#17-interconsultations)
+18. [🧾 audit_logs](#18-audit_logs)
+19. [📊 reports](#19-reports)
+20. [⚙️ system_settings](#20-system_settings)
+21. [🎓 careers](#21-careers)
+22. [🧠 psychologist_careers](#22-psychologist_careers)
 
 ---
 
-## 1. users
+## 1. 👤 users
 
 **Descripción**: Almacena la información de todos los usuarios del sistema (estudiantes, profesionales de salud, coordinadores y administradores).
+
+**Regla de acceso**: Todos los usuarios excepto estudiantes ingresan al sistema con usuario y contrasena.
 
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
@@ -42,6 +46,7 @@
 | is_active | BOOLEAN | NOT NULL, DEFAULT TRUE | Indica si el usuario está activo |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha y hora de creación |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha y hora de última actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_users_enrollment` en `enrollment_number`
@@ -56,72 +61,78 @@
 
 ---
 
-## 2. student_profiles
+## 2. 🧑‍⚕️ patients
 
-**Descripción**: Información detallada específica de estudiantes que complementa la tabla users.
+**Descripción**: Información detallada específica de pacientes que complementa la tabla users.
 
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
 | id | UUID | PK, NOT NULL | Identificador único del perfil |
 | user_id | UUID | FK → users.id, UNIQUE, NOT NULL | Referencia al usuario |
+| patient_type | ENUM | NOT NULL | Tipo de paciente: 'student', 'faculty', 'administrative' |
 | marital_status | VARCHAR(50) | NULL | Estado civil (single, married, divorced, widowed, other) |
 | guardian_name | VARCHAR(200) | NULL | Nombre completo del tutor (si aplica) |
 | guardian_phone | VARCHAR(20) | NULL | Teléfono del tutor |
-| career | VARCHAR(100) | NOT NULL | Carrera que estudia |
+| career_id | UUID | FK → careers.id, NOT NULL | Carrera del paciente |
 | group | VARCHAR(20) | NULL | Grupo académico |
 | occupation | VARCHAR(100) | NULL | Ocupación adicional (si trabaja) |
-| semester | INTEGER | NULL, CHECK > 0 | Semestre actual |
+| trimester | INTEGER | NULL, CHECK > 0 | Trimestre actual |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
-- `idx_student_profiles_user` en `user_id`
+- `idx_patients_user` en `user_id`
+- `idx_patients_career` en `career_id`
 
 **Relaciones:**
 - `user_id` → `users.id` ON DELETE CASCADE
+- `career_id` → `careers.id` ON DELETE RESTRICT
 
 **Restricciones:**
 - UNIQUE `user_id` (relación 1:1 con users)
-- CHECK: `semester` > 0
+- CHECK: `patient_type` IN ('student', 'faculty', 'administrative')
+- CHECK: `trimester` > 0
 
 ---
 
-## 3. emergency_contacts
+## 3. 🚨 emergency_contacts
 
-**Descripción**: Contactos de emergencia asociados a cada estudiante.
+**Descripción**: Contactos de emergencia asociados a cada paciente.
 
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
 | id | UUID | PK, NOT NULL | Identificador único del contacto |
-| student_profile_id | UUID | FK → student_profiles.id, NOT NULL | Referencia al perfil del estudiante |
+| patient_id | UUID | FK → patients.id, NOT NULL | Referencia al perfil del paciente |
 | name | VARCHAR(200) | NOT NULL | Nombre completo del contacto |
-| relationship | VARCHAR(50) | NOT NULL | Relación con el estudiante (parent, sibling, spouse, friend, other) |
+| relationship | VARCHAR(50) | NOT NULL | Relación con el paciente (parent, sibling, spouse, friend, other) |
 | phone | VARCHAR(20) | NOT NULL | Teléfono principal |
 | phone_secondary | VARCHAR(20) | NULL | Teléfono alternativo |
 | priority | INTEGER | NOT NULL, DEFAULT 1 | Orden de prioridad (1 = contactar primero) |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
-- `idx_emergency_contacts_student` en `student_profile_id`
-- `idx_emergency_contacts_priority` en `student_profile_id, priority`
+- `idx_emergency_contacts_patient` en `patient_id`
+- `idx_emergency_contacts_priority` en `patient_id, priority`
 
 **Relaciones:**
-- `student_profile_id` → `student_profiles.id` ON DELETE CASCADE
+- `patient_id` → `patients.id` ON DELETE CASCADE
 
 **Restricciones:**
 - CHECK: `priority` > 0
 
 ---
 
-## 4. medical_records
+## 4. 🩺 medical_records
 
-**Descripción**: Expediente médico general de cada estudiante. Contiene información médica base compartida entre departamentos.
+**Descripción**: Expediente médico general de cada paciente. Contiene información médica base compartida entre departamentos.
 
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
 | id | UUID | PK, NOT NULL | Identificador único del expediente |
-| student_profile_id | UUID | FK → student_profiles.id, UNIQUE, NOT NULL | Referencia al perfil del estudiante |
+| patient_id | UUID | FK → patients.id, UNIQUE, NOT NULL | Referencia al perfil del paciente |
 | blood_type | VARCHAR(10) | NULL | Tipo de sangre (A+, A-, B+, B-, AB+, AB-, O+, O-) |
 | allergies | TEXT | NULL | Alergias conocidas (medicamentos, alimentos, etc.) |
 | chronic_conditions | TEXT | NULL | Condiciones crónicas o enfermedades preexistentes |
@@ -132,21 +143,22 @@
 | created_by | UUID | FK → users.id, NOT NULL | Profesional que creó el expediente |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Última actualización |
 | updated_by | UUID | FK → users.id, NOT NULL | Último profesional que actualizó |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
-- `idx_medical_records_student` en `student_profile_id`
+- `idx_medical_records_patient` en `patient_id`
 
 **Relaciones:**
-- `student_profile_id` → `student_profiles.id` ON DELETE CASCADE
+- `patient_id` → `patients.id` ON DELETE CASCADE
 - `created_by` → `users.id` ON DELETE RESTRICT
 - `updated_by` → `users.id` ON DELETE RESTRICT
 
 **Restricciones:**
-- UNIQUE `student_profile_id` (relación 1:1 con student_profiles)
+- UNIQUE `patient_id` (relación 1:1 con patients)
 
 ---
 
-## 5. psychology_records
+## 5. 🧠 psychology_records
 
 **Descripción**: Expediente psicológico específico. Contiene información confidencial de psicología.
 
@@ -167,6 +179,7 @@
 | assigned_psychologist_id | UUID | FK → users.id, NULL | Psicólogo asignado actualmente |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_psych_records_medical` en `medical_record_id`
@@ -183,9 +196,9 @@
 
 ---
 
-## 6. psychometric_evaluations
+## 6. 🧪 psychometric_evaluations
 
-**Descripción**: Registro de evaluaciones psicométricas aplicadas a los estudiantes.
+**Descripción**: Registro de evaluaciones psicométricas aplicadas a los pacientes.
 
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
@@ -201,6 +214,7 @@
 | file_url | VARCHAR(500) | NULL | URL del archivo con resultados detallados |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de registro |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_psychometric_psych_record` en `psychology_record_id`
@@ -217,7 +231,7 @@
 
 ---
 
-## 7. therapy_sessions
+## 7. 🗣️ therapy_sessions
 
 **Descripción**: Registro detallado de cada sesión terapéutica realizada.
 
@@ -227,8 +241,8 @@
 | psychology_record_id | UUID | FK → psychology_records.id, NOT NULL | Referencia al expediente psicológico |
 | session_number | INTEGER | NOT NULL, CHECK > 0 | Número consecutivo de sesión |
 | session_date | TIMESTAMP | NOT NULL | Fecha y hora de la sesión |
-| therapy_type | VARCHAR(50) | NOT NULL | Tipo: 'individual', 'group', 'family', 'couple' |
 | session_duration | INTEGER | DEFAULT 50 | Duración en minutos |
+| mood | VARCHAR(30) | NOT NULL | Estado de animo del paciente |
 | evolution_notes | TEXT | NULL | Notas narrativas de evolución |
 | patient_progress | TEXT | NULL | Descripción de avances del paciente |
 | assigned_tasks | TEXT | NULL | Tareas o actividades asignadas para casa |
@@ -237,6 +251,7 @@
 | therapist_id | UUID | FK → users.id, NOT NULL | Terapeuta que condujo la sesión |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación del registro |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_therapy_sessions_psych` en `psychology_record_id`
@@ -251,12 +266,12 @@
 **Restricciones:**
 - CHECK: `session_number` > 0
 - CHECK: `session_duration` > 0
-- CHECK: `therapy_type` IN ('individual', 'group', 'family', 'couple')
+- CHECK: `mood` IN ('abrumado', 'aburrido', 'adormilado', 'afectuoso', 'agotado', 'agradecido', 'alegre', 'aliviado', 'angustiado', 'ansioso', 'apatico', 'arrepentido', 'asustado', 'avergonzado', 'calmado', 'cansado', 'celoso', 'complacido', 'concentrado', 'confundido', 'creativo', 'culpable', 'curioso', 'decepcionado', 'deprimido', 'desanimado', 'determinado', 'distraido', 'dolorido', 'emocionado', 'enamorado', 'energico', 'enfocado', 'enojado', 'entusiasmado', 'envidioso', 'esperanzado', 'estresado', 'euforico', 'frustrado', 'furioso', 'hambriento', 'herido', 'impaciente', 'incomodo', 'indiferente', 'inquieto', 'inseguro', 'inspirado', 'irritado', 'melancolico', 'motivado', 'nostalgico', 'optimista', 'orgulloso', 'pasivo', 'pensativo', 'perezoso', 'pesimista', 'preocupado', 'productivo', 'relajado', 'satisfecho', 'seguro', 'sensible', 'sereno', 'sociable', 'solo', 'sorprendido', 'timido', 'tranquilo', 'triste', 'vacio', 'valiente', 'vulnerable')
 - UNIQUE `(psychology_record_id, session_number)`
 
 ---
 
-## 8. treatment_plans
+## 8. 🧩 treatment_plans
 
 **Descripción**: Planes de tratamiento psicológico con objetivos y estrategias terapéuticas.
 
@@ -273,6 +288,7 @@
 | created_by | UUID | FK → users.id, NOT NULL | Profesional que creó el plan |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_treatment_plans_psych` en `psychology_record_id`
@@ -288,9 +304,11 @@
 
 ---
 
-## 9. nursing_consultations
+## 9. 🩹 nursing_consultations
 
 **Descripción**: Registro de consultas de enfermería con signos vitales y diagnóstico.
+
+**Regla operativa**: Enfermería atiende consultas ambulatorias en el momento (sin cita).
 
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
@@ -313,6 +331,7 @@
 | nurse_id | UUID | FK → users.id, NOT NULL | Enfermera que atendió |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_nursing_consultations_record` en `medical_record_id`
@@ -328,7 +347,7 @@
 
 ---
 
-## 10. nursing_procedures
+## 10. 🧰 nursing_procedures
 
 **Descripción**: Registro de procedimientos específicos realizados por enfermería.
 
@@ -343,6 +362,7 @@
 | observations | TEXT | NULL | Observaciones del procedimiento |
 | performed_by | UUID | FK → users.id, NOT NULL | Enfermera que realizó el procedimiento |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de registro |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_nursing_procedures_consultation` en `nursing_consultation_id`
@@ -355,7 +375,7 @@
 
 ---
 
-## 11. medications
+## 11. 💊 medications
 
 **Descripción**: Catálogo de medicamentos disponibles en la institución.
 
@@ -373,6 +393,7 @@
 | is_active | BOOLEAN | NOT NULL, DEFAULT TRUE | Medicamento activo en catálogo |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_medications_name` en `name`
@@ -384,7 +405,7 @@
 
 ---
 
-## 12. medication_administrations
+## 12. 💉 medication_administrations
 
 **Descripción**: Registro de administración de medicamentos con verificación de las 5 normas correctas.
 
@@ -405,6 +426,7 @@
 | adverse_reaction | TEXT | NULL | Descripción de reacción adversa (si ocurre) |
 | observations | TEXT | NULL | Observaciones adicionales |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de registro |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_med_admin_consultation` en `nursing_consultation_id`
@@ -422,14 +444,16 @@
 
 ---
 
-## 13. appointments
+## 13. 📅 appointments
 
 **Descripción**: Sistema de agendamiento de citas para psicología y enfermería.
+
+**Regla operativa**: Las citas se agendan solo para psicología. Pacientes tipo estudiante solo pueden registrar citas con psicología y ser atendidos en enfermería sin cita.
 
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
 | id | UUID | PK, NOT NULL | Identificador único de la cita |
-| student_profile_id | UUID | FK → student_profiles.id, NOT NULL | Estudiante que tiene la cita |
+| patient_id | UUID | FK → patients.id, NOT NULL | Paciente que tiene la cita |
 | professional_id | UUID | FK → users.id, NOT NULL | Profesional asignado |
 | appointment_type | VARCHAR(50) | NOT NULL | Tipo: 'psychology_initial', 'psychology_followup', 'nursing', 'emergency' |
 | department | VARCHAR(50) | NOT NULL | Departamento: 'psychology', 'nursing' |
@@ -441,16 +465,17 @@
 | created_by | UUID | FK → users.id, NOT NULL | Usuario que creó la cita |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
-- `idx_appointments_student` en `student_profile_id`
+- `idx_appointments_patient` en `patient_id`
 - `idx_appointments_professional` en `professional_id`
 - `idx_appointments_date` en `scheduled_date`
 - `idx_appointments_status` en `status`
 - `idx_appointments_department` en `department`
 
 **Relaciones:**
-- `student_profile_id` → `student_profiles.id` ON DELETE CASCADE
+- `patient_id` → `patients.id` ON DELETE CASCADE
 - `professional_id` → `users.id` ON DELETE RESTRICT
 - `created_by` → `users.id` ON DELETE RESTRICT
 
@@ -462,7 +487,7 @@
 
 ---
 
-## 14. appointment_reminders
+## 14. 🔔 appointment_reminders
 
 **Descripción**: Sistema de recordatorios automáticos para citas.
 
@@ -475,6 +500,7 @@
 | sent_at | TIMESTAMP | NULL | Cuándo se envió (NULL si no enviado) |
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'pending' | Estado: 'pending', 'sent', 'failed' |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_reminders_appointment` en `appointment_id`
@@ -490,14 +516,14 @@
 
 ---
 
-## 15. waiting_list
+## 15. ⏳ waiting_list
 
 **Descripción**: Lista de espera cuando no hay disponibilidad de citas.
 
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
 | id | UUID | PK, NOT NULL | Identificador único |
-| student_profile_id | UUID | FK → student_profiles.id, NOT NULL | Estudiante en espera |
+| patient_id | UUID | FK → patients.id, NOT NULL | Paciente en espera |
 | department | VARCHAR(50) | NOT NULL | Departamento solicitado |
 | preferred_professional_id | UUID | FK → users.id, NULL | Profesional preferido (opcional) |
 | requested_date | DATE | NULL | Fecha solicitada |
@@ -506,15 +532,16 @@
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'waiting' | Estado: 'waiting', 'scheduled', 'cancelled' |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
-- `idx_waiting_list_student` en `student_profile_id`
+- `idx_waiting_list_patient` en `patient_id`
 - `idx_waiting_list_department` en `department`
 - `idx_waiting_list_priority` en `priority`
 - `idx_waiting_list_status` en `status`
 
 **Relaciones:**
-- `student_profile_id` → `student_profiles.id` ON DELETE CASCADE
+- `patient_id` → `patients.id` ON DELETE CASCADE
 - `preferred_professional_id` → `users.id` ON DELETE SET NULL
 
 **Restricciones:**
@@ -524,7 +551,7 @@
 
 ---
 
-## 16. professional_schedules
+## 16. 🗓️ professional_schedules
 
 **Descripción**: Horarios de disponibilidad de profesionales de salud.
 
@@ -538,6 +565,7 @@
 | is_active | BOOLEAN | NOT NULL, DEFAULT TRUE | Horario activo |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_schedules_professional` en `professional_id`
@@ -552,14 +580,14 @@
 
 ---
 
-## 17. interconsultations
+## 17. 🔁 interconsultations
 
 **Descripción**: Interconsultas entre departamentos para compartir información.
 
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
 | id | UUID | PK, NOT NULL | Identificador único |
-| student_profile_id | UUID | FK → student_profiles.id, NOT NULL | Estudiante referenciado |
+| patient_id | UUID | FK → patients.id, NOT NULL | Paciente referenciado |
 | from_department | VARCHAR(50) | NOT NULL | Departamento origen |
 | to_department | VARCHAR(50) | NOT NULL | Departamento destino |
 | from_professional_id | UUID | FK → users.id, NOT NULL | Profesional que envía |
@@ -573,16 +601,17 @@
 | responded_at | TIMESTAMP | NULL | Fecha de respuesta |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
-- `idx_interconsult_student` en `student_profile_id`
+- `idx_interconsult_patient` en `patient_id`
 - `idx_interconsult_from` en `from_professional_id`
 - `idx_interconsult_to` en `to_professional_id`
 - `idx_interconsult_status` en `status`
 - `idx_interconsult_urgency` en `urgency`
 
 **Relaciones:**
-- `student_profile_id` → `student_profiles.id` ON DELETE CASCADE
+- `patient_id` → `patients.id` ON DELETE CASCADE
 - `from_professional_id` → `users.id` ON DELETE RESTRICT
 - `to_professional_id` → `users.id` ON DELETE SET NULL
 - `responded_by` → `users.id` ON DELETE SET NULL
@@ -595,7 +624,7 @@
 
 ---
 
-## 18. audit_logs
+## 18. 🧾 audit_logs
 
 **Descripción**: Registro de auditoría de todas las acciones sobre datos sensibles para cumplimiento normativo.
 
@@ -611,6 +640,7 @@
 | ip_address | VARCHAR(45) | NULL | Dirección IP del usuario |
 | user_agent | TEXT | NULL | User agent del navegador |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Timestamp de la acción |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_audit_user` en `user_id`
@@ -627,7 +657,7 @@
 
 ---
 
-## 19. reports
+## 19. 📊 reports
 
 **Descripción**: Metadata de reportes generados por el sistema.
 
@@ -642,6 +672,7 @@
 | generated_by | UUID | FK → users.id, NOT NULL | Usuario que generó el reporte |
 | file_url | VARCHAR(500) | NULL | URL del archivo generado (PDF, Excel, etc.) |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de generación |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_reports_type` en `report_type`
@@ -658,7 +689,7 @@
 
 ---
 
-## 20. system_settings
+## 20. ⚙️ system_settings
 
 **Descripción**: Configuraciones globales del sistema.
 
@@ -670,6 +701,7 @@
 | description | TEXT | NULL | Descripción de la configuración |
 | updated_by | UUID | FK → users.id, NULL | Último usuario que actualizó |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
 
 **Índices:**
 - `idx_settings_key` en `setting_key`
@@ -682,16 +714,72 @@
 
 ---
 
-## Convenciones de Nomenclatura
+## 21. 🎓 careers
+
+**Descripción**: Catálogo de carreras institucionales.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|---------------|-------------|
+| id | UUID | PK, NOT NULL | Identificador único |
+| name | VARCHAR(150) | UNIQUE, NOT NULL | Nombre de la carrera |
+| code | VARCHAR(30) | UNIQUE, NULL | Código de la carrera |
+| is_active | BOOLEAN | NOT NULL, DEFAULT TRUE | Carrera activa |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
+| updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de actualización |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
+
+**Índices:**
+- `idx_careers_name` en `name`
+- `idx_careers_code` en `code`
+- `idx_careers_active` en `is_active`
+
+**Relaciones:**
+- `careers.id` ← `patients.career_id`
+- `careers.id` ← `psychologist_careers.career_id`
+
+**Restricciones:**
+- UNIQUE `name`
+- UNIQUE `code`
+
+---
+
+## 22. 🧠 psychologist_careers
+
+**Descripción**: Asignación de carreras a psicólogos.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|---------------|-------------|
+| id | UUID | PK, NOT NULL | Identificador único |
+| psychologist_id | UUID | FK → users.id, NOT NULL | Psicólogo asignado |
+| career_id | UUID | FK → careers.id, NOT NULL | Carrera asignada (única) |
+| assigned_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de asignación |
+| deleted_at | TIMESTAMP | NULL | Fecha y hora de eliminación lógica |
+
+**Índices:**
+- `idx_psychologist_careers_psych` en `psychologist_id`
+- `idx_psychologist_careers_career` en `career_id`
+
+**Relaciones:**
+- `psychologist_id` → `users.id` ON DELETE RESTRICT
+- `career_id` → `careers.id` ON DELETE RESTRICT
+
+**Restricciones:**
+- UNIQUE `(psychologist_id, career_id)`
+- UNIQUE `career_id`
+
+---
+
+## 🧭 Convenciones de Nomenclatura
 
 1. **Tablas**: Nombres en plural, minúsculas, con guiones bajos (`users`, `therapy_sessions`)
 2. **Claves Primarias**: Siempre `id` de tipo UUID
-3. **Claves Foráneas**: `[tabla_relacionada]_id` (ej: `user_id`, `student_profile_id`)
+3. **Claves Foráneas**: `[tabla_relacionada]_id` (ej: `user_id`, `patient_id`)
 4. **Timestamps**: Siempre incluir `created_at`, y `updated_at` cuando sea relevante
-5. **Booleanos**: Prefijo `is_` o `has_` (ej: `is_active`, `has_consent`)
-6. **Enums**: Valores en minúsculas con guiones bajos (ej: `psychology_initial`)
+5. **Soft delete**: Incluir `deleted_at` para eliminación lógica
+6. **Booleanos**: Prefijo `is_` o `has_` (ej: `is_active`, `has_consent`)
+7. **Enums**: Valores en minúsculas con guiones bajos (ej: `psychology_initial`)
 
-## Tipos de Datos PostgreSQL Utilizados
+## 🧱 Tipos de Datos PostgreSQL Utilizados
 
 - **UUID**: Identificadores únicos universales
 - **VARCHAR(n)**: Cadenas de texto con longitud máxima
@@ -705,10 +793,12 @@
 - **JSONB**: Datos JSON binarios (más eficiente que JSON)
 - **ENUM**: Conjunto de valores predefinidos
 
-## Notas Generales
+## 📝 Notas Generales
 
 1. **Campos obligatorios vs opcionales**: Los campos críticos para el funcionamiento son NOT NULL, mientras que campos complementarios permiten NULL
 2. **Valores por defecto**: Se usan DEFAULT para facilitar inserciones y mantener consistencia
 3. **Cifrado**: Los campos sensibles como `password_hash` se almacenan cifrados
 4. **Privacidad**: Datos sensibles (diagnósticos, notas de sesión) están en tablas separadas con control de acceso
 5. **Auditoría**: Todos los cambios en datos sensibles se registran en `audit_logs`
+6. **Soft delete**: Se utiliza `deleted_at` para conservar históricos sin eliminar físicamente los registros
+

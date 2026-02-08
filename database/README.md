@@ -27,11 +27,13 @@ Contiene:
 - Descripción detallada de cada entidad y sus atributos
 - Relaciones entre entidades con cardinalidad
 - Diagrama visual en formato texto
-- 20 tablas principales identificadas
+- 22 tablas principales identificadas
 
 **Entidades principales**:
 - `users` - Usuarios del sistema
-- `student_profiles` - Perfiles de estudiantes
+- `careers` - Catálogo de carreras
+- `patients` - Perfiles de pacientes (student, faculty, administrative)
+- `psychologist_careers` - Carreras a cargo por psicólogo
 - `medical_records` - Expedientes médicos generales
 - `psychology_records` - Expedientes psicológicos
 - `nursing_consultations` - Consultas de enfermería
@@ -45,7 +47,7 @@ Contiene:
 **Archivo**: [`design/DATA-DICTIONARY.md`](design/DATA-DICTIONARY.md)
 
 Contiene:
-- Descripción completa de las 20 tablas
+- Descripción completa de las 22 tablas
 - Para cada campo: tipo de dato, restricciones, y descripción
 - Claves primarias (PK) y foráneas (FK)
 - Índices propuestos
@@ -101,7 +103,7 @@ Contiene:
 **Archivo**: [`schemas/schema.sql`](schemas/schema.sql)
 
 Script SQL completo para PostgreSQL 14+ que incluye:
-- Creación de todas las tablas (20 tablas)
+- Creación de todas las tablas (22 tablas)
 - Todas las restricciones de integridad
 - Claves primarias y foráneas
 - CHECK constraints para validación
@@ -127,7 +129,7 @@ psql -U postgres -d ehr_database -f schemas/schema.sql
 ✅ **Sesiones Terapéuticas**
 - Notas de evolución narrativas
 - Avances del paciente
-- Tipo de terapia (individual, grupal, familiar, pareja)
+- Tipo de terapia (solo individual)
 - Tareas asignadas
 - Observaciones generales
 - Seguimiento de planes de tratamiento
@@ -205,7 +207,7 @@ psql -U postgres -d ehr_database -f schemas/schema.sql
 
 3. **Verificar la instalación**:
 ```sql
-\dt  -- Listar todas las tablas (debería mostrar 20 tablas)
+\dt  -- Listar todas las tablas (debería mostrar 22 tablas)
 \di  -- Listar todos los índices
 ```
 

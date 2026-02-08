@@ -13,32 +13,34 @@ Este documento resume el diseño completo de la base de datos para la plataforma
 - `design/ER-DIAGRAM.dbml` - Formato dbdiagram.io (visual)
 
 **Contenido**:
-- 20 entidades principales identificadas y documentadas
+- 22 entidades principales identificadas y documentadas
 - Relaciones entre entidades con cardinalidad especificada
 - Atributos clave de cada entidad
 - Diagrama visual generatable en https://dbdiagram.io
 
 **Entidades Principales**:
 1. **users** - Base de usuarios del sistema
-2. **student_profiles** - Perfiles de estudiantes/pacientes
-3. **emergency_contacts** - Contactos de emergencia
-4. **medical_records** - Expedientes médicos generales
-5. **psychology_records** - Expedientes psicológicos (confidencial)
-6. **psychometric_evaluations** - Evaluaciones psicométricas
-7. **therapy_sessions** - Sesiones terapéuticas
-8. **treatment_plans** - Planes de tratamiento
-9. **nursing_consultations** - Consultas de enfermería
-10. **nursing_procedures** - Procedimientos de enfermería
-11. **medications** - Catálogo de medicamentos
-12. **medication_administrations** - Administración de medicamentos
-13. **appointments** - Sistema de citas
-14. **appointment_reminders** - Recordatorios automáticos
-15. **waiting_list** - Lista de espera
-16. **professional_schedules** - Horarios de profesionales
-17. **interconsultations** - Interconsultas entre departamentos
-18. **audit_logs** - Registro de auditoría
-19. **reports** - Metadata de reportes
-20. **system_settings** - Configuración del sistema
+2. **careers** - Catálogo de carreras
+3. **patients** - Perfiles de pacientes (student, faculty, administrative)
+4. **psychologist_careers** - Carreras a cargo por psicólogo
+5. **emergency_contacts** - Contactos de emergencia
+6. **medical_records** - Expedientes médicos generales
+7. **psychology_records** - Expedientes psicológicos (confidencial)
+8. **psychometric_evaluations** - Evaluaciones psicométricas
+9. **therapy_sessions** - Sesiones terapéuticas
+10. **treatment_plans** - Planes de tratamiento
+11. **nursing_consultations** - Consultas de enfermería
+12. **nursing_procedures** - Procedimientos de enfermería
+13. **medications** - Catálogo de medicamentos
+14. **medication_administrations** - Administración de medicamentos
+15. **appointments** - Sistema de citas
+16. **appointment_reminders** - Recordatorios automáticos
+17. **waiting_list** - Lista de espera
+18. **professional_schedules** - Horarios de profesionales
+19. **interconsultations** - Interconsultas entre departamentos
+20. **audit_logs** - Registro de auditoría
+21. **reports** - Metadata de reportes
+22. **system_settings** - Configuración del sistema
 
 ---
 
@@ -47,19 +49,13 @@ Este documento resume el diseño completo de la base de datos para la plataforma
 **Archivo**: `design/DATA-DICTIONARY.md`
 
 **Contenido**:
-- Descripción completa de las 20 tablas
+- Descripción completa de las 22 tablas
 - Más de 200 campos documentados
 - Para cada campo:
   - Tipo de dato PostgreSQL
   - Restricciones (NOT NULL, UNIQUE, CHECK, FK)
-  - Descripción funcional
-  - Valores por defecto
 - Convenciones de nomenclatura
 - Tipos de datos utilizados
-
-**Ejemplo de Documentación**:
-
-| Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
 | id | UUID | PK, NOT NULL | Identificador único |
 | email | VARCHAR(255) | UNIQUE, NOT NULL | Correo electrónico del usuario |
@@ -74,8 +70,8 @@ Este documento resume el diseño completo de la base de datos para la plataforma
 **Contenido Destacado**:
 
 #### Relaciones Documentadas (33 total):
-- **users ↔ student_profiles** (1:1) - Separación de responsabilidades
-- **student_profiles ↔ medical_records** (1:1) - Expediente base
+- **users ↔ patients** (1:1) - Separación de responsabilidades
+- **patients ↔ medical_records** (1:1) - Expediente base
 - **medical_records ↔ psychology_records** (1:1) - Privacidad y acceso restringido
 - **psychology_records ↔ therapy_sessions** (1:N) - Historial de sesiones
 - **medical_records ↔ nursing_consultations** (1:N) - Consultas de enfermería
@@ -84,23 +80,17 @@ Este documento resume el diseño completo de la base de datos para la plataforma
 #### Estrategias de Integridad Referencial:
 
 **ON DELETE CASCADE** (cuando el hijo no tiene sentido sin el padre):
-- `student_profiles → emergency_contacts`
-- `appointments → appointment_reminders`
+- `patients → emergency_contacts`
 - `nursing_consultations → medication_administrations`
 
 **ON DELETE RESTRICT** (preservar integridad histórica):
 - `medications → medication_administrations`
 - `users (profesionales) → therapy_sessions`
 - `users → audit_logs`
-
-**ON DELETE SET NULL** (relación opcional):
-- `psychology_records.assigned_psychologist_id`
 - `waiting_list.preferred_professional_id`
 
 #### Decisiones Críticas de Diseño:
 
-1. **UUID vs INTEGER**: UUID para seguridad y escalabilidad
-2. **Separación de Expedientes**: Módulos independientes por departamento
 3. **Normalización 3NF**: Con desnormalización controlada para rendimiento
 4. **5 Normas de Medicamentos**: Campos booleanos separados para auditoría
 5. **Soft Delete Selectivo**: Solo en tablas específicas (users.is_active)
@@ -110,7 +100,6 @@ Este documento resume el diseño completo de la base de datos para la plataforma
 ### 4. Estrategia de Índices y Optimización
 
 **Archivo**: `design/INDEXES-AND-OPTIMIZATION.md`
-
 **Índices Propuestos**: 60+ índices clasificados por prioridad
 
 #### Índices de Alta Prioridad (18 índices):
@@ -120,14 +109,11 @@ CREATE UNIQUE INDEX idx_users_email ON users(email);
 CREATE UNIQUE INDEX idx_users_enrollment ON users(enrollment_number);
 
 -- Agenda de profesionales (muy frecuente)
-CREATE INDEX idx_appointments_prof_date ON appointments(professional_id, scheduled_date);
 
 -- Historial clínico (muy frecuente)
 CREATE INDEX idx_therapy_sessions_psych_date ON therapy_sessions(psychology_record_id, session_date DESC);
-```
 
 #### Estrategias de Optimización:
-
 1. **Índices Parciales**: Solo registros activos
 ```sql
 CREATE INDEX idx_appointments_active ON appointments(professional_id, scheduled_date)
@@ -136,7 +122,7 @@ WHERE status IN ('scheduled', 'confirmed');
 
 2. **Covering Indexes**: Incluir columnas frecuentemente consultadas
 ```sql
-CREATE INDEX idx_users_covering_student ON users(enrollment_number)
+CREATE INDEX idx_users_covering_patient ON users(enrollment_number)
 INCLUDE (first_name, last_name, email);
 ```
 
@@ -154,7 +140,6 @@ CREATE TABLE audit_logs (...)
 PARTITION BY RANGE (created_at);
 ```
 
-#### Benchmarks Esperados:
 
 | Operación | Sin Índices | Con Índices | Mejora |
 |-----------|-------------|-------------|--------|
@@ -170,22 +155,12 @@ PARTITION BY RANGE (created_at);
 - ✅ Guardado de sesión: < 2 segundos
 - ✅ Generación de reportes: < 5 segundos
 
----
-
-### 5. Schema SQL Completo
-
-**Archivo**: `schemas/schema.sql`
 
 **Contenido**:
 - Script SQL listo para ejecutar en PostgreSQL 14+
-- Creación de todas las 20 tablas
+- Creación de todas las 22 tablas
 - Todas las restricciones de integridad
 - 60+ índices optimizados
-- Comentarios de documentación
-
-**Tamaño**: ~22,000 líneas de SQL
-
-**Ejecución**:
 ```bash
 psql -U postgres -d ehr_database -f schemas/schema.sql
 ```
@@ -194,11 +169,10 @@ psql -U postgres -d ehr_database -f schemas/schema.sql
 
 ## 📈 Estadísticas del Diseño
 
-### Resumen Numérico
 
 | Métrica | Cantidad |
 |---------|----------|
-| Tablas | 20 |
+| Tablas | 22 |
 | Campos totales | ~200 |
 | Relaciones FK | 33 |
 | Índices | 60+ |
@@ -210,24 +184,15 @@ psql -U postgres -d ehr_database -f schemas/schema.sql
 
 ### Distribución de Tablas por Módulo
 
-- **Usuarios y Perfiles**: 3 tablas (users, student_profiles, emergency_contacts)
+- **Usuarios y Perfiles**: 5 tablas (users, careers, patients, psychologist_careers, emergency_contacts)
 - **Expedientes Médicos**: 1 tabla (medical_records)
 - **Módulo de Psicología**: 4 tablas (psychology_records, psychometric_evaluations, therapy_sessions, treatment_plans)
 - **Módulo de Enfermería**: 2 tablas (nursing_consultations, nursing_procedures)
-- **Medicamentos**: 2 tablas (medications, medication_administrations)
-- **Citas y Agendamiento**: 4 tablas (appointments, appointment_reminders, waiting_list, professional_schedules)
-- **Interconsultas**: 1 tabla (interconsultations)
-- **Auditoría y Reportes**: 3 tablas (audit_logs, reports, system_settings)
 
----
-
-## 🎯 Cumplimiento de Requisitos
-
-### Requisitos Funcionales
 
 | Requisito | Cumplimiento | Implementación |
 |-----------|--------------|----------------|
-| Gestión de Pacientes | ✅ 100% | users, student_profiles, emergency_contacts, medical_records |
+| Gestión de Pacientes | ✅ 100% | users, patients, emergency_contacts, medical_records |
 | Sesiones Terapéuticas | ✅ 100% | therapy_sessions, treatment_plans |
 | Evaluaciones Psicométricas | ✅ 100% | psychometric_evaluations |
 | Gestión de Citas | ✅ 100% | appointments, professional_schedules, waiting_list, appointment_reminders |
@@ -254,7 +219,6 @@ psql -U postgres -d ehr_database -f schemas/schema.sql
 
 ## 🔐 Seguridad y Privacidad
 
-### Medidas Implementadas
 
 1. **Separación de Datos Sensibles**:
    - `psychology_records` separado para acceso restringido
@@ -283,7 +247,6 @@ psql -U postgres -d ehr_database -f schemas/schema.sql
 
 ## 🚀 Próximos Pasos Recomendados
 
-### Fase de Implementación
 
 1. **Crear la Base de Datos** (1 día)
    ```bash
@@ -308,8 +271,8 @@ psql -U postgres -d ehr_database -f schemas/schema.sql
    CREATE VIEW v_student_summary AS
    SELECT u.*, sp.*, mr.blood_type
    FROM users u
-   JOIN student_profiles sp ON sp.user_id = u.id
-   JOIN medical_records mr ON mr.student_profile_id = sp.id;
+   JOIN patients p ON p.user_id = u.id
+   JOIN medical_records mr ON mr.patient_id = p.id;
    ```
 
 4. **Implementar Migraciones** (2-3 días)
@@ -349,7 +312,6 @@ psql -U postgres -d ehr_database -f schemas/schema.sql
 
 ## 📚 Recursos y Herramientas
 
-### Para Visualizar el Diagrama ER
 
 1. Ir a https://dbdiagram.io
 2. Copiar el contenido de `design/ER-DIAGRAM.dbml`
@@ -362,46 +324,20 @@ psql -U postgres -d ehr_database -f schemas/schema.sql
 - **Migraciones**: Flyway, Liquibase
 - **ORM**: Sequelize (Node.js), TypeORM (TypeScript)
 - **Monitoreo**: pg_stat_statements, pgBadger
-- **Backups**: pg_dump, WAL archiving
 
----
-
-## ✨ Características Destacadas
-
-### 1. Diseño Modular
 - Fácil agregar nuevos departamentos (nutrición, trabajo social)
 - Separación clara de responsabilidades
 - Mínimo acoplamiento entre módulos
 
-### 2. Optimización de Rendimiento
-- 60+ índices estratégicamente ubicados
-- Partial indexes para reducir tamaño
 - Covering indexes para queries frecuentes
 - Plan de particionamiento para tablas grandes
-
-### 3. Seguridad y Compliance
-- Auditoría completa de acciones
-- Separación de datos sensibles
 - Estructura para RBAC
 - Cumplimiento de normativas de privacidad
-
-### 4. Escalabilidad
-- UUID para distribución futura
-- Arquitectura modular
 - Normalización 3NF
 - Particionamiento preparado
-
-### 5. Mantenibilidad
-- Documentación exhaustiva
-- Nomenclatura consistente
 - Comentarios en SQL
 - Convenciones claras
 
----
-
-## 📞 Soporte
-
-Para preguntas o aclaraciones sobre el diseño:
 
 1. Revisar la documentación en `database/design/`
 2. Consultar el diccionario de datos
@@ -412,7 +348,6 @@ Para preguntas o aclaraciones sobre el diseño:
 
 ## 📝 Control de Versiones
 
-**Versión Actual**: 1.0.0
 **Fecha**: Febrero 2026
 **Estado**: ✅ Diseño completo - Aprobado para implementación
 
@@ -421,17 +356,9 @@ Para preguntas o aclaraciones sobre el diseño:
 
 ---
 
-**Diseño realizado basado en**:
 - ✅ Requisitos funcionales documentados
-- ✅ Requisitos no funcionales documentados
 - ✅ Entrevistas con stakeholders
 - ✅ Mejores prácticas de bases de datos
-- ✅ Estándares de la industria de salud
 
----
-
-## 🎉 Conclusión
-
-Este diseño de base de datos proporciona una base sólida, escalable y segura para la plataforma de Expediente Electrónico de Salud. Cumple con todos los requisitos funcionales y no funcionales especificados, y está optimizado para rendimiento, seguridad y mantenibilidad.
 
 **El sistema está listo para la fase de implementación.**

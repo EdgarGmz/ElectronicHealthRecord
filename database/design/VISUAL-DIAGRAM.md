@@ -12,9 +12,9 @@
                     │ (1:1)                  │                        │
                     ▼                        │                        ▼
          ┌──────────────────┐                │              ┌──────────────────┐
-         │ STUDENT_PROFILES │                │              │  PROFESSIONAL_   │
-         │  (Estudiantes/   │                │              │    SCHEDULES     │
-         │   Pacientes)     │                │              │  (Disponibilidad)│
+         │     PATIENTS     │                │              │  PROFESSIONAL_   │
+         │  (Pacientes)     │                │              │    SCHEDULES     │
+         │                 │                │              │  (Disponibilidad)│
          └────────┬─────────┘                │              └──────────────────┘
                   │                          │
         ┌─────────┼─────────┐                │
@@ -55,6 +55,10 @@
                                    └──────────┘
 ```
 
+Acceso por departamento (resumen):
+- Psicología: acceso a historial clínico general + historial psicológico.
+- Enfermería: acceso a historial clínico general, sin acceso a historial psicológico.
+
 ## Leyenda
 
 - **Rectángulos**: Entidades (tablas)
@@ -65,20 +69,22 @@
 
 ## Flujos Principales
 
-### 1. Flujo de Registro de Estudiante
+### 1. Flujo de Registro de Paciente
 ```
-Usuario (student) → Student Profile → Medical Record → 
+Usuario (patient) → Patient Profile → Medical Record → 
   → Psychology Record (si psicología)
   → Nursing Consultations (si enfermería)
 ```
 
 ### 2. Flujo de Cita
 ```
-Student Profile + Professional (User) → Appointment → 
+Patient Profile + Professional (User) → Appointment → 
   → Reminder (automático)
   → Therapy Session (si completada - psicología)
-  → Nursing Consultation (si completada - enfermería)
+  → Nursing Consultation (solo si aplica; enfermería no agenda citas)
 ```
+
+Nota: Las citas se agendan solo para psicología. Enfermería atiende consultas ambulatorias en el momento.
 
 ### 3. Flujo de Sesión Terapéutica
 ```
@@ -105,9 +111,13 @@ Profesional (Dept A) → Interconsultation →
 
 ### 🧑‍⚕️ Módulo de Usuarios
 - **users**: Base de todos los usuarios
-- **student_profiles**: Información académica
+- **patients**: Información del paciente (student, faculty, administrative)
+- **careers**: Catálogo de carreras
 - **emergency_contacts**: Contactos de emergencia
 - **professional_schedules**: Disponibilidad de profesionales
+
+### 🧠 Asignación de Psicólogos
+- **psychologist_careers**: Carreras a cargo por psicólogo
 
 ### 📋 Módulo de Expedientes
 - **medical_records**: Expediente general
@@ -125,9 +135,12 @@ Profesional (Dept A) → Interconsultation →
 - **medication_administrations**: Registro de administración
 
 ### 📅 Módulo de Citas
-- **appointments**: Citas agendadas
+- **appointments**: Citas agendadas (solo psicología)
 - **appointment_reminders**: Recordatorios
 - **waiting_list**: Lista de espera
+
+### 💉 Atención de Enfermería
+- **nursing_consultations**: Consultas ambulatorias sin cita
 
 ### 🔄 Módulo de Comunicación
 - **interconsultations**: Comunicación entre departamentos
@@ -145,6 +158,10 @@ medical_records (datos generales)
     ├── psychology_records (solo psicólogos)
     └── nursing_consultations (solo enfermeras)
 ```
+
+Acceso por departamento:
+- Psicología: puede acceder al historial clínico general del paciente.
+- Enfermería: no puede acceder al historial psicológico del paciente.
 
 ### 2. Verificación de Medicamentos (5 Normas)
 ```
@@ -171,12 +188,19 @@ Cualquier acción en datos sensibles → audit_logs
 ```
 users.role
     ├── student → Ver solo sus propios datos
-    ├── psychologist → Expedientes psicológicos asignados
-    ├── nurse → Datos médicos y de enfermería
+  ├── psychologist → Expedientes psicológicos asignados + historial clínico general (solo carreras a cargo)
+  ├── nurse → Datos médicos y de enfermería (sin historial psicológico)
     ├── coordinator_psych → Todos expedientes psicología
     ├── coordinator_nurse → Reportes y estadísticas
     └── admin → Configuración del sistema
 ```
+
+Acceso al sistema:
+- Todos los usuarios excepto estudiantes ingresan con usuario y contrasena.
+- Pacientes tipo estudiante solo pueden registrar citas con psicología y ser atendidos en enfermería sin cita.
+
+Acceso por carrera (psicología):
+- Los psicólogos solo pueden ver expedientes de pacientes en carreras asignadas.
 
 ## Indicadores de Rendimiento
 
@@ -192,7 +216,7 @@ users(first_name, last_name)
 **Agenda de Citas**:
 ```
 appointments(professional_id, scheduled_date)
-appointments(student_profile_id, status)
+appointments(patient_id, status)
 ```
 
 **Historial Clínico**:
@@ -220,7 +244,7 @@ audit_logs(table_name, record_id)
 
 ---
 
-**Total de Entidades en el Sistema**: 20 tablas
+**Total de Entidades en el Sistema**: 22 tablas
 **Total de Relaciones**: 33 Foreign Keys
 **Nivel de Normalización**: 3NF (Tercera Forma Normal)
 

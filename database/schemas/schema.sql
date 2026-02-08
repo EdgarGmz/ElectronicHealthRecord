@@ -29,25 +29,50 @@ CREATE TABLE users (
   CONSTRAINT check_date_of_birth CHECK (date_of_birth < CURRENT_DATE)
 );
 
--- Student-specific profile information
-CREATE TABLE student_profiles (
+-- Careers catalog
+CREATE TABLE careers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(150) NOT NULL,
+  code VARCHAR(30),
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT unique_career_name UNIQUE (name),
+  CONSTRAINT unique_career_code UNIQUE (code)
+);
+
+-- Patient profile information
+CREATE TABLE patients (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  patient_type VARCHAR(30) NOT NULL CHECK (patient_type IN ('student', 'faculty', 'administrative')),
   marital_status VARCHAR(50),
   guardian_name VARCHAR(200),
   guardian_phone VARCHAR(20),
-  career VARCHAR(100) NOT NULL,
+  career_id UUID NOT NULL REFERENCES careers(id) ON DELETE RESTRICT,
   "group" VARCHAR(20),
   occupation VARCHAR(100),
-  semester INTEGER CHECK (semester > 0),
+  trimester INTEGER CHECK (trimester > 0),
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
--- Emergency contacts for students
+-- Careers assigned to psychologists (1 psychologist -> many careers)
+CREATE TABLE psychologist_careers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  psychologist_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  career_id UUID NOT NULL REFERENCES careers(id) ON DELETE RESTRICT,
+  assigned_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT unique_psychologist_career UNIQUE (psychologist_id, career_id),
+  CONSTRAINT unique_career_assignment UNIQUE (career_id)
+);
+
+-- Emergency contacts for patients
 CREATE TABLE emergency_contacts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  student_profile_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
   name VARCHAR(200) NOT NULL,
   relationship VARCHAR(50) NOT NULL,
   phone VARCHAR(20) NOT NULL,
@@ -64,7 +89,7 @@ CREATE TABLE emergency_contacts (
 -- General medical record (shared between departments)
 CREATE TABLE medical_records (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  student_profile_id UUID NOT NULL UNIQUE REFERENCES student_profiles(id) ON DELETE CASCADE,
+  patient_id UUID NOT NULL UNIQUE REFERENCES patients(id) ON DELETE CASCADE,
   blood_type VARCHAR(10),
   allergies TEXT,
   chronic_conditions TEXT,
@@ -122,8 +147,8 @@ CREATE TABLE therapy_sessions (
   psychology_record_id UUID NOT NULL REFERENCES psychology_records(id) ON DELETE CASCADE,
   session_number INTEGER NOT NULL CHECK (session_number > 0),
   session_date TIMESTAMP NOT NULL,
-  therapy_type VARCHAR(50) NOT NULL CHECK (therapy_type IN ('individual', 'group', 'family', 'couple')),
   session_duration INTEGER NOT NULL DEFAULT 50 CHECK (session_duration > 0),
+  mood VARCHAR(30) NOT NULL CHECK (mood IN ('abrumado', 'aburrido', 'adormilado', 'afectuoso', 'agotado', 'agradecido', 'alegre', 'aliviado', 'angustiado', 'ansioso', 'apatico', 'arrepentido', 'asustado', 'avergonzado', 'calmado', 'cansado', 'celoso', 'complacido', 'concentrado', 'confundido', 'creativo', 'culpable', 'curioso', 'decepcionado', 'deprimido', 'desanimado', 'determinado', 'distraido', 'dolorido', 'emocionado', 'enamorado', 'energico', 'enfocado', 'enojado', 'entusiasmado', 'envidioso', 'esperanzado', 'estresado', 'euforico', 'frustrado', 'furioso', 'hambriento', 'herido', 'impaciente', 'incomodo', 'indiferente', 'inquieto', 'inseguro', 'inspirado', 'irritado', 'melancolico', 'motivado', 'nostalgico', 'optimista', 'orgulloso', 'pasivo', 'pensativo', 'perezoso', 'pesimista', 'preocupado', 'productivo', 'relajado', 'satisfecho', 'seguro', 'sensible', 'sereno', 'sociable', 'solo', 'sorprendido', 'timido', 'tranquilo', 'triste', 'vacio', 'valiente', 'vulnerable')),
   evolution_notes TEXT,
   patient_progress TEXT,
   assigned_tasks TEXT,
@@ -249,7 +274,7 @@ CREATE TABLE medication_administrations (
 -- Appointments
 CREATE TABLE appointments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  student_profile_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
   professional_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
   appointment_type VARCHAR(50) NOT NULL CHECK (appointment_type IN ('psychology_initial', 'psychology_followup', 'nursing', 'emergency')),
   department VARCHAR(50) NOT NULL CHECK (department IN ('psychology', 'nursing')),
@@ -277,7 +302,7 @@ CREATE TABLE appointment_reminders (
 -- Waiting list
 CREATE TABLE waiting_list (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  student_profile_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
   department VARCHAR(50) NOT NULL CHECK (department IN ('psychology', 'nursing')),
   preferred_professional_id UUID REFERENCES users(id) ON DELETE SET NULL,
   requested_date DATE,
@@ -309,7 +334,7 @@ CREATE TABLE professional_schedules (
 -- Interconsultations between departments
 CREATE TABLE interconsultations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  student_profile_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
   from_department VARCHAR(50) NOT NULL CHECK (from_department IN ('psychology', 'nursing', 'administrative')),
   to_department VARCHAR(50) NOT NULL CHECK (to_department IN ('psychology', 'nursing', 'administrative')),
   from_professional_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
@@ -371,22 +396,31 @@ CREATE TABLE system_settings (
 -- =============================================
 -- INDEXES
 -- =============================================
-
 -- Users indexes
 CREATE UNIQUE INDEX idx_users_email ON users(email);
 CREATE UNIQUE INDEX idx_users_enrollment ON users(enrollment_number) WHERE enrollment_number IS NOT NULL;
 CREATE INDEX idx_users_name ON users(first_name, last_name);
 CREATE INDEX idx_users_role_active ON users(role, is_active);
 
--- Student profiles indexes
-CREATE INDEX idx_student_profiles_user ON student_profiles(user_id);
+-- Careers indexes
+CREATE UNIQUE INDEX idx_careers_name ON careers(name);
+CREATE UNIQUE INDEX idx_careers_code ON careers(code);
+CREATE INDEX idx_careers_active ON careers(is_active);
+
+-- Patients indexes
+CREATE INDEX idx_patients_user ON patients(user_id);
+CREATE INDEX idx_patients_career ON patients(career_id);
+
+-- Psychologist careers indexes
+CREATE INDEX idx_psychologist_careers_psych ON psychologist_careers(psychologist_id);
+CREATE UNIQUE INDEX idx_psychologist_careers_career ON psychologist_careers(career_id);
 
 -- Emergency contacts indexes
-CREATE INDEX idx_emergency_contacts_student ON emergency_contacts(student_profile_id);
-CREATE INDEX idx_emergency_contacts_priority ON emergency_contacts(student_profile_id, priority);
+CREATE INDEX idx_emergency_contacts_patient ON emergency_contacts(patient_id);
+CREATE INDEX idx_emergency_contacts_priority ON emergency_contacts(patient_id, priority);
 
 -- Medical records indexes
-CREATE INDEX idx_medical_records_student ON medical_records(student_profile_id);
+CREATE INDEX idx_medical_records_patient ON medical_records(patient_id);
 
 -- Psychology records indexes
 CREATE INDEX idx_psych_records_medical ON psychology_records(medical_record_id);
@@ -395,11 +429,9 @@ CREATE INDEX idx_psych_records_assigned ON psychology_records(assigned_psycholog
 -- Psychometric evaluations indexes
 CREATE INDEX idx_psychometric_psych_record ON psychometric_evaluations(psychology_record_id);
 CREATE INDEX idx_psychometric_date ON psychometric_evaluations(application_date);
-CREATE INDEX idx_psychometric_type ON psychometric_evaluations(evaluation_type);
 
 -- Therapy sessions indexes
 CREATE INDEX idx_therapy_sessions_psych ON therapy_sessions(psychology_record_id);
-CREATE INDEX idx_therapy_sessions_date ON therapy_sessions(session_date DESC);
 CREATE INDEX idx_therapy_sessions_therapist ON therapy_sessions(therapist_id);
 
 -- Treatment plans indexes
@@ -409,11 +441,9 @@ CREATE INDEX idx_treatment_plans_status ON treatment_plans(status);
 -- Nursing consultations indexes
 CREATE INDEX idx_nursing_consultations_record ON nursing_consultations(medical_record_id);
 CREATE INDEX idx_nursing_consultations_date ON nursing_consultations(consultation_date DESC);
-CREATE INDEX idx_nursing_consultations_nurse ON nursing_consultations(nurse_id);
 
 -- Nursing procedures indexes
 CREATE INDEX idx_nursing_procedures_consultation ON nursing_procedures(nursing_consultation_id);
-CREATE INDEX idx_nursing_procedures_type ON nursing_procedures(procedure_type);
 CREATE INDEX idx_nursing_procedures_date ON nursing_procedures(procedure_date);
 
 -- Medications indexes
@@ -427,10 +457,9 @@ CREATE INDEX idx_med_admin_medication ON medication_administrations(medication_i
 CREATE INDEX idx_med_admin_date ON medication_administrations(administration_date);
 
 -- Appointments indexes
-CREATE INDEX idx_appointments_student ON appointments(student_profile_id);
+CREATE INDEX idx_appointments_patient ON appointments(patient_id);
 CREATE INDEX idx_appointments_professional ON appointments(professional_id);
 CREATE INDEX idx_appointments_date ON appointments(scheduled_date);
-CREATE INDEX idx_appointments_status ON appointments(status);
 CREATE INDEX idx_appointments_department ON appointments(department);
 CREATE INDEX idx_appointments_prof_date ON appointments(professional_id, scheduled_date);
 
@@ -440,7 +469,7 @@ CREATE INDEX idx_reminders_scheduled ON appointment_reminders(scheduled_for);
 CREATE INDEX idx_reminders_status ON appointment_reminders(status);
 
 -- Waiting list indexes
-CREATE INDEX idx_waiting_list_student ON waiting_list(student_profile_id);
+CREATE INDEX idx_waiting_list_patient ON waiting_list(patient_id);
 CREATE INDEX idx_waiting_list_department ON waiting_list(department);
 CREATE INDEX idx_waiting_list_priority ON waiting_list(priority);
 CREATE INDEX idx_waiting_list_status ON waiting_list(status);
@@ -450,7 +479,7 @@ CREATE INDEX idx_schedules_professional ON professional_schedules(professional_i
 CREATE INDEX idx_schedules_day ON professional_schedules(day_of_week);
 
 -- Interconsultations indexes
-CREATE INDEX idx_interconsult_student ON interconsultations(student_profile_id);
+CREATE INDEX idx_interconsult_patient ON interconsultations(patient_id);
 CREATE INDEX idx_interconsult_from ON interconsultations(from_professional_id);
 CREATE INDEX idx_interconsult_to ON interconsultations(to_professional_id);
 CREATE INDEX idx_interconsult_status ON interconsultations(status);
@@ -459,11 +488,8 @@ CREATE INDEX idx_interconsult_status ON interconsultations(status);
 CREATE INDEX idx_audit_user ON audit_logs(user_id);
 CREATE INDEX idx_audit_table ON audit_logs(table_name);
 CREATE INDEX idx_audit_record ON audit_logs(record_id);
-CREATE INDEX idx_audit_created ON audit_logs(created_at DESC);
-CREATE INDEX idx_audit_action ON audit_logs(action);
 
 -- Reports indexes
-CREATE INDEX idx_reports_type ON reports(report_type);
 CREATE INDEX idx_reports_department ON reports(department);
 CREATE INDEX idx_reports_created ON reports(created_at DESC);
 CREATE INDEX idx_reports_generated_by ON reports(generated_by);
@@ -476,11 +502,13 @@ CREATE INDEX idx_settings_key ON system_settings(setting_key);
 -- =============================================
 
 COMMENT ON TABLE users IS 'All system users (students, professionals, administrators)';
-COMMENT ON TABLE student_profiles IS 'Detailed student information';
-COMMENT ON TABLE emergency_contacts IS 'Emergency contacts for students';
+COMMENT ON TABLE careers IS 'Institution careers catalog';
+COMMENT ON TABLE patients IS 'Detailed patient information';
+COMMENT ON TABLE psychologist_careers IS 'Careers assigned to psychologists';
+COMMENT ON TABLE emergency_contacts IS 'Emergency contacts for patients';
 COMMENT ON TABLE medical_records IS 'General medical records shared between departments';
 COMMENT ON TABLE psychology_records IS 'Psychology-specific records with restricted access';
-COMMENT ON TABLE psychometric_evaluations IS 'Psychometric test results (WISC, WAIS, Beck, etc.)';
+COMMENT ON TABLE psychometric_evaluations IS 'Psychometric test results';
 COMMENT ON TABLE therapy_sessions IS 'Individual therapy session records';
 COMMENT ON TABLE treatment_plans IS 'Treatment plans with goals and interventions';
 COMMENT ON TABLE nursing_consultations IS 'Nursing consultations with vital signs';
@@ -488,14 +516,10 @@ COMMENT ON TABLE nursing_procedures IS 'Nursing procedures performed';
 COMMENT ON TABLE medications IS 'Medication catalog';
 COMMENT ON TABLE medication_administrations IS 'Medication administration records with 5 rights verification';
 COMMENT ON TABLE appointments IS 'Appointment scheduling for psychology and nursing';
-COMMENT ON TABLE appointment_reminders IS 'Automatic reminders for appointments';
+COMMENT ON TABLE appointment_reminders IS 'Automatic appointment reminders';
 COMMENT ON TABLE waiting_list IS 'Waiting list when no availability';
 COMMENT ON TABLE professional_schedules IS 'Professional availability schedules';
 COMMENT ON TABLE interconsultations IS 'Inter-department consultations';
 COMMENT ON TABLE audit_logs IS 'Audit trail for compliance and security';
 COMMENT ON TABLE reports IS 'Generated reports metadata';
 COMMENT ON TABLE system_settings IS 'System-wide configuration settings';
-
--- =============================================
--- END OF SCHEMA
--- =============================================
