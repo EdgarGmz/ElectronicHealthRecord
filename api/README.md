@@ -36,13 +36,10 @@
 |:-----------:|:---:|:-------:|
 | 🔑 **JWT** | Manejo de sesiones y autorización | ![npm](https://img.shields.io/npm/v/jsonwebtoken?label=) |
 | 🔒 **Bcrypt** | Hasheo seguro de contraseñas | ![npm](https://img.shields.io/npm/v/bcrypt?label=) |
-| 🌐 **OAuth2** | Flujos de autenticación delegada | - |
 | 🛡️ **Helmet** | Protección de headers HTTP | ![npm](https://img.shields.io/npm/v/helmet?label=) |
 | 🌍 **CORS** | Control de acceso entre orígenes | ![npm](https://img.shields.io/npm/v/cors?label=) |
 | ⏱️ **express-rate-limit** | Protección contra DDoS/brute-force | ![npm](https://img.shields.io/npm/v/express-rate-limit?label=) |
 | ✅ **express-validator** | Validación y sanitización de inputs | ![npm](https://img.shields.io/npm/v/express-validator?label=) |
-| 🧹 **xss-clean** | Protección contra ataques XSS | ![npm](https://img.shields.io/npm/v/xss-clean?label=) |
-| 💉 **express-mongo-sanitize** | Protección contra NoSQL injection | ![npm](https://img.shields.io/npm/v/express-mongo-sanitize?label=) |
 
 </div>
 
@@ -68,6 +65,8 @@
 | [![Swagger](https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=black)](https://swagger.io/) | Documentación interactiva de API REST | ![npm](https://img.shields.io/npm/v/swagger-ui-express?label=) | [Docs](https://swagger.io/) • [NPM](https://www.npmjs.com/package/swagger-ui-express) |
 | [![OpenAPI](https://img.shields.io/badge/OpenAPI-6BA539?logo=openapiinitiative&logoColor=white)](https://www.openapis.org/) | Especificación estándar de APIs | - | [Docs](https://www.openapis.org/) • [Spec](https://spec.openapis.org/oas/latest.html) |
 | [![TypeDoc](https://img.shields.io/badge/TypeDoc-007ACC?logo=typescript&logoColor=white)](https://typedoc.org/) | Generación de docs desde código TS | ![npm](https://img.shields.io/npm/v/typedoc?label=) | [Docs](https://typedoc.org/) • [NPM](https://www.npmjs.com/package/typedoc) |
+| [![YAMLJS](https://img.shields.io/badge/YAMLJS-CB3837?logo=yaml&logoColor=white)](https://github.com/jeremyfa/yaml.js) | Parser y serializador de archivos YAML | ![npm](https://img.shields.io/npm/v/yamljs?label=) | [Docs](https://github.com/jeremyfa/yaml.js) • [NPM](https://www.npmjs.com/package/yamljs) |
+| [![ReDoc](https://img.shields.io/badge/ReDoc-8BC34A?logo=readme&logoColor=white)](https://redocly.com/redoc/) | Generador de documentación OpenAPI | ![npm](https://img.shields.io/npm/v/redoc-cli?label=) | [Docs](https://redocly.com/redoc/) • [NPM](https://www.npmjs.com/package/redoc-cli) |
 
 </div>
 
@@ -84,7 +83,6 @@
 | Tecnología | Descripción | Versión | Enlaces |
 |:----------:|:-----------:|:-------:|:-------:|
 | [![Winston](https://img.shields.io/badge/Winston-1C1C1C?logo=winston&logoColor=white)](https://github.com/winstonjs/winston) | Sistema de logging estructurado | ![npm](https://img.shields.io/npm/v/winston?label=) | [Docs](https://github.com/winstonjs/winston) • [NPM](https://www.npmjs.com/package/winston) |
-| [![Pino](https://img.shields.io/badge/Pino-00ADD8?logo=pino&logoColor=white)](https://getpino.io/) | Logger de alto rendimiento | ![npm](https://img.shields.io/npm/v/pino?label=) | [Docs](https://getpino.io/) • [NPM](https://www.npmjs.com/package/pino) |
 | [![Morgan](https://img.shields.io/badge/Morgan-000000?logo=express&logoColor=white)](https://github.com/expressjs/morgan) | Logger de peticiones HTTP | ![npm](https://img.shields.io/npm/v/morgan?label=) | [Docs](https://github.com/expressjs/morgan) • [NPM](https://www.npmjs.com/package/morgan) |
 | [![winston-daily-rotate](https://img.shields.io/badge/winston--rotate-4A4A4A?logo=winston&logoColor=white)](https://github.com/winstonjs/winston-daily-rotate-file) | Rotación automática de archivos de log | ![npm](https://img.shields.io/npm/v/winston-daily-rotate-file?label=) | [Docs](https://github.com/winstonjs/winston-daily-rotate-file) • [NPM](https://www.npmjs.com/package/winston-daily-rotate-file) |
 
@@ -156,7 +154,6 @@
 | Tecnología | Descripción | Versión | Enlaces |
 |:----------:|:-----------:|:-------:|:-------:|
 | [![date-fns](https://img.shields.io/badge/date--fns-770C56?logo=date-fns&logoColor=white)](https://date-fns.org/) | Librería moderna para manejo de fechas | ![npm](https://img.shields.io/npm/v/date-fns?label=) | [Docs](https://date-fns.org/) • [NPM](https://www.npmjs.com/package/date-fns) |
-| [![Luxon](https://img.shields.io/badge/Luxon-FFD700?logo=javascript&logoColor=black)](https://moment.github.io/luxon/) | Wrapper moderno para fechas (basado en Intl) | ![npm](https://img.shields.io/npm/v/luxon?label=) | [Docs](https://moment.github.io/luxon/) • [NPM](https://www.npmjs.com/package/luxon) |
 | [![uuid](https://img.shields.io/badge/uuid-00D1B2?logo=node.js&logoColor=white)](https://github.com/uuidjs/uuid) | Generación de identificadores únicos (RFC4122) | ![npm](https://img.shields.io/npm/v/uuid?label=) | [Docs](https://github.com/uuidjs/uuid) • [NPM](https://www.npmjs.com/package/uuid) |
 | [![validator.js](https://img.shields.io/badge/validator.js-5DADE2?logo=javascript&logoColor=white)](https://github.com/validatorjs/validator.js) | Validación y sanitización de strings | ![npm](https://img.shields.io/npm/v/validator?label=) | [Docs](https://github.com/validatorjs/validator.js) • [NPM](https://www.npmjs.com/package/validator) |
 
