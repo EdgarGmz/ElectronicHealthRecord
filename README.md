@@ -384,6 +384,7 @@ El proyecto mantiene una cobertura mínima de:
 - **[Templates de Issues](./ISSUE_TEMPLATES.md)** - Plantillas para issues
 - **[Estructura del Proyecto](./PROJECT_STRUCTURE.md)** - Detalles de arquitectura
 - **[Referencia Rápida](./QUICK_REFERENCE.md)** - Comandos y referencias
+- **[Análisis de Riesgos y Amenazas](./documents/Analisis-Riesgos-Amenazas.md)** - Evaluación de seguridad y cumplimiento
 - **[API Documentation](http://localhost:5000/api-docs)** - Swagger UI (en desarrollo)
 - **[Frontend Docs](./client/README.md)** - Stack tecnológico frontend
 - **[Backend Docs](./api/README.md)** - Stack tecnológico backend
