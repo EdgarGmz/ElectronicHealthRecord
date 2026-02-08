@@ -205,7 +205,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"patientId\": \"{{patientId}}\",\n  \"professionalId\": \"{{professionalId}}\",\n  \"type\": \"psychology\",\n  \"date\": \"2024-01-20\",\n  \"startTime\": \"10:00\",\n  \"duration\": 50,\n  \"reason\": \"Primera consulta - evaluación inicial\"\n}"
+              "raw": "{\n  \"patientId\": \"{{patientId}}\",\n  \"professionalId\": \"{{professionalId}}\",\n  \"type\": \"psychology\",\n  \"date\": \"2026-02-15\",\n  \"startTime\": \"10:00\",\n  \"duration\": 50,\n  \"reason\": \"Primera consulta - evaluación inicial\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/appointments",
@@ -219,7 +219,7 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/appointments/availability?professionalId={{professionalId}}&date=2024-01-20&type=psychology",
+              "raw": "{{baseUrl}}/appointments/availability?professionalId={{professionalId}}&date=2026-02-15&type=psychology",
               "host": ["{{baseUrl}}"],
               "path": ["appointments", "availability"],
               "query": [
@@ -229,7 +229,8 @@
                 },
                 {
                   "key": "date",
-                  "value": "2024-01-20"
+                  "value": "2026-02-15",
+                  "description": "Use a future date for checking availability"
                 },
                 {
                   "key": "type",
@@ -286,17 +287,19 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/reports/statistics?startDate=2024-01-01&endDate=2024-01-31&department=all",
+              "raw": "{{baseUrl}}/reports/statistics?startDate=2026-01-01&endDate=2026-01-31&department=all",
               "host": ["{{baseUrl}}"],
               "path": ["reports", "statistics"],
               "query": [
                 {
                   "key": "startDate",
-                  "value": "2024-01-01"
+                  "value": "2026-01-01",
+                  "description": "Report start date"
                 },
                 {
                   "key": "endDate",
-                  "value": "2024-01-31"
+                  "value": "2026-01-31",
+                  "description": "Report end date"
                 },
                 {
                   "key": "department",
