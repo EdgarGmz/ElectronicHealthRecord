@@ -2,6 +2,21 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Validate required environment variables in production
+if (isProduction) {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET must be set in production environment');
+  }
+  if (!process.env.JWT_REFRESH_SECRET) {
+    throw new Error('JWT_REFRESH_SECRET must be set in production environment');
+  }
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL must be set in production environment');
+  }
+}
+
 export const config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '5000', 10),

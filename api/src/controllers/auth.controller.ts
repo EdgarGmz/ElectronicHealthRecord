@@ -83,7 +83,9 @@ export class AuthController {
 
   async logout(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // In a production app, you might want to blacklist the token
+      // Note: In a production app, implement token blacklisting using Redis or a database
+      // to track revoked tokens. Without this, JWTs remain valid until expiration.
+      // For now, logout is handled client-side by removing tokens.
       res.status(200).json({
         success: true,
         message: 'Logout successful',

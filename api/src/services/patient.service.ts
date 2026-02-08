@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { hashPassword } from '../utils/password';
@@ -6,15 +7,15 @@ export class PatientService {
   async getAll(page: number = 1, limit: number = 10, search?: string, patientType?: string) {
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: Prisma.PatientWhereInput = {};
 
     if (search) {
       where.user = {
         OR: [
-          { email: { contains: search, mode: 'insensitive' as const } },
-          { firstName: { contains: search, mode: 'insensitive' as const } },
-          { lastName: { contains: search, mode: 'insensitive' as const } },
-          { enrollmentNumber: { contains: search, mode: 'insensitive' as const } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { enrollmentNumber: { contains: search, mode: 'insensitive' } },
         ],
       };
     }
