@@ -12,10 +12,10 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "migration:generate": "typeorm migration:generate",
-    "migration:run": "typeorm migration:run",
-    "migration:revert": "typeorm migration:revert",
-    "seed:run": "ts-node src/database/seeds/index.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
     "docs:serve": "redoc-cli serve openapi.yaml --watch"
   },
   "keywords": [
@@ -30,10 +30,9 @@
   "author": "EHR Development Team",
   "license": "PROPRIETARY",
   "dependencies": {
+    "@prisma/client": "^5.8.0",
     "express": "^4.18.2",
     "typescript": "^5.3.3",
-    "typeorm": "^0.3.19",
-    "mysql2": "^3.7.0",
     "jsonwebtoken": "^9.0.2",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.3.1",
@@ -64,6 +63,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
+    "prisma": "^5.8.0",
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.6",
     "@types/bcrypt": "^5.0.2",
