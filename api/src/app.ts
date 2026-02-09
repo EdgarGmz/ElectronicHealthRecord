@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
+import compression from 'compression'; // Import compression middleware
 import { config } from './config/env';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
@@ -33,6 +34,9 @@ app.use('/api', limiter);
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Compression middleware
+app.use(compression());
 
 // Logging middleware
 if (config.env === 'development') {

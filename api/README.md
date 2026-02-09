@@ -35,6 +35,165 @@ The backend API has been successfully implemented with:
 
 ---
 
+## 🚀 Inicio Rápido
+
+Sigue estos pasos para tener la API de EHR funcionando en tu máquina local.
+
+### 📋 Prerrequisitos
+
+*   Node.js (v18 o superior)
+*   npm (v9 o superior)
+*   Servidor de base de datos PostgreSQL
+
+### 📦 1. Clonar el Repositorio
+
+```bash
+git clone https://github.com/EdgarGmz/ElectronicHealthRecord.git
+cd ElectronicHealthRecord/api
+```
+
+### ⚙️ 2. Instalar Dependencias
+
+```bash
+npm install
+```
+
+### 🔑 3. Configurar Variables de Entorno
+
+Crea un archivo `.env` en el directorio `api/` copiando el archivo de ejemplo:
+
+```bash
+cp .env.example .env
+```
+
+Ahora, abre el archivo `.env` y actualiza las siguientes variables. Son cruciales para que la API se conecte a la base de datos y funcione correctamente.
+
+```env
+# Conexión a la Base de Datos (PostgreSQL)
+# Reemplaza 'user', 'password' y 'ehr_db' con tus credenciales de PostgreSQL.
+DATABASE_URL="postgresql://user:password@localhost:5432/ehr_db?schema=public"
+
+# Secretos JWT para Autenticación
+# Genera secretos fuertes y únicos para entornos de producción.
+JWT_SECRET=tu-secreto-jwt-aqui
+JWT_REFRESH_SECRET=tu-secreto-refresh-jwt-aqui
+
+# Otras configuraciones opcionales (los valores por defecto se proporcionan en src/config/env.ts)
+# PORT=5000
+# HOST=localhost
+# CORS_ORIGIN=http://localhost:5173
+# LOG_LEVEL=info
+```
+
+### 🐘 4. Configuración de la Base de Datos PostgreSQL
+
+La API utiliza PostgreSQL. Necesitas tener un servidor PostgreSQL ejecutándose y configurar una base de datos y un usuario para la aplicación.
+
+#### 💾 A. Instalar y Ejecutar PostgreSQL
+
+Elige tu sistema operativo:
+
+##### 🐧 Linux (Ubuntu/Debian)
+
+1.  **Instalar PostgreSQL:**
+    ```bash
+    sudo apt update
+    sudo apt install postgresql postgresql-contrib
+    ```
+2.  **Iniciar y Habilitar el Servicio:**
+    PostgreSQL generalmente se inicia automáticamente después de la instalación. Verifica su estado y habilítalo para que se inicie al arrancar el sistema:
+    ```bash
+    sudo systemctl status postgresql
+    sudo systemctl enable postgresql
+    # Si no está corriendo, inícialo:
+    sudo systemctl start postgresql
+    ```
+
+##### 🍎 macOS (usando Homebrew)
+
+1.  **Instalar Homebrew** (si no lo tienes):
+    Sigue las instrucciones en [brew.sh](https://brew.sh/)
+2.  **Instalar PostgreSQL:**
+    ```bash
+    brew update
+    brew install postgresql
+    ```
+3.  **Iniciar Servicio:**
+    ```bash
+    brew services start postgresql
+    ```
+
+##### 🖥️ Windows
+
+1.  **Descargar Instalador:**
+    Visita la página oficial de [PostgreSQL Downloads (Windows)](https://www.postgresql.org/download/windows/) y descarga el instalador interactivo.
+2.  **Ejecutar Instalador:**
+    Sigue el asistente de instalación. Recuerda la contraseña que establezcas para el usuario `postgres`.
+3.  **Iniciar Servicio:**
+    PostgreSQL típicamente se inicia automáticamente. Puedes gestionarlo a través de los Servicios de Windows (`services.msc`).
+
+#### 👤 B. Crear Usuario y Base de Datos
+
+Una vez que PostgreSQL esté ejecutándose, crea un usuario y una base de datos dedicados para la API.
+
+1.  **Cambiar al usuario `postgres`:**
+    ```bash
+    sudo -i -u postgres
+    ```
+2.  **Acceder al shell de PostgreSQL:**
+    ```bash
+    psql
+    ```
+3.  **Crear Usuario y Base de Datos:**
+    Reemplaza `admin` y `admin1234` con tu nombre de usuario y contraseña deseados. Asegúrate de usar punto y coma `;` después de cada comando.
+    ```sql
+    CREATE USER admin WITH PASSWORD 'admin1234';
+    CREATE DATABASE ehr_db OWNER admin;
+    ```
+4.  **Otorgar Permisos al Usuario:**
+    El usuario `admin` necesita poder crear "shadow databases" durante las migraciones de Prisma.
+    ```sql
+    ALTER USER admin CREATEDB;
+    GRANT ALL PRIVILEGES ON DATABASE ehr_db TO admin;
+    ```
+5.  **Salir del shell de `psql`:**
+    ```sql
+    \q
+    ```
+6.  **Salir del usuario `postgres`:**
+    ```bash
+    exit
+    ```
+
+    **Importante:** Asegúrate de que la `DATABASE_URL` en tu archivo `.env` coincida exactamente con estas credenciales (ej., `postgresql://admin:admin1234@localhost:5432/ehr_db?schema=public`).
+
+### ⬆️ 5. Ejecutar Migraciones de la Base de Datos
+
+Con la base de datos configurada, aplica las migraciones de Prisma para crear las tablas necesarias:
+
+```bash
+npm run prisma:migrate
+```
+*   Cuando se te solicite, ingresa un nombre para la migración (ej., `initial_setup`).
+
+### 🚀 6. Iniciar el Servidor de la API
+
+Finalmente, inicia el servidor de desarrollo:
+
+```bash
+npm run dev
+```
+
+La API estará disponible en `http://localhost:5000/api`.
+
+### 📚 7. Acceder a la Documentación de la API
+
+Una vez que el servidor esté ejecutándose, puedes acceder a la documentación interactiva de la API (Swagger UI) en:
+
+[http://localhost:5000/api-docs](http://localhost:5000/api-docs)
+
+---
+
 ## 🛠️ Stack Tecnológico
 
 <div align="center">
