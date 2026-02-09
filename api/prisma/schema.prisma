@@ -41,6 +41,7 @@ model User {
   reports               Report[]
   systemSettingsUpdated SystemSetting[]
   psychologistCareers   PsychologistCareer[]
+  waitingListPreferences WaitingList[]
 
   @@map("users")
 }
