@@ -2,6 +2,67 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 
+// Common include configuration for detailed medical record queries
+const detailedMedicalRecordInclude: Prisma.MedicalRecordInclude = {
+  patient: {
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          dateOfBirth: true,
+          phone: true,
+          enrollmentNumber: true,
+        },
+      },
+      career: true,
+      emergencyContacts: true,
+    },
+  },
+  createdByUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      role: true,
+    },
+  },
+  updatedByUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      role: true,
+    },
+  },
+  psychologyRecord: {
+    include: {
+      assignedPsychologist: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  },
+  nursingConsultations: {
+    orderBy: { consultationDate: 'desc' },
+    take: 5,
+    include: {
+      nurse: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  },
+};
+
 export class MedicalRecordService {
   async getAll(page: number = 1, limit: number = 10, search?: string) {
     const skip = (page - 1) * limit;
@@ -84,65 +145,7 @@ export class MedicalRecordService {
   async getById(id: string) {
     const medicalRecord = await prisma.medicalRecord.findUnique({
       where: { id },
-      include: {
-        patient: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                dateOfBirth: true,
-                phone: true,
-                enrollmentNumber: true,
-              },
-            },
-            career: true,
-            emergencyContacts: true,
-          },
-        },
-        createdByUser: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-          },
-        },
-        updatedByUser: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-          },
-        },
-        psychologyRecord: {
-          include: {
-            assignedPsychologist: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-              },
-            },
-          },
-        },
-        nursingConsultations: {
-          orderBy: { consultationDate: 'desc' },
-          take: 5,
-          include: {
-            nurse: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-              },
-            },
-          },
-        },
-      },
+      include: detailedMedicalRecordInclude,
     });
 
     if (!medicalRecord) {
@@ -155,46 +158,7 @@ export class MedicalRecordService {
   async getByPatientId(patientId: string) {
     const medicalRecord = await prisma.medicalRecord.findUnique({
       where: { patientId },
-      include: {
-        patient: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                dateOfBirth: true,
-                phone: true,
-                enrollmentNumber: true,
-              },
-            },
-            career: true,
-            emergencyContacts: true,
-          },
-        },
-        createdByUser: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-          },
-        },
-        updatedByUser: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-          },
-        },
-        psychologyRecord: true,
-        nursingConsultations: {
-          orderBy: { consultationDate: 'desc' },
-          take: 5,
-        },
-      },
+      include: detailedMedicalRecordInclude,
     });
 
     if (!medicalRecord) {
