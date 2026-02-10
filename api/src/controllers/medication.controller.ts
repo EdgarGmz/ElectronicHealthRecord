@@ -153,6 +153,23 @@ export const getPrescriptions = async (req: Request, res: Response, next: NextFu
     const prescribedBy = req.query.prescribedBy as string;
     const status = req.query.status as string;
 
+    // Validate UUIDs if provided
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (patientId && !uuidRegex.test(patientId)) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid patientId format',
+      });
+      return;
+    }
+    if (prescribedBy && !uuidRegex.test(prescribedBy)) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid prescribedBy format',
+      });
+      return;
+    }
+
     const result = await medicationService.getAllPrescriptions(page, limit, patientId, prescribedBy, status);
 
     res.status(200).json({
