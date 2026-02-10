@@ -380,11 +380,20 @@ El proyecto mantiene una cobertura mínima de:
 
 ## 📖 Documentación
 
+### Gestión del Proyecto
+- **[📋 Acta de Constitución del Proyecto](./documents/Acta-Constitucion-Proyecto.md)** - Project Charter oficial
 - **[Guía de GitHub Projects](./GITHUB_PROJECTS_GUIDE.md)** - Gestión del proyecto
 - **[Templates de Issues](./ISSUE_TEMPLATES.md)** - Plantillas para issues
 - **[Estructura del Proyecto](./PROJECT_STRUCTURE.md)** - Detalles de arquitectura
 - **[Referencia Rápida](./QUICK_REFERENCE.md)** - Comandos y referencias
+
+### Requisitos y Análisis
+- **[Requisitos Funcionales](./documents/Req-Funcionales.md)** - Especificación de funcionalidades
+- **[Requisitos No Funcionales](./documents/Req-NoFuncionales.md)** - Criterios de calidad
+- **[Requisitos de Seguridad](./documents/Req-Seguridad.md)** - Especificación de seguridad
 - **[Análisis de Riesgos y Amenazas](./documents/Analisis-Riesgos-Amenazas.md)** - Evaluación de seguridad y cumplimiento
+
+### Documentación Técnica
 - **[📚 Documentación API REST](./api/API_DOCUMENTATION.md)** - Guía completa de endpoints y uso
 - **[📄 Especificación OpenAPI](./api/openapi.yaml)** - Definición OpenAPI 3.0 de la API
 - **[API Documentation (Swagger UI)](http://localhost:5000/api-docs)** - Documentación interactiva (en desarrollo)
