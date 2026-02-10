@@ -388,6 +388,8 @@ El proyecto mantiene una cobertura mínima de:
 - **[Referencia Rápida](./QUICK_REFERENCE.md)** - Comandos y referencias
 
 ### Requisitos y Análisis
+- **[📋 Reglas de Negocio](./documents/Reglas-Negocio.md)** - Reglas de negocio del sistema EHR (ODS 3, HIPAA)
+- **[📊 Diagrama de Flujo de Atención](./documents/Diagrama-Flujo-Atencion.md)** - Proceso completo de atención al paciente
 - **[Requisitos Funcionales](./documents/Req-Funcionales.md)** - Especificación de funcionalidades
 - **[Requisitos No Funcionales](./documents/Req-NoFuncionales.md)** - Criterios de calidad
 - **[Requisitos de Seguridad](./documents/Req-Seguridad.md)** - Especificación de seguridad
