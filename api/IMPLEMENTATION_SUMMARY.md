@@ -46,6 +46,19 @@ This document summarizes the implementation of the core backend API for the Elec
 - `PUT /patients/:id` - Update patient information
 - `DELETE /patients/:id` - Deactivate patient (admin only)
 
+#### Medications (`/api/medications`)
+- `GET /medications` - List medications with search and filtering
+- `GET /medications/:id` - Get medication details
+- `POST /medications` - Create new medication (admin, nurse)
+- `PUT /medications/:id` - Update medication (admin, nurse)
+
+#### Prescriptions (`/api/prescriptions`)
+- `GET /prescriptions` - List prescriptions with filtering by patient, prescriber, status
+- `GET /prescriptions/:id` - Get prescription details with administration history
+- `POST /prescriptions` - Create new prescription (doctor, psychologist, nurse)
+- `PUT /prescriptions/:id/status` - Update prescription status (active, completed, discontinued, suspended)
+- `POST /prescriptions/:id/administrations` - Record medication administration with 5 Correctos verification (nurse only)
+
 ### 4. Middleware Stack ✅
 
 - **Authentication** - JWT verification
@@ -81,7 +94,8 @@ api/
 │   ├── controllers/
 │   │   ├── auth.controller.ts    # Authentication endpoints
 │   │   ├── user.controller.ts    # User management endpoints
-│   │   └── patient.controller.ts # Patient management endpoints
+│   │   ├── patient.controller.ts # Patient management endpoints
+│   │   └── medication.controller.ts # Medication & prescription endpoints
 │   ├── middleware/
 │   │   ├── auth.ts           # Authentication & authorization
 │   │   ├── errorHandler.ts  # Error handling
@@ -90,14 +104,17 @@ api/
 │   │   ├── auth.routes.ts    # Auth routes
 │   │   ├── user.routes.ts    # User routes
 │   │   ├── patient.routes.ts # Patient routes
+│   │   ├── medication.routes.ts # Medication & prescription routes
 │   │   └── index.ts          # Main router
 │   ├── services/
 │   │   ├── auth.service.ts       # Auth business logic
 │   │   ├── user.service.ts       # User business logic
-│   │   └── patient.service.ts    # Patient business logic
+│   │   ├── patient.service.ts    # Patient business logic
+│   │   └── medication.service.ts # Medication & prescription business logic
 │   ├── utils/
 │   │   ├── jwt.ts            # JWT utilities
 │   │   ├── password.ts       # Password hashing
+│   │   ├── constants.ts      # Shared constants
 │   │   └── logger.ts         # Logging configuration
 │   ├── app.ts                # Express app setup
 │   └── index.ts              # Server entry point
@@ -219,20 +236,22 @@ Error:
 2. **Appointments Module** - Schedule and manage appointments
 3. **Therapy Sessions** - Track therapy sessions
 4. **Reports Module** - Generate PDF reports
-5. **Real-time Features** - Socket.io for notifications
-6. **File Upload** - Multer for document handling
-7. **Email Notifications** - Nodemailer integration
-8. **Token Blacklisting** - Redis for revoked tokens
-9. **Unit Tests** - Jest test suite
-10. **API Monitoring** - Performance metrics
+5. **Nursing Consultations** - CRUD operations for nursing consultations
+6. **Real-time Features** - Socket.io for notifications
+7. **File Upload** - Multer for document handling
+8. **Email Notifications** - Nodemailer integration
+9. **Token Blacklisting** - Redis for revoked tokens
+10. **Unit Tests** - Jest test suite
+11. **API Monitoring** - Performance metrics
 
 ## Known Limitations
 
 1. **Token Revocation** - Logout is client-side only. Implement Redis blacklist for production.
-2. **Limited Endpoints** - Only auth, users, and patients implemented. More modules needed per OpenAPI spec.
+2. **Limited Endpoints** - Core modules implemented (auth, users, patients, medications/prescriptions). More modules needed per OpenAPI spec.
 3. **No File Upload** - Multer configured but not implemented yet.
 4. **No Email** - Nodemailer configured but not implemented yet.
 5. **No Real-time** - Socket.io configured but not implemented yet.
+6. **Database Migration** - Prescription models added but migration needs to be run in production.
 
 ## Performance Considerations
 
@@ -275,12 +294,12 @@ Error:
 The core backend API has been successfully implemented with:
 - ✅ Solid foundation with TypeScript and Express
 - ✅ Secure authentication and authorization
-- ✅ Three main modules (auth, users, patients)
+- ✅ Four main modules (auth, users, patients, medications/prescriptions)
 - ✅ Proper error handling and validation
 - ✅ Type-safe database access with Prisma
 - ✅ Production-ready security measures
 - ✅ Comprehensive documentation
-- ✅ Zero security vulnerabilities
+- ✅ 1 CodeQL alert (mitigated false positive)
 
 The API is ready for:
 1. Database migration and deployment
@@ -291,5 +310,6 @@ The API is ready for:
 ---
 
 **Created**: February 8, 2026  
-**Version**: 1.0.0  
-**Status**: ✅ Core Implementation Complete
+**Updated**: February 10, 2026  
+**Version**: 1.1.0  
+**Status**: ✅ Core Implementation Complete + Medication/Prescription Module

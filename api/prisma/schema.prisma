@@ -31,6 +31,7 @@ model User {
   nursingConsultations  NursingConsultation[]
   nursingProcedures     NursingProcedure[]
   medicationAdmins      MedicationAdministration[]
+  prescriptions         Prescription[] @relation("PrescribedBy")
   appointments          Appointment[] @relation("AppointmentProfessional")
   appointmentsCreated   Appointment[] @relation("AppointmentCreatedBy")
   schedules             ProfessionalSchedule[]
@@ -79,6 +80,7 @@ model Patient {
   emergencyContacts EmergencyContact[]
   medicalRecord MedicalRecord?
   appointments Appointment[]
+  prescriptions Prescription[]
   waitingList  WaitingList[]
   interconsultations Interconsultation[]
 
@@ -286,9 +288,47 @@ model Medication {
   updatedAt          DateTime @map("updated_at") @default(now())
 
   administrations    MedicationAdministration[]
+  prescriptions      Prescription[]
 
   @@unique([name, genericName])
   @@map("medications")
+}
+
+model Prescription {
+  id                 String   @id @default(uuid()) @db.Uuid
+  patientId          String   @map("patient_id") @db.Uuid
+  medicationId       String   @map("medication_id") @db.Uuid
+  prescribedBy       String   @map("prescribed_by") @db.Uuid
+  dosage             String   @db.VarChar(100)
+  frequency          String   @db.VarChar(100)
+  route              String   @db.VarChar(50)
+  duration           String?  @db.VarChar(100)
+  startDate          DateTime @map("start_date") @db.Date
+  endDate            DateTime? @map("end_date") @db.Date
+  instructions       String?
+  status             String   @db.VarChar(20) @default("active")
+  createdAt          DateTime @map("created_at") @default(now())
+  updatedAt          DateTime @map("updated_at") @default(now())
+
+  patient            Patient  @relation(fields: [patientId], references: [id])
+  medication         Medication @relation(fields: [medicationId], references: [id])
+  prescribedByUser   User     @relation("PrescribedBy", fields: [prescribedBy], references: [id])
+  administrations    PrescriptionAdministration[]
+
+  @@map("prescriptions")
+}
+
+model PrescriptionAdministration {
+  id                 String   @id @default(uuid()) @db.Uuid
+  prescriptionId     String   @map("prescription_id") @db.Uuid
+  medicationAdministrationId String @map("medication_administration_id") @db.Uuid
+  createdAt          DateTime @map("created_at") @default(now())
+
+  prescription       Prescription @relation(fields: [prescriptionId], references: [id])
+  medicationAdministration MedicationAdministration @relation(fields: [medicationAdministrationId], references: [id])
+
+  @@unique([prescriptionId, medicationAdministrationId])
+  @@map("prescription_administrations")
 }
 
 model MedicationAdministration {
@@ -311,6 +351,7 @@ model MedicationAdministration {
   consultation       NursingConsultation @relation(fields: [nursingConsultationId], references: [id])
   medication         Medication         @relation(fields: [medicationId], references: [id])
   administeredByUser User               @relation(fields: [administeredBy], references: [id])
+  prescriptionAdministrations PrescriptionAdministration[]
 
   @@map("medication_administrations")
 }
