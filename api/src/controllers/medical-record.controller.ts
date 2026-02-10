@@ -43,17 +43,9 @@ export const getMedicalRecords = async (req: AuthRequest, res: Response, next: N
 
 export const createMedicalRecord = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
-      return;
-    }
-
     const data = {
       ...req.body,
-      createdBy: req.user.userId,
+      createdBy: req.user!.userId,
     };
 
     const medicalRecord = await medicalRecordService.create(data);
@@ -85,18 +77,10 @@ export const getMedicalRecordById = async (req: AuthRequest, res: Response, next
 
 export const updateMedicalRecord = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
-      return;
-    }
-
     const { id } = req.params;
     const data = {
       ...req.body,
-      updatedBy: req.user.userId,
+      updatedBy: req.user!.userId,
     };
 
     const medicalRecord = await medicalRecordService.update(id, data);

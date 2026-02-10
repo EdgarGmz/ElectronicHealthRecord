@@ -291,10 +291,7 @@ export class MedicalRecordService {
 
     const updatedRecord = await prisma.medicalRecord.update({
       where: { id },
-      data: {
-        ...data,
-        updatedAt: new Date(),
-      },
+      data,
       include: {
         patient: {
           include: {
