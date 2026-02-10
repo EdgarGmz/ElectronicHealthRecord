@@ -307,15 +307,6 @@ export class MedicationService {
       throw new AppError('Medication is not active', 400);
     }
 
-    // Verify prescriber exists and has appropriate role
-    const prescriber = await prisma.user.findUnique({
-      where: { id: data.prescribedBy },
-    });
-
-    if (!prescriber) {
-      throw new AppError('Prescriber not found', 404);
-    }
-
     // Check for contraindications/allergies (basic check)
     if (patient.medicalRecord?.allergies && medication.contraindications) {
       const allergies = patient.medicalRecord.allergies.toLowerCase();
@@ -359,7 +350,7 @@ export class MedicationService {
         startDate: data.startDate,
         endDate: data.endDate,
         instructions: data.instructions,
-        status: 'active',
+        status: PRESCRIPTION_STATUS.ACTIVE,
       },
       include: {
         medication: true,
