@@ -409,31 +409,31 @@ La firma de este documento representa la aprobación formal del proyecto y otorg
     <td><b>Sponsor del Proyecto</b><br><small>Dirección Académica</small></td>
     <td>[Nombre del Director]</td>
     <td>_____________________</td>
-    <td>___ / ___ / 2026</td>
+    <td>10 / Feb / 2026</td>
   </tr>
   <tr>
     <td><b>Project Manager</b><br><small>Responsable de Ejecución</small></td>
-    <td>Edgar Gómez</td>
+    <td>Edgar Tiburcio Gómez Morán</td>
     <td>_____________________</td>
     <td>10 / Feb / 2026</td>
   </tr>
   <tr>
     <td><b>Stakeholder Clave</b><br><small>Dept. Psicología</small></td>
-    <td>[Nombre del Coordinador]</td>
+    <td>Sergio David Elizondo Saldivar</td>
     <td>_____________________</td>
-    <td>___ / ___ / 2026</td>
+    <td>10 / Feb / 2026</td>
   </tr>
   <tr>
     <td><b>Stakeholder Clave</b><br><small>Dept. Enfermería</small></td>
-    <td>[Nombre del Coordinador]</td>
+    <td>Iván Javier Treviño Hernández</td>
     <td>_____________________</td>
-    <td>___ / ___ / 2026</td>
+    <td>10 / Feb / 2026</td>
   </tr>
   <tr>
     <td><b>Representante TI</b><br><small>Soporte Técnico</small></td>
-    <td>[Nombre del Responsable TI]</td>
+    <td>Xochilt Clara Villar Diego</td>
     <td>_____________________</td>
-    <td>___ / ___ / 2026</td>
+    <td>10 / Feb / 2026</td>
   </tr>
 </table>
 
@@ -515,6 +515,6 @@ El éxito del proyecto se medirá con los siguientes indicadores:
 
 ---
 
-**Desarrollado con ❤️ por el equipo EHR**
+**Desarrollado con ❤️ por el equipo IDGS09A**
 
 </div>
