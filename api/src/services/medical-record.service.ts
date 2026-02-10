@@ -2,40 +2,66 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 
-// Common include configuration for detailed medical record queries
+// Common user selection fields
+const userSelectFields: Prisma.UserSelect = {
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  dateOfBirth: true,
+  phone: true,
+  enrollmentNumber: true,
+};
+
+const userBasicSelectFields: Prisma.UserSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  role: true,
+};
+
+const careerSelectFields: Prisma.CareerSelect = {
+  id: true,
+  name: true,
+  code: true,
+};
+
+// Include configuration for list operations (lighter)
+const listMedicalRecordInclude: Prisma.MedicalRecordInclude = {
+  patient: {
+    include: {
+      user: {
+        select: userSelectFields,
+      },
+      career: {
+        select: careerSelectFields,
+      },
+    },
+  },
+  createdByUser: {
+    select: userBasicSelectFields,
+  },
+  updatedByUser: {
+    select: userBasicSelectFields,
+  },
+};
+
+// Include configuration for detailed operations
 const detailedMedicalRecordInclude: Prisma.MedicalRecordInclude = {
   patient: {
     include: {
       user: {
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          dateOfBirth: true,
-          phone: true,
-          enrollmentNumber: true,
-        },
+        select: userSelectFields,
       },
       career: true,
       emergencyContacts: true,
     },
   },
   createdByUser: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      role: true,
-    },
+    select: userBasicSelectFields,
   },
   updatedByUser: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      role: true,
-    },
+    select: userBasicSelectFields,
   },
   psychologyRecord: {
     include: {
@@ -63,6 +89,24 @@ const detailedMedicalRecordInclude: Prisma.MedicalRecordInclude = {
   },
 };
 
+// Include configuration for create/update operations (basic patient info)
+const basicMedicalRecordInclude: Prisma.MedicalRecordInclude = {
+  patient: {
+    include: {
+      user: {
+        select: userSelectFields,
+      },
+      career: true,
+    },
+  },
+  createdByUser: {
+    select: userBasicSelectFields,
+  },
+  updatedByUser: {
+    select: userBasicSelectFields,
+  },
+};
+
 export class MedicalRecordService {
   async getAll(page: number = 1, limit: number = 10, search?: string) {
     const skip = (page - 1) * limit;
@@ -87,45 +131,7 @@ export class MedicalRecordService {
         where,
         skip,
         take: limit,
-        include: {
-          patient: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  email: true,
-                  firstName: true,
-                  lastName: true,
-                  dateOfBirth: true,
-                  enrollmentNumber: true,
-                },
-              },
-              career: {
-                select: {
-                  id: true,
-                  name: true,
-                  code: true,
-                },
-              },
-            },
-          },
-          createdByUser: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              role: true,
-            },
-          },
-          updatedByUser: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              role: true,
-            },
-          },
-        },
+        include: listMedicalRecordInclude,
         orderBy: { createdAt: 'desc' },
       }),
       prisma.medicalRecord.count({ where }),
@@ -208,31 +214,7 @@ export class MedicalRecordService {
         createdBy: data.createdBy,
         updatedBy: data.createdBy,
       },
-      include: {
-        patient: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                dateOfBirth: true,
-                enrollmentNumber: true,
-              },
-            },
-            career: true,
-          },
-        },
-        createdByUser: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-          },
-        },
-      },
+      include: basicMedicalRecordInclude,
     });
 
     return medicalRecord;
@@ -256,31 +238,7 @@ export class MedicalRecordService {
     const updatedRecord = await prisma.medicalRecord.update({
       where: { id },
       data,
-      include: {
-        patient: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                dateOfBirth: true,
-                enrollmentNumber: true,
-              },
-            },
-            career: true,
-          },
-        },
-        updatedByUser: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-          },
-        },
-      },
+      include: basicMedicalRecordInclude,
     });
 
     return updatedRecord;
