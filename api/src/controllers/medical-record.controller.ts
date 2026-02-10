@@ -43,6 +43,7 @@ export const getMedicalRecords = async (req: AuthRequest, res: Response, next: N
 
 export const createMedicalRecord = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // req.user is guaranteed to be present due to authenticateToken middleware
     const data = {
       ...req.body,
       createdBy: req.user!.userId,
@@ -78,6 +79,7 @@ export const getMedicalRecordById = async (req: AuthRequest, res: Response, next
 export const updateMedicalRecord = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
+    // req.user is guaranteed to be present due to authenticateToken middleware
     const data = {
       ...req.body,
       updatedBy: req.user!.userId,

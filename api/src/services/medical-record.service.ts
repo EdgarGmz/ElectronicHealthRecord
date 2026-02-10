@@ -53,7 +53,9 @@ const detailedMedicalRecordInclude: Prisma.MedicalRecordInclude = {
       user: {
         select: userSelectFields,
       },
-      career: true,
+      career: {
+        select: careerSelectFields,
+      },
       emergencyContacts: true,
     },
   },
@@ -96,7 +98,9 @@ const basicMedicalRecordInclude: Prisma.MedicalRecordInclude = {
       user: {
         select: userSelectFields,
       },
-      career: true,
+      career: {
+        select: careerSelectFields,
+      },
     },
   },
   createdByUser: {
