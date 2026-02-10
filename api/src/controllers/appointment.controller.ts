@@ -40,9 +40,21 @@ export const getAppointments = async (
 
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    
+    // Validate UUID format if provided to prevent potential issues
+    // Note: Query parameters are safe here because:
+    // 1. Prisma ORM protects against SQL injection
+    // 2. UUIDs are validated with regex
+    // 3. Service layer enforces role-based access control
+    const validateUUID = (value: string | undefined): string | undefined => {
+      if (!value) return undefined;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      return uuidRegex.test(value) ? value : undefined;
+    };
+
     const filters = {
-      patientId: req.query.patientId as string,
-      professionalId: req.query.professionalId as string,
+      patientId: validateUUID(req.query.patientId as string),
+      professionalId: validateUUID(req.query.professionalId as string),
       status: req.query.status as string,
       department: req.query.department as string,
       startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
