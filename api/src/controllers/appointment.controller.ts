@@ -2,6 +2,7 @@ import { NextFunction, Response } from 'express';
 import { body, param } from 'express-validator';
 import appointmentService from '../services/appointment.service';
 import { AuthRequest } from '../middleware/auth';
+import { APPOINTMENT_STATUS_VALUES } from '../constants/appointment';
 
 export const createAppointmentValidation = [
   body('patientId').isUUID().withMessage('Valid patient ID is required'),
@@ -17,7 +18,7 @@ export const updateAppointmentValidation = [
   param('id').isUUID().withMessage('Invalid appointment ID'),
   body('scheduledDate').optional().isISO8601().withMessage('Valid scheduled date is required'),
   body('durationMinutes').optional().isInt({ min: 1 }).withMessage('Valid duration in minutes is required'),
-  body('status').optional().isIn(['scheduled', 'confirmed', 'completed', 'cancelled', 'no-show']).withMessage('Invalid status'),
+  body('status').optional().isIn(APPOINTMENT_STATUS_VALUES).withMessage('Invalid status'),
   body('notes').optional().isString(),
 ];
 

@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
+import { APPOINTMENT_STATUS } from '../constants/appointment';
 
 export class AppointmentService {
   async getAll(
@@ -218,7 +219,7 @@ export class AppointmentService {
         department: data.department,
         scheduledDate: data.scheduledDate,
         durationMinutes: data.durationMinutes,
-        status: 'scheduled',
+        status: APPOINTMENT_STATUS.SCHEDULED,
         notes: data.notes,
         createdBy: data.createdBy,
       },
@@ -366,14 +367,17 @@ export class AppointmentService {
     }
 
     // Cannot cancel already completed or cancelled appointments
-    if (appointment.status === 'completed' || appointment.status === 'cancelled') {
+    if (
+      appointment.status === APPOINTMENT_STATUS.COMPLETED ||
+      appointment.status === APPOINTMENT_STATUS.CANCELLED
+    ) {
       throw new AppError(`Cannot cancel appointment with status: ${appointment.status}`, 400);
     }
 
     const cancelledAppointment = await prisma.appointment.update({
       where: { id },
       data: {
-        status: 'cancelled',
+        status: APPOINTMENT_STATUS.CANCELLED,
         cancellationReason,
         updatedAt: new Date(),
       },
@@ -415,27 +419,8 @@ export class AppointmentService {
     const where: Prisma.AppointmentWhereInput = {
       professionalId,
       status: {
-        in: ['scheduled', 'confirmed'],
+        in: [APPOINTMENT_STATUS.SCHEDULED, APPOINTMENT_STATUS.CONFIRMED],
       },
-      OR: [
-        {
-          // Overlaps at the start
-          scheduledDate: {
-            lt: appointmentEnd,
-          },
-          AND: {
-            scheduledDate: {
-              gte: scheduledDate,
-            },
-          },
-        },
-        {
-          // Overlaps at the end or completely contains
-          scheduledDate: {
-            lte: scheduledDate,
-          },
-        },
-      ],
     };
 
     if (excludeAppointmentId) {
@@ -451,14 +436,20 @@ export class AppointmentService {
       },
     });
 
-    // Check if any conflicting appointment actually overlaps
+    // Check if any existing appointment overlaps with the new appointment time slot
     for (const appt of conflictingAppointments) {
       const apptEnd = new Date(appt.scheduledDate.getTime() + appt.durationMinutes * 60000);
-      if (
+      
+      // Two appointments overlap if:
+      // 1. New appointment starts during existing appointment
+      // 2. New appointment ends during existing appointment  
+      // 3. New appointment completely contains existing appointment
+      const overlaps = 
         (scheduledDate >= appt.scheduledDate && scheduledDate < apptEnd) ||
         (appointmentEnd > appt.scheduledDate && appointmentEnd <= apptEnd) ||
-        (scheduledDate <= appt.scheduledDate && appointmentEnd >= apptEnd)
-      ) {
+        (scheduledDate <= appt.scheduledDate && appointmentEnd >= apptEnd);
+      
+      if (overlaps) {
         return true; // Conflict found
       }
     }
@@ -510,7 +501,7 @@ export class AppointmentService {
           lte: endOfDay,
         },
         status: {
-          in: ['scheduled', 'confirmed'],
+          in: [APPOINTMENT_STATUS.SCHEDULED, APPOINTMENT_STATUS.CONFIRMED],
         },
       },
       select: {
@@ -519,13 +510,17 @@ export class AppointmentService {
       },
     });
 
-    // Calculate available time slots
+    // NOTE: This is a simplified implementation that returns the professional's schedule blocks
+    // A complete implementation would:
+    // 1. Generate individual time slots based on appointment duration (e.g., 30-min or 50-min slots)
+    // 2. Mark each slot as available or booked based on existing appointments
+    // 3. Consider breaks and buffer time between appointments
+    // 4. Account for different appointment types and their durations
     const availableSlots = [];
     for (const schedule of schedules) {
       const startTime = schedule.startTime;
       const endTime = schedule.endTime;
       
-      // Generate slots (simplified - would need more sophisticated logic in production)
       availableSlots.push({
         start: startTime,
         end: endTime,
