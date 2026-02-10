@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
+import { PRESCRIPTION_STATUS, PRESCRIPTION_STATUS_VALUES } from '../utils/constants';
 
 export class MedicationService {
   // Medication Catalog Management
@@ -322,13 +323,23 @@ export class MedicationService {
       const medicationName = medication.name.toLowerCase();
       const genericName = medication.genericName.toLowerCase();
 
-      if (
-        allergies.includes(medicationName) ||
-        allergies.includes(genericName) ||
-        (contraindications && allergies.split(',').some(allergy => 
-          contraindications.includes(allergy.trim())
-        ))
-      ) {
+      // Tokenize allergies and contraindications for better matching
+      const allergyTokens = allergies.split(/[,;]/).map(a => a.trim()).filter(a => a.length > 0);
+      const contraindicationTokens = contraindications.split(/[,;]/).map(c => c.trim()).filter(c => c.length > 0);
+
+      // Check if medication name or generic name is in allergies
+      const hasMedicationAllergy = allergyTokens.some(allergy => 
+        medicationName.includes(allergy) || genericName.includes(allergy)
+      );
+
+      // Check if any allergy matches any contraindication
+      const hasContraindication = allergyTokens.some(allergy =>
+        contraindicationTokens.some(contraindication => 
+          contraindication.includes(allergy) || allergy.includes(contraindication)
+        )
+      );
+
+      if (hasMedicationAllergy || hasContraindication) {
         throw new AppError(
           `Warning: Potential allergy or contraindication detected for this medication. Patient allergies: ${patient.medicalRecord.allergies}`,
           400
@@ -385,9 +396,8 @@ export class MedicationService {
       throw new AppError('Prescription not found', 404);
     }
 
-    const validStatuses = ['active', 'completed', 'discontinued', 'suspended'];
-    if (!validStatuses.includes(status)) {
-      throw new AppError(`Invalid status. Must be one of: ${validStatuses.join(', ')}`, 400);
+    if (!PRESCRIPTION_STATUS_VALUES.includes(status as any)) {
+      throw new AppError(`Invalid status. Must be one of: ${PRESCRIPTION_STATUS_VALUES.join(', ')}`, 400);
     }
 
     const updated = await prisma.prescription.update({
@@ -437,7 +447,7 @@ export class MedicationService {
       throw new AppError('Prescription not found', 404);
     }
 
-    if (prescription.status !== 'active') {
+    if (prescription.status !== PRESCRIPTION_STATUS.ACTIVE) {
       throw new AppError('Prescription is not active', 400);
     }
 

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import medicationService from '../services/medication.service';
 import { AuthRequest } from '../middleware/auth';
+import { PRESCRIPTION_STATUS_VALUES, parseBooleanQuery } from '../utils/constants';
 
 // Validation rules
 export const createMedicationValidation = [
@@ -43,7 +44,7 @@ export const createPrescriptionValidation = [
 export const updatePrescriptionStatusValidation = [
   param('id').isUUID().withMessage('Invalid prescription ID'),
   body('status')
-    .isIn(['active', 'completed', 'discontinued', 'suspended'])
+    .isIn(PRESCRIPTION_STATUS_VALUES)
     .withMessage('Invalid status'),
 ];
 
@@ -81,7 +82,7 @@ export const getMedications = async (req: Request, res: Response, next: NextFunc
     const limit = parseInt(req.query.limit as string) || 10;
     const search = req.query.search as string;
     const category = req.query.category as string;
-    const isActive = req.query.isActive === 'true' ? true : req.query.isActive === 'false' ? false : undefined;
+    const isActive = parseBooleanQuery(req.query.isActive);
 
     const result = await medicationService.getAllMedications(page, limit, search, category, isActive);
 
