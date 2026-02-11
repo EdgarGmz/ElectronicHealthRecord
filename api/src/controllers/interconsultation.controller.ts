@@ -11,7 +11,6 @@ export const createInterconsultationValidation = [
   body('patientId').isUUID().withMessage('Valid patient ID is required'),
   body('fromDepartment').isIn(DEPARTMENT_VALUES).withMessage('Valid from department is required'),
   body('toDepartment').isIn(DEPARTMENT_VALUES).withMessage('Valid to department is required'),
-  body('fromProfessionalId').isUUID().withMessage('Valid from professional ID is required'),
   body('toProfessionalId').optional().isUUID().withMessage('Valid to professional ID is required'),
   body('reason').notEmpty().withMessage('Reason is required'),
   body('relevantInformation').optional().isString(),
@@ -111,9 +110,10 @@ export const createInterconsultation = async (
       return;
     }
 
+    // Always use the authenticated user as fromProfessionalId
     const data = {
       ...req.body,
-      fromProfessionalId: req.body.fromProfessionalId || req.user.userId,
+      fromProfessionalId: req.user.userId,
     };
 
     const interconsultation = await interconsultationService.create(data);

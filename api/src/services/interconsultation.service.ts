@@ -339,7 +339,6 @@ export class InterconsultationService {
         respondedBy: userId,
         respondedAt: new Date(),
         status: INTERCONSULTATION_STATUS.RESPONDED,
-        updatedAt: new Date(),
       },
       include: {
         patient: {
