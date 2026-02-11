@@ -36,7 +36,11 @@ export const getInterconsultations = async (
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
 
-    // Validate UUID format if provided
+    // Validate UUID format if provided to prevent potential issues
+    // Note: Query parameters are safe here because:
+    // 1. Prisma ORM protects against SQL injection
+    // 2. UUIDs are validated with regex
+    // 3. Service layer enforces role-based access control
     const validateUUID = (value: string | undefined): string | undefined => {
       if (!value) return undefined;
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
