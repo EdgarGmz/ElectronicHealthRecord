@@ -22,24 +22,14 @@ export class PsychometricTestService {
     // Apply role-based filtering
     if (userRole === 'patient') {
       // Patients can see their own psychometric evaluations
-      const patient = await prisma.patient.findUnique({
-        where: { userId },
-      });
-      if (!patient) {
-        throw new AppError('Patient profile not found', 404);
-      }
-      // Find psychology records for this patient
-      const medicalRecords = await prisma.medicalRecord.findMany({
-        where: { patientId: patient.id },
-        select: { id: true },
-      });
-      const medicalRecordIds = medicalRecords.map((mr) => mr.id);
-      const psychologyRecords = await prisma.psychologyRecord.findMany({
-        where: { medicalRecordId: { in: medicalRecordIds } },
-        select: { id: true },
-      });
-      const psychologyRecordIds = psychologyRecords.map((pr) => pr.id);
-      where.psychologyRecordId = { in: psychologyRecordIds };
+      // Use nested where clause to filter in a single query
+      where.psychologyRecord = {
+        medicalRecord: {
+          patient: {
+            userId,
+          },
+        },
+      };
     } else if (userRole === 'psychologist') {
       // Psychologists can see evaluations they administered or for patients assigned to them
       where.OR = [
@@ -170,13 +160,8 @@ export class PsychometricTestService {
 
     // Check access permissions
     if (userRole === 'patient') {
-      const patient = await prisma.patient.findUnique({
-        where: { userId },
-      });
-      if (
-        !patient ||
-        evaluation.psychologyRecord.medicalRecord.patientId !== patient.id
-      ) {
+      // Check if the evaluation belongs to this patient's medical record
+      if (evaluation.psychologyRecord.medicalRecord.patient.userId !== userId) {
         throw new AppError('Access denied', 403);
       }
     } else if (userRole === 'psychologist') {

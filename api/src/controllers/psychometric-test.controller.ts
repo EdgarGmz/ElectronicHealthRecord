@@ -119,13 +119,25 @@ export const createPsychometricTest = async (
       return;
     }
 
+    const parseDecimal = (value: string | undefined): number | undefined => {
+      if (!value) return undefined;
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? undefined : parsed;
+    };
+
+    const parseInteger = (value: string | undefined): number | undefined => {
+      if (!value) return undefined;
+      const parsed = parseInt(value, 10);
+      return isNaN(parsed) ? undefined : parsed;
+    };
+
     const data = {
       psychologyRecordId: req.body.psychologyRecordId,
       evaluationType: req.body.evaluationType,
       applicationDate: new Date(req.body.applicationDate),
-      rawScore: req.body.rawScore ? parseFloat(req.body.rawScore) : undefined,
-      standardScore: req.body.standardScore ? parseFloat(req.body.standardScore) : undefined,
-      percentile: req.body.percentile ? parseInt(req.body.percentile) : undefined,
+      rawScore: parseDecimal(req.body.rawScore),
+      standardScore: parseDecimal(req.body.standardScore),
+      percentile: parseInteger(req.body.percentile),
       interpretation: req.body.interpretation,
       administeredBy: req.user.userId,
       fileUrl: req.body.fileUrl,
@@ -155,12 +167,25 @@ export const updatePsychometricTest = async (
     }
 
     const { id } = req.params;
+
+    const parseDecimal = (value: string | undefined): number | undefined => {
+      if (!value) return undefined;
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? undefined : parsed;
+    };
+
+    const parseInteger = (value: string | undefined): number | undefined => {
+      if (!value) return undefined;
+      const parsed = parseInt(value, 10);
+      return isNaN(parsed) ? undefined : parsed;
+    };
+
     const data = {
       evaluationType: req.body.evaluationType,
       applicationDate: req.body.applicationDate ? new Date(req.body.applicationDate) : undefined,
-      rawScore: req.body.rawScore ? parseFloat(req.body.rawScore) : undefined,
-      standardScore: req.body.standardScore ? parseFloat(req.body.standardScore) : undefined,
-      percentile: req.body.percentile ? parseInt(req.body.percentile) : undefined,
+      rawScore: parseDecimal(req.body.rawScore),
+      standardScore: parseDecimal(req.body.standardScore),
+      percentile: parseInteger(req.body.percentile),
       interpretation: req.body.interpretation,
       fileUrl: req.body.fileUrl,
     };
