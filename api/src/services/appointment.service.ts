@@ -4,6 +4,7 @@ import { AppError } from '../middleware/errorHandler';
 import { APPOINTMENT_STATUS } from '../constants/appointment';
 import notificationService from './notification.service';
 import { NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '../constants/notification';
+import { formatDateToSpanish } from '../utils/date-formatter';
 
 export class AppointmentService {
   async getAll(
@@ -252,14 +253,7 @@ export class AppointmentService {
     });
 
     // Create notifications for patient and professional
-    const dateString = appointment.scheduledDate.toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const dateString = formatDateToSpanish(appointment.scheduledDate);
 
     await notificationService.createBulk([
       {
@@ -370,14 +364,7 @@ export class AppointmentService {
 
     // Send notification if appointment was rescheduled
     if (data.scheduledDate && data.scheduledDate.getTime() !== appointment.scheduledDate.getTime()) {
-      const dateString = updatedAppointment.scheduledDate.toLocaleDateString('es-ES', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      const dateString = formatDateToSpanish(updatedAppointment.scheduledDate);
 
       await notificationService.createBulk([
         {
@@ -472,14 +459,7 @@ export class AppointmentService {
     });
 
     // Send cancellation notifications
-    const dateString = cancelledAppointment.scheduledDate.toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const dateString = formatDateToSpanish(cancelledAppointment.scheduledDate);
 
     await notificationService.createBulk([
       {

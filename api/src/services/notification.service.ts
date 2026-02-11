@@ -168,7 +168,6 @@ export class NotificationService {
       data: {
         isRead: true,
         readAt: new Date(),
-        updatedAt: new Date(),
       },
       include: {
         user: {
@@ -195,7 +194,6 @@ export class NotificationService {
       data: {
         isRead: true,
         readAt: new Date(),
-        updatedAt: new Date(),
       },
     });
 
@@ -235,6 +233,8 @@ export class NotificationService {
   }
 
   // Helper method to create notifications for multiple users
+  // Note: This method does not validate individual user IDs for performance reasons
+  // when creating many notifications. Ensure user IDs are valid before calling this method.
   async createBulk(notifications: Array<{
     userId: string;
     type: string;
@@ -244,6 +244,24 @@ export class NotificationService {
     relatedEntityId?: string;
     priority?: string;
   }>) {
+    if (notifications.length === 0) {
+      return { count: 0 };
+    }
+
+    // Extract unique user IDs and validate they exist
+    const uniqueUserIds = [...new Set(notifications.map(n => n.userId))];
+    const existingUsers = await prisma.user.findMany({
+      where: { id: { in: uniqueUserIds } },
+      select: { id: true },
+    });
+
+    const existingUserIds = new Set(existingUsers.map(u => u.id));
+    const invalidUserIds = uniqueUserIds.filter(id => !existingUserIds.has(id));
+
+    if (invalidUserIds.length > 0) {
+      throw new AppError(`Invalid user IDs: ${invalidUserIds.join(', ')}`, 400);
+    }
+
     const created = await prisma.notification.createMany({
       data: notifications.map(n => ({
         userId: n.userId,

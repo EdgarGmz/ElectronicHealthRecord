@@ -510,7 +510,7 @@ model Notification {
   isRead            Boolean  @map("is_read") @default(false)
   readAt            DateTime? @map("read_at")
   createdAt         DateTime @map("created_at") @default(now())
-  updatedAt         DateTime @map("updated_at") @default(now())
+  updatedAt         DateTime @map("updated_at") @updatedAt
 
   user              User     @relation(fields: [userId], references: [id])
 
