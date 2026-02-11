@@ -5,7 +5,7 @@ export class AuditLogService {
   /**
    * Create a new audit log entry
    */
-  async createAuditLog(data: {
+  createAuditLog(data: {
     userId: string;
     action: string;
     tableName: string;
@@ -15,7 +15,7 @@ export class AuditLogService {
     ipAddress?: string;
     userAgent?: string;
   }) {
-    return await prisma.auditLog.create({
+    return prisma.auditLog.create({
       data: {
         userId: data.userId,
         action: data.action,

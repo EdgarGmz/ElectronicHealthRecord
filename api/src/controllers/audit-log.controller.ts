@@ -13,6 +13,14 @@ export const getAuditLogsValidation = [
   query('endDate').optional().isISO8601().withMessage('End date must be a valid ISO 8601 date'),
 ];
 
+/**
+ * Get audit logs with optional filtering
+ * @route GET /api/audit-logs
+ * @param req - Express request with query parameters (page, limit, userId, action, tableName, startDate, endDate)
+ * @param res - Express response
+ * @param next - Express next function for error handling
+ * @returns Promise<void> - Resolves with paginated audit logs
+ */
 export const getAuditLogs = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const page = parseInt(req.query.page as string) || 1;

@@ -18,7 +18,20 @@ export async function createAuditLog(params: {
   req?: Request;
 }): Promise<void> {
   try {
-    const ipAddress = params.ipAddress || params.req?.ip || params.req?.headers['x-forwarded-for'] as string || 'unknown';
+    // Extract the original client IP from x-forwarded-for header (first IP in the list)
+    let ipAddress = params.ipAddress;
+    if (!ipAddress && params.req) {
+      const forwardedFor = params.req.headers['x-forwarded-for'];
+      if (typeof forwardedFor === 'string') {
+        ipAddress = forwardedFor.split(',')[0].trim();
+      } else if (Array.isArray(forwardedFor)) {
+        ipAddress = forwardedFor[0].split(',')[0].trim();
+      } else {
+        ipAddress = params.req.ip || 'unknown';
+      }
+    }
+    ipAddress = ipAddress || 'unknown';
+
     const userAgent = params.userAgent || params.req?.headers['user-agent'] || 'unknown';
 
     await auditLogService.createAuditLog({
