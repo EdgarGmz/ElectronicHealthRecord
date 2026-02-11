@@ -10,8 +10,8 @@ export const reportValidation = [
   query('department').optional().trim().isString().withMessage('Department must be a string'),
 ];
 
-// Helper function to handle validation errors
-const handleValidationErrors = (req: Request, res: Response): boolean => {
+// Helper function to check for validation errors
+const hasValidationErrors = (req: Request, res: Response): boolean => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     res.status(400).json({
@@ -30,7 +30,7 @@ const handleValidationErrors = (req: Request, res: Response): boolean => {
  */
 export const getStatistics = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    if (handleValidationErrors(req, res)) return;
+    if (hasValidationErrors(req, res)) return;
 
     const generatedBy = req.user?.userId;
     if (!generatedBy) {
@@ -65,7 +65,7 @@ export const getStatistics = async (req: AuthRequest, res: Response, next: NextF
  */
 export const getConsultationsReport = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    if (handleValidationErrors(req, res)) return;
+    if (hasValidationErrors(req, res)) return;
 
     const generatedBy = req.user?.userId;
     if (!generatedBy) {
@@ -100,7 +100,7 @@ export const getConsultationsReport = async (req: AuthRequest, res: Response, ne
  */
 export const getDiagnosesReport = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    if (handleValidationErrors(req, res)) return;
+    if (hasValidationErrors(req, res)) return;
 
     const generatedBy = req.user?.userId;
     if (!generatedBy) {

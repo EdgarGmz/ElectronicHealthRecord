@@ -2,6 +2,9 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 
+// Constants
+const MAX_CONSULTATION_RECORDS = 100; // Maximum number of consultation records to return in a report
+
 interface ReportFilters {
   department?: string;
   periodStart: Date;
@@ -222,7 +225,7 @@ export class ReportService {
         },
       },
       orderBy: { createdAt: 'desc' },
-      take: 100, // Limit to avoid excessive data
+      take: MAX_CONSULTATION_RECORDS, // Limit to avoid excessive data
     });
 
     const reportData = {
