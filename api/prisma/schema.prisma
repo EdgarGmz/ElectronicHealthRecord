@@ -43,6 +43,7 @@ model User {
   systemSettingsUpdated SystemSetting[]
   psychologistCareers   PsychologistCareer[]
   waitingListPreferences WaitingList[]
+  notifications         Notification[]
 
   @@map("users")
 }
@@ -495,4 +496,25 @@ model SystemSetting {
   updatedByUser User?  @relation(fields: [updatedBy], references: [id])
 
   @@map("system_settings")
+}
+
+model Notification {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  type              String   @db.VarChar(50)
+  title             String   @db.VarChar(200)
+  message           String
+  relatedEntityType String?  @map("related_entity_type") @db.VarChar(50)
+  relatedEntityId   String?  @map("related_entity_id") @db.Uuid
+  priority          String   @db.VarChar(20) @default("normal")
+  isRead            Boolean  @map("is_read") @default(false)
+  readAt            DateTime? @map("read_at")
+  createdAt         DateTime @map("created_at") @default(now())
+  updatedAt         DateTime @map("updated_at") @default(now())
+
+  user              User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
 }
