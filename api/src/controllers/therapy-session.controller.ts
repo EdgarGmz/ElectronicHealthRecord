@@ -7,7 +7,9 @@ export const createTherapySessionValidation = [
   body('sessionNumber').isInt({ min: 1 }).withMessage('Session number must be a positive integer'),
   body('sessionDate').isISO8601().withMessage('Valid session date is required'),
   body('sessionDuration').optional().isInt({ min: 1 }).withMessage('Session duration must be a positive integer'),
-  body('mood').notEmpty().withMessage('Mood is required').isLength({ max: 30 }).withMessage('Mood must be at most 30 characters'),
+  body('mood')
+    .notEmpty().withMessage('Mood is required')
+    .isLength({ max: 30 }).withMessage('Mood must be at most 30 characters'),
   body('evolutionNotes').optional().isString(),
   body('patientProgress').optional().isString(),
   body('assignedTasks').optional().isString(),
@@ -19,12 +21,18 @@ export const updateTherapySessionValidation = [
   param('id').isUUID().withMessage('Invalid therapy session ID'),
   body('sessionDate').optional().isISO8601().withMessage('Valid session date is required'),
   body('sessionDuration').optional().isInt({ min: 1 }).withMessage('Session duration must be a positive integer'),
-  body('mood').optional().notEmpty().withMessage('Mood cannot be empty').isLength({ max: 30 }).withMessage('Mood must be at most 30 characters'),
+  body('mood').optional()
+    .notEmpty().withMessage('Mood cannot be empty')
+    .isLength({ max: 30 }).withMessage('Mood must be at most 30 characters'),
   body('evolutionNotes').optional().isString(),
   body('patientProgress').optional().isString(),
   body('assignedTasks').optional().isString(),
   body('observations').optional().isString(),
   body('nextSessionPlan').optional().isString(),
+];
+
+export const getTherapySessionByIdValidation = [
+  param('id').isUUID().withMessage('Invalid therapy session ID'),
 ];
 
 export const getTherapySessions = (_req: Request, res: Response, _next: NextFunction): void => {

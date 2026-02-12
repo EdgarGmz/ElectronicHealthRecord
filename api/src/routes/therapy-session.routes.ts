@@ -2,7 +2,6 @@ import { Router } from 'express';
 import * as therapySessionController from '../controllers/therapy-session.controller';
 import { authenticateToken } from '../middleware/auth';
 import { validate } from '../middleware/validation';
-import { param } from 'express-validator';
 
 const router = Router();
 
@@ -17,7 +16,7 @@ router.post(
 );
 router.get(
   '/:id',
-  validate([param('id').isUUID()]),
+  validate(therapySessionController.getTherapySessionByIdValidation),
   therapySessionController.getTherapySessionById
 );
 router.put(
