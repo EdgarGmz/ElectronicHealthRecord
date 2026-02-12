@@ -12,14 +12,12 @@ router.get('/', interconsultationController.getInterconsultations);
 router.get('/:id', interconsultationController.getInterconsultationById);
 router.post(
   '/',
-  interconsultationController.createInterconsultationValidation,
-  validate,
+  validate(interconsultationController.createInterconsultationValidation),
   interconsultationController.createInterconsultation
 );
 router.post(
   '/:id/response',
-  interconsultationController.respondToInterconsultationValidation,
-  validate,
+  validate(interconsultationController.respondToInterconsultationValidation),
   interconsultationController.respondToInterconsultation
 );
 

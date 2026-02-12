@@ -19,6 +19,10 @@ export const registerValidation = [
   body('role').notEmpty().withMessage('Role is required'),
 ];
 
+export const refreshTokenValidation = [
+  body('refreshToken').notEmpty().withMessage('Refresh token is required'),
+];
+
 export class AuthController {
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -60,14 +64,6 @@ export class AuthController {
   async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { refreshToken } = req.body;
-
-      if (!refreshToken) {
-        res.status(400).json({
-          success: false,
-          message: 'Refresh token is required',
-        });
-        return;
-      }
 
       const result = await authService.refreshToken(refreshToken);
 
