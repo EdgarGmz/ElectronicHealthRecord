@@ -22,8 +22,7 @@ export const updateTherapySessionValidation = [
   body('sessionDate').optional().isISO8601().withMessage('Valid session date is required'),
   body('sessionDuration').optional().isInt({ min: 1 }).withMessage('Session duration must be a positive integer'),
   body('mood').optional()
-    .notEmpty().withMessage('Mood cannot be empty')
-    .isLength({ max: 30 }).withMessage('Mood must be at most 30 characters'),
+    .isLength({ min: 1, max: 30 }).withMessage('Mood must be between 1 and 30 characters'),
   body('evolutionNotes').optional().isString(),
   body('patientProgress').optional().isString(),
   body('assignedTasks').optional().isString(),
