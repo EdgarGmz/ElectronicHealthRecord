@@ -2,6 +2,9 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { APPOINTMENT_STATUS } from '../constants/appointment';
+import notificationService from './notification.service';
+import { NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '../constants/notification';
+import { formatDateToSpanish } from '../utils/date-formatter';
 
 export class AppointmentService {
   async getAll(
@@ -249,6 +252,30 @@ export class AppointmentService {
       },
     });
 
+    // Create notifications for patient and professional
+    const dateString = formatDateToSpanish(appointment.scheduledDate);
+
+    await notificationService.createBulk([
+      {
+        userId: appointment.patient.userId,
+        type: NOTIFICATION_TYPES.APPOINTMENT_CREATED,
+        title: 'Nueva cita programada',
+        message: `Se ha programado una cita de ${appointment.appointmentType} para el ${dateString}.`,
+        relatedEntityType: 'appointment',
+        relatedEntityId: appointment.id,
+        priority: NOTIFICATION_PRIORITIES.NORMAL,
+      },
+      {
+        userId: appointment.professionalId,
+        type: NOTIFICATION_TYPES.APPOINTMENT_CREATED,
+        title: 'Nueva cita asignada',
+        message: `Se ha asignado una cita con ${appointment.patient.user.firstName} ${appointment.patient.user.lastName} para el ${dateString}.`,
+        relatedEntityType: 'appointment',
+        relatedEntityId: appointment.id,
+        priority: NOTIFICATION_PRIORITIES.NORMAL,
+      },
+    ]);
+
     return appointment;
   }
 
@@ -335,6 +362,32 @@ export class AppointmentService {
       },
     });
 
+    // Send notification if appointment was rescheduled
+    if (data.scheduledDate && data.scheduledDate.getTime() !== appointment.scheduledDate.getTime()) {
+      const dateString = formatDateToSpanish(updatedAppointment.scheduledDate);
+
+      await notificationService.createBulk([
+        {
+          userId: updatedAppointment.patient.userId,
+          type: NOTIFICATION_TYPES.APPOINTMENT_UPDATED,
+          title: 'Cita reprogramada',
+          message: `Su cita ha sido reprogramada para el ${dateString}.`,
+          relatedEntityType: 'appointment',
+          relatedEntityId: updatedAppointment.id,
+          priority: NOTIFICATION_PRIORITIES.HIGH,
+        },
+        {
+          userId: updatedAppointment.professionalId,
+          type: NOTIFICATION_TYPES.APPOINTMENT_UPDATED,
+          title: 'Cita reprogramada',
+          message: `La cita con ${updatedAppointment.patient.user.firstName} ${updatedAppointment.patient.user.lastName} ha sido reprogramada para el ${dateString}.`,
+          relatedEntityType: 'appointment',
+          relatedEntityId: updatedAppointment.id,
+          priority: NOTIFICATION_PRIORITIES.HIGH,
+        },
+      ]);
+    }
+
     return updatedAppointment;
   }
 
@@ -404,6 +457,30 @@ export class AppointmentService {
         },
       },
     });
+
+    // Send cancellation notifications
+    const dateString = formatDateToSpanish(cancelledAppointment.scheduledDate);
+
+    await notificationService.createBulk([
+      {
+        userId: cancelledAppointment.patient.userId,
+        type: NOTIFICATION_TYPES.APPOINTMENT_CANCELLED,
+        title: 'Cita cancelada',
+        message: `Su cita del ${dateString} ha sido cancelada. Motivo: ${cancellationReason}`,
+        relatedEntityType: 'appointment',
+        relatedEntityId: cancelledAppointment.id,
+        priority: NOTIFICATION_PRIORITIES.HIGH,
+      },
+      {
+        userId: cancelledAppointment.professionalId,
+        type: NOTIFICATION_TYPES.APPOINTMENT_CANCELLED,
+        title: 'Cita cancelada',
+        message: `La cita con ${cancelledAppointment.patient.user.firstName} ${cancelledAppointment.patient.user.lastName} del ${dateString} ha sido cancelada.`,
+        relatedEntityType: 'appointment',
+        relatedEntityId: cancelledAppointment.id,
+        priority: NOTIFICATION_PRIORITIES.HIGH,
+      },
+    ]);
 
     return cancelledAppointment;
   }
