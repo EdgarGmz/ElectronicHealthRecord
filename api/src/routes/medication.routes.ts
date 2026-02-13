@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as medicationController from '../controllers/medication.controller';
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { validate } from '../middleware/validation';
 
 const router = Router();
 
@@ -21,14 +22,14 @@ router.get(
 router.post(
   '/medications',
   authorizeRoles('admin', 'nurse'),
-  medicationController.createMedicationValidation,
+  validate(medicationController.createMedicationValidation),
   medicationController.createMedication
 );
 
 router.put(
   '/medications/:id',
   authorizeRoles('admin', 'nurse'),
-  medicationController.updateMedicationValidation,
+  validate(medicationController.updateMedicationValidation),
   medicationController.updateMedication
 );
 
@@ -46,21 +47,21 @@ router.get(
 router.post(
   '/prescriptions',
   authorizeRoles('doctor', 'psychologist', 'nurse'),
-  medicationController.createPrescriptionValidation,
+  validate(medicationController.createPrescriptionValidation),
   medicationController.createPrescription
 );
 
 router.put(
   '/prescriptions/:id/status',
   authorizeRoles('doctor', 'psychologist', 'nurse'),
-  medicationController.updatePrescriptionStatusValidation,
+  validate(medicationController.updatePrescriptionStatusValidation),
   medicationController.updatePrescriptionStatus
 );
 
 router.post(
   '/prescriptions/:id/administrations',
   authorizeRoles('nurse'),
-  medicationController.createPrescriptionAdministrationValidation,
+  validate(medicationController.createPrescriptionAdministrationValidation),
   medicationController.createPrescriptionAdministration
 );
 
