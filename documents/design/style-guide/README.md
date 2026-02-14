@@ -1,8 +1,20 @@
 # 📚 Guía de Estilos - Sistema EHR
 
+> **📖 ¿Buscas la guía completa y centralizada?** Ve a **[INDEX.md](./INDEX.md)** para acceso rápido a toda la documentación con ejemplos de código y mejores prácticas.
+
 ## 📋 Descripción
 
 Guía completa de estilos y sistema de diseño para el Sistema de Registro de Salud Electrónico. Este documento establece los estándares visuales, componentes y patrones que deben seguirse en todo el sistema.
+
+### 📚 Documentación Completa
+
+- **[INDEX.md](./INDEX.md)** - Guía centralizada con acceso rápido a todos los recursos
+- **[COLOR_PALETTE.md](./COLOR_PALETTE.md)** - Paleta de colores con HEX, RGB, RGBA, HSL
+- **[TYPOGRAPHY.md](./TYPOGRAPHY.md)** - Sistema tipográfico completo
+- **[SPACING.md](./SPACING.md)** - Espaciado y sistema de grid
+- **[COMPONENTS_EXAMPLES.md](./COMPONENTS_EXAMPLES.md)** - Ejemplos de código de componentes
+- **[design-tokens.css](./design-tokens.css)** - Variables CSS listas para usar
+- **[tailwind.config.example.js](./tailwind.config.example.js)** - Configuración TailwindCSS
 
 ## 🎯 Propósito
 
