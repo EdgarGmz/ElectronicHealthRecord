@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -15,7 +15,8 @@ export const Textarea: React.FC<TextareaProps> = ({
   rows = 4,
   ...props
 }) => {
-  const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+  const autoId = useId();
+  const textareaId = id || autoId;
 
   return (
     <div className="w-full">
