@@ -1894,6 +1894,614 @@ Formulario para documentar una sesión terapéutica.
 
 ---
 
+## W-23: Registro de Procedimiento (Enfermería)
+
+### Descripción
+Formulario para documentar procedimientos de enfermería.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [◀ Volver a Expediente]                                     │
+│                                                              │
+│  💉 Nuevo Procedimiento - García Luna Ana (2021001)          │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📋 Información del Procedimiento                       │  │
+│  │                                                        │  │
+│  │ Fecha: [13/02/2026 ▼]    Hora: [11:00 ▼]             │  │
+│  │                                                        │  │
+│  │ * Tipo de Procedimiento:                              │  │
+│  │ [Curación de herida ▼]                                │  │
+│  │ Opciones: Curación, Inyección IM/IV, Toma de signos, │  │
+│  │          Vendaje, Extracción de sangre, Otros        │  │
+│  │                                                        │  │
+│  │ Ubicación Anatómica: [Brazo derecho________]          │  │
+│  │                                                        │  │
+│  │ Duración: [15 min ▼]                                  │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 🩺 Signos Vitales (si aplica)                          │  │
+│  │                                                        │  │
+│  │ Presión Arterial: [120] / [80] mmHg                   │  │
+│  │ Frecuencia Cardíaca: [72] lpm                         │  │
+│  │ Temperatura: [36.5] °C                                │  │
+│  │ Frecuencia Respiratoria: [18] rpm                     │  │
+│  │ Saturación de O2: [98] %                              │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 💊 Materiales Utilizados                               │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ • Gasa estéril (4 unidades)                       │ │  │
+│  │ │ • Solución salina (100 ml)                        │ │  │
+│  │ │ • Apósito adhesivo                                │ │  │
+│  │ │                                                    │ │  │
+│  │ │ [+ Agregar Material]                              │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📝 Descripción del Procedimiento                       │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Se realizó curación de herida superficial en      │ │  │
+│  │ │ brazo derecho. Herida limpia, sin signos de...    │ │  │
+│  │ │                                                    │ │  │
+│  │ │ [Área de texto expandible]                        │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 🔍 Observaciones y Evaluación                          │  │
+│  │                                                        │  │
+│  │ Estado de la herida: [Mejorando ▼]                    │  │
+│  │ Dolor reportado: [○ Ninguno ● Leve ○ Moderado ○ Severo]│
+│  │                                                        │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Paciente tolera bien el procedimiento. Se        │ │  │
+│  │ │ observa mejoría en proceso de cicatrización...    │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📋 Recomendaciones e Indicaciones                      │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ • Mantener área limpia y seca                     │ │  │
+│  │ │ • Cambio de apósito en 48 horas                   │ │  │
+│  │ │ • Regresar si hay signos de infección            │ │  │
+│  │ │                                                    │ │  │
+│  │ │ [+ Agregar Recomendación]                         │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📅 Seguimiento: [Programar Cita de Seguimiento]       │  │
+│  │ Fecha Sugerida: [15/02/2026 ▼] [11:00 ▼]             │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│       [Cancelar]  [Guardar Borrador]  [Guardar y Finalizar] │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Secciones del Formulario
+1. **Información del Procedimiento**
+   - Fecha, hora, tipo
+   - Ubicación anatómica
+   - Duración
+
+2. **Signos Vitales**
+   - Presión arterial, frecuencia cardíaca
+   - Temperatura, respiración, saturación
+
+3. **Materiales Utilizados**
+   - Lista de insumos
+   - Cantidades
+
+4. **Descripción**
+   - Narrativa del procedimiento
+
+5. **Observaciones y Evaluación**
+   - Estado del paciente
+   - Nivel de dolor
+   - Notas adicionales
+
+6. **Recomendaciones**
+   - Indicaciones para el paciente
+   - Cuidados posteriores
+
+7. **Seguimiento**
+   - Programar próxima visita si necesario
+
+---
+
+## W-24: Evaluaciones Psicométricas
+
+### Descripción
+Gestión y registro de evaluaciones psicológicas y pruebas psicométricas.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [◀ Volver a Expediente]                                     │
+│                                                              │
+│  📊 Evaluaciones Psicométricas - García Luna Ana (2021001)   │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ [Historial de Evaluaciones] [+ Nueva Evaluación]      │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📊 Historial de Evaluaciones                           │  │
+│  │                                                        │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ 📍 27/01/2026 - Inventario de Ansiedad de Beck     │ │  │
+│  │ │ Aplicada por: Dra. Ana Méndez                      │ │  │
+│  │ │ ┌────────────────────────────────────────────────┐ │ │  │
+│  │ │ │ Resultado: Ansiedad Moderada                   │ │ │  │
+│  │ │ │ Puntuación: 22/63 puntos                       │ │ │  │
+│  │ │ │                                                │ │ │  │
+│  │ │ │ Interpretación: El paciente presenta niveles  │ │ │  │
+│  │ │ │ moderados de ansiedad. Se recomienda          │ │ │  │
+│  │ │ │ continuar con terapia...                      │ │ │  │
+│  │ │ │                                                │ │ │  │
+│  │ │ │ [Ver Detalles Completos] [Ver Gráfica]        │ │ │  │
+│  │ │ │ [Exportar PDF]                                │ │ │  │
+│  │ │ └────────────────────────────────────────────────┘ │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ 📍 15/01/2026 - Inventario de Depresión de Beck   │ │  │
+│  │ │ Aplicada por: Dra. Ana Méndez                      │ │  │
+│  │ │ ┌────────────────────────────────────────────────┐ │ │  │
+│  │ │ │ Resultado: Depresión Leve                      │ │ │  │
+│  │ │ │ Puntuación: 15/63 puntos                       │ │ │  │
+│  │ │ │                                                │ │ │  │
+│  │ │ │ Interpretación: Síntomas depresivos leves...  │ │ │  │
+│  │ │ │                                                │ │ │  │
+│  │ │ │ [Ver Detalles Completos] [Ver Gráfica]        │ │ │  │
+│  │ │ │ [Exportar PDF]                                │ │ │  │
+│  │ │ └────────────────────────────────────────────────┘ │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📈 Gráfica de Evolución                                │  │
+│  │                                                        │  │
+│  │     Puntuación Beck (Ansiedad)                        │  │
+│  │  30│                                                   │  │
+│  │  25│              ●                                    │  │
+│  │  20│         ●           ●                             │  │
+│  │  15│    ●                      ●                       │  │
+│  │  10│                                                   │  │
+│  │   5│                                                   │  │
+│  │   0└───────────────────────────────────────────────    │  │
+│  │     Ene   Feb   Mar   Abr   May                       │  │
+│  │                                                        │  │
+│  │  [Ansiedad] [Depresión] [Estrés] [Personalidad]      │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Componentes - Modo Historial
+1. **Controles Superiores**
+   - Ver historial
+   - Botón nueva evaluación
+
+2. **Lista de Evaluaciones**
+   - Orden cronológico descendente
+   - Cards expandibles con resultados
+   - Interpretación
+   - Opciones de exportación
+
+3. **Gráfica de Evolución**
+   - Visualización de progreso
+   - Filtros por tipo de prueba
+
+### Componentes - Nueva Evaluación
+```
+┌──────────────────────────────────────────────────────────────┐
+│  📊 Nueva Evaluación Psicométrica                            │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📋 Información de la Evaluación                        │  │
+│  │                                                        │  │
+│  │ * Tipo de Prueba: [Inventario de Ansiedad Beck ▼]     │  │
+│  │   Opciones disponibles:                               │  │
+│  │   - Inventario de Ansiedad de Beck (BAI)              │  │
+│  │   - Inventario de Depresión de Beck (BDI-II)          │  │
+│  │   - Escala de Estrés Percibido (PSS)                  │  │
+│  │   - Test de Personalidad (MMPI, 16PF)                 │  │
+│  │   - WAIS/WISC (Inteligencia)                          │  │
+│  │   - Otras evaluaciones                                │  │
+│  │                                                        │  │
+│  │ Fecha de Aplicación: [13/02/2026 ▼]                   │  │
+│  │                                                        │  │
+│  │ Motivo de la Evaluación:                              │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Reevaluación de niveles de ansiedad tras 4       │ │  │
+│  │ │ sesiones de terapia cognitivo-conductual...       │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📊 Resultados                                          │  │
+│  │                                                        │  │
+│  │ Puntuación Total: [____] / 63 puntos                  │  │
+│  │                                                        │  │
+│  │ Clasificación: [Calculada automáticamente]            │  │
+│  │ ○ Mínima (0-7)   ○ Leve (8-15)                        │  │
+│  │ ● Moderada (16-25)   ○ Severa (26-63)                 │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📝 Interpretación y Análisis                           │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Los resultados indican una disminución en los     │ │  │
+│  │ │ niveles de ansiedad comparado con la evaluación   │ │  │
+│  │ │ inicial. El paciente muestra mejoría en...        │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 💡 Recomendaciones                                     │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ • Continuar con terapia semanal                   │ │  │
+│  │ │ • Reevaluación en 3 meses                         │ │  │
+│  │ │ • Mantener ejercicios de relajación               │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│       [Cancelar]  [Guardar y Generar Informe]                │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## W-25: Diagnósticos y Tratamientos
+
+### Descripción
+Gestión de diagnósticos DSM-5/CIE-10 y planes de tratamiento.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [◀ Volver a Expediente]                                     │
+│                                                              │
+│  🩺 Diagnósticos y Tratamientos - García Luna Ana (2021001)  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ [Diagnósticos Actuales] [Histórico] [+ Nuevo Diagnóstico]│
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 🩺 Diagnósticos Actuales                               │  │
+│  │                                                        │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ 🔴 ACTIVO                                          │ │  │
+│  │ │ F41.1 - Trastorno de Ansiedad Generalizada (DSM-5)│ │  │
+│  │ │                                                    │ │  │
+│  │ │ 📅 Fecha de Diagnóstico: 15/01/2026               │ │  │
+│  │ │ 👨‍⚕️ Diagnosticado por: Dra. Ana Méndez             │ │  │
+│  │ │ 🎯 Gravedad: Moderada                              │ │  │
+│  │ │                                                    │ │  │
+│  │ │ 📝 Descripción:                                    │ │  │
+│  │ │ Ansiedad excesiva relacionada con carga académica │ │  │
+│  │ │ y presión familiar. Síntomas presentes por más    │ │  │
+│  │ │ de 6 meses con impacto en funcionamiento diario.  │ │  │
+│  │ │                                                    │ │  │
+│  │ │ 📋 Plan de Tratamiento:                            │ │  │
+│  │ │ ┌──────────────────────────────────────────────┐  │ │  │
+│  │ │ │ • Terapia Cognitivo-Conductual (TCC)        │  │ │  │
+│  │ │ │   Frecuencia: Semanal (50 min)               │  │ │  │
+│  │ │ │   Duración estimada: 12-16 sesiones          │  │ │  │
+│  │ │ │                                              │  │ │  │
+│  │ │ │ • Técnicas de relajación y mindfulness      │  │ │  │
+│  │ │ │ • Reestructuración cognitiva                 │  │ │  │
+│  │ │ │ • Exposición gradual a situaciones ansiosas  │  │ │  │
+│  │ │ └──────────────────────────────────────────────┘  │ │  │
+│  │ │                                                    │ │  │
+│  │ │ 📊 Progreso:                                       │ │  │
+│  │ │ Sesiones completadas: 5/16                        │ │  │
+│  │ │ [▓▓▓▓░░░░░░] 31%                                  │ │  │
+│  │ │                                                    │ │  │
+│  │ │ Última evaluación: 27/01/2026 - Ansiedad Moderada│ │  │
+│  │ │ Mejoría observada en capacidad de afrontamiento. │ │  │
+│  │ │                                                    │ │  │
+│  │ │ [✏️ Editar] [📋 Ver Detalles] [🔄 Actualizar]     │ │  │
+│  │ │ [✅ Marcar como Resuelto]                          │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📚 Diagnósticos Históricos (Resueltos)                │  │
+│  │                                                        │  │
+│  │ • F32.0 - Episodio depresivo leve                     │  │
+│  │   15/01/2026 - 10/02/2026 (Resuelto)                 │  │
+│  │   [Ver Detalles]                                      │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Componentes - Nuevo Diagnóstico
+```
+┌──────────────────────────────────────────────────────────────┐
+│  🩺 Nuevo Diagnóstico                                        │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📋 Información del Diagnóstico                         │  │
+│  │                                                        │  │
+│  │ * Sistema de Clasificación: [○ DSM-5 ● CIE-10/11]     │  │
+│  │                                                        │  │
+│  │ * Buscar Diagnóstico: [F41.1______________ 🔍]        │  │
+│  │   Sugerencias:                                        │  │
+│  │   • F41.1 - Trastorno de ansiedad generalizada       │  │
+│  │   • F41.0 - Trastorno de pánico                       │  │
+│  │   • F41.2 - Trastorno mixto ansioso-depresivo        │  │
+│  │                                                        │  │
+│  │ Código: [F41.1]                                       │  │
+│  │ Descripción: [Trastorno de Ansiedad Generalizada]    │  │
+│  │                                                        │  │
+│  │ * Fecha de Diagnóstico: [15/01/2026 ▼]                │  │
+│  │                                                        │  │
+│  │ Gravedad: [○ Leve ● Moderada ○ Grave]                 │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📝 Descripción Clínica                                 │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Ansiedad excesiva y preocupación persistente      │ │  │
+│  │ │ relacionada con carga académica y presión         │ │  │
+│  │ │ familiar. Síntomas: tensión muscular, dificultad  │ │  │
+│  │ │ para concentrarse, alteraciones del sueño...      │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 🎯 Plan de Tratamiento                                 │  │
+│  │                                                        │  │
+│  │ Tipo de Terapia: [Cognitivo-Conductual ▼]             │  │
+│  │ Frecuencia: [Semanal ▼]                               │  │
+│  │ Duración de Sesión: [50 minutos ▼]                    │  │
+│  │ Sesiones Estimadas: [12-16_______]                    │  │
+│  │                                                        │  │
+│  │ 📋 Objetivos Terapéuticos:                             │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ 1. Reducir nivel de ansiedad a leve               │ │  │
+│  │ │ 2. Desarrollar técnicas de afrontamiento          │ │  │
+│  │ │ 3. Mejorar calidad del sueño                      │ │  │
+│  │ │ 4. Aumentar concentración académica               │ │  │
+│  │ │                                                    │ │  │
+│  │ │ [+ Agregar Objetivo]                              │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ 📋 Intervenciones:                                     │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ • Técnicas de relajación muscular progresiva     │ │  │
+│  │ │ • Reestructuración cognitiva                      │ │  │
+│  │ │ • Exposición gradual                              │ │  │
+│  │ │ • Mindfulness y meditación                        │ │  │
+│  │ │                                                    │ │  │
+│  │ │ [+ Agregar Intervención]                          │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ 📅 Reevaluación programada: [15/04/2026 ▼]            │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│       [Cancelar]  [Guardar Diagnóstico]                      │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Vista de Diagnósticos Actuales**
+   - Lista de diagnósticos activos
+   - Código y descripción DSM-5/CIE-10
+   - Gravedad
+   - Plan de tratamiento
+   - Barra de progreso
+   - Opciones de gestión
+
+2. **Histórico**
+   - Diagnósticos resueltos
+   - Fechas de inicio y resolución
+
+3. **Nuevo Diagnóstico**
+   - Búsqueda de códigos DSM-5/CIE-10
+   - Descripción clínica
+   - Plan de tratamiento detallado
+   - Objetivos e intervenciones
+
+---
+
+## W-26: Notas de Evolución
+
+### Descripción
+Registro cronológico de notas y observaciones del progreso del paciente.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [◀ Volver a Expediente]                                     │
+│                                                              │
+│  📝 Notas de Evolución - García Luna Ana (2021001)           │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ Filtros: [Todas ▼] [Psicología] [Enfermería]          │  │
+│  │ Período: [Último mes ▼]                  [+ Nueva Nota]│  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📅 Línea de Tiempo de Evolución                        │  │
+│  │                                                        │  │
+│  │ ══════════════════════════════════════════════════════ │  │
+│  │                                                        │  │
+│  │ 📍 10/02/2026 - 10:00 AM                              │  │
+│  │ 🧠 Sesión de Psicología #5 - Dra. Ana Méndez          │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ SUBJETIVO (S):                                     │ │  │
+│  │ │ La paciente reporta sentirse "mucho mejor". Indica│ │  │
+│  │ │ que ha logrado implementar las técnicas de        │ │  │
+│  │ │ respiración y nota reducción en episodios de      │ │  │
+│  │ │ ansiedad. Mejora en calidad de sueño.             │ │  │
+│  │ │                                                    │ │  │
+│  │ │ OBJETIVO (O):                                      │ │  │
+│  │ │ Paciente colaboradora, buen contacto visual,      │ │  │
+│  │ │ lenguaje fluido. Se observa expresión facial más  │ │  │
+│  │ │ relajada comparado con sesiones previas.          │ │  │
+│  │ │                                                    │ │  │
+│  │ │ ANÁLISIS (A):                                      │ │  │
+│  │ │ Mejoría significativa en sintomatología ansiosa.  │ │  │
+│  │ │ Reducción de Beck de 22 a 18 puntos. El paciente │ │  │
+│  │ │ demuestra comprensión y aplicación de técnicas.   │ │  │
+│  │ │                                                    │ │  │
+│  │ │ PLAN (P):                                          │ │  │
+│  │ │ • Continuar con TCC semanal                       │ │  │
+│  │ │ • Introducir técnicas de exposición gradual      │ │  │
+│  │ │ • Reevaluación con Beck en 4 semanas             │ │  │
+│  │ │ • Próxima sesión: 17/02/2026 a las 10:00         │ │  │
+│  │ │                                                    │ │  │
+│  │ │ [Editar] [Ver Completo] [Exportar]                │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ 📍 03/02/2026 - 10:00 AM                              │  │
+│  │ 🧠 Sesión de Psicología #4 - Dra. Ana Méndez          │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ SUBJETIVO: Paciente refiere mejoría gradual...    │ │  │
+│  │ │ [Ver Completo]                                     │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ 📍 27/01/2026 - 11:00 AM                              │  │
+│  │ 📊 Reevaluación Beck - Dra. Ana Méndez                │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Evaluación: Ansiedad Moderada (22 puntos)         │ │  │
+│  │ │ Nota: Comparado con evaluación inicial (28 pts)  │ │  │
+│  │ │ se observa reducción de 6 puntos...              │ │  │
+│  │ │ [Ver Completo]                                     │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ 📍 20/01/2026 - 10:00 AM                              │  │
+│  │ 🧠 Sesión de Psicología #3 - Dra. Ana Méndez          │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ SOAP: Trabajo en identificación de pensamientos.. │ │  │
+│  │ │ [Ver Completo]                                     │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  Mostrando 4 de 10 notas                                    │
+│  [◀ Anteriores] [Siguiente ▶]                               │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Formato SOAP
+Las notas siguen el formato SOAP estándar:
+- **S (Subjetivo)**: Lo que el paciente reporta
+- **O (Objetivo)**: Observaciones del profesional
+- **A (Análisis)**: Evaluación y diagnóstico
+- **P (Plan)**: Plan de acción y seguimiento
+
+### Componentes - Nueva Nota
+```
+┌──────────────────────────────────────────────────────────────┐
+│  📝 Nueva Nota de Evolución                                  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📋 Información de la Nota                              │  │
+│  │                                                        │  │
+│  │ Fecha: [13/02/2026 ▼]    Hora: [15:00 ▼]             │  │
+│  │ Tipo: [○ Sesión ● Nota de Evolución ○ Interconsulta] │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📝 Formato SOAP                                        │  │
+│  │                                                        │  │
+│  │ S - SUBJETIVO (Reporte del Paciente):                 │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ [Área de texto]                                    │ │  │
+│  │ │ ¿Qué reporta el paciente?                          │ │  │
+│  │ │ ¿Cómo se siente?                                   │ │  │
+│  │ │ ¿Qué ha notado desde la última sesión?             │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ O - OBJETIVO (Observaciones del Profesional):         │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ [Área de texto]                                    │ │  │
+│  │ │ Apariencia física, comportamiento,                 │ │  │
+│  │ │ estado de ánimo observado,                         │ │  │
+│  │ │ nivel de cooperación, etc.                         │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ A - ANÁLISIS (Evaluación y Diagnóstico):              │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ [Área de texto]                                    │ │  │
+│  │ │ Interpretación de síntomas,                        │ │  │
+│  │ │ progreso del tratamiento,                          │ │  │
+│  │ │ cambios en diagnóstico si aplica                   │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ P - PLAN (Acciones y Seguimiento):                    │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ [Área de texto]                                    │ │  │
+│  │ │ Intervenciones a realizar,                         │ │  │
+│  │ │ tareas para el paciente,                           │ │  │
+│  │ │ próximos pasos, fecha siguiente sesión             │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 🔒 Confidencialidad                                    │  │
+│  │ [☑] Esta nota contiene información sensible           │  │
+│  │ [☑] Restringir acceso solo a profesionales autorizados│  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│       [Cancelar]  [Guardar Borrador]  [Guardar Nota]         │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Vista de Historial**
+   - Línea de tiempo cronológica
+   - Filtros por tipo y período
+   - Notas en formato SOAP
+   - Opciones de visualización/exportación
+
+2. **Nueva Nota**
+   - Campos estructurados SOAP
+   - Fecha y hora
+   - Tipo de nota
+   - Configuraciones de confidencialidad
+
+---
+
 ## 📝 Notas de Implementación
 
 ### Convenciones de Wireframes
