@@ -140,6 +140,134 @@ Pantalla de inicio de sesión para acceder al sistema EHR.
 
 ---
 
+## W-02: Recuperación de Contraseña
+
+### Descripción
+Pantalla para que los usuarios puedan recuperar su contraseña olvidada.
+
+### Elementos Principales
+```
+┌─────────────────────────────────────────────────┐
+│                                                 │
+│              [LOGO EHR SYSTEM]                  │
+│                                                 │
+│          Recuperación de Contraseña             │
+│                                                 │
+│  Ingresa tu matrícula o correo electrónico     │
+│  para recuperar tu contraseña.                 │
+│                                                 │
+│  ┌───────────────────────────────────────────┐ │
+│  │ 📧 Matrícula o Correo                     │ │
+│  │ ___________________________________      │ │
+│  └───────────────────────────────────────────┘ │
+│                                                 │
+│  ┌─────────────────────────────────────────┐   │
+│  │      [ Enviar Instrucciones ]           │   │
+│  └─────────────────────────────────────────┘   │
+│                                                 │
+│          ← Volver a Iniciar Sesión             │
+│                                                 │
+│  ─────────────────────────────────────────────  │
+│  Se enviará un correo con instrucciones        │
+│  para restablecer tu contraseña                │
+└─────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Logo del sistema** - Identidad visual
+2. **Título** - Recuperación de Contraseña
+3. **Texto explicativo** - Instrucciones claras
+4. **Campo de entrada** - Matrícula o correo
+5. **Botón "Enviar Instrucciones"** - Acción principal
+6. **Link "Volver"** - Regresa a W-01
+7. **Nota informativa** - Explicación del proceso
+
+### Flujo de Usuario
+1. Usuario ingresa matrícula o correo
+2. Sistema valida que el usuario existe
+3. Si válido → Envía correo con link temporal
+4. Muestra mensaje de confirmación
+5. Usuario recibe correo con link a W-03
+
+### Validaciones
+- Campo no vacío
+- Formato de correo válido (si se ingresa correo)
+- Usuario debe existir en el sistema
+- Límite de 3 solicitudes por hora
+
+---
+
+## W-03: Primer Login / Cambio de Contraseña
+
+### Descripción
+Pantalla para cambiar contraseña (primer login o recuperación).
+
+### Elementos Principales
+```
+┌─────────────────────────────────────────────────┐
+│                                                 │
+│              [LOGO EHR SYSTEM]                  │
+│                                                 │
+│            Cambio de Contraseña                 │
+│                                                 │
+│  ┌───────────────────────────────────────────┐ │
+│  │ 👤 Usuario: garcia.luna@institución.edu   │ │
+│  └───────────────────────────────────────────┘ │
+│                                                 │
+│  ┌───────────────────────────────────────────┐ │
+│  │ 🔒 Contraseña Actual                      │ │
+│  │ ___________________________________      │ │
+│  └───────────────────────────────────────────┘ │
+│                                                 │
+│  ┌───────────────────────────────────────────┐ │
+│  │ 🔒 Nueva Contraseña                       │ │
+│  │ ___________________________________      │ │
+│  │ Fortaleza: [▓▓▓░░░░░] Media              │ │
+│  └───────────────────────────────────────────┘ │
+│                                                 │
+│  ┌───────────────────────────────────────────┐ │
+│  │ 🔒 Confirmar Nueva Contraseña             │ │
+│  │ ___________________________________      │ │
+│  └───────────────────────────────────────────┘ │
+│                                                 │
+│  Requisitos de contraseña:                     │
+│  ✓ Mínimo 8 caracteres                         │
+│  ✓ Al menos 1 mayúscula                        │
+│  ✓ Al menos 1 número                           │
+│  ✓ Al menos 1 carácter especial                │
+│                                                 │
+│  ┌─────────────────────────────────────────┐   │
+│  │      [ Cambiar Contraseña ]             │   │
+│  └─────────────────────────────────────────┘   │
+│                                                 │
+└─────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Logo del sistema** - Identidad visual
+2. **Usuario identificado** - Solo lectura
+3. **Campo contraseña actual** - Verificación (opcional en primer login)
+4. **Campo nueva contraseña** - Con indicador de fortaleza
+5. **Campo confirmar contraseña** - Validación
+6. **Lista de requisitos** - Checklist visual
+7. **Botón "Cambiar Contraseña"** - Acción principal
+
+### Flujo de Usuario
+1. Usuario ingresa contraseña actual (si aplica)
+2. Ingresa nueva contraseña
+3. Sistema valida fortaleza en tiempo real
+4. Confirma nueva contraseña
+5. Si válido → Actualiza contraseña y redirige a dashboard
+6. Si primer login → Redirige directamente sin contraseña actual
+
+### Validaciones
+- Contraseña actual correcta (si no es primer login)
+- Nueva contraseña cumple requisitos
+- Confirmación coincide con nueva contraseña
+- Nueva contraseña diferente a las últimas 3 usadas
+
+---
+
 ## W-04: Dashboard Administrador
 
 ### Descripción
@@ -217,6 +345,235 @@ Panel principal para el rol de Administrador con vista general del sistema.
 
 ---
 
+## W-05: Dashboard Psicólogo
+
+### Descripción
+Panel principal para psicólogos con información relevante de pacientes y sesiones.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Dr. Méndez▼│
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  📊 Dashboard - Psicología                                   │
+│                                                              │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐        │
+│  │ 👥 Pacientes │ │ 📅 Citas Hoy │ │ 📝 Sesiones  │        │
+│  │   Activos    │ │              │ │   Mes Actual │        │
+│  │      45      │ │      8       │ │      92      │        │
+│  │  5 nuevos    │ │  2 pendientes│ │  8 programadas│        │
+│  └──────────────┘ └──────────────┘ └──────────────┘        │
+│                                                              │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐        │
+│  │ 📊 Evaluac.  │ │ ⏰ Lista Esp.│ │ 🔔 Alertas   │        │
+│  │  Pendientes  │ │              │ │              │        │
+│  │      3       │ │      2       │ │      1       │        │
+│  │  2 atrasadas │ │  Para esta sem│ │  Reevaluación│        │
+│  └──────────────┘ └──────────────┘ └──────────────┘        │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📅 Agenda del Día - Jueves 13 de Febrero              │  │
+│  │                                                        │  │
+│  │  09:00 - 09:50 │ García Luna Ana (Sesión 5)          │  │
+│  │                │ [Ver Expediente] [Iniciar Sesión]   │  │
+│  │                                                        │  │
+│  │  10:00 - 10:50 │ López Pérez Juan (Sesión 2)         │  │
+│  │                │ [Ver Expediente] [Iniciar Sesión]   │  │
+│  │                                                        │  │
+│  │  11:00 - 11:50 │ [DISPONIBLE]                        │  │
+│  │                │ [Agendar Cita]                       │  │
+│  │                                                        │  │
+│  │  13:00 - 13:50 │ Hernández S. Luis (Primera cita)    │  │
+│  │                │ [Ver Expediente] [Iniciar Sesión]   │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌──────────────────────┐ ┌────────────────────────────────┐│
+│  │ 📋 Tareas Pendientes │ │ ⚙️ Acciones Rápidas           ││
+│  │                      │ │                               ││
+│  │ • Evaluar Beck (3)   │ │ [+] Nueva Sesión              ││
+│  │ • Informe mensual    │ │ [📅] Ver Calendario           ││
+│  │ • Interconsulta #12  │ │ [👥] Mis Pacientes            ││
+│  │                      │ │ [📊] Evaluaciones             ││
+│  │                      │ │                               ││
+│  └──────────────────────┘ └────────────────────────────────┘│
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Componentes
+1. **Cards de Métricas** (6 total)
+   - Pacientes activos
+   - Citas del día
+   - Sesiones del mes
+   - Evaluaciones pendientes
+   - Lista de espera
+   - Alertas
+
+2. **Agenda del Día**
+   - Horarios de citas
+   - Información del paciente
+   - Accesos rápidos a expediente y sesión
+
+3. **Tareas Pendientes**
+   - Lista de actividades por completar
+
+4. **Acciones Rápidas**
+   - Navegación rápida a funciones comunes
+
+---
+
+## W-06: Dashboard Enfermero
+
+### Descripción
+Panel principal para personal de enfermería con enfoque en procedimientos y medicamentos.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Enf. Torres▼│
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  📊 Dashboard - Enfermería                                   │
+│                                                              │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐        │
+│  │ 👥 Pacientes │ │ 📅 Citas Hoy │ │ 💉 Procedim. │        │
+│  │   Atendidos  │ │              │ │    Hoy       │        │
+│  │      28      │ │      12      │ │      15      │        │
+│  │  Este mes: 234│ │  3 pendientes│ │  8 completados│       │
+│  └──────────────┘ └──────────────┘ └──────────────┘        │
+│                                                              │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐        │
+│  │ 💊 Medicamen.│ │ 🩹 Curaciones│ │ ⚠️ Alertas   │        │
+│  │  Administrados│ │   Pendientes │ │              │        │
+│  │      42      │ │      3       │ │      2       │        │
+│  │  Hoy: 8      │ │  1 urgente   │ │  Alergias nuevas│      │
+│  └──────────────┘ └──────────────┘ └──────────────┘        │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📋 Procedimientos del Día                              │  │
+│  │                                                        │  │
+│  │  ✅ 09:15 │ López Juan - Curación (Completado)        │  │
+│  │  ✅ 09:30 │ Martínez María - Toma de signos (Compl.)  │  │
+│  │  🔄 10:00 │ Rodríguez Sofia - Inyección IM (Pend.)   │  │
+│  │  🔄 11:00 │ Hernández Luis - Curación (Pendiente)    │  │
+│  │  ⏰ 12:00 │ García Ana - Evaluación inicial (Prog.)  │  │
+│  │                                                        │  │
+│  │  [+ Registrar Nuevo Procedimiento]                    │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────┐ ┌──────────────────────────────────┐│
+│  │ 💊 Medicamentos    │ │ ⚙️ Acciones Rápidas             ││
+│  │    Programados     │ │                                 ││
+│  │                    │ │ [+] Nuevo Procedimiento         ││
+│  │ 10:00 - Paraceta.  │ │ [💊] Administrar Medicamento    ││
+│  │ 14:00 - Ibuprofeno │ │ [📋] Ver Calendario             ││
+│  │ 16:00 - Amoxicilina│ │ [🩹] Curaciones Pendientes      ││
+│  │                    │ │                                 ││
+│  └────────────────────┘ └──────────────────────────────────┘│
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Componentes
+1. **Cards de Métricas** (6 total)
+   - Pacientes atendidos
+   - Citas del día
+   - Procedimientos del día
+   - Medicamentos administrados
+   - Curaciones pendientes
+   - Alertas
+
+2. **Procedimientos del Día**
+   - Lista de procedimientos con estados
+   - Acceso rápido a registrar
+
+3. **Medicamentos Programados**
+   - Horario de administración
+
+4. **Acciones Rápidas**
+   - Funciones más usadas
+
+---
+
+## W-07: Dashboard Recepcionista
+
+### Descripción
+Panel principal para recepcionistas enfocado en citas y atención al público.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Recepción▼ │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  📊 Dashboard - Recepción                                    │
+│                                                              │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐        │
+│  │ 👥 Pacientes │ │ 📅 Citas Hoy │ │ ⏰ Sala Esp. │        │
+│  │   Registrados│ │              │ │              │        │
+│  │    1,234     │ │      45      │ │      7       │        │
+│  │  +3 hoy      │ │  38 confirmadas│ │  Pacientes   │        │
+│  └──────────────┘ └──────────────┘ └──────────────┘        │
+│                                                              │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐        │
+│  │ 📞 Llamadas  │ │ 📋 Lista Esp.│ │ ⚠️ Alertas   │        │
+│  │              │ │              │ │              │        │
+│  │      12      │ │      15      │ │      4       │        │
+│  │  Hoy         │ │  Total       │ │  Atención    │        │
+│  └──────────────┘ └──────────────┘ └──────────────┘        │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📅 Citas del Día - Jueves 13 de Febrero               │  │
+│  │                                                        │  │
+│  │ Hora  │ Paciente           │ Departamento │ Estado    │  │
+│  ├───────┼────────────────────┼──────────────┼───────────┤  │
+│  │ 09:00 │ García Luna Ana    │ Psicología   │ ✅ Llegó  │  │
+│  │ 09:15 │ López Pérez Juan   │ Enfermería   │ ✅ En aten│  │
+│  │ 10:00 │ Martínez R. María  │ Psicología   │ ⏰ Espera │  │
+│  │ 10:30 │ Hernández S. Luis  │ Enfermería   │ 🔔 Confir │  │
+│  │ 11:00 │ Rodríguez P. Sofia │ Psicología   │ 🔔 Confir │  │
+│  │ 11:30 │ Sánchez M. Carlos  │ Enfermería   │ ⏰ Program│  │
+│  │                                                        │  │
+│  │  [Actualizar] [+ Nueva Cita] [Ver Calendario]         │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌─────────────────────┐ ┌───────────────────────────────┐ │
+│  │ 📋 Tareas Urgentes  │ │ ⚙️ Acciones Rápidas          │ │
+│  │                     │ │                              │ │
+│  │ • Confirmar 4 citas │ │ [+] Registrar Paciente       │ │
+│  │ • Llamar lista esp. │ │ [📅] Agendar Cita            │ │
+│  │ • Actualizar datos  │ │ [🔍] Buscar Paciente         │ │
+│  │                     │ │ [📞] Lista de Espera         │ │
+│  │                     │ │                              │ │
+│  └─────────────────────┘ └───────────────────────────────┘ │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Componentes
+1. **Cards de Métricas** (6 total)
+   - Pacientes registrados
+   - Citas del día
+   - Sala de espera
+   - Llamadas
+   - Lista de espera
+   - Alertas
+
+2. **Tabla de Citas del Día**
+   - Hora, paciente, departamento, estado
+   - Estados: Llegó, En atención, Esperando, Por confirmar, Programada
+   - Botones de acción
+
+3. **Tareas Urgentes**
+   - Recordatorios de actividades
+
+4. **Acciones Rápidas**
+   - Funciones principales de recepción
+
+---
+
 ## W-08: Lista de Pacientes
 
 ### Descripción
@@ -282,6 +639,426 @@ Pantalla para visualizar, buscar y filtrar todos los pacientes del sistema.
 - Agendar cita → W-17
 - Ver historial → W-13
 - Desactivar/Activar paciente
+
+---
+
+## W-09: Búsqueda y Filtros de Pacientes
+
+### Descripción
+Panel avanzado de búsqueda y filtrado de pacientes.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  🔍 Búsqueda Avanzada de Pacientes                           │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📝 Criterios de Búsqueda                               │  │
+│  │                                                        │  │
+│  │ Matrícula: [___________]  Nombre: [_______________]   │  │
+│  │                                                        │  │
+│  │ Carrera: [Todas ▼]        Grupo: [Todos ▼]           │  │
+│  │                                                        │  │
+│  │ Estado: [☑] Activos [☑] Inactivos                     │  │
+│  │                                                        │  │
+│  │ Edad: De [__] a [__] años                             │  │
+│  │                                                        │  │
+│  │ Fecha de Registro:                                    │  │
+│  │ Desde: [01/01/2024 ▼] Hasta: [13/02/2026 ▼]         │  │
+│  │                                                        │  │
+│  │ Departamento: [☑] Psicología [☑] Enfermería          │  │
+│  │                                                        │  │
+│  │ Diagnóstico: [____________________________]           │  │
+│  │                                                        │  │
+│  │ Tiene citas programadas: [Todos ▼]                    │  │
+│  │                                                        │  │
+│  │     [Limpiar Filtros]  [🔍 Buscar]                    │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📊 Resultados: 234 pacientes encontrados              │  │
+│  │                                                        │  │
+│  │ Ordenar por: [Nombre ▼]  Exportar: [CSV] [PDF] [Excel]│
+│  │                                                        │  │
+│  │ Matrícula │ Nombre          │ Edad│ Carrera │ Estado  │  │
+│  ├────────────────────────────────────────────────────────┤  │
+│  │ 2021001   │ García Luna Ana │ 20  │ ISC     │ Activo [⋮]│ │
+│  │ 2021015   │ López Pérez Juan│ 22  │ IIA     │ Activo [⋮]│ │
+│  │ 2020892   │ Martínez R. María│ 19 │ LAE     │ Activo [⋮]│ │
+│  │ ...                                                    │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  Mostrando 1-20 de 234 pacientes                            │
+│  [◀ Anterior] [1] [2] [3] ... [12] [Siguiente ▶]            │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Panel de Criterios de Búsqueda**
+   - Campos múltiples de filtrado
+   - Checkboxes para estados
+   - Rangos de fechas y edades
+
+2. **Botones de Acción**
+   - Limpiar filtros
+   - Buscar
+
+3. **Resultados**
+   - Contador de resultados
+   - Opciones de ordenamiento
+   - Exportación en múltiples formatos
+
+4. **Tabla de Resultados**
+   - Similar a W-08 pero con datos filtrados
+
+---
+
+## W-10: Perfil de Paciente (Vista General)
+
+### Descripción
+Vista resumida del perfil de un paciente con información clave.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [◀ Volver a Pacientes]                                      │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 👤 García Luna Ana                  Matrícula: 2021001  │  │
+│  │ 20 años • Mujer • ISC 5°A • Activo                      │  │
+│  │ [📝 Editar] [📅 Nueva Cita] [📋 Nueva Sesión] [🗑️ Desact]│
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌──────────────────────────┐ ┌─────────────────────────┐   │
+│  │ 📞 Información Contacto  │ │ 📋 Info. Académica      │   │
+│  │                          │ │                         │   │
+│  │ Teléfono: 999-123-4567   │ │ Carrera: ISC            │   │
+│  │ Email: garcia@inst.edu   │ │ Grupo: 5°A              │   │
+│  │                          │ │ Semestre: 5             │   │
+│  │ 👨‍👩‍👦 Tutor/Emergencia:    │ │ Turno: Matutino         │   │
+│  │ García S. Roberto        │ │                         │   │
+│  │ Tel: 999-987-6543        │ │                         │   │
+│  │ Relación: Padre          │ │                         │   │
+│  └──────────────────────────┘ └─────────────────────────┘   │
+│                                                              │
+│  ┌──────────────────────────┐ ┌─────────────────────────┐   │
+│  │ 🏥 Información Médica    │ │ 📊 Estado del Paciente  │   │
+│  │                          │ │                         │   │
+│  │ Tipo de Sangre: O+       │ │ Última Consulta:        │   │
+│  │ Alergias: Ninguna        │ │ 10/02/2026              │   │
+│  │                          │ │                         │   │
+│  │ Condiciones:             │ │ Próxima Cita:           │   │
+│  │ • Ansiedad               │ │ 20/02/2026 10:00        │   │
+│  │                          │ │                         │   │
+│  │ Departamento:            │ │ Sesiones Totales: 5     │   │
+│  │ Psicología               │ │ Activo desde: Ene 2026  │   │
+│  └──────────────────────────┘ └─────────────────────────┘   │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📝 Resumen de Actividad Reciente                       │  │
+│  │                                                        │  │
+│  │ 10/02/2026 - Sesión de Psicología (Dra. Méndez)       │  │
+│  │ 03/02/2026 - Sesión de Psicología (Dra. Méndez)       │  │
+│  │ 27/01/2026 - Evaluación Beck (Resultado: Moderado)    │  │
+│  │ 20/01/2026 - Sesión de Psicología (Dra. Méndez)       │  │
+│  │                                                        │  │
+│  │ [Ver Expediente Completo →]                            │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Encabezado del Paciente**
+   - Información básica
+   - Botones de acción rápida
+
+2. **Cards de Información** (4 secciones)
+   - Información de contacto
+   - Información académica
+   - Información médica
+   - Estado del paciente
+
+3. **Resumen de Actividad Reciente**
+   - Últimas actividades
+   - Link a expediente completo
+
+---
+
+## W-11: Registro de Nuevo Paciente
+
+### Descripción
+Formulario completo para registrar un nuevo paciente en el sistema.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [◀ Volver a Pacientes]                                      │
+│                                                              │
+│  📝 Registro de Nuevo Paciente                               │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ [1. Datos Personales] → 2. Contacto → 3. Médico       │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 👤 Información Personal Básica                         │  │
+│  │                                                        │  │
+│  │ * Matrícula: [___________]                            │  │
+│  │                                                        │  │
+│  │ * Nombre: [_______________]                           │  │
+│  │ * Apellido Paterno: [_______________]                 │  │
+│  │ * Apellido Materno: [_______________]                 │  │
+│  │                                                        │  │
+│  │ * Fecha de Nacimiento: [DD/MM/AAAA ▼]                 │  │
+│  │   Edad: [20 años] (calculada automáticamente)         │  │
+│  │                                                        │  │
+│  │ * Sexo Biológico: [○ Masculino ● Femenino ○ Otro]    │  │
+│  │ * Género: [Femenino ▼]                                │  │
+│  │                                                        │  │
+│  │ * Estado Civil: [Soltera ▼]                           │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 🎓 Información Académica/Laboral                       │  │
+│  │                                                        │  │
+│  │ Tipo: [○ Estudiante ● Empleado ○ Visitante]          │  │
+│  │                                                        │  │
+│  │ * Carrera: [ISC - Ing. en Sistemas Computacionales ▼] │  │
+│  │ * Grupo: [5°A ▼]                                      │  │
+│  │ * Turno: [○ Matutino ● Vespertino]                    │  │
+│  │                                                        │  │
+│  │ Ocupación: [_______________] (opcional)               │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📞 Información de Contacto                             │  │
+│  │                                                        │  │
+│  │ * Teléfono Personal: [(___) ___-____]                 │  │
+│  │ * Correo Electrónico: [________@institucional.edu]    │  │
+│  │                                                        │  │
+│  │ Dirección: [_______________________________]          │  │
+│  │ Ciudad: [_______________] CP: [_____]                 │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│       [Cancelar]  [Guardar Borrador]  [Siguiente Paso →]    │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Indicador de Progreso**
+   - Paso 1: Datos Personales
+   - Paso 2: Contacto de Emergencia
+   - Paso 3: Información Médica
+
+2. **Sección Información Personal**
+   - Campos obligatorios (*)
+   - Validación en tiempo real
+   - Cálculo automático de edad
+
+3. **Sección Académica/Laboral**
+   - Tipo de afiliación
+   - Datos según el tipo
+
+4. **Sección de Contacto**
+   - Teléfono con máscara
+   - Email institucional
+
+5. **Botones de Navegación**
+   - Cancelar, Guardar borrador, Siguiente
+
+---
+
+## W-12: Edición de Datos del Paciente
+
+### Descripción
+Formulario para editar información existente de un paciente.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [◀ Volver a Perfil]                                         │
+│                                                              │
+│  ✏️ Editar Paciente - García Luna Ana (2021001)             │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ Tabs: [Datos Personales] [Contacto] [Médico] [Académico]│
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 👤 Datos Personales                                    │  │
+│  │                                                        │  │
+│  │ Matrícula: [2021001] (no editable)                    │  │
+│  │                                                        │  │
+│  │ Nombre: [Ana_______________]                          │  │
+│  │ Apellido Paterno: [García_____________]               │  │
+│  │ Apellido Materno: [Luna_______________]               │  │
+│  │                                                        │  │
+│  │ Fecha de Nacimiento: [15/03/2004 ▼]                   │  │
+│  │ Edad: [20 años] (auto)                                │  │
+│  │                                                        │  │
+│  │ Sexo Biológico: [○ Masculino ● Femenino ○ Otro]      │  │
+│  │ Género: [Femenino ▼]                                  │  │
+│  │                                                        │  │
+│  │ Estado Civil: [Soltera ▼]                             │  │
+│  │                                                        │  │
+│  │ Estado del Paciente: [○ Activo ● Inactivo]            │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📝 Registro de Cambios                                 │  │
+│  │                                                        │  │
+│  │ Última modificación: 10/02/2026 por Dr. Méndez        │  │
+│  │ Creado: 15/01/2026 por Recepcionista González         │  │
+│  │                                                        │  │
+│  │ [Ver Historial Completo de Cambios]                   │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ ⚠️ Razón del Cambio (obligatoria para auditoría)      │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Actualización de estado civil por solicitud...    │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│       [Cancelar]  [Guardar Cambios]                          │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Tabs de Navegación**
+   - Datos Personales
+   - Contacto
+   - Médico
+   - Académico
+
+2. **Formulario Editable**
+   - Campos modificables
+   - Algunos campos protegidos (matrícula)
+
+3. **Registro de Cambios**
+   - Auditoría automática
+   - Historial de modificaciones
+
+4. **Campo de Razón del Cambio**
+   - Obligatorio para cumplimiento
+   - Trazabilidad completa
+
+---
+
+## W-13: Historial Médico Completo
+
+### Descripción
+Vista cronológica del historial médico completo del paciente.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [◀ Volver a Expediente]                                     │
+│                                                              │
+│  📋 Historial Médico - García Luna Ana (2021001)             │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ Filtros: [Todos los tipos ▼] [Todos los dept ▼]       │  │
+│  │ Rango: [01/01/2026 ▼] a [13/02/2026 ▼] [Aplicar]     │  │
+│  │                                            [Exportar PDF]│
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📅 Línea de Tiempo (orden cronológico descendente)    │  │
+│  │                                                        │  │
+│  │ ══════════════════════════════════════════════════════ │  │
+│  │                                                        │  │
+│  │ 📍 10/02/2026 - 10:00 AM                              │  │
+│  │ 🧠 Sesión de Psicología #5                            │  │
+│  │ Profesional: Dra. Ana Méndez                          │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Tipo: Individual - Duración: 50 min               │ │  │
+│  │ │ Notas: La paciente reporta mejoría...             │ │  │
+│  │ │ [Ver Detalles Completos]                          │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ 📍 03/02/2026 - 10:00 AM                              │  │
+│  │ 🧠 Sesión de Psicología #4                            │  │
+│  │ Profesional: Dra. Ana Méndez                          │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Tipo: Individual - Duración: 50 min               │ │  │
+│  │ │ Notas: Trabajo en técnicas de relajación...       │ │  │
+│  │ │ [Ver Detalles Completos]                          │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ 📍 27/01/2026 - 11:00 AM                              │  │
+│  │ 📊 Evaluación Psicométrica - Inventario Beck          │  │
+│  │ Profesional: Dra. Ana Méndez                          │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Resultado: Ansiedad Moderada (Puntuación: 22)     │ │  │
+│  │ │ [Ver Informe Completo]                            │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ 📍 20/01/2026 - 10:00 AM                              │  │
+│  │ 🧠 Sesión de Psicología #3                            │  │
+│  │ ...                                                    │  │
+│  │                                                        │  │
+│  │ 📍 15/01/2026 - 14:00 PM                              │  │
+│  │ 🆕 Primera Consulta - Evaluación Inicial              │  │
+│  │ Profesional: Dra. Ana Méndez                          │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Motivo: Ansiedad relacionada con carga académica  │ │  │
+│  │ │ Diagnóstico Inicial: F41.1 - Trastorno de ansiedad│ │  │
+│  │ │ [Ver Evaluación Completa]                         │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  Mostrando 5 de 15 registros                                │
+│  [◀ Anteriores] [Siguiente ▶]                               │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Filtros y Controles**
+   - Tipo de registro
+   - Departamento
+   - Rango de fechas
+   - Exportar PDF
+
+2. **Línea de Tiempo**
+   - Orden cronológico descendente
+   - Iconos por tipo de evento
+   - Cards expandibles/colapsables
+
+3. **Información por Registro**
+   - Fecha y hora
+   - Tipo de evento
+   - Profesional responsable
+   - Resumen
+   - Link a detalles completos
+
+4. **Paginación**
+   - Navegación por registros
 
 ---
 
