@@ -44,6 +44,8 @@ servers:
 tags:
   - name: Authentication
     description: Endpoints de autenticación y autorización
+  - name: Students
+    description: Gestión de estudiantes (pacientes con número de matrícula)
   - name: Patients
     description: Gestión de pacientes y expedientes básicos
   - name: Medical Records
@@ -242,6 +244,108 @@ paths:
                 $ref: '#/components/schemas/SuccessResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+
+  # ==================== STUDENTS ====================
+  /students:
+    get:
+      tags:
+        - Students
+      summary: Listar estudiantes
+      description: |
+        Obtiene lista paginada de estudiantes (pacientes con número de matrícula).
+        Soporta búsqueda por nombre, email y número de matrícula, y filtrado por carrera.
+      parameters:
+        - name: page
+          in: query
+          description: Número de página (por defecto 1)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Cantidad de resultados por página (máximo 100)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: search
+          in: query
+          description: Búsqueda por nombre, email o número de matrícula
+          schema:
+            type: string
+            example: "John"
+        - name: careerId
+          in: query
+          description: Filtrar por carrera (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de estudiantes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Students retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      students:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Student'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /students/{id}:
+    get:
+      tags:
+        - Students
+      summary: Obtener estudiante por ID
+      description: Obtiene información detallada de un estudiante específico incluyendo datos personales, carrera y contactos de emergencia
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del estudiante (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalles del estudiante
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Student retrieved successfully"
+                  data:
+                    $ref: '#/components/schemas/StudentDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   # ==================== PATIENTS ====================
   /patients:
@@ -1855,6 +1959,93 @@ components:
               type: integer
         occupation:
           type: string
+
+    # ==================== STUDENT SCHEMAS ====================
+    Student:
+      type: object
+      description: Estudiante (paciente con número de matrícula)
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID del paciente/estudiante
+        userId:
+          type: string
+          format: uuid
+        patientType:
+          type: string
+        careerId:
+          type: string
+          format: uuid
+        group:
+          type: string
+        trimester:
+          type: integer
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+              format: email
+            firstName:
+              type: string
+            lastName:
+              type: string
+            dateOfBirth:
+              type: string
+              format: date
+            phone:
+              type: string
+            enrollmentNumber:
+              type: string
+              description: Número de matrícula del estudiante
+            isActive:
+              type: boolean
+        career:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            code:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    StudentDetails:
+      type: object
+      description: Información detallada del estudiante
+      allOf:
+        - $ref: '#/components/schemas/Student'
+        - type: object
+          properties:
+            emergencyContacts:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  relationship:
+                    type: string
+                  phone:
+                    type: string
+                  phoneSecondary:
+                    type: string
+                  priority:
+                    type: integer
 
     # ==================== MEDICAL RECORD SCHEMAS ====================
     MedicalRecord:
