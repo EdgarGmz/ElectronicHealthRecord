@@ -19,6 +19,8 @@ Este índice proporciona acceso rápido a toda la documentación de diseño UI/U
 | **[Mockups](./mockups/README.md)** | Diseños de alta fidelidad | ✅ 70% completo |
 | **[Guía de Estilos](./style-guide/README.md)** | Sistema de diseño completo | ✅ 85% completo |
 | **[Prototipos](./prototypes/README.md)** | Flujos y comportamientos | ✅ 75% completo |
+| **[Diseño Responsive](./RESPONSIVE_DESIGN.md)** | Breakpoints y especificaciones responsive | ✅ Completo |
+| **[Mockups Responsivos](./RESPONSIVE_MOCKUPS.md)** | Mockups adaptados por breakpoint | ✅ Completo |
 | **[Assets](./assets/README.md)** | Recursos visuales | 📋 Por implementar |
 | **[Guía de Implementación](./IMPLEMENTATION_GUIDE.md)** | Código y desarrollo | ✅ Completo |
 
@@ -200,7 +202,52 @@ Especificaciones de 44 pantallas principales:
 
 ---
 
-### 5. Assets
+### 5. Diseño Responsive
+
+#### Breakpoints Definidos
+- ✅ Mobile Small (320px)
+- ✅ Mobile Large (640px)
+- ✅ Tablet Portrait (768px)
+- ✅ Tablet Landscape (1024px)
+- ✅ Desktop (1280px)
+- ✅ Large Desktop (1536px)
+
+#### Especificaciones por Breakpoint
+- ✅ Layout y navegación
+- ✅ Componentes adaptados
+- ✅ Tablas responsivas
+- ✅ Formularios responsive
+- ✅ Modales adaptables
+- ✅ Dashboard responsive
+
+#### Mockups Responsivos
+- ✅ M-01: Login (3 breakpoints)
+- ✅ M-04: Dashboard (4 breakpoints)
+- ✅ M-08: Lista Pacientes (3 breakpoints)
+- ✅ M-14: Calendario (4 breakpoints)
+- ✅ M-21: Expediente (3 breakpoints)
+- 📋 Resto de pantallas
+
+#### Comportamiento de Componentes
+- ✅ Sidebar/Navegación responsive
+- ✅ Tablas → Cards (mobile)
+- ✅ Formularios multi-columna
+- ✅ Modales full-screen (mobile)
+- ✅ Calendario vistas adaptables
+- ✅ Métricas responsive grid
+
+#### Optimizaciones
+- ✅ Lazy loading por dispositivo
+- ✅ Imágenes responsive
+- ✅ Code splitting
+- ✅ Touch targets (44px mínimo)
+- ✅ Font sizes adaptables
+
+**Progreso**: 100% ✅
+
+---
+
+### 6. Assets
 
 #### Por Implementar
 - 📋 Logos (5 variantes)
@@ -213,7 +260,7 @@ Especificaciones de 44 pantallas principales:
 
 ---
 
-### 6. Guía de Implementación
+### 7. Guía de Implementación
 
 #### Setup Completo
 - ✅ Instalación de dependencias
@@ -277,10 +324,11 @@ Especificaciones de 44 pantallas principales:
 | **Mockups** | 70% | 🟢 Avanzado |
 | **Guía de Estilos** | 85% | 🟢 Casi completo |
 | **Prototipos** | 75% | 🟢 Avanzado |
+| **Diseño Responsive** | 100% | ✅ Completo |
 | **Assets** | 0% | 🔴 Pendiente |
 | **Implementación** | 100% | ✅ Completo |
 
-**Progreso Total**: ~57% ✅
+**Progreso Total**: ~63% ✅
 
 ---
 
