@@ -7,6 +7,7 @@ import patientRoutes from './patient.routes';
 import healthRoutes from './health.routes';
 
 // Import new routes
+import studentRoutes from './student.routes';
 import medicalRecordRoutes from './medical-record.routes';
 import appointmentRoutes from './appointment.routes';
 import medicationRoutes from './medication.routes';
@@ -26,6 +27,7 @@ router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/patients', patientRoutes);
+router.use('/students', studentRoutes);
 
 // Add new routes
 router.use('/medical-records', medicalRecordRoutes);
