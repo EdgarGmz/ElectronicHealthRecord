@@ -1149,6 +1149,577 @@ Vista de calendario para gestionar todas las citas del departamento.
 
 ---
 
+## W-15: Calendario de Citas (Vista Semanal)
+
+### Descripción
+Vista semanal del calendario con mayor detalle de horarios.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  📅 Gestión de Citas                                         │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ [◀] Semana del 10-16 Feb 2026 [▶]  Vista: [Mes] [Semana▼]│
+│  │                                  [Día]      [+ Nueva Cita]│
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  Filtro: [Todos ▼] [Psicología] [Enfermería]                │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ Hora │Lun 10│Mar 11│Mie 12│Jue 13│Vie 14│Sab 15│Dom 16│  │
+│  ├────────────────────────────────────────────────────────┤  │
+│  │ 08:00│      │      │      │      │      │      │      │  │
+│  │ 09:00│ 🔵  │ 🔵  │ 🔵🔵│ 🔵  │ 🔵  │      │      │  │
+│  │      │ Ana  │ Juan │ María│ Luis │ Sofia│      │      │  │
+│  │ 10:00│ 🔵  │      │ 🔵  │ 🔵  │ 🔵  │      │      │  │
+│  │      │ Pedro│      │ Carlos│ Rosa │ Diego│      │      │  │
+│  │ 11:00│ 🟢  │ 🟢  │      │ 🟢  │      │      │      │  │
+│  │      │ Enf. │ Enf. │      │ Enf. │      │      │      │  │
+│  │ 12:00│      │      │      │      │      │      │      │  │
+│  │ 13:00│ 🔵  │ 🔵  │ 🔵  │ 🔵  │      │      │      │  │
+│  │      │ Laura│ Mario│ Ana  │ Pablo│      │      │      │  │
+│  │ 14:00│      │ 🔵  │      │ 🔵  │ 🔵  │      │      │  │
+│  │      │      │ Eva  │      │ Diana│ Bruno│      │      │  │
+│  │ 15:00│ 🔵  │      │ 🔵  │      │      │      │      │  │
+│  │      │ Sara │      │ Hugo │      │      │      │      │  │
+│  │ 16:00│      │      │      │      │      │      │      │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ Citas del día seleccionado: Jueves 13 de Febrero      │  │
+│  │                                                        │  │
+│  │ Click en una cita para ver detalles                   │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Componentes
+1. **Selector de Semana**
+   - Navegación semanal (◀ ▶)
+   - Rango de fechas visible
+
+2. **Filtros por Departamento**
+   - Todos, Psicología, Enfermería
+
+3. **Grid Semanal**
+   - Columnas: Días de la semana
+   - Filas: Horarios (intervalos de 1 hora)
+   - Citas con código de color y nombre
+
+4. **Panel de Información**
+   - Detalles de día/cita seleccionada
+
+### Interacciones
+- Click en celda vacía → Agendar nueva cita (W-17)
+- Click en cita → Ver/editar detalles (W-18)
+- Hover en cita → Tooltip con info completa
+
+---
+
+## W-16: Calendario de Citas (Vista Diaria)
+
+### Descripción
+Vista detallada del día con toda la información de citas.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  📅 Agenda del Día                                           │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ [◀] Jueves, 13 de Febrero 2026 [▶]  Vista: [Mes] [Sem]│  │
+│  │                                       [Día▼][+ Nueva Cita]│
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  Profesional: [Todos ▼] [Dra. Méndez] [Enf. Torres]         │
+│  Departamento: [Todos ▼] [Psicología] [Enfermería]           │
+│                                                              │
+│  ┌─────┬──────────────────────────────────────────────────┐  │
+│  │Hora │ Cita                                             │  │
+│  ├─────┼──────────────────────────────────────────────────┤  │
+│  │08:00│ [Disponible] [+ Agendar]                        │  │
+│  ├─────┼──────────────────────────────────────────────────┤  │
+│  │09:00│ 🔵 García Luna Ana - Psicología                 │  │
+│  │     │ 📋 Sesión de seguimiento (Sesión #5)            │  │
+│  │     │ 👨‍⚕️ Dra. Ana Méndez                             │  │
+│  │     │ Estado: ✅ Confirmada                            │  │
+│  │     │ [Ver Expediente] [Iniciar] [Reprogramar] [⋮]    │  │
+│  ├─────┼──────────────────────────────────────────────────┤  │
+│  │10:00│ 🔵 López Pérez Juan - Psicología                │  │
+│  │     │ 📋 Primera consulta                             │  │
+│  │     │ 👨‍⚕️ Dra. Ana Méndez                             │  │
+│  │     │ Estado: 🔔 Por confirmar                         │  │
+│  │     │ [Ver Expediente] [Confirmar] [Reprogramar] [⋮]  │  │
+│  ├─────┼──────────────────────────────────────────────────┤  │
+│  │11:00│ 🟢 Martínez R. María - Enfermería               │  │
+│  │     │ 🩹 Curación de herida                           │  │
+│  │     │ 👨‍⚕️ Enf. Carlos Torres                          │  │
+│  │     │ Estado: ⏰ En sala de espera                     │  │
+│  │     │ [Ver Expediente] [Iniciar] [⋮]                  │  │
+│  ├─────┼──────────────────────────────────────────────────┤  │
+│  │12:00│ [Hora de comida - No disponible]                │  │
+│  ├─────┼──────────────────────────────────────────────────┤  │
+│  │13:00│ 🔵 Hernández S. Luis - Psicología               │  │
+│  │     │ 📋 Sesión de seguimiento (Sesión #3)            │  │
+│  │     │ 👨‍⚕️ Dra. Ana Méndez                             │  │
+│  │     │ Estado: ✅ Confirmada                            │  │
+│  │     │ [Ver Expediente] [Iniciar] [Reprogramar] [⋮]    │  │
+│  ├─────┼──────────────────────────────────────────────────┤  │
+│  │14:00│ [Disponible] [+ Agendar]                        │  │
+│  ├─────┼──────────────────────────────────────────────────┤  │
+│  │15:00│ [Disponible] [+ Agendar]                        │  │
+│  │     │                                                  │  │
+│  └─────┴──────────────────────────────────────────────────┘  │
+│                                                              │
+│  Resumen: 4 citas programadas | 3 confirmadas | 1 por confir│
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Componentes
+1. **Selector de Fecha**
+   - Navegación día a día
+   - Fecha completa visible
+
+2. **Filtros**
+   - Por profesional
+   - Por departamento
+
+3. **Lista de Citas Detallada**
+   - Intervalos de tiempo (generalmente cada hora)
+   - Información completa de cada cita
+   - Estados visuales claros
+   - Botones de acción
+
+4. **Resumen del Día**
+   - Estadísticas rápidas
+
+### Interacciones
+- Click en [+ Agendar] → W-17
+- Click en [Reprogramar] → W-18
+- Click en [Iniciar] → Comienza la consulta
+- Click en [Ver Expediente] → W-21
+
+---
+
+## W-17: Agendar Nueva Cita
+
+### Descripción
+Formulario para crear una nueva cita en el sistema.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [◀ Volver al Calendario]                                    │
+│                                                              │
+│  📅 Agendar Nueva Cita                                       │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 👥 Información del Paciente                            │  │
+│  │                                                        │  │
+│  │ * Buscar Paciente: [__________ 🔍]                    │  │
+│  │                                                        │  │
+│  │ Sugerencias:                                          │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ 📌 García Luna Ana - 2021001 - ISC                │ │  │
+│  │ │ 📌 García Martínez Luis - 2020845 - IIA           │ │  │
+│  │ │ 📌 García Pérez María - 2021234 - LAE             │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ [+ Registrar Nuevo Paciente]                          │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ Paciente Seleccionado:                                 │  │
+│  │ 👤 García Luna Ana (2021001) - 20 años - ISC           │  │
+│  │ Última consulta: 10/02/2026                            │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📋 Detalles de la Cita                                 │  │
+│  │                                                        │  │
+│  │ * Departamento: [○ Psicología ● Enfermería]           │  │
+│  │                                                        │  │
+│  │ * Profesional: [Enf. Carlos Torres ▼]                 │  │
+│  │   └─ Disponibilidad: Lun-Vie 9:00-16:00              │  │
+│  │                                                        │  │
+│  │ * Tipo de Consulta: [Primera vez ▼]                   │  │
+│  │   Opciones: Primera vez, Seguimiento, Urgente,        │  │
+│  │            Reevaluación                               │  │
+│  │                                                        │  │
+│  │ * Duración Estimada: [15 minutos ▼]                   │  │
+│  │   └─ Psicología: 50 min | Enfermería: 10-15 min      │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📅 Fecha y Hora                                        │  │
+│  │                                                        │  │
+│  │ * Fecha: [20/02/2026 ▼] 📅                            │  │
+│  │                                                        │  │
+│  │ * Hora: [10:00 ▼]                                     │  │
+│  │                                                        │  │
+│  │ ✅ Horario disponible                                  │  │
+│  │                                                        │  │
+│  │ Horarios disponibles para este día:                   │  │
+│  │ [09:00] [10:00] [11:00] [13:00] [14:00]              │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📝 Notas Adicionales (opcional)                        │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Seguimiento de curación...                        │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 🔔 Recordatorios                                       │  │
+│  │ [☑] Enviar recordatorio por correo (24 hrs antes)     │  │
+│  │ [☑] Enviar recordatorio por SMS (2 hrs antes)         │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│       [Cancelar]  [Guardar y Agendar]                        │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Búsqueda de Paciente**
+   - Autocompletado con sugerencias
+   - Opción para registrar nuevo paciente
+
+2. **Información del Paciente Seleccionado**
+   - Datos de identificación
+   - Contexto (última consulta)
+
+3. **Detalles de la Cita**
+   - Departamento
+   - Profesional con disponibilidad
+   - Tipo de consulta
+   - Duración estimada
+
+4. **Fecha y Hora**
+   - Selector de fecha con calendario
+   - Horarios disponibles mostrados
+   - Validación en tiempo real
+
+5. **Notas y Recordatorios**
+   - Campo opcional para notas
+   - Opciones de notificación
+
+### Validaciones
+- Paciente debe existir o ser creado
+- Horario debe estar disponible
+- Duración según tipo de consulta
+- No permitir citas en horarios ocupados
+
+---
+
+## W-18: Reprogramar Cita Existente
+
+### Descripción
+Interfaz para modificar o reprogramar una cita existente.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [◀ Volver al Calendario]                                    │
+│                                                              │
+│  ✏️ Reprogramar Cita #C-2026-0234                            │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📋 Información Actual de la Cita                       │  │
+│  │                                                        │  │
+│  │ Paciente: García Luna Ana (2021001)                    │  │
+│  │ Fecha Actual: Jueves, 13 de Febrero 2026 a las 10:00  │  │
+│  │ Departamento: Psicología                               │  │
+│  │ Profesional: Dra. Ana Méndez                           │  │
+│  │ Tipo: Sesión de seguimiento                            │  │
+│  │ Estado: Confirmada ✅                                   │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 🔄 Modificar Cita                                      │  │
+│  │                                                        │  │
+│  │ Acción: [○ Reprogramar ● Cancelar ○ Cambiar Detalles] │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📅 Nueva Fecha y Hora                                  │  │
+│  │                                                        │  │
+│  │ Fecha: [20/02/2026 ▼] 📅                              │  │
+│  │ Hora: [10:00 ▼]                                       │  │
+│  │                                                        │  │
+│  │ ✅ Horario disponible                                  │  │
+│  │                                                        │  │
+│  │ Profesional: [Dra. Ana Méndez ▼] (mismo profesional)  │  │
+│  │                                                        │  │
+│  │ Horarios disponibles para este día:                   │  │
+│  │ [09:00] [10:00] [11:00] [13:00] [14:00]              │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📝 Razón de la Reprogramación (obligatorio)            │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ Solicitud del paciente por conflicto académico... │ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 🔔 Notificar al Paciente                               │  │
+│  │ [☑] Enviar notificación de reprogramación              │  │
+│  │ [☑] Enviar nuevo recordatorio 24 hrs antes             │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ ⚠️ Historial de Cambios                                │  │
+│  │                                                        │  │
+│  │ • 01/02/2026: Creada por Recepción González            │  │
+│  │ • 05/02/2026: Confirmada por paciente                  │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│       [Cancelar]  [Guardar Cambios]                          │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Información Actual**
+   - Datos completos de la cita existente
+   - Estado actual
+
+2. **Opciones de Modificación**
+   - Reprogramar (cambiar fecha/hora)
+   - Cancelar (anular la cita)
+   - Cambiar detalles (modificar info)
+
+3. **Nueva Programación**
+   - Selector de nueva fecha/hora
+   - Validación de disponibilidad
+   - Opción de cambiar profesional
+
+4. **Razón del Cambio**
+   - Campo obligatorio para auditoría
+   - Trazabilidad completa
+
+5. **Notificaciones**
+   - Opciones para notificar al paciente
+
+6. **Historial de Cambios**
+   - Registro de todas las modificaciones
+
+---
+
+## W-19: Lista de Espera
+
+### Descripción
+Gestión de pacientes en lista de espera para citas.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ⏰ Lista de Espera                                          │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ Filtros: [Todos ▼] [Psicología] [Enfermería]          │  │
+│  │ Prioridad: [Todas ▼] [Alta] [Media] [Baja]            │  │
+│  │                                        [+ Agregar Paciente]│
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📊 Resumen: 15 pacientes en espera                     │  │
+│  │ • Alta prioridad: 3   • Media: 8   • Baja: 4          │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ # │Pac│Nombre       │Dep│Fech.Sol│Prioridad│Tiempo│[⋮] │  │
+│  ├────────────────────────────────────────────────────────┤  │
+│  │ 1 │🔴│López Juan   │Psi│05/02/26│🔴 Alta  │8 días│[⋮] │  │
+│  │   │  │Primera cons.│   │        │Urgente  │      │    │  │
+│  ├────────────────────────────────────────────────────────┤  │
+│  │ 2 │🔴│Martínez M.  │Enf│06/02/26│🔴 Alta  │7 días│[⋮] │  │
+│  │   │  │Curaciones   │   │        │Follow-up│      │    │  │
+│  ├────────────────────────────────────────────────────────┤  │
+│  │ 3 │🔴│Hernández L. │Psi│07/02/26│🔴 Alta  │6 días│[⋮] │  │
+│  │   │  │Reevaluación │   │        │Urgente  │      │    │  │
+│  ├────────────────────────────────────────────────────────┤  │
+│  │ 4 │🟡│García Ana   │Psi│08/02/26│🟡 Media │5 días│[⋮] │  │
+│  │   │  │Seguimiento  │   │        │Regular  │      │    │  │
+│  ├────────────────────────────────────────────────────────┤  │
+│  │ 5 │🟡│Rodríguez S. │Psi│08/02/26│🟡 Media │5 días│[⋮] │  │
+│  │   │  │Primera cons.│   │        │Regular  │      │    │  │
+│  ├────────────────────────────────────────────────────────┤  │
+│  │ 6 │🟢│Sánchez C.   │Enf│09/02/26│🟢 Baja  │4 días│[⋮] │  │
+│  │   │  │Check-up     │   │        │Rutina   │      │    │  │
+│  │   │                                                    │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  Mostrando 1-6 de 15 pacientes                              │
+│  [◀ Anterior] [1] [2] [3] [Siguiente ▶]                     │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Filtros**
+   - Por departamento
+   - Por prioridad
+
+2. **Resumen Estadístico**
+   - Total en espera
+   - Distribución por prioridad
+
+3. **Tabla de Lista de Espera**
+   - Orden por prioridad y antigüedad
+   - Indicador visual de prioridad (🔴🟡🟢)
+   - Tiempo de espera calculado
+   - Menú de acciones
+
+### Acciones por Paciente (⋮)
+- Agendar cita → W-17
+- Cambiar prioridad
+- Contactar paciente
+- Ver expediente → W-21
+- Remover de lista
+
+### Reglas de Prioridad
+- **Alta (🔴)**: Urgente, follow-up crítico
+- **Media (🟡)**: Seguimiento regular
+- **Baja (🟢)**: Rutina, evaluaciones programadas
+
+---
+
+## W-20: Confirmación de Citas
+
+### Descripción
+Panel para confirmar citas programadas y gestionar confirmaciones.
+
+### Elementos Principales
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [☰] EHR System        [🔍] Buscar...    [🔔] [👤] Usuario ▼  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ✅ Confirmación de Citas                                    │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ Vista: [Por Confirmar ▼] [Confirmadas] [No Confirmadas]│  │
+│  │ Período: [Próximos 7 días ▼]                           │  │
+│  │                              [📞 Llamar a Todos] [📧 Email]│
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 📊 Resumen de Confirmaciones                           │  │
+│  │ Total de citas (próximos 7 días): 45                   │  │
+│  │ ✅ Confirmadas: 32 (71%)                               │  │
+│  │ 🔔 Por confirmar: 8 (18%)                              │  │
+│  │ ❌ No confirmadas: 5 (11%)                             │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ 🔔 Citas Por Confirmar (8)                             │  │
+│  │                                                        │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ 📅 Jueves 13/02/2026 - 10:00                       │ │  │
+│  │ │ 👤 López Pérez Juan (2021015)                      │ │  │
+│  │ │ 📞 Tel: 999-234-5678                               │ │  │
+│  │ │ 📋 Psicología - Primera consulta                   │ │  │
+│  │ │ 👨‍⚕️ Dra. Ana Méndez                                 │ │  │
+│  │ │                                                    │ │  │
+│  │ │ Último contacto: Ninguno                          │ │  │
+│  │ │ Tiempo restante: ⏰ 2 horas                        │ │  │
+│  │ │                                                    │ │  │
+│  │ │ [✅ Confirmar] [❌ Cancelar] [📞 Llamar] [✏️ Editar]│ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ 📅 Viernes 14/02/2026 - 11:00                      │ │  │
+│  │ │ 👤 Martínez Rodríguez María (2020892)              │ │  │
+│  │ │ 📞 Tel: 999-345-6789                               │ │  │
+│  │ │ 📋 Enfermería - Curación                           │ │  │
+│  │ │ 👨‍⚕️ Enf. Carlos Torres                              │ │  │
+│  │ │                                                    │ │  │
+│  │ │ Último contacto: Email enviado hace 12 hrs        │ │  │
+│  │ │ Tiempo restante: ⏰ 1 día 3 horas                  │ │  │
+│  │ │                                                    │ │  │
+│  │ │ [✅ Confirmar] [❌ Cancelar] [📞 Llamar] [✏️ Editar]│ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  │ ┌────────────────────────────────────────────────────┐ │  │
+│  │ │ 📅 Viernes 14/02/2026 - 13:00                      │ │  │
+│  │ │ 👤 Hernández Sánchez Luis (2021034)                │ │  │
+│  │ │ 📞 Tel: 999-456-7890                               │ │  │
+│  │ │ 📋 Psicología - Sesión de seguimiento              │ │  │
+│  │ │ 👨‍⚕️ Dra. Ana Méndez                                 │ │  │
+│  │ │                                                    │ │  │
+│  │ │ Último contacto: Llamada hace 2 días              │ │  │
+│  │ │ Tiempo restante: ⏰ 1 día 5 horas                  │ │  │
+│  │ │                                                    │ │  │
+│  │ │ [✅ Confirmar] [❌ Cancelar] [📞 Llamar] [✏️ Editar]│ │  │
+│  │ └────────────────────────────────────────────────────┘ │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  Mostrando 1-3 de 8 citas                                   │
+│  [◀ Anterior] [Siguiente ▶]                                 │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Elementos
+1. **Filtros y Vista**
+   - Por confirmar, confirmadas, no confirmadas
+   - Período de tiempo
+
+2. **Resumen Estadístico**
+   - Total de citas
+   - Estado de confirmaciones con porcentajes
+
+3. **Lista de Citas**
+   - Cards detalladas por cita
+   - Información completa del paciente
+   - Tiempo restante hasta la cita
+   - Historial de contactos
+
+4. **Botones de Acción por Cita**
+   - Confirmar: Marca como confirmada
+   - Cancelar: Cancela la cita
+   - Llamar: Registra intento de contacto
+   - Editar: Modifica la cita (W-18)
+
+5. **Acciones Masivas**
+   - Llamar a todos
+   - Enviar emails masivos
+
+### Estados de Confirmación
+- **Por Confirmar (🔔)**: Esperando confirmación
+- **Confirmada (✅)**: Paciente confirmó asistencia
+- **No Confirmada (❌)**: No se pudo contactar o paciente canceló
+
+---
+
 ## W-21: Vista de Expediente Completo
 
 ### Descripción
