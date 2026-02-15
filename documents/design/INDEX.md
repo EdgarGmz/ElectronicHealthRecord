@@ -100,7 +100,7 @@ Especificaciones de 44 pantallas principales:
 
 ---
 
-### 2. Mockups (Alta Fidelidad)
+### 2. Mockups (Alta Fidelidad) ✅ **APROBADOS**
 
 #### Sistema de Diseño
 - ✅ Paleta de colores completa
@@ -110,11 +110,11 @@ Especificaciones de 44 pantallas principales:
 - ✅ Bordes y radios
 
 #### Mockups Especificados
-- ✅ M-01: Login
-- ✅ M-04: Dashboard Admin
-- ✅ M-08: Lista de Pacientes
-- ✅ M-14: Calendario
-- ✅ M-21: Expediente
+- ✅ M-01: Login - **APROBADO**
+- ✅ M-04: Dashboard Admin - **APROBADO**
+- ✅ M-08: Lista de Pacientes - **APROBADO**
+- ✅ M-14: Calendario - **APROBADO**
+- ✅ M-21: Expediente - **APROBADO**
 - 📋 M-22: Registro de Sesión
 - 📋 Resto de pantallas
 
@@ -128,6 +128,7 @@ Especificaciones de 44 pantallas principales:
 - 📋 Navegación
 
 **Progreso**: 70% ✅
+**Estado**: ✅ **APROBADOS (2026-02-14)**
 
 ---
 

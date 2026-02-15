@@ -68,27 +68,31 @@ documents/design/
 - Administración (4)
 - Notificaciones (2)
 
-### Mockups (alta fidelidad) ✅
+### Mockups (alta fidelidad) ✅ **APROBADOS**
 
 **Sistema de Diseño Completo:**
-- ✅ Paleta de colores (Primarios, Estado, Neutrales)
-- ✅ Sistema tipográfico (Inter, Roboto, Fira Code)
-- ✅ Espaciado y grid (sistema de 8px)
-- ✅ Sombras y elevaciones (6 niveles)
-- ✅ Bordes y radios
+- ✅ Paleta de colores (Primarios, Estado, Neutrales) - **APROBADO**
+- ✅ Sistema tipográfico (Inter, Roboto, Fira Code) - **APROBADO**
+- ✅ Espaciado y grid (sistema de 8px) - **APROBADO**
+- ✅ Sombras y elevaciones (6 niveles) - **APROBADO**
+- ✅ Bordes y radios - **APROBADO**
 
 **Mockups Especificados:**
-- ✅ M-01: Login (CSS completo)
-- ✅ M-04: Dashboard Admin
-- ✅ M-08: Lista de Pacientes
-- ✅ M-14: Calendario
-- ✅ M-21: Expediente
+- ✅ M-01: Login (CSS completo) - ✅ **APROBADO**
+- ✅ M-04: Dashboard Admin - ✅ **APROBADO**
+- ✅ M-08: Lista de Pacientes - ✅ **APROBADO**
+- ✅ M-14: Calendario - ✅ **APROBADO**
+- ✅ M-21: Expediente - ✅ **APROBADO**
 
 **Componentes Reutilizables:**
-- ✅ Botones (5 variantes)
-- ✅ Forms (inputs, selects, textareas)
-- ✅ Modals y overlays
-- ✅ Alerts y notificaciones
+- ✅ Botones (5 variantes) - **APROBADO**
+- ✅ Forms (inputs, selects, textareas) - **APROBADO**
+- ✅ Modals y overlays - **APROBADO**
+- ✅ Alerts y notificaciones - **APROBADO**
+
+**Estado de Aprobación**: ✅ **MOCKUPS DE ALTA FIDELIDAD APROBADOS**
+- Fecha de aprobación: 2026-02-14
+- Versión aprobada: 1.1.0
 
 ### Guía de Estilos ✅
 
@@ -225,7 +229,7 @@ npm install react-hook-form zod
 | Área | Progreso | Estado |
 |------|----------|--------|
 | **Wireframes** | 13.6% | 🟡 Base establecida |
-| **Mockups** | 70% | 🟢 Avanzado |
+| **Mockups** | 70% | ✅ **APROBADOS** |
 | **Guía de Estilos** | 85% | 🟢 Casi completo |
 | **Prototipos** | 75% | 🟢 Funcional |
 | **Assets** | 0% | 🔴 Especificado |
@@ -421,6 +425,8 @@ El equipo de desarrollo puede comenzar a implementar componentes inmediatamente 
 *Profesional • Accesible • Escalable*
 
 **Fecha de Entrega**: 2026-02-13
-**Versión**: 1.0.0
+**Última Actualización**: 2026-02-14
+**Versión**: 1.1.0
+**Estado**: ✅ **Mockups de Alta Fidelidad APROBADOS**
 
 </div>
