@@ -178,16 +178,22 @@ Basado en escala de 8px (TailwindCSS):
 ## 📱 Responsive Design
 
 ### Breakpoints (TailwindCSS)
+- **xs**: 320px (móvil pequeño - mínimo soportado)
 - **sm**: 640px (móvil grande)
 - **md**: 768px (tablet)
 - **lg**: 1024px (laptop)
 - **xl**: 1280px (desktop)
 - **2xl**: 1536px (desktop grande)
+- **3xl**: 1920px (monitors Full HD)
 
 ### Prioridad
 1. **Desktop First**: Sistema principalmente usado en escritorio
 2. **Tablet Support**: Para uso en consultorios
 3. **Mobile Responsive**: Vistas de solo lectura en móvil
+
+### Documentación Completa
+- **[Guía de Diseño Responsive](./RESPONSIVE_DESIGN.md)** - Breakpoints, especificaciones técnicas y comportamiento de componentes
+- **[Mockups Responsivos](./RESPONSIVE_MOCKUPS.md)** - Especificaciones visuales por breakpoint
 
 ## 🔗 Referencias
 
