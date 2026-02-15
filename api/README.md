@@ -176,6 +176,50 @@ npm run prisma:migrate
 ```
 *   Cuando se te solicite, ingresa un nombre para la migración (ej., `initial_setup`).
 
+### 🌱 5.1. Poblar la Base de Datos con Datos de Prueba (Opcional pero Recomendado)
+
+Para facilitar el desarrollo y pruebas, puedes poblar la base de datos con datos realistas de prueba utilizando el script de seed:
+
+```bash
+npx prisma db seed
+```
+
+Este comando ejecutará el script `prisma/seed.ts` que creará:
+- **10 carreras** universitarias
+- **50+ usuarios** con diferentes roles:
+  - ~80% pacientes/estudiantes
+  - ~10% psicólogos
+  - ~5% enfermeras
+  - 1 coordinador de psicología
+  - 1 coordinador de enfermería
+  - 1 administrador del sistema
+- **Datos relacionados** para cada entidad del sistema:
+  - Registros médicos y psicológicos
+  - Sesiones de terapia
+  - Consultas de enfermería
+  - Medicamentos y prescripciones
+  - Citas médicas
+  - Notificaciones
+  - Y mucho más...
+
+**Cuentas de prueba creadas:**
+| Email | Rol | Password |
+|-------|-----|----------|
+| `admin@ehr-system.com` | Administrador | `Password123!` |
+| `coord.psicologia@ehr-system.com` | Coordinador Psicología | `Password123!` |
+| `coord.enfermeria@ehr-system.com` | Coordinador Enfermería | `Password123!` |
+| `psicologo1@ehr-system.com` | Psicólogo | `Password123!` |
+| `enfermera1@ehr-system.com` | Enfermera | `Password123!` |
+| `estudiante1@ehr-system.com` | Paciente | `Password123!` |
+
+**Nota:** El script de seed es **idempotente**. Si ya existen datos en la base de datos, el script detectará esto y no creará registros duplicados. Para volver a poblar la base de datos desde cero, primero ejecuta:
+
+```bash
+npx prisma migrate reset
+```
+
+Este comando eliminará todos los datos, aplicará todas las migraciones y ejecutará automáticamente el script de seed.
+
 ### 🚀 6. Iniciar el Servidor de la API
 
 Finalmente, inicia el servidor de desarrollo:
