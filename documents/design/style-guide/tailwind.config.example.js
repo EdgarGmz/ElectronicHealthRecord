@@ -326,6 +326,19 @@ module.exports = {
         tooltip: '1600',
         toast: '1700',
       },
+
+      // =====================================
+      // GLASSMORPHISM - iOS Style
+      // =====================================
+      backdropBlur: {
+        'xs': '2px',
+        'sm': '4px',
+        'md': '8px',
+        'lg': '12px',
+        'xl': '16px',
+        '2xl': '24px',
+        '3xl': '32px',
+      },
     },
   },
 

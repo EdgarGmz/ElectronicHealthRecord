@@ -107,6 +107,28 @@ Esta es la guía de estilos completa del **Sistema de Registro de Salud Electró
 
 ---
 
+### 💎 [Tema Crystal Glass (Glassmorphism)](./GLASSMORPHISM_THEME.md)
+**Contenido:**
+- Principios del glassmorphism inspirado en iOS
+- Paleta de colores glass (light, dark, tinted)
+- Efectos de backdrop blur (7 niveles)
+- Componentes glass (cards, buttons, modals, sidebar, badges, inputs, alerts)
+- Fondos recomendados con gradientes
+- Variables CSS completas para glass
+- Configuración TailwindCSS para glass
+- Mejores prácticas y accesibilidad
+- Soporte de navegadores
+
+**Casos de Uso:**
+- Crear interfaces modernas con efecto cristal
+- Aplicar estética iOS al sistema
+- Elementos flotantes sobre fondos ricos
+- Modales y overlays elegantes
+
+[➡️ Ver Guía de Glassmorphism Completa](./GLASSMORPHISM_THEME.md)
+
+---
+
 ### 🧩 [Ejemplos de Componentes](./COMPONENTS_EXAMPLES.md)
 **Contenido:**
 - Botones (5 variantes con estados)
