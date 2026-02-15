@@ -1,113 +1,364 @@
-# Stack Tecnológico
+# UT-Care Frontend 🏥
 
-## Frontend
+Sistema de Registro Electrónico de Salud - Frontend Application
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|
-| ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) | Biblioteca para interfaces de usuario | ![npm](https://img.shields.io/npm/v/react?label=) | [Documentación](https://react.dev/) • [NPM](https://www.npmjs.com/package/react) |
-| ![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white) | Navegación y enrutamiento | ![npm](https://img.shields.io/npm/v/react-router-dom?label=) | [Documentación](https://reactrouter.com/) • [NPM](https://www.npmjs.com/package/react-router-dom) |
-| ![Axios](https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white) | Cliente HTTP para peticiones API | ![npm](https://img.shields.io/npm/v/axios?label=) | [Documentación](https://axios-http.com/) • [NPM](https://www.npmjs.com/package/axios) |
-| ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) | Framework CSS utility-first | ![npm](https://img.shields.io/npm/v/tailwindcss?label=) | [Documentación](https://tailwindcss.com/) • [NPM](https://www.npmjs.com/package/tailwindcss) |
-| ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white) | Superset de JavaScript con tipado estático | ![npm](https://img.shields.io/npm/v/typescript?label=) | [Documentación](https://www.typescriptlang.org/) • [NPM](https://www.npmjs.com/package/typescript) |
+## 🚀 Stack Tecnológico
 
-## Gestión de Estado
+Este proyecto utiliza las siguientes tecnologías principales:
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|  
-| ![Redux Toolkit](https://img.shields.io/badge/Redux_Toolkit-764ABC?style=for-the-badge&logo=redux&logoColor=white) | Gestión de estado global simplificada | ![npm](https://img.shields.io/npm/v/@reduxjs/toolkit?label=) | [Documentación](https://redux-toolkit.js.org/) • [NPM](https://www.npmjs.com/package/@reduxjs/toolkit) |
-| ![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge) | Gestión de estado minimalista y flexible | ![npm](https://img.shields.io/npm/v/zustand?label=) | [Documentación](https://github.com/pmndrs/zustand) • [NPM](https://www.npmjs.com/package/zustand) |
-| ![React Query](https://img.shields.io/badge/React_Query-FF4154?style=for-the-badge&logo=react-query&logoColor=white) | Gestión de estado del servidor y caché | ![npm](https://img.shields.io/npm/v/@tanstack/react-query?label=) | [Documentación](https://tanstack.com/query) • [NPM](https://www.npmjs.com/package/@tanstack/react-query) |
+- **React 19** - Biblioteca para interfaces de usuario
+- **Vite 7** - Build tool ultrarrápido
+- **TypeScript 5.9** - Tipado estático
+- **TailwindCSS 3** - Framework CSS utility-first
+- **shadcn/ui** - Componentes UI accesibles y personalizables
+- **React Router DOM 7** - Enrutamiento
+- **Zustand 5** - Gestión de estado minimalista
+- **ESLint 9** - Linter de código
+- **Prettier 3** - Formateador de código
+- **Husky** - Git hooks
+- **lint-staged** - Linting en archivos staged
 
-## Manejo de Formularios
+Para ver la lista completa del stack tecnológico disponible, consulta [README-stack.md](./README-stack.md).
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|  
-| ![React Hook Form](https://img.shields.io/badge/React_Hook_Form-EC5990?style=for-the-badge&logo=reacthookform&logoColor=white) | Gestión de formularios con validación | ![npm](https://img.shields.io/npm/v/react-hook-form?label=) | [Documentación](https://react-hook-form.com/) • [NPM](https://www.npmjs.com/package/react-hook-form) |
-| ![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white) | Validación de esquemas TypeScript-first | ![npm](https://img.shields.io/npm/v/zod?label=) | [Documentación](https://zod.dev/) • [NPM](https://www.npmjs.com/package/zod) |
-| ![Yup](https://img.shields.io/badge/Yup-orange?style=for-the-badge) | Validación de esquemas JavaScript | ![npm](https://img.shields.io/npm/v/yup?label=) | [Documentación](https://github.com/jquense/yup) • [NPM](https://www.npmjs.com/package/yup) |
+## 📋 Requisitos Previos
 
-## UI y Componentes
+- Node.js >= 18.0.0
+- npm >= 9.0.0
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|  
-| ![shadcn/ui](https://img.shields.io/badge/shadcn/ui-000000?style=for-the-badge&logo=shadcnui&logoColor=white) | Componentes UI accesibles y personalizables | - | [Documentación](https://ui.shadcn.com/) • [GitHub](https://github.com/shadcn-ui/ui) |
-| ![Material-UI](https://img.shields.io/badge/Material--UI-007FFF?style=for-the-badge&logo=mui&logoColor=white) | Biblioteca de componentes React basada en Material Design | ![npm](https://img.shields.io/npm/v/@mui/material?label=) | [Documentación](https://mui.com/) • [NPM](https://www.npmjs.com/package/@mui/material) |
-| ![Ant Design](https://img.shields.io/badge/Ant_Design-0170FE?style=for-the-badge&logo=ant-design&logoColor=white) | Sistema de diseño empresarial | ![npm](https://img.shields.io/npm/v/antd?label=) | [Documentación](https://ant.design/) • [NPM](https://www.npmjs.com/package/antd) |
-| ![React Icons](https://img.shields.io/badge/React_Icons-E91E63?style=for-the-badge&logo=react&logoColor=white) | Colección de iconos populares | ![npm](https://img.shields.io/npm/v/react-icons?label=) | [Documentación](https://react-icons.github.io/react-icons/) • [NPM](https://www.npmjs.com/package/react-icons) |
+## 🔧 Instalación
 
-## Testing
+```bash
+# Instalar dependencias
+npm install
+```
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|  
-| ![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white) | Framework de testing ultrarrápido | ![npm](https://img.shields.io/npm/v/vitest?label=) | [Documentación](https://vitest.dev/) • [NPM](https://www.npmjs.com/package/vitest) |
-| ![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white) | Framework de testing JavaScript | ![npm](https://img.shields.io/npm/v/jest?label=) | [Documentación](https://jestjs.io/) • [NPM](https://www.npmjs.com/package/jest) |
-| ![React Testing Library](https://img.shields.io/badge/Testing_Library-E33332?style=for-the-badge&logo=testing-library&logoColor=white) | Testing de componentes React | ![npm](https://img.shields.io/npm/v/@testing-library/react?label=) | [Documentación](https://testing-library.com/react) • [NPM](https://www.npmjs.com/package/@testing-library/react) |
-| ![Cypress](https://img.shields.io/badge/Cypress-17202C?style=for-the-badge&logo=cypress&logoColor=white) | Testing end-to-end | ![npm](https://img.shields.io/npm/v/cypress?label=) | [Documentación](https://www.cypress.io/) • [NPM](https://www.npmjs.com/package/cypress) |
-| ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white) | Testing end-to-end multiplataforma | ![npm](https://img.shields.io/npm/v/@playwright/test?label=) | [Documentación](https://playwright.dev/) • [NPM](https://www.npmjs.com/package/@playwright/test) |
+## 🏃 Scripts Disponibles
 
-## Autenticación y Seguridad
+### Desarrollo
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|  
-| ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=json-web-tokens&logoColor=white) | JSON Web Tokens para autenticación | ![npm](https://img.shields.io/npm/v/jsonwebtoken?label=) | [Documentación](https://jwt.io/) • [NPM](https://www.npmjs.com/package/jsonwebtoken) |
-| ![OAuth2](https://img.shields.io/badge/OAuth_2.0-EB5424?style=for-the-badge&logo=auth0&logoColor=white) | Protocolo de autorización | - | [Documentación](https://oauth.net/2/) • [RFC](https://datatracker.ietf.org/doc/html/rfc6749) |
-| ![Crypto-js](https://img.shields.io/badge/Crypto--js-4285F4?style=for-the-badge&logo=google&logoColor=white) | Biblioteca de encriptación | ![npm](https://img.shields.io/npm/v/crypto-js?label=) | [Documentación](https://cryptojs.gitbook.io/docs/) • [NPM](https://www.npmjs.com/package/crypto-js) |
+```bash
+# Iniciar servidor de desarrollo (http://localhost:5173)
+npm run dev
+```
 
-## Utilidades
+### Construcción
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|  
-| ![date-fns](https://img.shields.io/badge/date--fns-770C56?style=for-the-badge&logo=date-fns&logoColor=white) | Librería moderna para manejo de fechas | ![npm](https://img.shields.io/npm/v/date-fns?label=) | [Documentación](https://date-fns.org/) • [NPM](https://www.npmjs.com/package/date-fns) |
-| ![Day.js](https://img.shields.io/badge/Day.js-FF5F4C?style=for-the-badge) | Alternativa ligera a Moment.js | ![npm](https://img.shields.io/npm/v/dayjs?label=) | [Documentación](https://day.js.org/) • [NPM](https://www.npmjs.com/package/dayjs) |
-| ![Lodash](https://img.shields.io/badge/Lodash-3492FF?style=for-the-badge&logo=lodash&logoColor=white) | Utilidades para manipulación de datos | ![npm](https://img.shields.io/npm/v/lodash?label=) | [Documentación](https://lodash.com/) • [NPM](https://www.npmjs.com/package/lodash) |
+```bash
+# Construir para producción
+npm run build
 
-## Internacionalización
+# Vista previa del build de producción
+npm run preview
+```
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|  
-| ![i18next](https://img.shields.io/badge/i18next-26A69A?style=for-the-badge&logo=i18next&logoColor=white) | Framework de internacionalización | ![npm](https://img.shields.io/npm/v/i18next?label=) | [Documentación](https://www.i18next.com/) • [NPM](https://www.npmjs.com/package/i18next) |
-| ![react-i18next](https://img.shields.io/badge/react--i18next-26A69A?style=for-the-badge&logo=i18next&logoColor=white) | Plugin de React para i18next | ![npm](https://img.shields.io/npm/v/react-i18next?label=) | [Documentación](https://react.i18next.com/) • [NPM](https://www.npmjs.com/package/react-i18next) |
+### Calidad de Código
 
-## Documentación
+```bash
+# Ejecutar linter (reporta errores)
+npm run lint
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|  
-| ![Storybook](https://img.shields.io/badge/Storybook-FF4785?style=for-the-badge&logo=storybook&logoColor=white) | Desarrollo y documentación de componentes UI | ![npm](https://img.shields.io/npm/v/@storybook/react?label=) | [Documentación](https://storybook.js.org/) • [NPM](https://www.npmjs.com/package/@storybook/react) |
+# Ejecutar linter y auto-fix
+npm run lint:fix
 
-## Notificaciones y UX
+# Formatear código con Prettier
+npm run format
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|  
-| ![React Hot Toast](https://img.shields.io/badge/React_Hot_Toast-FF6A00?style=for-the-badge) | Notificaciones toast elegantes | ![npm](https://img.shields.io/npm/v/react-hot-toast?label=) | [Documentación](https://react-hot-toast.com/) • [NPM](https://www.npmjs.com/package/react-hot-toast) |
-| ![React Toastify](https://img.shields.io/badge/React_Toastify-FABB05?style=for-the-badge) | Sistema de notificaciones | ![npm](https://img.shields.io/npm/v/react-toastify?label=) | [Documentación](https://fkhadra.github.io/react-toastify/) • [NPM](https://www.npmjs.com/package/react-toastify) |
-| ![React Loading Skeleton](https://img.shields.io/badge/Loading_Skeleton-E0E0E0?style=for-the-badge) | Esqueletos de carga | ![npm](https://img.shields.io/npm/v/react-loading-skeleton?label=) | [Documentación](https://github.com/dvtng/react-loading-skeleton) • [NPM](https://www.npmjs.com/package/react-loading-skeleton) |
+# Verificar formato sin modificar
+npm run format:check
+```
 
-## Arquitectura y Patrones de Diseño
+### Git Hooks
 
-| Metodología | Descripción | Tipo | Enlaces |
-|-------------|-------------|------|---------|
-| ![Atomic Design](https://img.shields.io/badge/Atomic_Design-FF6B6B?style=for-the-badge&logo=atom&logoColor=white) | Metodología de diseño de interfaces basada en componentes jerárquicos (Atoms, Molecules, Organisms, Templates, Pages) | Arquitectura | [Documentación](https://atomicdesign.bradfrost.com/) • [Guía](https://bradfrost.com/blog/post/atomic-web-design/) |
-| ![Observer Pattern](https://img.shields.io/badge/Observer_Pattern-4A90E2?style=for-the-badge&logo=visualstudiocode&logoColor=white) | Patrón de diseño de comportamiento que define una dependencia uno-a-muchos entre objetos | Patrón de Diseño | [Refactoring Guru](https://refactoring.guru/design-patterns/observer) • [Documentación](https://www.patterns.dev/posts/observer-pattern) |
+```bash
+# Inicializar Husky (se ejecuta automáticamente en npm install)
+npm run prepare
+```
 
-## Framework Desktop
+## 📁 Estructura del Proyecto
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|
-| ![Electron](https://img.shields.io/badge/Electron-47848F?style=for-the-badge&logo=electron&logoColor=white) | Framework para aplicaciones de escritorio multiplataforma | ![npm](https://img.shields.io/npm/v/electron?label=) | [Documentación](https://www.electronjs.org/) • [NPM](https://www.npmjs.com/package/electron) |
+```
+ut-care/
+├── .husky/                 # Git hooks (en root del repo)
+├── public/                 # Assets estáticos
+├── src/
+│   ├── assets/            # Assets del proyecto
+│   ├── components/        # Componentes React
+│   │   ├── atoms/        # Componentes atómicos
+│   │   ├── molecules/    # Componentes moleculares
+│   │   ├── organisms/    # Componentes organismos
+│   │   └── ui/           # Componentes de shadcn/ui
+│   ├── lib/              # Utilidades y helpers
+│   ├── pages/            # Páginas/vistas de la aplicación
+│   ├── services/         # Servicios y API calls
+│   ├── store/            # Stores de Zustand
+│   ├── App.tsx           # Componente principal
+│   ├── main.tsx          # Punto de entrada
+│   └── index.css         # Estilos globales
+├── eslint.config.js      # Configuración ESLint
+├── .prettierrc           # Configuración Prettier
+├── tailwind.config.js    # Configuración TailwindCSS
+├── tsconfig.json         # Configuración TypeScript
+├── vite.config.ts        # Configuración Vite
+└── package.json
+```
 
-## Herramientas de Desarrollo
+## 🎨 Metodología de Diseño
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|
-| ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white) | Entorno de ejecución | ![node](https://img.shields.io/node/v/latest?label=) | [Descargar](https://nodejs.org/) • [Documentación](https://nodejs.org/docs/) |
-| ![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white) / ![yarn](https://img.shields.io/badge/Yarn-2C8EBB?style=for-the-badge&logo=yarn&logoColor=white) | Gestor de paquetes | ![npm](https://img.shields.io/npm/v/npm?label=npm) ![npm](https://img.shields.io/npm/v/yarn?label=yarn) | [npm](https://www.npmjs.com/) • [Yarn](https://yarnpkg.com/) |
+Este proyecto sigue la metodología **Atomic Design**:
 
-## Dependencias Recomendadas
+- **Atoms** (`components/atoms/`): Componentes básicos e indivisibles (botones, inputs, labels)
+- **Molecules** (`components/molecules/`): Grupos de atoms que forman componentes más complejos
+- **Organisms** (`components/organisms/`): Componentes complejos formados por molecules y atoms
+- **Templates**: Estructuras de página sin datos específicos
+- **Pages** (`pages/`): Instancias específicas de templates con datos reales
 
-| Tecnología | Descripción | Versión | Enlaces |
-|------------|-------------|---------|---------|
-| ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white) | Linter de código | ![npm](https://img.shields.io/npm/v/eslint?label=) | [Documentación](https://eslint.org/) • [NPM](https://www.npmjs.com/package/eslint) |
-| ![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=black) | Formateador de código | ![npm](https://img.shields.io/npm/v/prettier?label=) | [Documentación](https://prettier.io/) • [NPM](https://www.npmjs.com/package/prettier) |
-| ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) / ![Webpack](https://img.shields.io/badge/Webpack-8DD6F9?style=for-the-badge&logo=webpack&logoColor=black) | Bundler y herramienta de build | ![npm](https://img.shields.io/npm/v/vite?label=vite) ![npm](https://img.shields.io/npm/v/webpack?label=webpack) | [Vite](https://vitejs.dev/) • [Webpack](https://webpack.js.org/) |
-| ![Husky](https://img.shields.io/badge/Husky-42B983?style=for-the-badge) | Git hooks para calidad de código | ![npm](https://img.shields.io/npm/v/husky?label=) | [Documentación](https://typicode.github.io/husky/) • [NPM](https://www.npmjs.com/package/husky) |
-| ![lint-staged](https://img.shields.io/badge/lint--staged-DB7093?style=for-the-badge) | Linter para archivos en staging | ![npm](https://img.shields.io/npm/v/lint-staged?label=) | [Documentación](https://github.com/okonet/lint-staged) • [NPM](https://www.npmjs.com/package/lint-staged) |
+## 🔧 Configuración de Herramientas
+
+### TailwindCSS
+
+TailwindCSS está configurado con:
+- Dark mode mediante clase `.dark`
+- Variables CSS personalizadas para colores del tema
+- Integración con shadcn/ui
+
+### shadcn/ui
+
+Los componentes de shadcn/ui se encuentran en `src/components/ui/` y utilizan:
+- Path alias `@/` configurado para imports limpios
+- Variables de diseño mediante TailwindCSS
+- Componentes totalmente personalizables
+
+Para agregar nuevos componentes de shadcn/ui:
+
+```bash
+# Ejemplo: agregar componente Card
+npx shadcn@latest add card
+```
+
+### ESLint
+
+ESLint está configurado con:
+- Reglas recomendadas para React y TypeScript
+- React Hooks rules
+- React Refresh plugin para HMR
+- Permite exportar constantes junto a componentes (ej: `buttonVariants`)
+
+### Prettier
+
+Prettier está configurado con:
+- Plugin de TailwindCSS para ordenamiento automático de clases
+- Single quotes: `false`
+- Semi: `true`
+- Print width: `100`
+- Tab width: `2`
+
+### Husky y lint-staged
+
+Los Git hooks están configurados para ejecutarse automáticamente:
+
+#### Pre-commit Hook
+
+Antes de cada commit, se ejecuta automáticamente:
+1. ESLint con auto-fix en archivos `.ts` y `.tsx` modificados
+2. Prettier en todos los archivos modificados
+
+Si hay errores de linting que no se pueden auto-corregir, el commit fallará.
+
+**Para probar el flujo:**
+
+```bash
+# 1. Hacer cambios en un archivo
+# 2. Hacer git add
+git add src/pages/HomePage.tsx
+
+# 3. Intentar commit (se ejecutará lint-staged automáticamente)
+git commit -m "test: verificar pre-commit hook"
+
+# Si hay errores, se mostrarán y el commit fallará
+# Si todo está correcto, el commit se realizará exitosamente
+```
+
+## 🎯 Path Aliases
+
+El proyecto tiene configurado el alias `@/` que apunta a `./src`:
+
+```typescript
+// En lugar de:
+import { Button } from "../../../components/ui/button";
+
+// Puedes usar:
+import { Button } from "@/components/ui/button";
+```
+
+## 🔄 Gestión de Estado
+
+### Zustand
+
+Zustand se utiliza para la gestión de estado global. Ejemplo de store:
+
+```typescript
+// src/store/counterStore.ts
+import { create } from "zustand";
+
+interface CounterState {
+  count: number;
+  increment: () => void;
+}
+
+export const useCounterStore = create<CounterState>((set) => ({
+  count: 0,
+  increment: () => set((state) => ({ count: state.count + 1 })),
+}));
+
+// Usar en componentes
+import { useCounterStore } from "@/store/counterStore";
+
+function MyComponent() {
+  const { count, increment } = useCounterStore();
+  return <button onClick={increment}>Count: {count}</button>;
+}
+```
+
+## 🎨 Sistema de Colores
+
+El proyecto utiliza un sistema de colores basado en variables CSS (HSL):
+
+- `--background` / `--foreground`: Colores de fondo y texto principal
+- `--primary` / `--primary-foreground`: Colores primarios
+- `--secondary` / `--secondary-foreground`: Colores secundarios
+- `--muted` / `--muted-foreground`: Colores silenciados
+- `--accent` / `--accent-foreground`: Colores de acento
+- `--destructive`: Color para acciones destructivas
+- `--border` / `--input` / `--ring`: Colores de UI
+
+Todos los colores tienen soporte para modo oscuro mediante la clase `.dark`.
+
+## 📦 Agregar Nuevas Dependencias
+
+```bash
+# Dependencias de producción
+npm install nombre-paquete
+
+# Dependencias de desarrollo
+npm install -D nombre-paquete
+```
+
+**Nota:** Después de agregar nuevas dependencias, asegúrate de que pasen los checks de lint y build.
+
+## 🐛 Troubleshooting
+
+### El servidor de desarrollo no inicia
+
+```bash
+# Limpiar cache y reinstalar
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### Errores de TypeScript en imports con @/
+
+Asegúrate de que `tsconfig.app.json` tenga configurado:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
+
+### Los estilos de TailwindCSS no se aplican
+
+Verifica que `src/index.css` incluya:
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+### Husky no ejecuta los hooks
+
+Asegúrate de que:
+1. Estés en el directorio raíz del repositorio Git
+2. Los hooks tengan permisos de ejecución: `chmod +x .husky/pre-commit`
+3. La carpeta `.husky` exista en el root del repositorio
+
+## 🧪 Testing
+
+_(Por implementar)_
+
+El proyecto está preparado para agregar:
+- Vitest para unit tests
+- React Testing Library para component tests
+- Cypress o Playwright para E2E tests
+
+## 📝 Convenciones de Código
+
+### Nomenclatura
+
+- **Componentes**: PascalCase (`HomePage.tsx`, `UserProfile.tsx`)
+- **Archivos**: camelCase (`counterStore.ts`, `utils.ts`)
+- **Carpetas**: lowercase (`components/`, `pages/`)
+
+### Importaciones
+
+```typescript
+// 1. React y librerías externas
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+// 2. Componentes internos (usando alias @/)
+import { Button } from "@/components/ui/button";
+
+// 3. Stores y servicios
+import { useCounterStore } from "@/store/counterStore";
+
+// 4. Tipos e interfaces
+import type { User } from "@/types";
+
+// 5. Estilos
+import "./HomePage.css";
+```
+
+### Componentes
+
+```typescript
+// Usar export default para páginas
+export default function HomePage() {
+  return <div>Home</div>;
+}
+
+// Usar named exports para componentes reutilizables
+export function UserCard() {
+  return <div>User Card</div>;
+}
+```
+
+## 📚 Recursos Adicionales
+
+- [React Documentation](https://react.dev/)
+- [Vite Documentation](https://vitejs.dev/)
+- [TailwindCSS Documentation](https://tailwindcss.com/)
+- [shadcn/ui Documentation](https://ui.shadcn.com/)
+- [TypeScript Documentation](https://www.typescriptlang.org/)
+- [Zustand Documentation](https://github.com/pmndrs/zustand)
+
+## 🤝 Contribuir
+
+1. Crea una rama para tu feature: `git checkout -b feature/nueva-funcionalidad`
+2. Haz commits siguiendo conventional commits: `git commit -m "feat: agregar nueva funcionalidad"`
+3. Asegúrate de que pase lint y build: `npm run lint && npm run build`
+4. Push a la rama: `git push origin feature/nueva-funcionalidad`
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Este proyecto es privado y confidencial.
+
+---
+
+**Desarrollado con ❤️ para UT-Care**
