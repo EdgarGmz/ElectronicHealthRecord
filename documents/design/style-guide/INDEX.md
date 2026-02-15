@@ -129,6 +129,31 @@ Esta es la guía de estilos completa del **Sistema de Registro de Salud Electró
 
 ---
 
+### 🌓 [Temas Claro y Oscuro](./DARK_MODE.md)
+**Contenido:**
+- Especificación de tema claro (Light Mode) y oscuro (Dark Mode)
+- Paletas de colores para cada tema
+- Sistema de cambio automático:
+  - Por turno médico (día 6am-6pm, noche 6pm-6am)
+  - Por preferencia del sistema operativo
+  - Manual/estático con persistencia
+- Variables CSS para ambos temas
+- Componentes adaptados a cada tema
+- Glassmorphism con soporte dark mode
+- Accesibilidad y contraste en ambos modos
+- Componente toggle de tema (React/TypeScript)
+- Configuración TailwindCSS dark mode
+
+**Casos de Uso:**
+- Reducir fatiga visual en turnos nocturnos
+- Adaptarse a preferencias del usuario
+- Cambio automático según horario médico
+- Interfaz moderna con soporte completo de temas
+
+[➡️ Ver Guía de Dark Mode Completa](./DARK_MODE.md)
+
+---
+
 ### 🧩 [Ejemplos de Componentes](./COMPONENTS_EXAMPLES.md)
 **Contenido:**
 - Botones (5 variantes con estados)

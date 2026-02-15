@@ -568,3 +568,90 @@
    }
 
    ===================================== */
+
+/* =====================================
+   DARK MODE THEME
+   ===================================== */
+
+[data-theme="dark"] {
+  /* Switch to dark mode tokens */
+  --bg-primary: var(--bg-primary-dark);
+  --bg-secondary: var(--bg-secondary-dark);
+  --bg-tertiary: var(--bg-tertiary-dark);
+  --bg-elevated: var(--bg-elevated-dark);
+  --bg-hover: var(--bg-hover-dark);
+  --bg-active: var(--bg-active-dark);
+  
+  --text-primary: var(--text-primary-dark);
+  --text-secondary: var(--text-secondary-dark);
+  --text-tertiary: var(--text-tertiary-dark);
+  --text-disabled: var(--text-disabled-dark);
+  --text-inverse: var(--text-inverse-dark);
+  
+  --border: var(--border-dark-mode);
+  --border-subtle: var(--border-subtle-dark);
+  --border-strong: var(--border-strong-dark);
+  --divider: var(--divider-dark);
+  
+  --interactive-bg: var(--interactive-bg-dark);
+  --interactive-hover: var(--interactive-hover-dark);
+  --interactive-active: var(--interactive-active-dark);
+  --interactive-focus: var(--interactive-focus-dark);
+  
+  --color-primary-theme: var(--primary-dark);
+  --color-primary-hover-theme: var(--primary-hover-dark);
+  --color-success-theme: var(--success-dark);
+  --color-warning-theme: var(--warning-dark);
+  --color-error-theme: var(--error-dark);
+  
+  /* Glassmorphism adjustments for dark mode */
+  --glass-light: rgba(31, 41, 55, 0.7);
+  --glass-light-hover: rgba(31, 41, 55, 0.8);
+  --glass-border-light: rgba(75, 85, 99, 0.5);
+}
+
+/* Automatic dark mode based on system preference (fallback) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-primary: var(--bg-primary-dark);
+    --bg-secondary: var(--bg-secondary-dark);
+    --bg-tertiary: var(--bg-tertiary-dark);
+    --bg-elevated: var(--bg-elevated-dark);
+    --bg-hover: var(--bg-hover-dark);
+    --bg-active: var(--bg-active-dark);
+    
+    --text-primary: var(--text-primary-dark);
+    --text-secondary: var(--text-secondary-dark);
+    --text-tertiary: var(--text-tertiary-dark);
+    --text-disabled: var(--text-disabled-dark);
+    --text-inverse: var(--text-inverse-dark);
+    
+    --border: var(--border-dark-mode);
+    --border-subtle: var(--border-subtle-dark);
+    --border-strong: var(--border-strong-dark);
+    --divider: var(--divider-dark);
+    
+    --interactive-bg: var(--interactive-bg-dark);
+    --interactive-hover: var(--interactive-hover-dark);
+    --interactive-active: var(--interactive-active-dark);
+    --interactive-focus: var(--interactive-focus-dark);
+    
+    --color-primary-theme: var(--primary-dark);
+    --color-primary-hover-theme: var(--primary-hover-dark);
+    --color-success-theme: var(--success-dark);
+    --color-warning-theme: var(--warning-dark);
+    --color-error-theme: var(--error-dark);
+  }
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition-property: background-color, color, border-color, box-shadow;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+/* Disable transitions on first load */
+.no-transitions * {
+  transition: none !important;
+}

@@ -14,6 +14,7 @@ Guía completa de estilos y sistema de diseño para el Sistema de Registro de Sa
 - **[SPACING.md](./SPACING.md)** - Espaciado y sistema de grid
 - **[COMPONENTS_EXAMPLES.md](./COMPONENTS_EXAMPLES.md)** - Ejemplos de código de componentes
 - **[GLASSMORPHISM_THEME.md](./GLASSMORPHISM_THEME.md)** - 💎 Tema Crystal Glass estilo iOS
+- **[DARK_MODE.md](./DARK_MODE.md)** - 🌓 Temas claro y oscuro (automático o manual)
 - **[design-tokens.css](./design-tokens.css)** - Variables CSS listas para usar
 - **[tailwind.config.example.js](./tailwind.config.example.js)** - Configuración TailwindCSS
 

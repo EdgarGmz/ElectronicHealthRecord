@@ -3,7 +3,7 @@
  * Sistema EHR (Electronic Health Record)
  * 
  * Este archivo configura TailwindCSS con los design tokens
- * del sistema de diseño EHR.
+ * del sistema de diseño EHR, incluyendo soporte para dark mode.
  */
 
 /** @type {import('tailwindcss').Config} */
@@ -14,6 +14,9 @@ module.exports = {
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
   ],
+  
+  // Dark mode usando clase personalizada [data-theme="dark"]
+  darkMode: 'class',
   
   theme: {
     extend: {
@@ -357,10 +360,15 @@ module.exports = {
     
     // Line clamp plugin (if needed)
     // require('@tailwindcss/line-clamp'),
+    
+    // Custom plugin para dark mode con [data-theme="dark"]
+    function({ addVariant }) {
+      addVariant('dark', '[data-theme="dark"] &');
+    }
   ],
 
   // =====================================
   // DARK MODE (if needed in future)
   // =====================================
-  darkMode: 'class', // or 'media'
+  // darkMode ya está configurado como 'class' arriba
 }
