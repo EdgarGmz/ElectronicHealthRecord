@@ -25,7 +25,7 @@ check_file() {
     else
         echo -e "${RED}✗${NC} File missing: $1"
         ((FAIL++))
-        return 0
+        return 0  # Return 0 to continue checking all items, FAIL counter tracks failures
     fi
 }
 
@@ -38,7 +38,7 @@ check_dir() {
     else
         echo -e "${RED}✗${NC} Directory missing: $1"
         ((FAIL++))
-        return 0
+        return 0  # Return 0 to continue checking all items, FAIL counter tracks failures
     fi
 }
 

@@ -175,7 +175,7 @@ La forma más rápida de iniciar el proyecto es usando Docker:
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/ElectronicHealthRecord.git
+git clone https://github.com/EdgarGmz/ElectronicHealthRecord.git
 cd ElectronicHealthRecord
 
 # 2. (Opcional) Validar configuración de Docker
