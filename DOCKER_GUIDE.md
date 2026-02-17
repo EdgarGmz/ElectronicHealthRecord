@@ -438,6 +438,8 @@ Antes de desplegar a producción:
 - [ ] Configurar monitoring (Prometheus, Grafana)
 - [ ] Documentar URLs y credenciales de producción (en lugar seguro)
 
+📖 **Ver guía completa de seguridad**: [DOCKER_SECURITY.md](./DOCKER_SECURITY.md)
+
 ### Variables de Entorno de Producción
 
 Crea un archivo `docker-compose.prod.yml`:
