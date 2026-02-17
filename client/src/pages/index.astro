@@ -1,0 +1,289 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// Definimos las emociones y colores basados en la imagen
+const emociones = [
+
+	//Enojo #b63714
+    { nombre: "Irritado", color: "#d19a7c" },
+    { nombre: "Frustrado", color: "#d19a7c" },
+    { nombre: "Furioso", color: "#d19a7c" },
+
+	//Tristeza #453c4d
+    { nombre: "Indiferente", color: "#7d708a" },
+    { nombre: "Culpable", color: "#7d708a" },
+    { nombre: "Lastimado", color: "#7d708a" },
+
+	//Felicidad  #c0b4be
+    { nombre: "Agradecido", color: "#ccc8c9" },
+    { nombre: "Estusiasmado", color: "#ccc8c9" },
+    { nombre: "Juguetón", color: "#ccc8c9" },
+
+	//Sorpresa  #d8a13d
+    { nombre: "Abrumado", color: "#d8cba8" },    
+    { nombre: "Confundido", color: "#d8cba8" },   
+    { nombre: "Impactado", color: "#d8cba8" },    
+
+	//Repugnancia #d69f3b
+    { nombre: "Amargado", color: "#d0d2c5" },    
+    { nombre: "Decepcionado", color: "#d0d2c5" },      
+    { nombre: "Resentido", color: "#d0d2c5" },
+
+	//Amor #473e4f
+    { nombre: "Afectuoso", color: "#8d7492" },
+    { nombre: "Aceptado", color: "#8d7492" },
+    { nombre: "Confiado", color: "#8d7492" },
+
+	//Miedo  #babfc2
+    { nombre: "Rechazado", color: "#d0d2c5" },
+    { nombre: "Inseguro", color: "#d0d2c5" },
+    { nombre: "Avergonzado", color: "#d0d2c5" },
+];
+---
+
+<Layout title={"Electronic Health"}>
+	<header class="navbar">
+		<div class="logo">Departamento de Psicopedagogia</div>
+		<nav>
+			<a href="/login" class="login-btn">Agendar cita</a>
+		</nav>
+	</header>
+
+	<main>
+		<div class="left-section">
+			<div class="wheel-outer">
+				<div class="wheel-container">
+					<div class="wheel" id="wheel">
+						{emociones.map((emo, i) => (
+							<div class="segment" style={`--rotation: ${i * (360/emociones.length)}deg; --segment-color: ${emo.color};`}>
+								<span>{emo.nombre}</span>
+							</div>
+						))}
+						<div class="center-circle"></div>
+					</div>
+				</div>
+				<div class="pin"></div>
+			</div>
+			<button id="spinButton">Girar Ruleta</button>
+			<div id="result" class="result-display"></div>
+		</div>
+
+		<div class="right-section">
+			<h1>La salud mental es un pilar fundamental del bienestar general, 
+			tan importante como la salud física, que merece prioridad, amor propio y, 
+			cuando sea necesario, ayuda profesional sin estigmas</h1>
+			<p>Aquí podrás agendar una cita y ver una pagina informativa</p>
+		</div>
+	</main>
+
+	<style>
+		:global(body) {
+			font-family: 'Inter', sans-serif;
+		}
+	
+		.navbar {
+			position: fixed;
+			top: 15px;
+			left: 50%;
+			transform: translateX(-50%);
+			width: 100%;
+			max-width: 900px;
+			height: 70px;
+			height: 100px;
+			background-color: #A2D9CE;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 0 30px;
+			box-sizing: border-box;
+			z-index: 1000;
+			box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+			border-bottom-left-radius: 50px;
+			border-bottom-right-radius: 25px;
+			pointer-events: auto;
+		}
+
+		.logo {
+			color: white;
+			font-size: 2.5rem;
+			font-weight: bold;
+		}
+
+		.navbar nav a {
+			color: #ecf0f1;
+			text-decoration: none;
+			margin-left: 30px;
+			font-weight: 600;
+			font-size: 0-95rem;
+			transition: color 0.3s;
+			letter-spacing: -0.5px;
+			transition: all 0.3s ease;
+		}
+
+		.navbar nav a:hover {
+			color: #3498db;
+		}
+
+		.login-btn {
+			background-color: #2C3E50;
+			padding: 8px 20px !important;
+			border-radius: 20px !important;
+			color: white !important;
+			font-size: 0-2rem !important;
+		}
+
+		.login-btn:hover {
+			background-color: #4A90E2;
+			trasnform: translateY(-2px);
+		}
+
+		main {
+			display: flex;
+			flex-direction: row;
+			align-items: flex-start;
+			justify-content: center;
+			min-height: 100vh;
+			background-color: #fdfdfd;
+			padding-top: 120px; 
+		}
+
+		.left-section {
+			width: 30%;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			height: calc(110vh - 80px);
+			border-right: 1px solid #eee;
+			position: sticky;
+			top: 100px;
+		}
+
+		.right-section {
+			width: 70%;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-start;
+			align-items: center;
+			padding: 15px;
+			min-height: calc(100vh - 100px);
+			font-size: 10px;
+		}
+
+		.wheel-outer {
+			position: relative;
+			padding: 10px;
+		}
+
+		.wheel-container {
+			position: relative;
+			width: 350px;
+			height: 350px;
+			border-radius: 50%;
+			border: 5px solid #333;
+			overflow: hidden;
+		}
+
+		.wheel {
+			width: 100%;
+			height: 100%;
+			position: relative;
+			transition: transform 5s cubic-bezier(0.15, 0, 0.15, 1);
+		}
+
+		.segment {
+			position: absolute;
+			width: 50%;
+			height: 53px;
+			left: 50%;
+			top: 50%;
+			transform-origin: left center;
+			margin-top: -26.5px;
+			transform: rotate(var(--rotation));
+			box-sizing: border-box;
+		}
+
+		.segment span {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			width: 100%;
+			height: 100%;
+			background-color: var(--segment-color);
+			color: white;
+			font-size: 0.8rem;
+			font-weight: bold;
+			text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+			clip-path: polygon(0 50%, 100% 0, 100% 100%);
+			padding-right: 30px;
+		}
+
+		.center-circle {
+			position: absolute;
+			width: 160px;
+			height: 160px;
+			background: conic-gradient(from 90deg,
+				#b63714 0% 12.28%,
+				#453c4d 14.28% 28.57%,
+				#c0b4be 28.57% 42.85%,
+				#d8a13d 42.85% 57.14%,
+				#d69f3b 57.14% 71.42%,
+				#473e4f 71.42% 85.71%,
+				#babfc2 85.71% 100%
+			);
+			border: 4px solid white;
+			border-radius: 50%;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			z-index: 5;
+		}
+
+		.pin {
+			position: absolute;
+			bottom: -35px; 
+			left: 50%;
+			transform: translateX(-50%);
+			width: 0; height: 0;
+			border-left: 20px solid transparent;
+			border-right: 20px solid transparent;
+			border-bottom: 40px solid #2c3e50;
+			z-index: 10;
+		}
+
+		button {
+			margin-top: 40px;
+			padding: 5px 30px;
+			font-size: 1.2rem;
+			background: #333;
+			color: white;
+			border: none;
+			border-radius: 50px;
+			cursor: pointer;
+		}
+
+		.result-display {
+			margin-top: 20px;
+			font-size: 1.4rem;
+			font-weight: bold;
+			color: #333;
+			min-height: 2rem;
+		}
+	</style>
+
+	<script define:vars={{ emociones }}>
+		const wheel = document.getElementById('wheel');
+		const spinButton = document.getElementById('spinButton');
+		const resultDisplay = document.getElementById('result');
+		
+		let currentRotation = 0;
+
+		spinButton.addEventListener('click', () => {
+			const extraDegrees = Math.floor(Math.random() * 360) + 1540; // 4 vueltas min
+			currentRotation += extraDegrees;
+			
+			wheel.style.transform = `rotate(${currentRotation}deg)`;
+			
+		});
+	</script>
+</Layout>
