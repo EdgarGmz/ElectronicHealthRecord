@@ -169,13 +169,32 @@ ElectronicHealthRecord/
 
 ## 🚀 Inicio Rápido
 
-### **Prerrequisitos**
+### **🐳 Opción 1: Con Docker (Recomendado)**
+
+La forma más rápida de iniciar el proyecto es usando Docker:
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/tu-usuario/ElectronicHealthRecord.git
+cd ElectronicHealthRecord
+
+# 2. Levantar todo el entorno con un solo comando
+docker-compose up --build
+```
+
+¡Listo! La API estará disponible en `http://localhost:5000`
+
+📖 **Ver guía completa de Docker**: [DOCKER_GUIDE.md](./DOCKER_GUIDE.md)
+
+### **⚙️ Opción 2: Instalación Manual**
+
+#### **Prerrequisitos**
 
 Asegúrate de tener instalado:
 
 - **Node.js** v18+ o v20+ ([Descargar](https://nodejs.org/))
 - **npm** v9+ o **Yarn** v1.22+
-- **MySQL** v8.0+ ([Descargar](https://dev.mysql.com/downloads/))
+- **PostgreSQL** v15+ ([Descargar](https://www.postgresql.org/download/))
 - **Git** v2.40+ ([Descargar](https://git-scm.com/))
 - **Redis** (opcional, para cache) ([Descargar](https://redis.io/download))
 
@@ -191,11 +210,10 @@ cd ElectronicHealthRecord
 #### **2. Configurar Base de Datos**
 
 ```sql
--- Crear base de datos MySQL
-CREATE DATABASE ehr_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'ehr_user'@'localhost' IDENTIFIED BY 'tu_password_seguro';
-GRANT ALL PRIVILEGES ON ehr_db.* TO 'ehr_user'@'localhost';
-FLUSH PRIVILEGES;
+-- Crear base de datos PostgreSQL
+CREATE DATABASE ehr_db;
+CREATE USER ehr_user WITH PASSWORD 'tu_password_seguro';
+GRANT ALL PRIVILEGES ON DATABASE ehr_db TO ehr_user;
 ```
 
 #### **3. Configurar Backend**
@@ -210,13 +228,13 @@ npm install
 cp .env.example .env
 
 # Editar .env con tus configuraciones
-# Configurar DB_HOST, DB_USERNAME, DB_PASSWORD, JWT_SECRET, etc.
+# Configurar DATABASE_URL, JWT_SECRET, etc.
 
-# Ejecutar migraciones de base de datos
-npm run migration:run
+# Ejecutar migraciones de base de datos con Prisma
+npm run prisma:migrate
 
 # (Opcional) Ejecutar seeds para datos de prueba
-npm run seed:run
+npm run prisma:seed
 ```
 
 #### **4. Configurar Frontend**
