@@ -178,8 +178,12 @@ La forma más rápida de iniciar el proyecto es usando Docker:
 git clone https://github.com/tu-usuario/ElectronicHealthRecord.git
 cd ElectronicHealthRecord
 
-# 2. Levantar todo el entorno con un solo comando
+# 2. (Opcional) Validar configuración de Docker
+./validate-docker.sh
+
+# 3. Levantar todo el entorno con un solo comando
 docker-compose up --build
+# O usar el script de conveniencia: ./start-docker.sh
 ```
 
 ¡Listo! La API estará disponible en `http://localhost:5000`
