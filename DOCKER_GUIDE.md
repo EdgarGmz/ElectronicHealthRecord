@@ -41,7 +41,13 @@ cd ElectronicHealthRecord
 
 ### 2. Levantar el Entorno Completo
 
-Ejecuta un solo comando para iniciar todos los servicios:
+**Opción A: Usar el script de inicio (Recomendado)**
+
+```bash
+./start-docker.sh
+```
+
+**Opción B: Comando manual**
 
 ```bash
 docker-compose up --build
