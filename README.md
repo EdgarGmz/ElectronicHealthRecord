@@ -175,27 +175,59 @@ Asegúrate de tener instalado:
 
 - **Node.js** v18+ o v20+ ([Descargar](https://nodejs.org/))
 - **npm** v9+ o **Yarn** v1.22+
-- **MySQL** v8.0+ ([Descargar](https://dev.mysql.com/downloads/))
+- **Docker & Docker Compose** ([Descargar](https://www.docker.com/products/docker-desktop))
 - **Git** v2.40+ ([Descargar](https://git-scm.com/))
-- **Redis** (opcional, para cache) ([Descargar](https://redis.io/download))
 
 ### **Instalación**
 
 #### **1. Clonar el repositorio**
 
 ```bash
-git clone https://github.com/tu-usuario/ElectronicHealthRecord.git
+git clone https://github.com/EdgarGmz/ElectronicHealthRecord.git
 cd ElectronicHealthRecord
 ```
 
-#### **2. Configurar Base de Datos**
+#### **2. Levantar la Base de Datos (Docker)**
 
-```sql
--- Crear base de datos MySQL
-CREATE DATABASE ehr_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'ehr_user'@'localhost' IDENTIFIED BY 'tu_password_seguro';
-GRANT ALL PRIVILEGES ON ehr_db.* TO 'ehr_user'@'localhost';
-FLUSH PRIVILEGES;
+Este proyecto utiliza Docker para facilitar el levantamiento de la base de datos PostgreSQL.
+
+```bash
+# Levantar el contenedor de PostgreSQL
+docker compose up -d
+
+# Verificar que el contenedor esté corriendo
+docker ps
+```
+
+#### **3. Configurar el Backend (API)**
+
+```bash
+cd api
+cp .env.example .env
+npm install
+```
+
+Asegúrate de que la `DATABASE_URL` en `api/.env` apunte a `localhost:5432`:
+`DATABASE_URL="postgresql://admin:admin1234@localhost:5432/ehr_db?schema=public"`
+
+#### **4. Migraciones y Seed**
+
+```bash
+# Ejecutar migraciones de Prisma
+npm run prisma:migrate
+
+# (Opcional) Poblar la base de datos con datos de prueba
+npx prisma db seed
+```
+
+#### **5. Iniciar Desarrollo**
+
+```bash
+# Backend (desde la carpeta api)
+npm run dev
+
+# O también puedes usar (levanta DB y luego API):
+npm run dev:all
 ```
 
 #### **3. Configurar Backend**
@@ -203,20 +235,14 @@ FLUSH PRIVILEGES;
 ```bash
 cd api
 
-# Instalar dependencias
+# Configuración automática (instala, levanta DB, migra y puebla)
+npm run setup
+
+# O manualmente:
 npm install
-
-# Copiar archivo de variables de entorno
-cp .env.example .env
-
-# Editar .env con tus configuraciones
-# Configurar DB_HOST, DB_USERNAME, DB_PASSWORD, JWT_SECRET, etc.
-
-# Ejecutar migraciones de base de datos
-npm run migration:run
-
-# (Opcional) Ejecutar seeds para datos de prueba
-npm run seed:run
+npm run db:up
+npm run prisma:migrate
+npm run prisma:seed
 ```
 
 #### **4. Configurar Frontend**
