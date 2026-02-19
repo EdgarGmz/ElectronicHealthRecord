@@ -1,0 +1,236 @@
+---
+const emociones = [
+	//Enojo #b63714
+    { nombre: "Irritado", color: "#d19a7c" },
+    { nombre: "Frustrado", color: "#d19a7c" },
+    { nombre: "Furioso", color: "#d19a7c" },
+	//Tristeza #453c4d
+    { nombre: "Indiferente", color: "#7d708a" },
+    { nombre: "Culpable", color: "#7d708a" },
+    { nombre: "Lastimado", color: "#7d708a" },
+	//Felicidad  #c0b4be
+    { nombre: "Agradecido", color: "#ccc8c9" },
+    { nombre: "Estusiasmado", color: "#ccc8c9" },
+    { nombre: "Juguetón", color: "#ccc8c9" },
+	//Sorpresa  #d8a13d
+    { nombre: "Abrumado", color: "#d8cba8" },    
+    { nombre: "Confundido", color: "#d8cba8" },   
+    { nombre: "Impactado", color: "#d8cba8" },    
+	//Repugnancia #d69f3b
+    { nombre: "Amargado", color: "#d0d2c5" },    
+    { nombre: "Decepcionado", color: "#d0d2c5" },      
+    { nombre: "Resentido", color: "#d0d2c5" },
+	//Amor #473e4f
+    { nombre: "Afectuoso", color: "#8d7492" },
+    { nombre: "Aceptado", color: "#8d7492" },
+    { nombre: "Confiado", color: "#8d7492" },
+	//Miedo  #babfc2
+    { nombre: "Rechazado", color: "#d0d2c5" },
+    { nombre: "Inseguro", color: "#d0d2c5" },
+    { nombre: "Avergonzado", color: "#d0d2c5" },
+];
+---
+
+<section id="roulette" class="page-section">
+    <h2>Ruleta de Emociones</h2>
+    <p>Gira la ruleta para explorar una emoción.</p>
+    <div class="wheel-outer">
+        <div class="wheel-container">
+            <div class="wheel" id="wheel">
+                {emociones.map((emo, i) => (
+                    <div class="segment" style={`--rotation: ${i * (360/emociones.length)}deg; --segment-color: ${emo.color};`}>
+                        <span>{emo.nombre}</span>
+                    </div>
+                ))}
+                <div class="center-circle"></div>
+            </div>
+        </div>
+        <div class="pin"></div>
+    </div>
+    <button id="spinButton">Girar Ruleta</button>
+    <div id="result" class="result-display"></div>
+</section>
+
+<style>
+    .page-section {
+        width: 100%;
+        max-width: 1200px;
+        padding: 4rem 2rem;
+        box-sizing: border-box;
+        text-align: center;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .page-section h2 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .page-section p {
+        color: #555;
+        margin-bottom: 3rem;
+    }
+
+    .wheel-outer {
+        position: relative;
+        margin: 20px auto;
+    }
+
+    .wheel-container {
+        position: relative;
+        width: 350px;
+        height: 350px;
+        border-radius: 50%;
+        border: 4px solid #e5e5e5;
+        overflow: hidden;
+        margin: 0 auto;
+    }
+
+    .wheel {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    .segment {
+        position: absolute;
+        width: 50%;
+        height: 53px;
+        left: 50%;
+        top: 50%;
+        transform-origin: left center;
+        margin-top: -26.5px;
+        transform: rotate(var(--rotation));
+        box-sizing: border-box;
+    }
+
+    .segment span {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 100%;
+        height: 100%;
+        background-color: var(--segment-color);
+        color: white;
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        clip-path: polygon(0 50%, 100% 0, 100% 100%);
+        padding-right: 30px;
+        font-family: 'Lato', sans-serif;
+    }
+
+    .center-circle {
+        position: absolute;
+        width: 120px;
+        height: 120px;
+        background: #fff;
+        border: 4px solid #e5e5e5;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 5;
+    }
+
+    .pin {
+        position: absolute;
+        bottom: -28px; 
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0; height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-bottom: 30px solid #ccc;
+        z-index: 10;
+    }
+
+    button#spinButton {
+        margin-top: 60px;
+        padding: 12px 35px;
+        font-size: 1rem;
+        background-color: transparent;
+        color: #333;
+        border: 2px solid #333;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    button#spinButton:hover {
+        background-color: #333;
+        color: white;
+    }
+
+    .result-display {
+        margin-top: 2rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        min-height: 2rem;
+        font-family: 'Lato', sans-serif;
+    }
+
+    @media (max-width: 768px) {
+        .wheel-container {
+            width: 300px;
+            height: 300px;
+        }
+
+        .center-circle {
+            width: 100px;
+            height: 100px;
+        }
+    }
+</style>
+
+<script is:inline define:vars={{ emociones }}>
+    document.addEventListener('DOMContentLoaded', () => {
+        const wheel = document.getElementById('wheel');
+        const spinButton = document.getElementById('spinButton');
+        const resultDisplay = document.getElementById('result');
+        
+        // Failsafe in case elements are not found
+        if (!wheel || !spinButton || !resultDisplay) {
+            console.error("Could not find one or more elements for the roulette.");
+            return;
+        }
+
+        let currentRotation = 0;
+
+        spinButton.addEventListener('click', () => {
+            const totalSegments = emociones.length;
+            // Gira para que termine entre segmentos, no sobre una línea
+            const randomSegment = Math.floor(Math.random() * totalSegments);
+            const segmentAngle = 360 / totalSegments;
+            const targetAngle = (randomSegment * segmentAngle) + (segmentAngle / 2);
+
+            // Añade varias vueltas completas + el ángulo del segmento objetivo
+            const extraDegrees = 360 * 5; // 5 vueltas
+            const newRotation = currentRotation + extraDegrees + targetAngle;
+            
+            // No usamos la rotación acumulativa para el cálculo del resultado
+            const finalAngle = (newRotation % 360);
+            
+            wheel.style.transform = `rotate(${newRotation}deg)`;
+            currentRotation = newRotation; // Guardar la rotación para la próxima vez si se desea
+
+            // Lógica para determinar el resultado
+            // Invertimos el ángulo porque la ruleta gira en sentido horario
+            const winningSegmentIndex = Math.floor(((360 - finalAngle + (segmentAngle / 2)) % 360) / segmentAngle);
+            const winningEmotion = emociones[winningSegmentIndex];
+
+            resultDisplay.textContent = '...';
+            // Muestra el resultado después de que la animación termine
+            setTimeout(() => {
+                if(resultDisplay && winningEmotion) {
+                    resultDisplay.textContent = `Emoción: ${winningEmotion.nombre}`;
+                }
+            }, 5000); // 5000ms es la duración de la transición en el CSS
+        });
+    });
+</script>
