@@ -122,7 +122,7 @@ Incluye:
    openapi-generator-cli generate \
      -i api/openapi.yaml \
      -g typescript-axios \
-     -o client/src/services/api-client
+     -o Kiosko/src/services/api-client
    ```
 
 3. **Usar Postman:**

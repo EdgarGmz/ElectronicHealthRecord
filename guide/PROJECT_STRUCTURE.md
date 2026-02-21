@@ -165,7 +165,7 @@ POST   /api/reports/generate
 
 ```
 ElectronicHealthRecord/
-├── client/                    # Frontend (React + Electron)
+├── Kiosko/                    # Frontend (React + Electron)
 │   ├── src/
 │   │   ├── components/       # Componentes React reutilizables
 │   │   │   ├── common/      # Botones, inputs, modals

@@ -264,7 +264,7 @@ npm install -g @openapitools/openapi-generator-cli
 openapi-generator-cli generate \
   -i api/openapi.yaml \
   -g typescript-axios \
-  -o client/src/services/api-client
+  -o Kiosko/src/services/api-client
 
 # Generar cliente Python
 openapi-generator-cli generate \
