@@ -1,42 +1,41 @@
 ---
 const emotions = [
-	//Enojo #b63714
-    { nombre: "Irritado", color: "#d19a7c" },
-    { nombre: "Frustrado", color: "#d19a7c" },
-    { nombre: "Furioso", color: "#d19a7c" },
-	//Tristeza #453c4d
-    { nombre: "Indiferente", color: "#7d708a" },
-    { nombre: "Culpable", color: "#7d708a" },
-    { nombre: "Lastimado", color: "#7d708a" },
-	//Felicidad  #c0b4be
-    { nombre: "Agradecido", color: "#ccc8c9" },
-    { nombre: "Estusiasmado", color: "#ccc8c9" },
-    { nombre: "Juguetón", color: "#ccc8c9" },
-	//Sorpresa  #d8a13d
-    { nombre: "Abrumado", color: "#d8cba8" },    
-    { nombre: "Confundido", color: "#d8cba8" },   
-    { nombre: "Impactado", color: "#d8cba8" },    
-	//Repugnancia #d69f3b
-    { nombre: "Amargado", color: "#d0d2c5" },    
-    { nombre: "Decepcionado", color: "#d0d2c5" },      
-    { nombre: "Resentido", color: "#d0d2c5" },
-	//Amor #473e4f
-    { nombre: "Afectuoso", color: "#8d7492" },
-    { nombre: "Aceptado", color: "#8d7492" },
-    { nombre: "Confiado", color: "#8d7492" },
-	//Miedo  #babfc2
-    { nombre: "Rechazado", color: "#d0d2c5" },
-    { nombre: "Inseguro", color: "#d0d2c5" },
-    { nombre: "Avergonzado", color: "#d0d2c5" },
+	// Enojo
+    { nombre: "Irritado", color: "#d19a7c", description: "Una sensación de molestia o enfado ligero, a menudo causada por algo repetitivo o frustrante." },
+    { nombre: "Frustrado", color: "#d19a7c", description: "Sentimiento que surge cuando no puedes lograr algo que deseas, sintiéndote impotente." },
+    { nombre: "Furioso", color: "#d19a7c", description: "Un enojo muy intenso y descontrolado, a menudo con deseos de gritar o actuar impulsivamente." },
+	// Tristeza
+    { nombre: "Indiferente", color: "#7d708a", description: "Falta de interés, entusiasmo o preocupación. Es una desconexión de tus propias emociones o del entorno." },
+    { nombre: "Culpable", color: "#7d708a", description: "Sentimiento de responsabilidad por haber hecho algo mal, acompañado de remordimiento." },
+    { nombre: "Lastimado", color: "#7d708a", description: "Dolor emocional causado por las acciones o palabras de otros, como una herida interna." },
+	// Felicidad
+    { nombre: "Agradecido", color: "#ccc8c9", description: "Apreciar lo que tienes o lo que otros hacen por ti, generando una sensación de calidez y conexión." },
+    { nombre: "Estusiasmado", color: "#ccc8c9", description: "Una gran alegría y excitación por algo que va a suceder o que estás haciendo." },
+    { nombre: "Juguetón", color: "#ccc8c9", description: "Un estado de ánimo alegre, ligero y con ganas de divertirse y no tomar las cosas demasiado en serio." },
+	// Sorpresa
+    { nombre: "Abrumado", color: "#d8cba8", description: "Sentir que tienes demasiadas cosas que manejar, superando tu capacidad para lidiar con ellas." },
+    { nombre: "Confundido", color: "#d8cba8", description: "Incapacidad para pensar con claridad o entender lo que está sucediendo." },
+    { nombre: "Impactado", color: "#d8cba8", description: "Una fuerte impresión o conmoción causada por un evento inesperado, a menudo negativo." },
+	// Repugnancia
+    { nombre: "Amargado", color: "#d0d2c5", description: "Un sentimiento persistente de resentimiento y cinismo, como si la vida hubiera perdido su sabor." },
+    { nombre: "Decepcionado", color: "#d0d2c5", description: "Tristeza por el incumplimiento de una expectativa o esperanza que tenías." },
+    { nombre: "Resentido", color: "#d0d2c5", description: "Enojo o indignación que guardas hacia alguien por una ofensa o maltrato que sientes que te hizo." },
+	// Amor
+    { nombre: "Afectuoso", color: "#8d7492", description: "Sentir y demostrar cariño, ternura y calidez hacia alguien." },
+    { nombre: "Aceptado", color: "#8d7492", description: "Sentimiento de ser valorado y bienvenido tal como eres, formando parte de un grupo o relación." },
+    { nombre: "Confiado", color: "#8d7492", description: "Sensación de seguridad y certeza en las propias habilidades o en la honestidad de los demás." },
+	// Miedo
+    { nombre: "Rechazado", color: "#d0d2c5", description: "Dolor por ser excluido o no aceptado por otros, afectando el sentimiento de pertenencia." },
+    { nombre: "Inseguro", color: "#d0d2c5", description: "Falta de confianza en uno mismo o en las propias capacidades, a menudo con ansiedad sobre el futuro." },
+    { nombre: "Avergonzado", color: "#d0d2c5", description: "Sentimiento de humillación o incomodidad por una acción propia que se considera tonta o incorrecta." },
 ];
 ---
 <div id="rouletteSidebar" class="roulette-sidebar is-collapsed">
     <button id="rouletteToggleBtn" class="toggle-btn">
-        <span>Ruleta</span>
+        <span>R</span><span>u</span><span>l</span><span>e</span><span>t</span><span>a</span>
     </button>
     <div id="roulette" class="roulette-content">
         <h2>Ruleta de Emociones</h2>
-        <p>Gira la ruleta para explorar una emoción.</p>
         <div class="wheel-outer">
             <div class="wheel-container">
                 <div class="wheel" id="wheel">
@@ -51,7 +50,10 @@ const emotions = [
             <div class="pin"></div>
         </div>
         <button id="spinButton">Girar Ruleta</button>
-        <div id="result" class="result-display"></div>
+        <div class="result-display">
+            <h3 id="emotionName"></h3>
+            <p id="emotionDescription"></p>
+        </div>
     </div>
 </div>
 
@@ -108,12 +110,7 @@ const emotions = [
     /* --- Inner Roulette Styles --- */
     .roulette-content h2 {
         font-size: 2rem;
-        margin-bottom: 1rem;
-    }
-
-    .roulette-content p {
-        color: #555;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
     }
     
     .wheel-outer {
@@ -123,7 +120,7 @@ const emotions = [
 
     .wheel-container {
         position: relative;
-        width: 300px; /* smaller for sidebar */
+        width: 300px;
         height: 300px;
         border-radius: 50%;
         border: 4px solid #e5e5e5;
@@ -209,10 +206,24 @@ const emotions = [
 
     .result-display {
         margin-top: 1.5rem;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #333;
-        min-height: 2rem;
+        min-height: 6rem; /* More height for description */
+        text-align: left;
+        padding: 0 1rem;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+    }
+    .result-display.visible {
+        opacity: 1;
+    }
+    .result-display h3 {
+        font-size: 1.5rem;
+        margin: 0 0 0.5rem 0;
+    }
+    .result-display p {
+        font-size: 1rem;
+        color: #555;
+        line-height: 1.5;
+        margin: 0;
     }
 </style>
 
@@ -231,35 +242,42 @@ const emotions = [
         // Roulette game logic
         const wheel = document.getElementById('wheel');
         const spinButton = document.getElementById('spinButton');
-        const resultDisplay = document.getElementById('result');
+        const resultDisplay = document.querySelector('.result-display');
+        const emotionNameEl = document.getElementById('emotionName');
+        const emotionDescriptionEl = document.getElementById('emotionDescription');
         
-        if (!wheel || !spinButton || !resultDisplay) {
+        if (!wheel || !spinButton || !emotionNameEl || !emotionDescriptionEl) {
             return;
         }
 
         let currentRotation = 0;
 
         spinButton.addEventListener('click', () => {
+            resultDisplay.classList.remove('visible');
+            
             const totalSegments = emotions.length;
-            const randomSegment = Math.floor(Math.random() * totalSegments);
             const segmentAngle = 360 / totalSegments;
-            const targetAngle = (randomSegment * segmentAngle) + (segmentAngle / 2);
 
-            const extraDegrees = 360 * 5;
-            const newRotation = currentRotation + extraDegrees + targetAngle;
-            
-            const finalAngle = (newRotation % 360);
-            
+            const winningSegmentIndex = Math.floor(Math.random() * totalSegments);
+            const winningEmotion = emotions[winningSegmentIndex];
+
+            const winningAngle = (winningSegmentIndex * segmentAngle) + (segmentAngle / 2);
+            const rotationNeeded = 90 - winningAngle;
+
+            const randomSpins = 5 + Math.floor(Math.random() * 5);
+            const newRotation = (currentRotation - (currentRotation % 360)) + (360 * randomSpins) + rotationNeeded;
+
             wheel.style.transform = `rotate(${newRotation}deg)`;
             currentRotation = newRotation;
 
-            const winningSegmentIndex = Math.floor(((360 - finalAngle + (segmentAngle / 2)) % 360) / segmentAngle);
-            const winningEmotion = emotions[winningSegmentIndex];
-
-            resultDisplay.textContent = 'Girando...';
+            emotionNameEl.textContent = 'Girando...';
+            emotionDescriptionEl.textContent = '';
+            
             setTimeout(() => {
-                if(winningEmotion) {
-                    resultDisplay.textContent = `Emoción: ${winningEmotion.nombre}`;
+                if (winningEmotion) {
+                    emotionNameEl.textContent = winningEmotion.nombre;
+                    emotionDescriptionEl.textContent = winningEmotion.description;
+                    resultDisplay.classList.add('visible');
                 }
             }, 5000);
         });
