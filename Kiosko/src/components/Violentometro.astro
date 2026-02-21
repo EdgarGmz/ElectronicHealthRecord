@@ -83,8 +83,8 @@ const sections = [
 <style>
     .page-section {
         width: 100%;
-        max-width: 900px; /* Smaller max-width for the whole section */
-        padding: 3rem 1.5rem;
+        max-width: 800px; /* Even smaller max-width for the whole section */
+        padding: 2.5rem 1.5rem; /* Reduced padding */
         box-sizing: border-box;
         text-align: center;
         border-bottom: 1px solid #e5e5e5;
@@ -93,20 +93,20 @@ const sections = [
 
     .page-section h2 {
         font-size: 2rem; /* Smaller font size */
-        margin-bottom: 1rem;
+        margin-bottom: 0.8rem;
     }
     .page-section p {
         color: #555;
-        margin-bottom: 2rem; /* Smaller margin */
-        font-size: 1rem; /* Smaller font size */
+        margin-bottom: 1.5rem; /* Smaller margin */
+        font-size: 0.9rem; /* Smaller font size */
     }
 
     .violentometro-container {
         display: flex;
         flex-direction: column;
-        gap: 1.5rem; /* Smaller gap */
+        gap: 1.2rem; /* Smaller gap */
         margin: 0 auto;
-        max-width: 700px;
+        max-width: 600px; /* Smaller max-width for the container */
     }
 
     .violentometro-section {
@@ -120,17 +120,17 @@ const sections = [
     .section-legend {
         background-color: var(--section-color);
         color: white;
-        padding: 1rem 0.8rem; /* Smaller padding */
+        padding: 0.8rem 0.6rem; /* Smaller padding */
         display: flex;
         align-items: center;
         justify-content: center;
-        flex: 0 0 120px; /* Smaller fixed width for legend */
+        flex: 0 0 100px; /* Smaller fixed width for legend */
         text-align: center;
     }
 
     .section-legend h3 {
         font-family: 'Playfair Display', serif;
-        font-size: 1.1rem; /* Smaller font size */
+        font-size: 1rem; /* Smaller font size */
         margin: 0;
         text-transform: uppercase;
         line-height: 1.2;
@@ -138,20 +138,20 @@ const sections = [
 
     .section-items {
         list-style: none;
-        padding: 1rem 1.2rem; /* Adjusted padding */
+        padding: 0.8rem 1rem; /* Adjusted padding */
         margin: 0;
         flex-grow: 1;
         background-color: #fdfdfd;
     }
 
     .violentometro-item {
-        margin-bottom: 0.6rem; /* Smaller margin */
-        font-size: 0.95rem; /* Slightly smaller font size */
+        margin-bottom: 0.5rem; /* Smaller margin */
+        font-size: 0.9rem; /* Slightly smaller font size */
         color: #333;
         display: flex;
-        align-items: flex-start; /* Changed to flex-start for tighter number alignment */
+        align-items: center; /* Changed to center for vertical alignment */
         background-color: rgba(var(--section-color-rgb), 0.1); /* Colored background for each item box */
-        padding: 0.7rem 0.8rem; /* Smaller padding */
+        padding: 0.8rem 1rem; /* Adjusted padding */
         border-radius: 4px; /* Smaller radius */
         box-shadow: none; /* Remove box shadow */
         cursor: pointer; /* Indicate clickable */
@@ -164,16 +164,7 @@ const sections = [
     .violentometro-item:hover {
         background-color: rgba(var(--section-color-rgb), 0.2); /* Lighter on hover */
     }
-
-    .item-number {
-        font-weight: bold;
-        margin-right: 0.3rem; /* Reduced margin */
-        color: var(--section-color); /* Use full section color */
-        flex-shrink: 0;
-        min-width: 18px; /* Reduced min-width */
-        line-height: 1.4; /* Match text line height */
-    }
-
+    
     .item-content {
         flex-grow: 1;
     }
@@ -181,7 +172,7 @@ const sections = [
     .item-text {
         margin: 0;
         line-height: 1.4;
-        font-weight: 500;
+        font-weight: bold; /* Make text bold */
     }
 
     .item-description-wrapper {
@@ -195,15 +186,15 @@ const sections = [
         margin-top: 0.5rem;
     }
     .item-description {
-        font-size: 0.85rem;
+        font-size: 0.8rem; /* Smaller font for description */
         color: #555;
         margin: 0;
         line-height: 1.4;
     }
 
     .call-to-action {
-        margin-top: 2.5rem; /* Smaller margin */
-        font-size: 1.1rem; /* Smaller font size */
+        margin-top: 2rem; /* Smaller margin */
+        font-size: 1rem; /* Smaller font size */
         font-weight: bold;
         color: #333; /* Default text color for general call to action */
     }
@@ -218,18 +209,21 @@ const sections = [
         .section-legend {
             flex: none;
             width: 100%;
-            padding: 0.8rem; /* Smaller padding */
+            padding: 0.6rem; /* Smaller padding */
             border-radius: 6px 6px 0 0;
         }
         .section-legend h3 {
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         .section-items {
-            padding: 0.8rem 1rem; /* Smaller padding */
+            padding: 0.6rem 0.8rem; /* Smaller padding */
         }
         .violentometro-item {
-            padding: 0.6rem 0.7rem;
-            font-size: 0.9rem;
+            padding: 0.7rem 0.8rem;
+            font-size: 0.85rem;
+        }
+        .item-description {
+            font-size: 0.75rem;
         }
     }
 </style>
