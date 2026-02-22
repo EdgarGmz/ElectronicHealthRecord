@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updateDocumentSchema, UpdateDocumentInput } from '@/types/document.update.schema';
-import { Document } from '@/types/document';
+import type { updateDocumentSchema, UpdateDocumentInput } from '@/types/document.update.schema';
+import type { Document } from '@/types/document';
 
 interface EditDocumentFormProps {
   document: Document;

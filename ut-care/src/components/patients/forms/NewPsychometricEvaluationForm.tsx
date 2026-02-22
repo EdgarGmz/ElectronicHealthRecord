@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CreatePsychometricEvaluationInput } from '@/types/psychometric-evaluation';
+import type { CreatePsychometricEvaluationInput } from '@/types/psychometric-evaluation';
 
 const evaluationSchema = z.object({
   evaluationType: z.string().min(1, 'Evaluation type is required.'),

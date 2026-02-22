@@ -1,5 +1,5 @@
 import api from './api';
-import { Prescription } from '@/types/medication';
+import type { Prescription } from '@/types/medication';
 
 /**
  * Fetches all prescriptions for a specific patient.

@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CreateNursingProcedureInput } from '@/types/nursing-procedure';
+import type { CreateNursingProcedureInput } from '@/types/nursing-procedure';
 
 const procedureSchema = z.object({
   procedureType: z.string().min(1, 'Procedure type is required.'),

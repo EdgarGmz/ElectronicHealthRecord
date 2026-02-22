@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPsychologyRecordByMedicalRecordId, updatePsychologyRecordDiagnosis } from '@/services/diagnosis.service';
-import { Patient } from '@/types/patient';
-import { PsychologyRecordDetails, UpdatePsychologyRecordDiagnosisInput } from '@/types/diagnosis';
+import type { Patient } from '@/types/patient';
+import type { PsychologyRecordDetails, UpdatePsychologyRecordDiagnosisInput } from '@/types/diagnosis';
 import { useState } from 'react';
 import Modal from '@/components/organisms/Modal';
 import { useForm } from 'react-hook-form';

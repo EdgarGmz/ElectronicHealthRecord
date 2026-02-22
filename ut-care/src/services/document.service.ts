@@ -1,6 +1,6 @@
 import api from './api';
-import { Document, UploadDocumentInput } from '@/types/document';
-import { UpdateDocumentInput } from '@/types/document.update.schema';
+import type { Document, UploadDocumentInput } from '@/types/document';
+import type { UpdateDocumentInput } from '@/types/document.update.schema';
 
 /**
  * Fetches all documents for a specific patient.

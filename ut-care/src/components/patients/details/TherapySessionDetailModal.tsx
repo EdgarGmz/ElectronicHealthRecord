@@ -1,4 +1,4 @@
-import { TherapySession } from "@/types/therapy-session";
+import type { TherapySession } from "@/types/therapy-session";
 import Modal from "@/components/organisms/Modal";
 import { Calendar, User, BookOpen, Clock, Smile } from "lucide-react";
 

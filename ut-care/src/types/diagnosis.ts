@@ -1,7 +1,7 @@
 // The diagnoses are directly part of the PsychologyRecord.
 // We might not need a separate interface if we fetch the PsychologyRecord itself.
 
-import { User } from "./auth";
+import type { User } from "./auth";
 
 export interface PsychologyRecordDetails {
   id: string;

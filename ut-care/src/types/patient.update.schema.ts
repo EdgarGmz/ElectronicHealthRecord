@@ -17,7 +17,7 @@ export const updatePatientSchema = z.object({
   careerId: z.string().uuid({ message: 'A career must be selected.' }).optional(),
   group: z.string().optional(),
   occupation: z.string().optional(),
-  trimester: z.coerce.number().int().optional(),
+  trimester: z.preprocess((val) => (val === '' ? undefined : val), z.coerce.number().int().optional()),
 });
 
 export type UpdatePatientInput = z.infer<typeof updatePatientSchema>;

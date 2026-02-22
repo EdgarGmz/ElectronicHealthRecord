@@ -1,4 +1,4 @@
-import { User } from "./auth";
+import type { User } from "./auth";
 import { PsychologyRecordDetails } from "./diagnosis"; // Import PsychologyRecordDetails
 
 // New: Nursing Consultation details

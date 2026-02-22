@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updateTherapySessionSchema, UpdateTherapySessionInput } from '@/types/therapy-session.update.schema';
-import { TherapySession } from '@/types/therapy-session';
+import type { updateTherapySessionSchema, UpdateTherapySessionInput } from '@/types/therapy-session.update.schema';
+import type { TherapySession } from '@/types/therapy-session';
 
 interface EditTherapySessionFormProps {
   session: TherapySession;

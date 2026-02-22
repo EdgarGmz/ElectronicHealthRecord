@@ -1,7 +1,7 @@
 import api from './api';
-import { NursingConsultation, NursingProcedure, CreateNursingConsultationInput, CreateNursingProcedureInput } from '@/types/nursing-procedure';
-import { UpdateNursingConsultationInput } from '@/types/nursing-consultation.update.schema';
-import { UpdateNursingProcedureInput } from '@/types/nursing-procedure.update.schema';
+import type { NursingConsultation, NursingProcedure, CreateNursingConsultationInput, CreateNursingProcedureInput } from '@/types/nursing-procedure';
+import type { UpdateNursingConsultationInput } from '@/types/nursing-consultation.update.schema';
+import type { UpdateNursingProcedureInput } from '@/types/nursing-procedure.update.schema';
 
 /**
  * Fetches all nursing consultations for a specific medical record.

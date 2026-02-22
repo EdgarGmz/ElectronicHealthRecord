@@ -1,4 +1,4 @@
-import { Appointment } from "@/types/appointment";
+import type { Appointment } from "@/types/appointment";
 import Modal from "@/components/organisms/Modal";
 import { Calendar, User, Clock, Info, XCircle } from "lucide-react";
 

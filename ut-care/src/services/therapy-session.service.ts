@@ -1,6 +1,6 @@
 import api from './api';
-import { TherapySession, CreateTherapySessionInput } from '@/types/therapy-session';
-import { UpdateTherapySessionInput } from '@/types/therapy-session.update.schema';
+import type { TherapySession, CreateTherapySessionInput } from '@/types/therapy-session';
+import type { UpdateTherapySessionInput } from '@/types/therapy-session.update.schema';
 
 /**
  * Fetches all therapy sessions for a specific psychology record.

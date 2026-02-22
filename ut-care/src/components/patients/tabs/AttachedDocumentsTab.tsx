@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getDocumentsByPatientId, uploadDocument, updateDocument } from '@/services/document.service';
-import { Patient } from '@/types/patient';
-import { Document } from '@/types/document';
+import type { Patient } from '@/types/patient';
+import type { Document } from '@/types/document';
 import { Plus, FileText, Download, Edit } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '@/components/organisms/Modal';
 import UploadDocumentForm from '@/components/patients/forms/UploadDocumentForm';
 import EditDocumentForm from '@/components/patients/forms/EditDocumentForm'; // Import EditDocumentForm
-import { UpdateDocumentInput } from '@/types/document.update.schema'; // Import the update schema type
+import type { UpdateDocumentInput } from '@/types/document.update.schema'; // Import the update schema type
 import { useAuthStore } from '@/store/auth.store';
 
 const DocumentItem = ({ doc, onEditClick }: { doc: Document, onEditClick: (d: Document) => void }) => (

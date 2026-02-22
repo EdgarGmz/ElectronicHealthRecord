@@ -1,4 +1,4 @@
-import { Patient } from "@/types/patient";
+import type { Patient } from "@/types/patient";
 import { User, Mail, Phone, Briefcase, GraduationCap } from "lucide-react";
 
 interface PatientHeaderProps {

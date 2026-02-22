@@ -1,5 +1,5 @@
-import { Patient } from "./patient";
-import { User } from "./auth";
+import type { Patient } from "./patient";
+import type { User } from "./auth";
 
 export interface WaitingListEntry {
   id: string;

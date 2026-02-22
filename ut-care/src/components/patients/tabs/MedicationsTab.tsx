@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPrescriptionsByPatientId, createPrescription, getAllMedications } from '@/services/medication.service';
-import { Patient } from '@/types/patient';
-import { Prescription } from '@/types/medication';
+import type { Patient } from '@/types/patient';
+import type { Prescription } from '@/types/medication';
 import { Plus, Pill } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '@/components/organisms/Modal';
 import NewPrescriptionForm from '@/components/patients/forms/NewPrescriptionForm';
-import { CreatePrescriptionFormInput } from '@/types/prescription.schema';
+import type { CreatePrescriptionFormInput } from '@/types/prescription.schema';
 import { useAuthStore } from '@/store/auth.store';
 
 const PrescriptionItem = ({ prescription }: { prescription: Prescription }) => {

@@ -26,8 +26,9 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
-      const { user, token, refreshToken } = await login(data);
-      loginUser(user, token, refreshToken);
+      const response = await login(data);
+      const { user, accessToken, refreshToken } = response.data;
+      loginUser(user, accessToken, refreshToken);
       navigate('/dashboard');
     } catch (error: any) {
       setError('root', {

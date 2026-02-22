@@ -7,7 +7,7 @@ import { Pencil } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '@/components/organisms/Modal';
 import EditPatientForm from '@/components/patients/forms/EditPatientForm'; // Import EditPatientForm
-import { UpdatePatientInput } from '@/types/patient.update.schema'; // Import the update schema type
+import type { UpdatePatientInput } from '@/types/patient.update.schema'; // Import the update schema type
 
 export default function PatientDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +34,7 @@ export default function PatientDetailPage() {
   });
 
   const handleUpdatePatient = (formData: UpdatePatientInput) => {
+    // Send only fields that the API expects (user + patient fields). Do not send role/userId.
     updatePatientMutation.mutate(formData);
   };
 

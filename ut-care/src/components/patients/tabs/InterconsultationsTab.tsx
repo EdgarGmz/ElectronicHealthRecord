@@ -1,14 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getInterconsultationsByPatientId, createInterconsultation, updateInterconsultation } from '@/services/interconsultation.service';
-import { Patient } from '@/types/patient';
-import { Interconsultation } from '@/types/interconsultation';
+import type { Patient } from '@/types/patient';
+import type { Interconsultation } from '@/types/interconsultation';
 import { Plus, MessageSquare, Edit } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '@/components/organisms/Modal';
 import NewInterconsultationForm from '@/components/patients/forms/NewInterconsultationForm';
 import EditInterconsultationForm from '@/components/patients/forms/EditInterconsultationForm';
-import { CreateInterconsultationInput } from '@/types/interconsultation';
-import { UpdateInterconsultationInput } from '@/types/interconsultation.update.schema';
+import type { CreateInterconsultationInput } from '@/types/interconsultation';
+import type { UpdateInterconsultationInput } from '@/types/interconsultation.update.schema';
 import { useAuthStore } from '@/store/auth.store';
 
 const InterconsultationItem = ({ interconsultation, onEditClick }: { interconsultation: Interconsultation, onEditClick: (i: Interconsultation) => void }) => {

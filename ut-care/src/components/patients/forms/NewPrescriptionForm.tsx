@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CreatePrescriptionFormInput, createPrescriptionSchema } from '@/types/prescription.schema';
+import type { CreatePrescriptionFormInput, createPrescriptionSchema } from '@/types/prescription.schema';
 import { useQuery } from '@tanstack/react-query';
 import { getAllMedications } from '@/services/medication.service';
 import { useEffect } from 'react';

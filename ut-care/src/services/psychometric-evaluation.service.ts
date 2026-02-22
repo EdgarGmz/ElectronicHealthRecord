@@ -1,6 +1,6 @@
 import api from './api';
-import { PsychometricEvaluation, CreatePsychometricEvaluationInput } from '@/types/psychometric-evaluation';
-import { UpdatePsychometricEvaluationInput } from '@/types/psychometric-evaluation.update.schema';
+import type { PsychometricEvaluation, CreatePsychometricEvaluationInput } from '@/types/psychometric-evaluation';
+import type { UpdatePsychometricEvaluationInput } from '@/types/psychometric-evaluation.update.schema';
 
 /**
  * Fetches all psychometric evaluations for a specific psychology record.

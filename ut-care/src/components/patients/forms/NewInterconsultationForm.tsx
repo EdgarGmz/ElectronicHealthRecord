@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CreateInterconsultationInput } from '@/types/interconsultation';
+import type { CreateInterconsultationInput } from '@/types/interconsultation';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import api from '@/services/api'; // Assuming you have an API service to fetch users/professionals

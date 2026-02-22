@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updatePsychometricEvaluationSchema, UpdatePsychometricEvaluationInput } from '@/types/psychometric-evaluation.update.schema';
-import { PsychometricEvaluation } from '@/types/psychometric-evaluation';
+import type { updatePsychometricEvaluationSchema, UpdatePsychometricEvaluationInput } from '@/types/psychometric-evaluation.update.schema';
+import type { PsychometricEvaluation } from '@/types/psychometric-evaluation';
 
 interface EditPsychometricEvaluationFormProps {
   evaluation: PsychometricEvaluation;

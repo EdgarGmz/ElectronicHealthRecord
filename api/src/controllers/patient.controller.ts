@@ -14,6 +14,12 @@ export const createPatientValidation = [
 
 export const updatePatientValidation = [
   param('id').isUUID().withMessage('Invalid patient ID'),
+  body('email').optional().isEmail().withMessage('Valid email is required'),
+  body('firstName').optional().notEmpty().withMessage('First name is required'),
+  body('lastName').optional().notEmpty().withMessage('Last name is required'),
+  body('dateOfBirth').optional().isISO8601().withMessage('Valid date of birth is required'),
+  body('phone').optional().notEmpty().withMessage('Phone number is required'),
+  body('enrollmentNumber').optional().notEmpty().withMessage('Enrollment number is required'),
   body('maritalStatus').optional().notEmpty().withMessage('Marital status cannot be empty'),
   body('guardianName').optional().notEmpty().withMessage('Guardian name cannot be empty'),
   body('guardianPhone').optional().isMobilePhone('any').withMessage('Invalid phone number'),

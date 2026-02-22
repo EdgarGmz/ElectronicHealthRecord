@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth.store';
-import { navLinks, Role } from '@/config/nav';
+import { navLinks } from '@/config/nav';
+import type { Role } from '@/config/nav';
 import { ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { useState } from 'react';
 

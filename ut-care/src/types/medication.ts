@@ -1,5 +1,5 @@
-import { User } from "./auth";
-import { Patient } from "./patient";
+import type { User } from "./auth";
+import type { Patient } from "./patient";
 
 export interface Medication {
   id: string;

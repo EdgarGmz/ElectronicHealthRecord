@@ -1,7 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updatePatientSchema, UpdatePatientInput } from '@/types/patient.update.schema';
-import { Patient } from '@/types/patient';
+import { updatePatientSchema } from '@/types/patient.update.schema';
+import type { UpdatePatientInput } from '@/types/patient.update.schema';
+import type { Patient } from '@/types/patient';
 import { useQuery } from '@tanstack/react-query';
 import { getCareers } from '@/services/career.service'; // Import from new career.service
 

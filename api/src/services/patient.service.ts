@@ -179,25 +179,50 @@ export class PatientService {
     return patient;
   }
 
-  async update(id: string, data: {
-    maritalStatus?: string;
-    guardianName?: string;
-    guardianPhone?: string;
-    group?: string;
-    occupation?: string;
-    trimester?: number;
-  }) {
-    const patient = await prisma.patient.findUnique({ where: { id } });
+  async update(id: string, data: Record<string, unknown>) {
+    const patient = await prisma.patient.findUnique({
+      where: { id },
+      include: { user: true },
+    });
 
     if (!patient) {
       throw new AppError('Patient not found', 404);
     }
 
+    // Build Patient update data with correct types (Prisma expects number for trimester)
+    const patientData: Prisma.PatientUncheckedUpdateInput = {
+      updatedAt: new Date(),
+    };
+    if (data.maritalStatus !== undefined) patientData.maritalStatus = data.maritalStatus as string;
+    if (data.guardianName !== undefined) patientData.guardianName = data.guardianName as string;
+    if (data.guardianPhone !== undefined) patientData.guardianPhone = data.guardianPhone as string;
+    if (data.careerId !== undefined) patientData.careerId = data.careerId as string;
+    if (data.group !== undefined) patientData.group = data.group as string;
+    if (data.occupation !== undefined) patientData.occupation = data.occupation as string;
+    if (data.patientType !== undefined) patientData.patientType = data.patientType as string;
+    if (data.trimester !== undefined) {
+      const t = data.trimester;
+      patientData.trimester = typeof t === 'string' ? (t === '' ? null : parseInt(t, 10)) : (t as number);
+    }
+
+    // Build User update data with correct types
+    const userUpdateData: Prisma.UserUpdateWithoutPatientInput = {
+      updatedAt: new Date(),
+    };
+    if (data.email !== undefined) userUpdateData.email = data.email as string;
+    if (data.firstName !== undefined) userUpdateData.firstName = data.firstName as string;
+    if (data.lastName !== undefined) userUpdateData.lastName = data.lastName as string;
+    if (data.dateOfBirth !== undefined) userUpdateData.dateOfBirth = new Date(data.dateOfBirth as string);
+    if (data.phone !== undefined) userUpdateData.phone = (data.phone as string) || null;
+    if (data.enrollmentNumber !== undefined) userUpdateData.enrollmentNumber = (data.enrollmentNumber as string) || null;
+
     const updatedPatient = await prisma.patient.update({
       where: { id },
       data: {
-        ...data,
-        updatedAt: new Date(),
+        ...patientData,
+        user: {
+          update: userUpdateData,
+        },
       },
       include: {
         user: {

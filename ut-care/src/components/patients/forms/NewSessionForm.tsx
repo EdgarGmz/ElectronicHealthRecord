@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CreateTherapySessionInput } from '@/types/therapy-session';
+import type { CreateTherapySessionInput } from '@/types/therapy-session';
 
 const sessionSchema = z.object({
   sessionDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid date.' }),

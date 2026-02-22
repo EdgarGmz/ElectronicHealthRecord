@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getAppointmentsByPatientId } from '@/services/appointment.service';
-import { Patient } from '@/types/patient';
-import { Appointment } from '@/types/appointment';
+import type { Patient } from '@/types/patient';
+import type { Appointment } from '@/types/appointment';
 import { Plus, Calendar, User, Clock } from 'lucide-react';
 import { useState } from 'react';
 import AppointmentDetailModal from '@/components/patients/details/AppointmentDetailModal';

@@ -1,14 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getTherapySessionsByRecordId, createTherapySession, updateTherapySession } from '@/services/therapy-session.service';
-import { Patient } from '@/types/patient';
-import { PsychometricEvaluation } from '@/types/psychometric-evaluation';
+import type { Patient } from '@/types/patient';
+import type { PsychometricEvaluation } from '@/types/psychometric-evaluation';
 import { Plus, Edit } from 'lucide-react';
-import { TherapySession } from '@/types/therapy-session';
+import type { TherapySession } from '@/types/therapy-session';
 import { useState } from 'react';
 import Modal from '@/components/organisms/Modal';
 import NewSessionForm from '@/components/patients/forms/NewSessionForm';
 import EditTherapySessionForm from '@/components/patients/forms/EditTherapySessionForm';
-import { UpdateTherapySessionInput } from '@/types/therapy-session.update.schema';
+import type { UpdateTherapySessionInput } from '@/types/therapy-session.update.schema';
 import { useAuthStore } from '@/store/auth.store';
 import TherapySessionDetailModal from '@/components/patients/details/TherapySessionDetailModal';
 

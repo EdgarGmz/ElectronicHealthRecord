@@ -1,5 +1,5 @@
 import Tabs from "@/components/organisms/Tabs";
-import { Patient } from "@/types/patient";
+import type { Patient } from "@/types/patient";
 import TherapySessionsTab from "./tabs/TherapySessionsTab";
 import AppointmentsTab from "./tabs/AppointmentsTab";
 import MedicationsTab from "./tabs/MedicationsTab";

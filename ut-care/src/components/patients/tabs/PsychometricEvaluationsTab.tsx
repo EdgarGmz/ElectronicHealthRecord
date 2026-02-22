@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPsychometricEvaluationsByRecordId, createPsychometricEvaluation, updatePsychometricEvaluation } from '@/services/psychometric-evaluation.service';
-import { Patient } from '@/types/patient';
-import { PsychometricEvaluation } from '@/types/psychometric-evaluation';
+import type { Patient } from '@/types/patient';
+import type { PsychometricEvaluation } from '@/types/psychometric-evaluation';
 import { Plus, ClipboardCheck, Edit } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '@/components/organisms/Modal';
 import NewPsychometricEvaluationForm from '@/components/patients/forms/NewPsychometricEvaluationForm';
 import EditPsychometricEvaluationForm from '@/components/patients/forms/EditPsychometricEvaluationForm';
-import { UpdatePsychometricEvaluationInput } from '@/types/psychometric-evaluation.update.schema';
+import type { UpdatePsychometricEvaluationInput } from '@/types/psychometric-evaluation.update.schema';
 import { useAuthStore } from '@/store/auth.store';
 
 const EvaluationItem = ({ evaluation, onEditClick }: { evaluation: PsychometricEvaluation, onEditClick: (e: PsychometricEvaluation) => void }) => (

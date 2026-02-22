@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CreateNursingConsultationInput } from '@/types/nursing-procedure';
+import type { CreateNursingConsultationInput } from '@/types/nursing-procedure';
 
 const consultationSchema = z.object({
   consultationDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid date.' }),

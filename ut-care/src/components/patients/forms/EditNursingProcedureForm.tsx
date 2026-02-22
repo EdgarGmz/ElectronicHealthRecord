@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updateNursingProcedureSchema, UpdateNursingProcedureInput } from '@/types/nursing-procedure.update.schema';
-import { NursingProcedure } from '@/types/nursing-procedure';
+import type { updateNursingProcedureSchema, UpdateNursingProcedureInput } from '@/types/nursing-procedure.update.schema';
+import type { NursingProcedure } from '@/types/nursing-procedure';
 
 interface EditNursingProcedureFormProps {
   procedure: NursingProcedure;

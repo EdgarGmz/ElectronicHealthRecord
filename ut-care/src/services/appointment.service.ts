@@ -1,5 +1,5 @@
 import api from './api';
-import { Appointment } from '@/types/appointment';
+import type { Appointment } from '@/types/appointment';
 
 /**
  * Fetches all appointments for a specific patient.
@@ -23,8 +23,12 @@ export const createAppointment = async (data: any): Promise<Appointment> => {
  * Fetches the count of appointments scheduled for today.
  */
 export const getAppointmentsTodayCount = async (): Promise<{ count: number }> => {
-  const response = await api.get<{ count: number }>('/appointments/today/count');
-  return response.data;
+  const today = new Date().toISOString().split('T')[0];
+  const response = await api.get<any>('/appointments', {
+    params: { startDate: today, endDate: today, limit: 1 }
+  });
+  // Backend structure: { success, message, data: { appointments, pagination } }
+  return { count: response.data.data.pagination.total };
 };
 
 /**
@@ -32,16 +36,21 @@ export const getAppointmentsTodayCount = async (): Promise<{ count: number }> =>
  * @param professionalId The ID of the professional.
  */
 export const getProfessionalAppointmentsToday = async (professionalId: string): Promise<Appointment[]> => {
-  const response = await api.get<Appointment[]>(`/appointments/professional/${professionalId}/today`);
-  return response.data;
+  const today = new Date().toISOString().split('T')[0];
+  const response = await api.get<any>('/appointments', {
+    params: { professionalId, startDate: today, endDate: today }
+  });
+  return response.data.data.appointments;
 };
 
 /**
  * Fetches the count of pending appointment confirmations.
  */
 export const getPendingAppointmentConfirmationsCount = async (): Promise<{ count: number }> => {
-  const response = await api.get<{ count: number }>('/appointments/pending-confirmations/count');
-  return response.data;
+  const response = await api.get<any>('/appointments', {
+    params: { status: 'scheduled', limit: 1 } // Using scheduled as proxy for pending
+  });
+  return { count: response.data.data.pagination.total };
 };
 
 /**

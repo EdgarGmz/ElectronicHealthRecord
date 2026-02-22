@@ -1,16 +1,16 @@
 import { useQueries } from '@tanstack/react-query';
-import { Patient } from '@/types/patient';
-import { HistoryEvent } from '@/types/history';
+import type { Patient } from '@/types/patient';
+import type { HistoryEvent } from '@/types/history';
 import { getAppointmentsByPatientId } from '@/services/appointment.service';
 import { getTherapySessionsByRecordId } from '@/services/therapy-session.service';
 import { getPrescriptionsByPatientId } from '@/services/medication.service';
 import { getPsychometricEvaluationsByRecordId } from '@/services/psychometric-evaluation.service';
 import { getPsychologyRecordByMedicalRecordId } from '@/services/diagnosis.service';
-import { Appointment } from '@/types/appointment';
-import { TherapySession } from '@/types/therapy-session';
-import { Prescription } from '@/types/medication';
-import { PsychometricEvaluation } from '@/types/psychometric-evaluation';
-import { PsychologyRecordDetails } from '@/types/diagnosis';
+import type { Appointment } from '@/types/appointment';
+import type { TherapySession } from '@/types/therapy-session';
+import type { Prescription } from '@/types/medication';
+import type { PsychometricEvaluation } from '@/types/psychometric-evaluation';
+import type { PsychologyRecordDetails } from '@/types/diagnosis';
 
 export default function HistoryTab({ patient }: { patient: Patient }) {
   const psychologyRecordId = patient.medicalRecord?.psychologyRecord?.id;

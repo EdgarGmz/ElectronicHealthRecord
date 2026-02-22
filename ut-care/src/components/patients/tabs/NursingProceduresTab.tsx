@@ -1,16 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getNursingConsultationsByMedicalRecordId, createNursingConsultation, updateNursingConsultation, createNursingProcedure, updateNursingProcedure } from '@/services/nursing-procedure.service';
-import { Patient } from '@/types/patient';
-import { NursingConsultation, NursingProcedure } from '@/types/nursing-procedure';
-import { Plus, Nurse, FlaskConical, Edit } from 'lucide-react';
+import type { Patient } from '@/types/patient';
+import type { NursingConsultation, NursingProcedure } from '@/types/nursing-procedure';
+import { Plus, Stethoscope, FlaskConical, Edit } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '@/components/organisms/Modal';
 import NewNursingConsultationForm from '@/components/patients/forms/NewNursingConsultationForm';
 import EditNursingConsultationForm from '@/components/patients/forms/EditNursingConsultationForm';
 import NewNursingProcedureForm from '@/components/patients/forms/NewNursingProcedureForm';
 import EditNursingProcedureForm from '@/components/patients/forms/EditNursingProcedureForm';
-import { UpdateNursingConsultationInput } from '@/types/nursing-consultation.update.schema';
-import { UpdateNursingProcedureInput } from '@/types/nursing-procedure.update.schema';
+import type { UpdateNursingConsultationInput } from '@/types/nursing-consultation.update.schema';
+import type { UpdateNursingProcedureInput } from '@/types/nursing-procedure.update.schema';
 import { useAuthStore } from '@/store/auth.store';
 
 const ProcedureItem = ({ procedure, onEditClick }: { procedure: NursingProcedure, onEditClick: (p: NursingProcedure) => void }) => (
@@ -108,7 +108,7 @@ const ConsultationItem = ({ consultation, medicalRecordId, patient }: { consulta
     <div className="p-4 bg-white rounded-lg shadow-md border border-blue-200">
       <div className="flex items-center justify-between mb-2">
         <h4 className="font-bold text-gray-800 flex items-center">
-          <Nurse className="w-5 h-5 mr-2 text-blue-600" />
+          <Stethoscope className="w-5 h-5 mr-2 text-blue-600" />
           Nursing Consultation - {new Date(consultation.consultationDate).toLocaleDateString()}
         </h4>
         <div className="flex items-center">

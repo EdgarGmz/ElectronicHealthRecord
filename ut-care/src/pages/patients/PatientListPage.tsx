@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'; // Import Link
 import { Plus } from 'lucide-react';
 import Modal from '@/components/organisms/Modal';
 import NewPatientForm from '@/components/patients/NewPatientForm';
-import { CreatePatientInput } from '@/types/patient.schema';
+import type { CreatePatientInput } from '@/types/patient.schema';
 
 // Placeholder for a more complex DataTable component
 const DataTable = ({ data, columns }: { data: any[], columns: any[] }) => (

@@ -36,9 +36,11 @@ export const errorHandler = (
   }
 
   // Default error
+  const isDevelopment = process.env.NODE_ENV === 'development';
   res.status(500).json({
     success: false,
-    message: 'Internal server error',
+    message: isDevelopment ? err.message : 'Internal server error',
+    stack: isDevelopment ? err.stack : undefined,
   });
 };
 

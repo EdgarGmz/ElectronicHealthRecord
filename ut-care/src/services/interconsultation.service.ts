@@ -1,6 +1,6 @@
 import api from './api';
-import { Interconsultation, CreateInterconsultationInput } from '@/types/interconsultation';
-import { UpdateInterconsultationInput } from '@/types/interconsultation.update.schema';
+import type { Interconsultation, CreateInterconsultationInput } from '@/types/interconsultation';
+import type { UpdateInterconsultationInput } from '@/types/interconsultation.update.schema';
 
 /**
  * Fetches all interconsultations for a specific patient.
@@ -25,8 +25,23 @@ export const createInterconsultation = async (data: CreateInterconsultationInput
  * @param professionalId The ID of the professional.
  */
 export const getPendingInterconsultationsForProfessionalCount = async (professionalId: string): Promise<{ count: number }> => {
-  const response = await api.get<{ count: number }>(`/interconsultations/professional/${professionalId}/pending/count`);
-  return response.data;
+  const response = await api.get<any>('/interconsultations', {
+    params: { professionalId, status: 'pending' }
+  });
+  // If backend returns data array directly
+  const items = response.data.data || [];
+  return { count: items.length };
+};
+
+/**
+ * Fetches the total count of pending interconsultations.
+ */
+export const getPendingInterconsultationsCount = async (): Promise<{ count: number }> => {
+  const response = await api.get<any>('/interconsultations', {
+    params: { status: 'pending' }
+  });
+  const items = response.data.data || [];
+  return { count: items.length };
 };
 
 /**

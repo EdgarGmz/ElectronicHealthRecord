@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updateInterconsultationSchema, UpdateInterconsultationInput } from '@/types/interconsultation.update.schema';
-import { Interconsultation } from '@/types/interconsultation';
+import type { updateInterconsultationSchema, UpdateInterconsultationInput } from '@/types/interconsultation.update.schema';
+import type { Interconsultation } from '@/types/interconsultation';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
 

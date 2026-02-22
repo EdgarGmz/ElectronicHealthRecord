@@ -1,5 +1,5 @@
 import api from './api';
-import { PsychologyRecordDetails, UpdatePsychologyRecordDiagnosisInput } from '@/types/diagnosis';
+import type { PsychologyRecordDetails, UpdatePsychologyRecordDiagnosisInput } from '@/types/diagnosis';
 
 /**
  * Fetches the psychology record for a specific medical record.
