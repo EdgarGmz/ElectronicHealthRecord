@@ -11,10 +11,11 @@ import EditTherapySessionForm from '@/components/patients/forms/EditTherapySessi
 import type { UpdateTherapySessionInput } from '@/types/therapy-session.update.schema';
 import { useAuthStore } from '@/store/auth.store';
 import TherapySessionDetailModal from '@/components/patients/details/TherapySessionDetailModal';
+import { CAN_MANAGE_THERAPY_SESSIONS } from '@/constants/roles';
+import type { Role } from '@/constants/roles';
 
-
-const SessionItem = ({ session, onClick, onEditClick }: { session: TherapySession, onClick: (s: TherapySession) => void, onEditClick: (s: TherapySession) => void }) => (
-  <div 
+const SessionItem = ({ session, onClick, onEditClick, canEdit }: { session: TherapySession; onClick: (s: TherapySession) => void; onEditClick?: (s: TherapySession) => void; canEdit?: boolean }) => (
+  <div
     className="p-4 bg-gray-50 rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200"
   >
     <div className="flex items-center justify-between mb-2" onClick={() => onClick(session)}>
@@ -22,14 +23,16 @@ const SessionItem = ({ session, onClick, onEditClick }: { session: TherapySessio
       <span className="text-sm text-gray-500">{new Date(session.sessionDate).toLocaleDateString()}</span>
     </div>
     <p className="text-sm text-gray-700">{session.evolutionNotes?.substring(0, 100) || 'No notes for this session.'}{session.evolutionNotes && session.evolutionNotes.length > 100 ? '...' : ''}</p>
-    <div className="flex justify-end mt-2">
-        <button 
-            onClick={(e) => { e.stopPropagation(); onEditClick(session); }}
-            className="flex items-center px-2 py-1 text-xs text-white rounded-md bg-secondary hover:bg-secondary-dark"
+    {canEdit && onEditClick && (
+      <div className="flex justify-end mt-2">
+        <button
+          onClick={(e) => { e.stopPropagation(); onEditClick(session); }}
+          className="flex items-center px-2 py-1 text-xs text-white rounded-md bg-secondary hover:bg-secondary-dark"
         >
-            <Edit className="w-3 h-3 mr-1" /> Edit
+          <Edit className="w-3 h-3 mr-1" /> Edit
         </button>
-    </div>
+      </div>
+    )}
   </div>
 );
 
@@ -41,6 +44,7 @@ export default function TherapySessionsTab({ patient }: { patient: Patient }) {
 
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
+  const canManageSessions = user?.role && CAN_MANAGE_THERAPY_SESSIONS.includes(user.role as Role);
 
   const psychologyRecordId = patient.medicalRecord?.psychologyRecord?.id;
 
@@ -105,14 +109,16 @@ export default function TherapySessionsTab({ patient }: { patient: Patient }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Therapy Sessions</h3>
-        <button 
-          onClick={() => setIsNewSessionModalOpen(true)}
-          disabled={!psychologyRecordId}
-          className="flex items-center px-3 py-1 text-sm text-white rounded-md bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          New Session
-        </button>
+        {canManageSessions && (
+          <button
+            onClick={() => setIsNewSessionModalOpen(true)}
+            disabled={!psychologyRecordId}
+            className="flex items-center px-3 py-1 text-sm text-white rounded-md bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            New Session
+          </button>
+        )}
       </div>
 
       {isLoading && <p>Loading sessions...</p>}
@@ -122,11 +128,12 @@ export default function TherapySessionsTab({ patient }: { patient: Patient }) {
       {sessions && sessions.length > 0 ? (
         <div className="space-y-3">
           {sessions.map(session => (
-            <SessionItem 
-                key={session.id} 
-                session={session} 
-                onClick={handleSessionClick} 
-                onEditClick={handleEditSessionClick}
+            <SessionItem
+              key={session.id}
+              session={session}
+              onClick={handleSessionClick}
+              onEditClick={handleEditSessionClick}
+              canEdit={canManageSessions}
             />
           ))}
         </div>

@@ -130,15 +130,61 @@ Este comando ejecutará el script `prisma/seed.ts` que creará:
   - Notificaciones
   - Y mucho más...
 
-**Cuentas de prueba creadas:**
+**Roles del sistema (5):** Solo el personal tiene acceso. El **admin** actúa como **auditor**: usuario único, no se puede borrar; solo lectura en pacientes, citas e inventario de medicamentos; sin acceso a expedientes, terapia ni evaluaciones psicométricas; acceso total a interconsultas, notificaciones, reportes, audit logs, usuarios y carreras. Definidos en `api/src/constants/roles.ts`. El paciente no es usuario del sistema.
+
+#### Expediente único y flujo de registro (enfermería y psicología)
+
+Hay **un solo expediente médico por persona** (estudiante, docente o personal administrativo), compartido por **ambos departamentos** (psicología y enfermería).
+
+- **Al llegar a enfermería o a psicología:** la enfermera o el personal captura la **matrícula** (estudiantes) o el **número de empleado** (docentes/administrativos). Si la persona **no estaba registrada**, se crea un **nuevo expediente** (y paciente); si **ya estaba registrada**, se **abre el expediente** existente.
+- **Búsqueda para abrir expediente:** `GET /api/patients/by-enrollment/:number` — devuelve el paciente (y su expediente) si existe alguien con esa matrícula o número de empleado; si no existe, responde 404 y en frontend se puede mostrar el formulario para “registro nuevo”.
+- **Uso del expediente:**
+  - **Psicología** puede ver **todo el historial** del paciente (incluidas atenciones de enfermería) para tener contexto general, detectar problemas o soluciones ante adversidades.
+  - **Enfermería** utiliza el mismo expediente sobre todo para **registrar la actividad** del paciente en el momento (por ejemplo, cuando se siente mal o tuvo un accidente), sin necesidad de ver todo el historial psicológico con el mismo nivel de detalle.
+  #### Tabla de roles y permisos
+
+  | Recurso / Acción | 👨‍💼 Admin | 🧠 Psicología | 🏥 Enfermería | 👨‍⚕️ Psicólogo | 👩‍⚕️ Enfermero |
+  |---|:---:|:---:|:---:|:---:|:---:|
+  | **👥 Pacientes** |
+  | Listar / Ver | ✅ | ✅ | ✅ | ✅ | ✅ |
+  | Crear / Editar | ❌ | ✅ | ❌ | ✅ | ✅ |
+  | Eliminar | ❌ | ✅ | ❌ | ✅ | ❌ |
+  | **📋 Expedientes médicos** | ❌ | ✅ | ✅* | ✅ | ✅** |
+  | Agregar diagnóstico (CIE/DSM) | ❌ | ❌ | ❌ | ✅ | ❌ |
+  | **📅 Citas** |
+  | Ver | ✅ | ✅ | ✅ | ✅ | ✅*** |
+  | Crear / Editar / Cancelar | ❌ | ✅ | ❌ | ✅ | ❌ |
+  | **💬 Sesiones de terapia** | ❌ | ✅ | 👁️ | ✅ | ❌ |
+  | **📊 Evaluaciones psicométricas** |
+  | Ver / Crear / Editar | ❌ | ✅ | 👁️ | ✅ | ❌ |
+  | Eliminar | ❌ | ✅ | ❌ | ❌ | ❌ |
+  | **💊 Medicamentos (inventario)** |
+  | Ver | ✅ | ✅ | ✅ | ✅ | ✅ |
+  | Crear | ❌ | ❌ | ✅ | ❌ | ❌ |
+  | Editar (stock) | ❌ | ❌ | ✅ | ❌ | ✅ |
+  | **🔄 Interconsultas** | ✅ | ✅ | ✅ | ✅ | ✅ |
+  | **🔔 Notificaciones** | ✅ | ✅ | ✅ | ✅ | ✅ |
+  | **📈 Reportes** | ✅ | ✅ | ✅ | ✅ | ✅ |
+  | **🔐 Auditoría (logs)** | ✅ | ✅ | ✅ | ❌ | ❌ |
+  | **👤 Usuarios** | ✅ | ✅* | ✅* | ❌ | ❌ |
+  | **🎓 Carreras** | ✅ | 👁️ | 👁️ | 👁️ | 👁️ |
+
+  **Leyenda:** ✅ Permitido | ❌ No permitido | 👁️ Solo lectura | \* Restringido al departamento | \*\* Enfermero: solo historial de enfermería (no psicología) | \*\*\* Enfermero: solo sus citas asignadas
+
+\* Las carreras se listan para todos (p. ej. en formularios); crear/editar/eliminar solo admin.
+
+**Notas:** El administrador no puede ser eliminado. El **coordinador de psicología** solo puede generar reportes del departamento de psicología, ver audit logs de ese departamento y crear nuevos usuarios con rol psicólogo; no tiene acceso al CRUD de carreras ni a crear/editar medicamentos. El **coordinador de enfermería** solo ve pacientes y expedientes registrados en enfermería (con al menos una consulta de enfermería), no genera citas (solo atiende ambulatorio/accidentes), tiene acceso restringido a sesiones de terapia y evaluaciones psicométricas (solo lectura, filtrado por pacientes de enfermería), CRUD completo de medicamentos, reportes y audit solo del departamento de enfermería, y solo puede crear usuarios con rol enfermero; carreras en solo lectura (listar). El **psicólogo** tiene **carreras asignadas**: solo puede atender a **estudiantes de esas carreras** o a **personal docente y administrativo** (estos últimos de forma general). Ese mismo alcance aplica a pacientes, expedientes, citas, sesiones de terapia y evaluaciones psicométricas; puede generar reportes pero solo con datos de sus carreras asignadas; acceso restringido a auditoría y usuarios; solo puede consultar carreras (listar). La **enfermera** tiene acceso total a pacientes (crear/editar, no eliminar); solo al **historial clínico de enfermería** (no de psicología); acceso restringido a citas (solo ver sus citas asignadas, no crear/editar/cancelar); sin acceso a sesiones de terapia ni evaluaciones psicométricas; medicamentos: solo consulta y editar stock (no crear nuevos); acceso total a interconsultas y notificaciones; acceso restringido a logs y usuarios; carreras solo consulta.
+
+**Leyenda:** ✅ Permitido | ❌ No permitido | 👁️ Solo lectura
+
+**Cuentas de prueba (solo personal; el paciente no inicia sesión):**
 | Email | Rol | Password |
 |-------|-----|----------|
-| `admin@ehr-system.com` | Administrador | `Password123!` |
-| `coord.psicologia@ehr-system.com` | Coordinador Psicología | `Password123!` |
-| `coord.enfermeria@ehr-system.com` | Coordinador Enfermería | `Password123!` |
-| `psicologo1@ehr-system.com` | Psicólogo | `Password123!` |
-| `enfermera1@ehr-system.com` | Enfermera | `Password123!` |
-| `estudiante1@ehr-system.com` | Paciente | `Password123!` |
+| `admin@ehr-system.com` | admin | `Password123!` |
+| `coord.psicologia@ehr-system.com` | coordinador_psicologia | `Password123!` |
+| `coord.enfermeria@ehr-system.com` | coordinador_enfermeria | `Password123!` |
+| `psicologo1@ehr-system.com` | psicologo | `Password123!` |
+| `enfermera1@ehr-system.com` | enfermero | `Password123!` |
 
 **Nota:** El script de seed es **idempotente**. Si ya existen datos en la base de datos, el script detectará esto y no creará registros duplicados. Para volver a poblar la base de datos desde cero, primero ejecuta:
 

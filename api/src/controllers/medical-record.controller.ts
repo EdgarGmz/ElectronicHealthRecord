@@ -29,7 +29,7 @@ export const getMedicalRecords = async (req: AuthRequest, res: Response, next: N
     const limit = parseInt(req.query.limit as string) || 10;
     const search = req.query.search as string;
 
-    const result = await medicalRecordService.getAll(page, limit, search);
+    const result = await medicalRecordService.getAll(page, limit, search, req.user?.role, req.user?.userId);
 
     res.status(200).json({
       success: true,
@@ -64,7 +64,7 @@ export const createMedicalRecord = async (req: AuthRequest, res: Response, next:
 export const getMedicalRecordById = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const medicalRecord = await medicalRecordService.getById(id);
+    const medicalRecord = await medicalRecordService.getById(id, req.user?.role, req.user?.userId);
 
     res.status(200).json({
       success: true,
@@ -85,7 +85,7 @@ export const updateMedicalRecord = async (req: AuthRequest, res: Response, next:
       updatedBy: req.user!.userId,
     };
 
-    const medicalRecord = await medicalRecordService.update(id, data);
+    const medicalRecord = await medicalRecordService.update(id, data, req.user?.role);
 
     res.status(200).json({
       success: true,

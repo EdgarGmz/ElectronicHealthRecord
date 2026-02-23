@@ -5,10 +5,14 @@ import { AppError } from '../middleware/errorHandler';
 // Constants
 const MAX_CONSULTATION_RECORDS = 100; // Maximum number of consultation records to return in a report
 
+const PATIENT_TYPES_GENERAL = ['faculty', 'administrative'] as const;
+
 interface ReportFilters {
   department?: string;
   periodStart: Date;
   periodEnd: Date;
+  /** Para psicólogo: solo datos de estudiantes de estas carreras o personal docente/administrativo */
+  careerIds?: string[];
 }
 
 export class ReportService {
@@ -17,7 +21,17 @@ export class ReportService {
    * Returns aggregate statistics for appointments, patients, and therapy sessions
    */
   async generateStatisticsReport(filters: ReportFilters, generatedBy: string) {
-    const { department, periodStart, periodEnd } = filters;
+    const { department, periodStart, periodEnd, careerIds } = filters;
+
+    const patientScopeWhere: Prisma.PatientWhereInput | undefined =
+      careerIds && careerIds.length
+        ? {
+            OR: [
+              { patientType: { in: [...PATIENT_TYPES_GENERAL] } },
+              { patientType: 'student', careerId: { in: careerIds } },
+            ],
+          }
+        : undefined;
 
     // Build where clause for appointments
     const appointmentWhere: Prisma.AppointmentWhereInput = {
@@ -29,6 +43,9 @@ export class ReportService {
 
     if (department) {
       appointmentWhere.department = department;
+    }
+    if (patientScopeWhere) {
+      appointmentWhere.patient = patientScopeWhere;
     }
 
     // Get appointment statistics
@@ -46,33 +63,31 @@ export class ReportService {
     // Get therapy session statistics (for psychology department)
     let therapySessionStats = null;
     if (!department || department === 'psychology') {
-      therapySessionStats = await prisma.therapySession.count({
-        where: {
-          sessionDate: {
-            gte: periodStart,
-            lte: periodEnd,
-          },
-        },
-      });
+      const therapyWhere: Prisma.TherapySessionWhereInput = {
+        sessionDate: { gte: periodStart, lte: periodEnd },
+      };
+      if (patientScopeWhere) {
+        therapyWhere.psychologyRecord = { medicalRecord: { patient: patientScopeWhere } };
+      }
+      therapySessionStats = await prisma.therapySession.count({ where: therapyWhere });
     }
 
     // Get patient statistics
-    const totalPatients = await prisma.patient.count({
-      where: {
-        createdAt: {
-          lte: periodEnd,
-        },
-      },
-    });
+    const patientWhereBase: Prisma.PatientWhereInput = {
+      createdAt: { lte: periodEnd },
+    };
+    if (patientScopeWhere) {
+      patientWhereBase.AND = [patientScopeWhere];
+    }
+    const totalPatients = await prisma.patient.count({ where: patientWhereBase });
 
-    const newPatients = await prisma.patient.count({
-      where: {
-        createdAt: {
-          gte: periodStart,
-          lte: periodEnd,
-        },
-      },
-    });
+    const newPatientWhere: Prisma.PatientWhereInput = {
+      createdAt: { gte: periodStart, lte: periodEnd },
+    };
+    if (patientScopeWhere) {
+      newPatientWhere.AND = [patientScopeWhere];
+    }
+    const newPatients = await prisma.patient.count({ where: newPatientWhere });
 
     // Get nursing consultation statistics (for nursing department)
     let nursingStats = null;
@@ -152,7 +167,17 @@ export class ReportService {
    * Returns data about inter-departmental consultations
    */
   async generateConsultationsReport(filters: ReportFilters, generatedBy: string) {
-    const { department, periodStart, periodEnd } = filters;
+    const { department, periodStart, periodEnd, careerIds } = filters;
+
+    const patientScopeWhere: Prisma.PatientWhereInput | undefined =
+      careerIds && careerIds.length
+        ? {
+            OR: [
+              { patientType: { in: [...PATIENT_TYPES_GENERAL] } },
+              { patientType: 'student', careerId: { in: careerIds } },
+            ],
+          }
+        : undefined;
 
     const where: Prisma.InterconsultationWhereInput = {
       createdAt: {
@@ -166,6 +191,9 @@ export class ReportService {
         { fromDepartment: department },
         { toDepartment: department },
       ];
+    }
+    if (patientScopeWhere) {
+      where.patient = patientScopeWhere;
     }
 
     // Get interconsultation statistics
@@ -291,25 +319,40 @@ export class ReportService {
    * Returns data about diagnoses from psychology records
    */
   async generateDiagnosesReport(filters: ReportFilters, generatedBy: string) {
-    const { department, periodStart, periodEnd } = filters;
+    const { department, periodStart, periodEnd, careerIds } = filters;
 
     // Diagnoses are primarily in psychology department
     if (department && department !== 'psychology') {
       throw new AppError('Diagnoses reports are only available for psychology department', 400);
     }
 
+    const patientScopeWhere: Prisma.PatientWhereInput | undefined =
+      careerIds && careerIds.length
+        ? {
+            OR: [
+              { patientType: { in: [...PATIENT_TYPES_GENERAL] } },
+              { patientType: 'student', careerId: { in: careerIds } },
+            ],
+          }
+        : undefined;
+
+    const psychologyWhere: Prisma.PsychologyRecordWhereInput = {
+      createdAt: {
+        gte: periodStart,
+        lte: periodEnd,
+      },
+      OR: [
+        { currentDiagnosisDsm5: { not: null } },
+        { currentDiagnosisCie10: { not: null } },
+      ],
+    };
+    if (patientScopeWhere) {
+      psychologyWhere.medicalRecord = { patient: patientScopeWhere };
+    }
+
     // Get psychology records with diagnoses in the period
     const psychologyRecords = await prisma.psychologyRecord.findMany({
-      where: {
-        createdAt: {
-          gte: periodStart,
-          lte: periodEnd,
-        },
-        OR: [
-          { currentDiagnosisDsm5: { not: null } },
-          { currentDiagnosisCie10: { not: null } },
-        ],
-      },
+      where: psychologyWhere,
       include: {
         medicalRecord: {
           include: {

@@ -3,12 +3,10 @@ import type { Patient } from '@/types/patient';
 import type { HistoryEvent } from '@/types/history';
 import { getAppointmentsByPatientId } from '@/services/appointment.service';
 import { getTherapySessionsByRecordId } from '@/services/therapy-session.service';
-import { getPrescriptionsByPatientId } from '@/services/medication.service';
 import { getPsychometricEvaluationsByRecordId } from '@/services/psychometric-evaluation.service';
 import { getPsychologyRecordByMedicalRecordId } from '@/services/diagnosis.service';
 import type { Appointment } from '@/types/appointment';
 import type { TherapySession } from '@/types/therapy-session';
-import type { Prescription } from '@/types/medication';
 import type { PsychometricEvaluation } from '@/types/psychometric-evaluation';
 import type { PsychologyRecordDetails } from '@/types/diagnosis';
 
@@ -26,10 +24,6 @@ export default function HistoryTab({ patient }: { patient: Patient }) {
         queryKey: ['therapySessions', psychologyRecordId],
         queryFn: () => getTherapySessionsByRecordId(psychologyRecordId!),
         enabled: !!psychologyRecordId,
-      },
-      {
-        queryKey: ['prescriptions', patient.id],
-        queryFn: () => getPrescriptionsByPatientId(patient.id),
       },
       {
         queryKey: ['psychometricEvaluations', psychologyRecordId],
@@ -50,7 +44,7 @@ export default function HistoryTab({ patient }: { patient: Patient }) {
   if (isLoading) return <p>Loading history...</p>;
   if (isError) return <p className="text-red-500">Error loading history.</p>;
 
-  const [appointments, therapySessions, prescriptions, psychometricEvaluations, psychologyRecord] = queries.map((query) => query.data);
+  const [appointments, therapySessions, psychometricEvaluations, psychologyRecord] = queries.map((query) => query.data);
 
   const historyEvents: HistoryEvent[] = [];
 
@@ -75,18 +69,6 @@ export default function HistoryTab({ patient }: { patient: Patient }) {
       title: `Therapy Session #${session.sessionNumber}`,
       description: session.evolutionNotes,
       details: session,
-    });
-  });
-
-  // Transform Prescriptions
-  (prescriptions as Prescription[])?.forEach((prescription) => {
-    historyEvents.push({
-      id: prescription.id,
-      date: prescription.startDate,
-      type: 'Medication Prescription',
-      title: `Prescription for ${prescription.medication.name}`,
-      description: `Dosage: ${prescription.dosage}, Frequency: ${prescription.frequency}`,
-      details: prescription,
     });
   });
 

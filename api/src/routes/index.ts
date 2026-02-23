@@ -33,7 +33,6 @@ router.use('/careers', careerRoutes);
 router.use('/medical-records', medicalRecordRoutes);
 router.use('/appointments', appointmentRoutes);
 router.use('/medications', medicationRoutes);
-router.use('/prescriptions', medicationRoutes); // Assuming this is handled in medication.routes
 router.use('/therapy-sessions', therapySessionRoutes);
 router.use('/psychometric-tests', psychometricTestRoutes);
 router.use('/interconsultations', interconsultationRoutes);

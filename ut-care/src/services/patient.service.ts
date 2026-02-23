@@ -14,6 +14,18 @@ export const getPatientById = async (id: string): Promise<Patient> => {
   return response.data.data;
 };
 
+/**
+ * Busca un paciente por matrícula o número de empleado.
+ * Usado en enfermería y psicología: si existe se abre el expediente; si no (404) se puede crear uno nuevo.
+ */
+export const getPatientByEnrollmentOrEmployeeNumber = async (
+  enrollmentOrEmployeeNumber: string
+): Promise<Patient> => {
+  const number = encodeURIComponent(enrollmentOrEmployeeNumber.trim());
+  const response = await api.get<any>(`/patients/by-enrollment/${number}`);
+  return response.data.data;
+};
+
 export const createPatient = async (data: any): Promise<Patient> => {
   const response = await api.post<any>('/patients', data);
   return response.data.data;

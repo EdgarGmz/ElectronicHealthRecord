@@ -2,67 +2,31 @@ import { Router } from 'express';
 import * as medicationController from '../controllers/medication.controller';
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
+import { ROLES_CAN_MANAGE_MEDICATIONS, ROLES_CAN_CREATE_MEDICATION } from '../constants/roles';
 
 const router = Router();
 
-// Apply authentication to all routes
+// Todas las rutas requieren autenticación. Admin solo puede ver inventario; crear/editar solo enfermero.
 router.use(authenticateToken);
 
-// Medication routes (catalog management)
-router.get(
-  '/medications',
-  medicationController.getMedications
-);
-
-router.get(
-  '/medications/:id',
-  medicationController.getMedicationById
-);
+// Inventario de medicamentos (catálogo)
+router.get('/medications', medicationController.getMedications);
+router.get('/medications/:id', medicationController.getMedicationById);
 
 router.post(
   '/medications',
-  authorizeRoles('admin', 'nurse'),
+  authorizeRoles(...ROLES_CAN_CREATE_MEDICATION),
   validate(medicationController.createMedicationValidation),
   medicationController.createMedication
 );
 
 router.put(
   '/medications/:id',
-  authorizeRoles('admin', 'nurse'),
+  authorizeRoles(...ROLES_CAN_MANAGE_MEDICATIONS),
   validate(medicationController.updateMedicationValidation),
   medicationController.updateMedication
 );
 
-// Prescription routes
-router.get(
-  '/prescriptions',
-  medicationController.getPrescriptions
-);
-
-router.get(
-  '/prescriptions/:id',
-  medicationController.getPrescriptionById
-);
-
-router.post(
-  '/prescriptions',
-  authorizeRoles('doctor', 'psychologist', 'nurse'),
-  validate(medicationController.createPrescriptionValidation),
-  medicationController.createPrescription
-);
-
-router.put(
-  '/prescriptions/:id/status',
-  authorizeRoles('doctor', 'psychologist', 'nurse'),
-  validate(medicationController.updatePrescriptionStatusValidation),
-  medicationController.updatePrescriptionStatus
-);
-
-router.post(
-  '/prescriptions/:id/administrations',
-  authorizeRoles('nurse'),
-  validate(medicationController.createPrescriptionAdministrationValidation),
-  medicationController.createPrescriptionAdministration
-);
+// Prescripciones eliminadas del sistema (la universidad no puede prescribir)
 
 export default router;

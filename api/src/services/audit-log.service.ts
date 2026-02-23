@@ -30,7 +30,8 @@ export class AuditLogService {
   }
 
   /**
-   * Get audit logs with filtering and pagination
+   * Get audit logs with filtering and pagination.
+   * Si userRole es coordinador_psicologia, solo se devuelven logs de usuarios del departamento de psicología (psicologo, coordinador_psicologia).
    */
   async getAuditLogs(
     page: number = 1,
@@ -41,11 +42,19 @@ export class AuditLogService {
       tableName?: string;
       startDate?: Date;
       endDate?: Date;
-    }
+    },
+    userRole?: string
   ) {
     const skip = (page - 1) * limit;
 
     const where: Prisma.AuditLogWhereInput = {};
+
+    if (userRole === 'coordinador_psicologia') {
+      where.user = { role: { in: ['coordinador_psicologia', 'psicologo'] } };
+    }
+    if (userRole === 'coordinador_enfermeria') {
+      where.user = { role: { in: ['coordinador_enfermeria', 'enfermero'] } };
+    }
 
     if (filters?.userId) {
       where.userId = filters.userId;

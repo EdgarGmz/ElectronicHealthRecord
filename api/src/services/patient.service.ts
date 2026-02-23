@@ -2,9 +2,28 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { hashPassword } from '../utils/password';
+import { ROLES } from '../constants/roles';
+import psychologistCareerService from './psychologist-career.service';
+
+/** Pacientes que tienen al menos una consulta de enfermería (registrados en enfermería) */
+const NURSING_PATIENT_WHERE: Prisma.PatientWhereInput = {
+  medicalRecord: {
+    nursingConsultations: { some: {} },
+  },
+};
+
+/** Tipos de paciente que pueden ser atendidos por cualquier psicólogo (sin filtro por carrera) */
+const PATIENT_TYPES_GENERAL = ['faculty', 'administrative'] as const;
 
 export class PatientService {
-  async getAll(page: number = 1, limit: number = 10, search?: string, patientType?: string) {
+  async getAll(
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+    patientType?: string,
+    userRole?: string,
+    userId?: string
+  ) {
     const skip = (page - 1) * limit;
 
     const where: Prisma.PatientWhereInput = {};
@@ -22,6 +41,23 @@ export class PatientService {
 
     if (patientType) {
       where.patientType = patientType;
+    }
+
+    if (userRole === 'coordinador_enfermeria') {
+      where.AND = [NURSING_PATIENT_WHERE];
+    }
+
+    if (userRole === ROLES.PSICOLOGO && userId) {
+      const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
+      const scopeWhere: Prisma.PatientWhereInput = {
+        OR: [
+          { patientType: { in: [...PATIENT_TYPES_GENERAL] } },
+          ...(assignedCareerIds.length
+            ? [{ patientType: 'student', careerId: { in: assignedCareerIds } }]
+            : []),
+        ],
+      };
+      where.AND = [...(where.AND || []), scopeWhere];
     }
 
     const [patients, total] = await Promise.all([
@@ -65,7 +101,59 @@ export class PatientService {
     };
   }
 
-  async getById(id: string) {
+  /**
+   * Busca un paciente por matrícula o número de empleado (campo enrollmentNumber del usuario).
+   * Usado en enfermería y psicología para: capturar matrícula/nº empleado → si existe abrir expediente, si no crear nuevo.
+   * No aplica filtro por departamento: cualquier personal autorizado puede buscar para abrir o crear expediente.
+   */
+  async findByEnrollmentOrEmployeeNumber(enrollmentOrEmployeeNumber: string) {
+    const trimmed = enrollmentOrEmployeeNumber?.trim();
+    if (!trimmed) {
+      throw new AppError('Matrícula o número de empleado es requerido', 400);
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        enrollmentNumber: { equals: trimmed, mode: 'insensitive' },
+        role: ROLES.PATIENT,
+      },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new AppError('No se encontró ningún paciente con esa matrícula o número de empleado', 404);
+    }
+
+    const patient = await prisma.patient.findUnique({
+      where: { userId: user.id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            dateOfBirth: true,
+            phone: true,
+            enrollmentNumber: true,
+            isActive: true,
+          },
+        },
+        career: { select: { id: true, name: true, code: true } },
+        emergencyContacts: true,
+        medicalRecord: { select: { id: true } },
+      },
+    });
+
+    if (!patient) {
+      throw new AppError('No se encontró expediente para ese usuario', 404);
+    }
+
+    return patient;
+  }
+
+  async getById(id: string, userRole?: string, userId?: string) {
+    const includeNursingCheck = userRole === 'coordinador_enfermeria';
     const patient = await prisma.patient.findUnique({
       where: { id },
       include: {
@@ -83,6 +171,14 @@ export class PatientService {
         },
         career: true,
         emergencyContacts: true,
+        ...(includeNursingCheck && {
+          medicalRecord: {
+            select: {
+              id: true,
+              nursingConsultations: { take: 1, select: { id: true } },
+            },
+          },
+        }),
       },
     });
 
@@ -90,6 +186,30 @@ export class PatientService {
       throw new AppError('Patient not found', 404);
     }
 
+    if (userRole === 'coordinador_enfermeria') {
+      const mr = patient.medicalRecord as { nursingConsultations?: { id: string }[] } | null | undefined;
+      if (!mr?.nursingConsultations?.length) {
+        throw new AppError('Acceso denegado: solo puede ver pacientes registrados en enfermería', 403);
+      }
+    }
+
+    if (userRole === ROLES.PSICOLOGO && userId) {
+      const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
+      const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
+      const isStudentInScope =
+        patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+      if (!isGeneral && !isStudentInScope) {
+        throw new AppError(
+          'Acceso denegado: solo puede atender estudiantes de sus carreras asignadas o personal docente/administrativo',
+          403
+        );
+      }
+    }
+
+    if (includeNursingCheck) {
+      const { medicalRecord, ...rest } = patient;
+      return { ...rest, medicalRecord: medicalRecord ? { id: medicalRecord.id } : undefined };
+    }
     return patient;
   }
 
@@ -141,7 +261,7 @@ export class PatientService {
           dateOfBirth: data.dateOfBirth,
           phone: data.phone,
           enrollmentNumber: data.enrollmentNumber,
-          role: 'patient',
+          role: ROLES.PATIENT,
         },
       });
 

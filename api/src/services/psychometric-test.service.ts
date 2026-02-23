@@ -1,6 +1,10 @@
 import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
+import { ROLES, ROLES_PSICOMETRIA, ROLES_CAN_DELETE_PSICOMETRIA } from '../constants/roles';
+import psychologistCareerService from './psychologist-career.service';
+
+const PATIENT_TYPES_GENERAL = ['faculty', 'administrative'] as const;
 
 export class PsychometricTestService {
   async getAll(
@@ -20,9 +24,7 @@ export class PsychometricTestService {
     const where: Prisma.PsychometricEvaluationWhereInput = {};
 
     // Apply role-based filtering
-    if (userRole === 'patient') {
-      // Patients can see their own psychometric evaluations
-      // Use nested where clause to filter in a single query
+    if (userRole === ROLES.PATIENT) {
       where.psychologyRecord = {
         medicalRecord: {
           patient: {
@@ -30,18 +32,34 @@ export class PsychometricTestService {
           },
         },
       };
-    } else if (userRole === 'psychologist') {
-      // Psychologists can see evaluations they administered or for patients assigned to them
-      where.OR = [
-        { administeredBy: userId },
+    } else if (userRole === ROLES.PSICOLOGO) {
+      const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
+      const patientScope: Prisma.PatientWhereInput = {
+        OR: [
+          { patientType: { in: [...PATIENT_TYPES_GENERAL] } },
+          ...(assignedCareerIds.length ? [{ patientType: 'student', careerId: { in: assignedCareerIds } }] : []),
+        ],
+      };
+      where.AND = [
+        {
+          OR: [
+            { administeredBy: userId },
+            { psychologyRecord: { assignedPsychologistId: userId } },
+          ],
+        },
         {
           psychologyRecord: {
-            assignedPsychologistId: userId,
+            medicalRecord: { patient: patientScope },
           },
         },
       ];
+    } else if (userRole === 'coordinador_enfermeria') {
+      // Solo evaluaciones de pacientes con al menos una consulta de enfermería
+      where.psychologyRecord = {
+        medicalRecord: { nursingConsultations: { some: {} } },
+      };
     }
-    // Admins and coordinators can see all evaluations (no additional filter)
+    // Admin y coordinador psicología ven todas (sin filtro adicional)
 
     // Apply additional filters
     if (filters?.psychologyRecordId) {
@@ -124,6 +142,7 @@ export class PsychometricTestService {
           include: {
             medicalRecord: {
               include: {
+                nursingConsultations: { take: 1, select: { id: true } },
                 patient: {
                   include: {
                     user: {
@@ -159,17 +178,34 @@ export class PsychometricTestService {
     }
 
     // Check access permissions
-    if (userRole === 'patient') {
+    if (userRole === ROLES.PATIENT) {
       // Check if the evaluation belongs to this patient's medical record
       if (evaluation.psychologyRecord.medicalRecord.patient.userId !== userId) {
         throw new AppError('Access denied', 403);
       }
-    } else if (userRole === 'psychologist') {
+    } else if (userRole === ROLES.PSICOLOGO) {
       if (
         evaluation.administeredBy !== userId &&
         evaluation.psychologyRecord.assignedPsychologistId !== userId
       ) {
         throw new AppError('Access denied', 403);
+      }
+      const patient = evaluation.psychologyRecord.medicalRecord.patient as { patientType: string; careerId: string };
+      const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
+      const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
+      const isStudentInScope =
+        patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+      if (!isGeneral && !isStudentInScope) {
+        throw new AppError(
+          'Acceso denegado: solo puede ver evaluaciones de estudiantes de sus carreras asignadas o personal docente/administrativo',
+          403
+        );
+      }
+    } else if (userRole === 'coordinador_enfermeria') {
+      const hasNursing = (evaluation.psychologyRecord.medicalRecord as { nursingConsultations?: { id: string }[] })
+        ?.nursingConsultations?.length;
+      if (!hasNursing) {
+        throw new AppError('Acceso denegado: solo puede ver evaluaciones de pacientes registrados en enfermería', 403);
       }
     }
 
@@ -205,8 +241,28 @@ export class PsychometricTestService {
       throw new AppError('Administering user not found', 404);
     }
 
-    if (user.role !== 'psychologist' && user.role !== 'admin' && user.role !== 'coordinador_psicologia') {
-      throw new AppError('Only psychologists can administer evaluations', 403);
+    if (!ROLES_PSICOMETRIA.includes(user.role as any)) {
+      throw new AppError('Solo psicólogos (y coordinador/admin) pueden aplicar evaluaciones', 403);
+    }
+
+    if (user.role === ROLES.PSICOLOGO) {
+      const recordWithPatient = await prisma.psychologyRecord.findUnique({
+        where: { id: data.psychologyRecordId },
+        include: { medicalRecord: { include: { patient: true } } },
+      });
+      const patient = recordWithPatient?.medicalRecord?.patient;
+      if (patient) {
+        const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(data.administeredBy);
+        const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
+        const isStudentInScope =
+          patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+        if (!isGeneral && !isStudentInScope) {
+          throw new AppError(
+            'Solo puede crear evaluaciones para estudiantes de sus carreras asignadas o personal docente/administrativo',
+            403
+          );
+        }
+      }
     }
 
     const evaluation = await prisma.psychometricEvaluation.create({
@@ -285,14 +341,14 @@ export class PsychometricTestService {
     }
 
     // Check permissions - only the psychologist who administered it or assigned psychologist can update
-    if (userRole === 'psychologist') {
+    if (userRole === ROLES.PSICOLOGO) {
       if (
         existingEvaluation.administeredBy !== userId &&
         existingEvaluation.psychologyRecord.assignedPsychologistId !== userId
       ) {
         throw new AppError('Access denied', 403);
       }
-    } else if (userRole !== 'admin' && userRole !== 'coordinador_psicologia') {
+    } else if (!ROLES_PSICOMETRIA.includes(userRole as any)) {
       throw new AppError('Insufficient permissions', 403);
     }
 
@@ -359,7 +415,7 @@ export class PsychometricTestService {
     }
 
     // Only admin and coordinators can delete evaluations
-    if (userRole !== 'admin' && userRole !== 'coordinador_psicologia') {
+    if (!ROLES_CAN_DELETE_PSICOMETRIA.includes(userRole as any)) {
       throw new AppError('Insufficient permissions to delete evaluations', 403);
     }
 

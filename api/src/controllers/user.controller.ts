@@ -2,6 +2,18 @@ import { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import userService from '../services/user.service';
 import { AuthRequest } from '../middleware/auth';
+import { ROLES } from '../constants/roles';
+
+export const createUserValidation = [
+  body('email').isEmail().withMessage('Email válido requerido'),
+  body('password').isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres'),
+  body('firstName').notEmpty().withMessage('Nombre requerido'),
+  body('lastName').notEmpty().withMessage('Apellido requerido'),
+  body('dateOfBirth').isISO8601().withMessage('Fecha de nacimiento válida requerida'),
+  body('role').notEmpty().withMessage('Rol requerido'),
+  body('phone').optional().trim(),
+  body('enrollmentNumber').optional().trim(),
+];
 
 export const updateUserValidation = [
   param('id').isUUID().withMessage('Invalid user ID'),
@@ -12,6 +24,37 @@ export const updateUserValidation = [
 ];
 
 export class UserController {
+  async create(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (req.user?.role === ROLES.COORDINADOR_PSICOLOGIA && req.body.role !== ROLES.PSICOLOGO) {
+        res.status(403).json({
+          success: false,
+          message: 'El coordinador de psicología solo puede crear usuarios con rol psicólogo',
+        });
+        return;
+      }
+      if (req.user?.role === ROLES.COORDINADOR_ENFERMERIA && req.body.role !== ROLES.ENFERMERO) {
+        res.status(403).json({
+          success: false,
+          message: 'El coordinador de enfermería solo puede crear usuarios con rol enfermero',
+        });
+        return;
+      }
+      const data = {
+        ...req.body,
+        dateOfBirth: new Date(req.body.dateOfBirth),
+      };
+      const user = await userService.create(data);
+      res.status(201).json({
+        success: true,
+        message: 'Usuario creado correctamente',
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;

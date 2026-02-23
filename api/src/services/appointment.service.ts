@@ -2,9 +2,13 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { APPOINTMENT_STATUS } from '../constants/appointment';
+import { ROLES, ROLES_PROFESSIONAL_APPOINTMENT } from '../constants/roles';
 import notificationService from './notification.service';
 import { NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '../constants/notification';
 import { formatDateToSpanish } from '../utils/date-formatter';
+import psychologistCareerService from './psychologist-career.service';
+
+const PATIENT_TYPES_GENERAL = ['faculty', 'administrative'] as const;
 
 export class AppointmentService {
   async getAll(
@@ -25,8 +29,7 @@ export class AppointmentService {
     const where: Prisma.AppointmentWhereInput = {};
 
     // Apply role-based filtering
-    if (userRole === 'patient') {
-      // Patients can only see their own appointments
+    if (userRole === ROLES.PATIENT) {
       const patient = await prisma.patient.findUnique({
         where: { userId },
       });
@@ -34,11 +37,19 @@ export class AppointmentService {
         throw new AppError('Patient profile not found', 404);
       }
       where.patientId = patient.id;
-    } else if (userRole === 'psychologist' || userRole === 'nurse') {
-      // Professionals can see appointments where they are assigned
+    } else if (userRole === ROLES.PSICOLOGO || userRole === ROLES.ENFERMERO) {
       where.professionalId = userId;
+      if (userRole === ROLES.PSICOLOGO) {
+        const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
+        where.patient = {
+          OR: [
+            { patientType: { in: [...PATIENT_TYPES_GENERAL] } },
+            ...(assignedCareerIds.length ? [{ patientType: 'student', careerId: { in: assignedCareerIds } }] : []),
+          ],
+        };
+      }
     }
-    // Admins and coordinators can see all appointments (no additional filter)
+    // Admin y coordinadores ven todas las citas
 
     // Apply additional filters
     if (filters?.patientId) {
@@ -158,16 +169,33 @@ export class AppointmentService {
     }
 
     // Check access permissions
-    if (userRole === 'patient') {
+    if (userRole === ROLES.PATIENT) {
       const patient = await prisma.patient.findUnique({
         where: { userId },
       });
       if (!patient || appointment.patientId !== patient.id) {
         throw new AppError('Access denied', 403);
       }
-    } else if (userRole === 'psychologist' || userRole === 'nurse') {
+    } else if (userRole === ROLES.PSICOLOGO || userRole === ROLES.ENFERMERO) {
       if (appointment.professionalId !== userId) {
         throw new AppError('Access denied', 403);
+      }
+      if (userRole === ROLES.PSICOLOGO) {
+        const patient = appointment.patient as { patientType: string; careerId: string };
+        const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
+        const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
+        const isStudentInScope =
+          patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+        if (!isGeneral && !isStudentInScope) {
+          throw new AppError(
+            'Acceso denegado: solo puede ver citas de estudiantes de sus carreras asignadas o personal docente/administrativo',
+            403
+          );
+        }
+      }
+    } else if (userRole === 'coordinador_enfermeria') {
+      if (appointment.department !== 'nursing') {
+        throw new AppError('Acceso denegado: solo puede ver citas del departamento de enfermería', 403);
       }
     }
 
@@ -199,8 +227,21 @@ export class AppointmentService {
     if (!professional) {
       throw new AppError('Professional not found', 404);
     }
-    if (!['psychologist', 'nurse'].includes(professional.role)) {
-      throw new AppError('Invalid professional role', 400);
+    if (!ROLES_PROFESSIONAL_APPOINTMENT.includes(professional.role as any)) {
+      throw new AppError('El profesional debe ser psicólogo o enfermero', 400);
+    }
+
+    if (professional.role === ROLES.PSICOLOGO) {
+      const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(professional.id);
+      const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
+      const isStudentInScope =
+        patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+      if (!isGeneral && !isStudentInScope) {
+        throw new AppError(
+          'El psicólogo solo puede agendar citas con estudiantes de sus carreras asignadas o con personal docente/administrativo',
+          403
+        );
+      }
     }
 
     // Check for conflicting appointments
@@ -299,7 +340,7 @@ export class AppointmentService {
     }
 
     // Check permissions
-    if (userRole === 'patient') {
+    if (userRole === ROLES.PATIENT) {
       const patient = await prisma.patient.findUnique({
         where: { userId },
       });
@@ -310,7 +351,7 @@ export class AppointmentService {
       if (data.scheduledDate || data.durationMinutes) {
         throw new AppError('Patients cannot reschedule appointments directly', 403);
       }
-    } else if (userRole === 'psychologist' || userRole === 'nurse') {
+    } else if (userRole === ROLES.PSICOLOGO || userRole === ROLES.ENFERMERO) {
       if (appointment.professionalId !== userId) {
         throw new AppError('Access denied', 403);
       }
@@ -406,14 +447,14 @@ export class AppointmentService {
     }
 
     // Check permissions
-    if (userRole === 'patient') {
+    if (userRole === ROLES.PATIENT) {
       const patient = await prisma.patient.findUnique({
         where: { userId },
       });
       if (!patient || appointment.patientId !== patient.id) {
         throw new AppError('Access denied', 403);
       }
-    } else if (userRole === 'psychologist' || userRole === 'nurse') {
+    } else if (userRole === ROLES.PSICOLOGO || userRole === ROLES.ENFERMERO) {
       if (appointment.professionalId !== userId) {
         throw new AppError('Access denied', 403);
       }

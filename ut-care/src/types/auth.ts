@@ -1,10 +1,12 @@
+import type { Role } from '@/constants/roles';
+
 export interface User {
   id: string;
   enrollmentNumber?: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'psychologist' | 'nurse' | 'receptionist' | 'patient';
+  role: Role;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

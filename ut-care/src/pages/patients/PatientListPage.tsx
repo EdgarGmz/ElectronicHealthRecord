@@ -1,11 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPatients, createPatient } from '@/services/patient.service';
 import { useState } from 'react';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import Modal from '@/components/organisms/Modal';
 import NewPatientForm from '@/components/patients/NewPatientForm';
 import type { CreatePatientInput } from '@/types/patient.schema';
+import { useAuthStore } from '@/store/auth.store';
+import { CAN_MANAGE_PATIENTS } from '@/constants/roles';
+import type { Role } from '@/constants/roles';
 
 // Placeholder for a more complex DataTable component
 const DataTable = ({ data, columns }: { data: any[], columns: any[] }) => (
@@ -40,6 +43,8 @@ export default function PatientListPage() {
   const [page] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
+  const canManagePatients = user?.role && CAN_MANAGE_PATIENTS.includes(user.role as Role);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['patients', page],
@@ -58,8 +63,7 @@ export default function PatientListPage() {
   });
 
   const handleCreatePatient = (formData: CreatePatientInput) => {
-    const dataToSubmit = { ...formData, role: 'patient' };
-    createPatientMutation.mutate(dataToSubmit);
+    createPatientMutation.mutate(formData);
   };
 
   const columns = [
@@ -87,13 +91,15 @@ export default function PatientListPage() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Patients</h1>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center px-4 py-2 text-white rounded-md bg-primary hover:bg-primary-dark"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          New Patient
-        </button>
+        {canManagePatients && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center px-4 py-2 text-white rounded-md bg-primary hover:bg-primary-dark"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Patient
+          </button>
+        )}
       </div>
       {isLoading && <p>Loading...</p>}
       {error && <p className="text-red-500">Error fetching patients: {error.message}</p>}

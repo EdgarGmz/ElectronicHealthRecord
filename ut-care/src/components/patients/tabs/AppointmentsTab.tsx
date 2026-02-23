@@ -5,7 +5,9 @@ import type { Appointment } from '@/types/appointment';
 import { Plus, Calendar, User, Clock } from 'lucide-react';
 import { useState } from 'react';
 import AppointmentDetailModal from '@/components/patients/details/AppointmentDetailModal';
-import Modal from '@/components/organisms/Modal'; // Assuming Modal is available for other uses
+import { useAuthStore } from '@/store/auth.store';
+import { CAN_MANAGE_APPOINTMENTS } from '@/constants/roles';
+import type { Role } from '@/constants/roles';
 
 const AppointmentItem = ({ appointment, onClick }: { appointment: Appointment, onClick: (a: Appointment) => void }) => {
   const getStatusColor = (status: string) => {
@@ -50,6 +52,8 @@ const AppointmentItem = ({ appointment, onClick }: { appointment: Appointment, o
 export default function AppointmentsTab({ patient }: { patient: Patient }) {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const canManageAppointments = user?.role && CAN_MANAGE_APPOINTMENTS.includes(user.role as Role);
 
   const { data: appointments, isLoading, error } = useQuery({
     queryKey: ['appointments', patient.id],
@@ -65,10 +69,12 @@ export default function AppointmentsTab({ patient }: { patient: Patient }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Appointments</h3>
-        <button className="flex items-center px-3 py-1 text-sm text-white rounded-md bg-primary hover:bg-primary-dark">
-          <Plus className="w-4 h-4 mr-1" />
-          New Appointment
-        </button>
+        {canManageAppointments && (
+          <button className="flex items-center px-3 py-1 text-sm text-white rounded-md bg-primary hover:bg-primary-dark">
+            <Plus className="w-4 h-4 mr-1" />
+            New Appointment
+          </button>
+        )}
       </div>
 
       {isLoading && <p>Loading appointments...</p>}

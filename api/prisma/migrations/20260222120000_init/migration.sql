@@ -585,3 +585,4 @@ ALTER TABLE "system_settings" ADD CONSTRAINT "system_settings_updated_by_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+

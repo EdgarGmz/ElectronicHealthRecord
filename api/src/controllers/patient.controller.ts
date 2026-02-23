@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import patientService from '../services/patient.service';
+import { AuthRequest } from '../middleware/auth';
 
 export const createPatientValidation = [
   body('email').isEmail().withMessage('Valid email is required'),
@@ -29,14 +30,16 @@ export const updatePatientValidation = [
 ];
 
 export class PatientController {
-  async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getAll(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      const search = req.query.search as string;
+      const search = (req.query.search as string) || (req.query.filter as string);
       const patientType = req.query.patientType as string;
+      const userRole = req.user?.role;
+      const userId = req.user?.userId;
 
-      const result = await patientService.getAll(page, limit, search, patientType);
+      const result = await patientService.getAll(page, limit, search, patientType, userRole, userId);
 
       res.status(200).json({
         success: true,
@@ -48,10 +51,32 @@ export class PatientController {
     }
   }
 
-  async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  /** Buscar paciente por matrícula o número de empleado para abrir expediente (o crear si no existe). */
+  async getByEnrollmentOrEmployee(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const number = req.params.number?.trim();
+      if (!number) {
+        res.status(400).json({
+          success: false,
+          message: 'Matrícula o número de empleado es requerido',
+        });
+        return;
+      }
+      const patient = await patientService.findByEnrollmentOrEmployeeNumber(number);
+      res.status(200).json({
+        success: true,
+        message: 'Paciente encontrado; puede abrir el expediente.',
+        data: patient,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getById(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      const patient = await patientService.getById(id);
+      const patient = await patientService.getById(id, req.user?.role, req.user?.userId);
 
       res.status(200).json({
         success: true,

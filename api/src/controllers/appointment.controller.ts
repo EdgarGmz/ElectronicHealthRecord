@@ -52,7 +52,14 @@ export const getAppointments = async (
       return uuidRegex.test(value) ? value : undefined;
     };
 
-    const filters = {
+    const filters: {
+      patientId?: string;
+      professionalId?: string;
+      status?: string;
+      department?: string;
+      startDate?: Date;
+      endDate?: Date;
+    } = {
       patientId: validateUUID(req.query.patientId as string),
       professionalId: validateUUID(req.query.professionalId as string),
       status: req.query.status as string,
@@ -60,6 +67,9 @@ export const getAppointments = async (
       startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
       endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
     };
+    if (req.user.role === 'coordinador_enfermeria') {
+      filters.department = 'nursing';
+    }
 
     const result = await appointmentService.getAll(
       req.user.userId,

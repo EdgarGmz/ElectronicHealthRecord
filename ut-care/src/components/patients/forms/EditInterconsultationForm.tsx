@@ -61,7 +61,7 @@ export default function EditInterconsultationForm({ interconsultation, onSubmit,
   const { data: professionals, isLoading: professionalsLoading, error: professionalsError } = useQuery({
     queryKey: ['allProfessionals'],
     queryFn: async () => {
-      const response = await api.get('/users?role=psychologist&role=nurse&role=admin'); // Fetch all relevant professionals
+      const response = await api.get('/users?role=psicologo&role=enfermero&role=admin&role=coordinador_psicologia&role=coordinador_enfermeria');
       return response.data.users; // Assuming API returns { users: [...] }
     },
   });
