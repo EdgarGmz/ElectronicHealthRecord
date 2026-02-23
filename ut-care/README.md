@@ -1,73 +1,73 @@
-# React + TypeScript + Vite
+# EHR System - Frontend (Client)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend del Sistema de Registro de Salud Electrónico. Construido con React, TypeScript, Vite, Tailwind CSS y diseño **Crystal Glass** (glassmorphism estilo iOS).
 
-Currently, two official plugins are available:
+## Características
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Estilo Crystal Glass**: Efectos de vidrio translúcido, backdrop blur y bordes sutiles (documentación en `documents/design/style-guide/GLASSMORPHISM_THEME.md`).
+- **Tema modular**: Claro / Oscuro con opciones:
+  - **Estático**: Claro u Oscuro fijo.
+  - **Automático (turno)**: Cambia según horario (día 6:00–18:00, noche 18:00–6:00).
+  - **Automático (sistema)**: Sigue la preferencia del SO.
+- **Idioma**: Español e Inglés (configurable, persistido en `localStorage`).
+- **Estructura**: Atomic Design (atoms, molecules, organisms), rutas según `documents/docs/Flujo-Navegacion-Completo.md`.
 
-## React Compiler
+## Requisitos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 18+
+- API backend en ejecución (por defecto `http://localhost:5000`).
 
-## Expanding the ESLint configuration
+## Instalación
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd client
+npm install
+cp .env.example .env
+# Editar .env: VITE_API_URL=http://localhost:5000/api
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Desarrollo
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Abre [http://localhost:5173](http://localhost:5173). El proxy envía `/api` al backend.
+
+## Build
+
+```bash
+npm run build
+npm run preview   # previsualizar build de producción
+```
+
+## Variables de entorno
+
+| Variable        | Descripción              | Default              |
+|----------------|--------------------------|----------------------|
+| `VITE_API_URL` | URL base de la API       | `http://localhost:5000/api` |
+| `VITE_APP_NAME`| Nombre de la aplicación  | EHR System           |
+
+## Estructura principal
+
+```
+src/
+├── components/
+│   ├── atoms/          # GlassCard, GlassButton
+│   ├── molecules/      # ThemeToggle, LanguageSwitcher
+│   └── organisms/      # Sidebar
+├── layouts/            # MainLayout
+├── pages/              # LoginPage, DashboardPage, ...
+├── store/              # auth.store, theme.store (Zustand)
+├── i18n/               # config + locales (es, en)
+├── lib/                # api (axios)
+├── App.tsx
+├── main.tsx
+└── index.css           # variables CSS tema + utilidades glass
+```
+
+## Documentación de diseño
+
+- `documents/design/style-guide/GLASSMORPHISM_THEME.md` – Tema Crystal Glass
+- `documents/design/style-guide/DARK_MODE.md` – Tema claro/oscuro
+- `documents/docs/Flujo-Navegacion-Completo.md` – Rutas y navegación

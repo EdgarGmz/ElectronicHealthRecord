@@ -1,40 +1,43 @@
-import type { User } from "./auth";
-import type { Patient } from "./patient";
-
 export interface Medication {
-  id: string;
-  name: string;
-  genericName: string;
-  category?: string;
+  id: string
+  name: string
+  genericName: string
+  category: string | null
+  dosageForms: string | null
+  commonDosages: string | null
+  administrationRoutes: string | null
+  contraindications: string | null
+  sideEffects: string | null
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
 }
 
-export interface Prescription {
-  id: string;
-  patientId: string;
-  medicationId: string;
-  prescribedBy: string;
-  dosage: string;
-  frequency: string;
-  route: string;
-  duration?: string;
-  startDate: string;
-  endDate?: string;
-  instructions?: string;
-  status: 'active' | 'inactive' | 'discontinued';
-  createdAt: string;
-
-  // Relations
-  medication: Medication;
-  prescribedByUser: User;
+export interface MedicationWithPrescriptions extends Medication {
+  prescriptions?: Array<{
+    id: string
+    patient?: {
+      user?: { firstName: string; lastName: string; enrollmentNumber?: string | null }
+    }
+  }>
 }
 
-export interface MedicationAdministration {
-    id: string;
-    prescriptionId: string;
-    administrationDate: string;
-    administeredBy: string;
-    notes?: string;
-    
-    // Relations
-    administeredByUser: User;
+export interface MedicationsResponse {
+  medications: Medication[]
+  pagination: { page: number; limit: number; total: number; totalPages: number }
+}
+
+export interface CreateMedicationInput {
+  name: string
+  genericName: string
+  category?: string
+  dosageForms?: string
+  commonDosages?: string
+  administrationRoutes?: string
+  contraindications?: string
+  sideEffects?: string
+}
+
+export interface UpdateMedicationInput extends Partial<CreateMedicationInput> {
+  isActive?: boolean
 }

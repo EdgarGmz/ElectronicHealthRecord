@@ -1,71 +1,45 @@
-import type { User } from "./auth";
+export interface NursingProcedureUser {
+  id: string
+  firstName: string
+  lastName: string
+  email?: string
+}
 
-export interface NursingConsultation {
-  id: string;
-  medicalRecordId: string;
-  consultationDate: string;
-  chiefComplaint?: string;
-  vitalSignsTemperature?: number;
-  vitalSignsBloodPressureSys?: number;
-  vitalSignsBloodPressureDia?: number;
-  vitalSignsHeartRate?: number;
-  vitalSignsRespiratoryRate?: number;
-  vitalSignsOxygenSaturation?: number;
-  vitalSignsWeight?: number;
-  vitalSignsHeight?: number;
-  physicalExamination?: string;
-  diagnosis?: string;
-  treatmentPlan?: string;
-  observations?: string;
-  nurseId: string;
-  createdAt: string;
-  updatedAt: string;
+export interface NursingProcedurePatient {
+  user: NursingProcedureUser
+}
 
-  // Relations
-  nurse: User;
-  nursingProcedures?: NursingProcedure[];
+export interface NursingProcedureConsultation {
+  id: string
+  medicalRecord: {
+    patient: NursingProcedurePatient
+  }
 }
 
 export interface NursingProcedure {
-  id: string;
-  nursingConsultationId: string;
-  procedureType: string;
-  procedureDate: string;
-  description: string;
-  materialsUsed?: string;
-  observations?: string;
-  performedBy: string;
-  createdAt: string;
-
-  // Relations
-  performedByUser: User;
+  id: string
+  nursingConsultationId: string
+  procedureType: string
+  procedureDate: string
+  description: string
+  materialsUsed: string | null
+  observations: string | null
+  performedBy: string
+  createdAt: string
+  consultation?: NursingProcedureConsultation
+  performedByUser?: { id: string; firstName: string; lastName: string }
 }
 
-export interface CreateNursingConsultationInput {
-  medicalRecordId: string;
-  consultationDate: string;
-  chiefComplaint?: string;
-  vitalSignsTemperature?: number;
-  vitalSignsBloodPressureSys?: number;
-  vitalSignsBloodPressureDia?: number;
-  vitalSignsHeartRate?: number;
-  vitalSignsRespiratoryRate?: number;
-  vitalSignsOxygenSaturation?: number;
-  vitalSignsWeight?: number;
-  vitalSignsHeight?: number;
-  physicalExamination?: string;
-  diagnosis?: string;
-  treatmentPlan?: string;
-  observations?: string;
-  nurseId: string;
+export interface NursingProceduresResponse {
+  procedures: NursingProcedure[]
+  pagination: { page: number; limit: number; total: number; totalPages: number }
 }
 
 export interface CreateNursingProcedureInput {
-  nursingConsultationId: string;
-  procedureType: string;
-  procedureDate: string;
-  description: string;
-  materialsUsed?: string;
-  observations?: string;
-  performedBy: string;
+  nursingConsultationId: string
+  procedureType: string
+  procedureDate: string
+  description: string
+  materialsUsed?: string
+  observations?: string
 }

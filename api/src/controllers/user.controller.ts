@@ -23,6 +23,13 @@ export const updateUserValidation = [
   body('dateOfBirth').optional().isISO8601().withMessage('Invalid date of birth'),
 ];
 
+export const updateMeValidation = [
+  body('firstName').optional().notEmpty().withMessage('First name cannot be empty'),
+  body('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),
+  body('phone').optional().isMobilePhone('any').withMessage('Invalid phone number'),
+  body('dateOfBirth').optional().isISO8601().withMessage('Invalid date of birth'),
+];
+
 export class UserController {
   async create(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -67,6 +74,48 @@ export class UserController {
         success: true,
         message: 'Users retrieved successfully',
         data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /** Current user profile — any authenticated user */
+  async getMe(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
+      const user = await userService.getById(userId);
+      res.status(200).json({
+        success: true,
+        message: 'Profile retrieved successfully',
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /** Update current user profile — any authenticated user */
+  async updateMe(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
+      const data = {
+        ...req.body,
+        dateOfBirth: req.body.dateOfBirth ? new Date(req.body.dateOfBirth) : undefined,
+      };
+      const user = await userService.update(userId, data);
+      res.status(200).json({
+        success: true,
+        message: 'Profile updated successfully',
+        data: user,
       });
     } catch (error) {
       next(error);

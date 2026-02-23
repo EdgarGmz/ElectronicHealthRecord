@@ -1,7 +1,6 @@
 /**
- * Roles del sistema (RBAC). Solo personal con acceso al sistema.
- * 5 roles: admin, coordinador_psicologia, coordinador_enfermeria, psicologo, enfermero.
- * El paciente no es usuario del sistema.
+ * Role strings aligned with API (api/src/constants/roles.ts).
+ * Used for dashboard visibility and nav filtering.
  */
 export const ROLES = {
   ADMIN: 'admin',
@@ -9,43 +8,95 @@ export const ROLES = {
   COORDINADOR_ENFERMERIA: 'coordinador_enfermeria',
   PSICOLOGO: 'psicologo',
   ENFERMERO: 'enfermero',
-} as const;
+} as const
 
-export type Role =
-  | typeof ROLES.ADMIN
-  | typeof ROLES.COORDINADOR_PSICOLOGIA
-  | typeof ROLES.COORDINADOR_ENFERMERIA
-  | typeof ROLES.PSICOLOGO
-  | typeof ROLES.ENFERMERO;
+export type Role = (typeof ROLES)[keyof typeof ROLES]
 
-/** Pueden crear/editar pacientes. Enfermero no puede eliminar. */
-export const CAN_MANAGE_PATIENTS: Role[] = [
+/** Roles that see "Total pacientes" on dashboard (coordinators + admin) */
+const ROLES_TOTAL_PATIENTS: readonly string[] = [
+  ROLES.ADMIN,
   ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
+]
+
+/** Roles that see "Citas hoy" (all staff with appointment context) */
+const ROLES_APPOINTMENTS_TODAY: readonly string[] = [
+  ROLES.ADMIN,
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
-];
+]
 
-/** Pueden eliminar (desactivar) pacientes. Enfermero solo crea/edita. */
-export const CAN_DELETE_PATIENTS: Role[] = [ROLES.COORDINADOR_PSICOLOGIA, ROLES.PSICOLOGO];
-
-/** Pueden crear/editar/cancelar citas. Enfermero solo ve sus citas (acceso restringido). */
-export const CAN_MANAGE_APPOINTMENTS: Role[] = [ROLES.COORDINADOR_PSICOLOGIA, ROLES.PSICOLOGO];
-
-/** Pueden consultar y editar stock de medicamentos */
-export const CAN_MANAGE_MEDICATIONS: Role[] = [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO];
-
-/** Pueden crear nuevos medicamentos en el catálogo (enfermero solo edita stock) */
-export const CAN_CREATE_MEDICATION: Role[] = [ROLES.COORDINADOR_ENFERMERIA];
-
-/** Pueden crear/editar sesiones de terapia (coordinador enfermería solo lectura) */
-export const CAN_MANAGE_THERAPY_SESSIONS: Role[] = [ROLES.COORDINADOR_PSICOLOGIA, ROLES.PSICOLOGO];
-
-/** Pueden crear/editar evaluaciones psicométricas (coordinador enfermería solo lectura) */
-export const CAN_MANAGE_PSICOMETRIA: Role[] = [ROLES.COORDINADOR_PSICOLOGIA, ROLES.PSICOLOGO];
-
-/** Pueden crear expedientes médicos (coordinador enfermería no crea) */
-export const CAN_CREATE_MEDICAL_RECORD: Role[] = [
+/** Roles that see "Pendientes" (tasks/pending items) */
+const ROLES_PENDING: readonly string[] = [
+  ROLES.ADMIN,
   ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
-];
+]
+
+export type DashboardCardId = 'totalPatients' | 'appointmentsToday' | 'pending'
+
+export interface DashboardCardConfig {
+  id: DashboardCardId
+  /** Which roles can see this card */
+  roles: readonly string[]
+}
+
+export const DASHBOARD_CARDS: DashboardCardConfig[] = [
+  { id: 'totalPatients', roles: ROLES_TOTAL_PATIENTS },
+  { id: 'appointmentsToday', roles: ROLES_APPOINTMENTS_TODAY },
+  { id: 'pending', roles: ROLES_PENDING },
+]
+
+function normalizeRole(role: string | undefined): string {
+  return role?.toLowerCase().trim() ?? ''
+}
+
+/**
+ * Returns the list of dashboard card ids the given role is allowed to see.
+ */
+export function getVisibleDashboardCards(role: string | undefined): DashboardCardId[] {
+  const r = normalizeRole(role)
+  return r ? DASHBOARD_CARDS.filter((c) => c.roles.includes(r)).map((c) => c.id) : []
+}
+
+/** Nav path -> roles that can see it (empty = all staff). Sesiones solo psicología/coords, no admin. */
+const NAV_VISIBILITY: Record<string, readonly string[]> = {
+  '/': [], // dashboard: all
+  '/patients': [],
+  '/appointments': [],
+  '/sessions': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO],
+  '/medications': [],
+  '/procedures': [],
+  '/interconsultations': [],
+  '/reports': [],
+  '/evaluations': [],
+  '/notifications': [],
+}
+
+/**
+ * Returns whether the given role can see the nav item with path `to`.
+ * If the path is not in NAV_VISIBILITY or the array is empty, all roles can see it.
+ * Otherwise only the listed roles can see it (admin is excluded for sessions).
+ */
+export function canSeeNavItem(to: string, role: string | undefined): boolean {
+  const r = normalizeRole(role)
+  const allowed = NAV_VISIBILITY[to]
+  if (!allowed || allowed.length === 0) return true
+  return allowed.includes(r)
+}
+
+/**
+ * Returns whether the given role can access the given pathname (e.g. /sessions, /sessions/new, /sessions/123).
+ * Used to show UnauthorizedPage when user navigates directly to a restricted route.
+ */
+export function canAccessPath(pathname: string, role: string | undefined): boolean {
+  const normalized = pathname.replace(/\/$/, '') || '/'
+  for (const key of Object.keys(NAV_VISIBILITY)) {
+    if (normalized === key || normalized.startsWith(key + '/')) return canSeeNavItem(key, role)
+  }
+  return true
+}

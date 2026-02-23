@@ -1,12 +1,7 @@
-import api from './api';
+import { api } from '@/lib/api'
+import type { Career } from '@/types/career'
 
-export interface Career {
-  id: string;
-  name: string;
-  code: string;
+export async function getCareers(): Promise<Career[]> {
+  const { data } = await api.get<{ success: boolean; data: Career[] }>('/careers')
+  return data.data
 }
-
-export const getCareers = async (): Promise<Career[]> => {
-  const response = await api.get<any>('/careers'); // We'll check if this endpoint exists
-  return response.data.data;
-};

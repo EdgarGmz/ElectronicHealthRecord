@@ -248,7 +248,7 @@ npm run prisma:seed
 #### **4. Configurar Frontend**
 
 ```bash
-cd ../client
+cd ../ut-care
 
 # Instalar dependencias
 npm install
@@ -272,12 +272,29 @@ npm run dev
 
 **Terminal 2 - Frontend:**
 ```bash
-cd client
+cd ut-care
 npm run dev
 ```
 
 El backend estará disponible en `http://localhost:5000`  
 El frontend estará disponible en `http://localhost:5173`
+
+---
+
+## 👤 Usuarios de prueba
+
+Tras ejecutar el seed (`npx prisma db seed`), puedes iniciar sesión en el frontend con cualquiera de estos usuarios. **La contraseña de todos es:** `Password123!`
+
+| Rol | Correo | Descripción |
+|-----|--------|-------------|
+| **Administrador** | `admin@ehr-system.com` | Acceso completo al sistema |
+| **Coordinador Psicología** | `coord.psicologia@ehr-system.com` | Gestión de psicología y carreras |
+| **Coordinador Enfermería** | `coord.enfermeria@ehr-system.com` | Gestión de enfermería y medicamentos |
+| **Psicólogo** | `psicologo1@ehr-system.com` | Atención psicológica (también `psicologo2`, `psicologo3`, …) |
+| **Enfermero/a** | `enfermera1@ehr-system.com` | Atención de enfermería (también `enfermera2`, …) |
+| **Paciente / Estudiante** | `estudiante1@ehr-system.com` | Rol paciente (también `estudiante2`, …) |
+
+> **Nota:** El seed crea más usuarios del mismo tipo (varios psicólogos, enfermeras y estudiantes). La contraseña es la misma para todos.
 
 ---
 
@@ -298,7 +315,7 @@ npm run migration:run        # Ejecutar migraciones pendientes
 npm run migration:revert     # Revertir última migración
 ```
 
-### **Frontend (client/)**
+### **Frontend (ut-care/)**
 
 ```bash
 npm run dev              # Ejecutar en modo desarrollo
@@ -391,7 +408,7 @@ npm run test:watch          # Modo watch
 npm run test:coverage       # Con cobertura
 
 # Frontend
-cd client
+cd ut-care
 npm test                    # Tests unitarios con Vitest
 npm run test:e2e            # Tests E2E con Cypress/Playwright
 ```
@@ -426,7 +443,7 @@ El proyecto mantiene una cobertura mínima de:
 - **[📚 Documentación API REST](./api/API_DOCUMENTATION.md)** - Guía completa de endpoints y uso
 - **[📄 Especificación OpenAPI](./api/openapi.yaml)** - Definición OpenAPI 3.0 de la API
 - **[API Documentation (Swagger UI)](http://localhost:5000/api-docs)** - Documentación interactiva (en desarrollo)
-- **[Frontend Docs](./client/README.md)** - Stack tecnológico frontend
+- **[Frontend Docs](./ut-care/README.md)** - Stack tecnológico frontend
 - **[Backend Docs](./api/README.md)** - Stack tecnológico backend
 
 ---

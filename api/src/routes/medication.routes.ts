@@ -9,19 +9,19 @@ const router = Router();
 // Todas las rutas requieren autenticación. Admin solo puede ver inventario; crear/editar solo enfermero.
 router.use(authenticateToken);
 
-// Inventario de medicamentos (catálogo)
-router.get('/medications', medicationController.getMedications);
-router.get('/medications/:id', medicationController.getMedicationById);
+// Inventario de medicamentos (catálogo) — rutas relativas al mount /medications
+router.get('/', medicationController.getMedications);
+router.get('/:id', medicationController.getMedicationById);
 
 router.post(
-  '/medications',
+  '/',
   authorizeRoles(...ROLES_CAN_CREATE_MEDICATION),
   validate(medicationController.createMedicationValidation),
   medicationController.createMedication
 );
 
 router.put(
-  '/medications/:id',
+  '/:id',
   authorizeRoles(...ROLES_CAN_MANAGE_MEDICATIONS),
   validate(medicationController.updateMedicationValidation),
   medicationController.updateMedication

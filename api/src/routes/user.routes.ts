@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import userController, { createUserValidation, updateUserValidation } from '../controllers/user.controller';
+import userController, { createUserValidation, updateUserValidation, updateMeValidation } from '../controllers/user.controller';
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { param } from 'express-validator';
@@ -8,6 +8,10 @@ import { ROLES_USER_CRUD, ROLES_CAN_CREATE_PSYCHOLOGY_USER, ROLES_CAN_CREATE_NUR
 const router = Router();
 
 router.use(authenticateToken);
+
+// Current user profile — any authenticated user
+router.get('/me', userController.getMe.bind(userController));
+router.put('/me', validate(updateMeValidation), userController.updateMe.bind(userController));
 
 // Solo admin: listar, ver, editar y eliminar usuarios. Coordinador de psicología solo puede crear usuarios (rol psicólogo).
 router.get('/', authorizeRoles(...ROLES_USER_CRUD), userController.getAll.bind(userController));

@@ -1,38 +1,39 @@
-import api from './api';
-import type { Prescription } from '@/types/medication';
+import { api } from '@/lib/api'
+import type {
+  Medication,
+  MedicationWithPrescriptions,
+  MedicationsResponse,
+  CreateMedicationInput,
+  UpdateMedicationInput,
+} from '@/types/medication'
 
-/**
- * Fetches all prescriptions for a specific patient.
- * @param patientId The ID of the patient.
- */
-export const getPrescriptionsByPatientId = async (patientId: string): Promise<Prescription[]> => {
-  const response = await api.get<Prescription[]>(`/prescriptions/patient/${patientId}`);
-  return response.data;
-};
-
-/**
- * Creates a new prescription.
- * @param data The data for the new prescription.
- */
-export const createPrescription = async (data: any): Promise<Prescription> => {
-  const response = await api.post<Prescription>('/prescriptions', data);
-  return response.data;
-};
-
-/**
- * Fetches all available medications for selection.
- */
-export const getAllMedications = async (): Promise<any[]> => {
-    const response = await api.get<any[]>('/medications');
-    return response.data;
+export async function getMedications(params: {
+  page?: number
+  limit?: number
+  search?: string
+  category?: string
+  isActive?: boolean
+} = {}): Promise<MedicationsResponse> {
+  const { page = 1, limit = 10, search, category, isActive } = params
+  const sp = new URLSearchParams({ page: String(page), limit: String(limit) })
+  if (search?.trim()) sp.set('search', search.trim())
+  if (category) sp.set('category', category)
+  if (isActive !== undefined) sp.set('isActive', String(isActive))
+  const { data } = await api.get<{ success: boolean; data: MedicationsResponse }>(`/medications?${sp}`)
+  return data.data
 }
 
-/**
- * Fetches the count of pending medication administrations for a specific nurse.
- * "Pending" might mean scheduled for today and not yet administered.
- * @param nurseId The ID of the nurse.
- */
-export const getNursePendingMedicationAdministrationsCount = async (nurseId: string): Promise<{ count: number }> => {
-  const response = await api.get<{ count: number }>(`/medication-administrations/nurse/${nurseId}/pending/count`);
-  return response.data;
-};
+export async function getMedicationById(id: string): Promise<MedicationWithPrescriptions> {
+  const { data } = await api.get<{ success: boolean; data: MedicationWithPrescriptions }>(`/medications/${id}`)
+  return data.data
+}
+
+export async function createMedication(body: CreateMedicationInput): Promise<Medication> {
+  const { data } = await api.post<{ success: boolean; data: Medication }>('/medications', body)
+  return data.data
+}
+
+export async function updateMedication(id: string, body: UpdateMedicationInput): Promise<Medication> {
+  const { data } = await api.put<{ success: boolean; data: Medication }>(`/medications/${id}`, body)
+  return data.data
+}

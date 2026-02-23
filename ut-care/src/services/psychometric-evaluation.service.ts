@@ -1,40 +1,87 @@
-import api from './api';
-import type { PsychometricEvaluation, CreatePsychometricEvaluationInput } from '@/types/psychometric-evaluation';
-import type { UpdatePsychometricEvaluationInput } from '@/types/psychometric-evaluation.update.schema';
+import { api } from '@/lib/api'
+import type {
+  PsychometricEvaluation,
+  PsychometricEvaluationsResponse,
+  CreatePsychometricEvaluationInput,
+  UpdatePsychometricEvaluationInput,
+} from '@/types/psychometric-evaluation'
 
-/**
- * Fetches all psychometric evaluations for a specific psychology record.
- * @param psychologyRecordId The ID of the psychology record.
- */
-export const getPsychometricEvaluationsByRecordId = async (psychologyRecordId: string): Promise<PsychometricEvaluation[]> => {
-  const response = await api.get<PsychometricEvaluation[]>(`/psychometric-evaluations/record/${psychologyRecordId}`);
-  return response.data;
-};
+export async function getPsychometricEvaluations(params: {
+  page?: number
+  limit?: number
+  psychologyRecordId?: string
+  evaluationType?: string
+  administeredBy?: string
+  applicationDateFrom?: string
+  applicationDateTo?: string
+} = {}): Promise<PsychometricEvaluationsResponse> {
+  const {
+    page = 1,
+    limit = 10,
+    psychologyRecordId,
+    evaluationType,
+    administeredBy,
+    applicationDateFrom,
+    applicationDateTo,
+  } = params
+  const sp = new URLSearchParams({ page: String(page), limit: String(limit) })
+  if (psychologyRecordId) sp.set('psychologyRecordId', psychologyRecordId)
+  if (evaluationType) sp.set('evaluationType', evaluationType)
+  if (administeredBy) sp.set('administeredBy', administeredBy)
+  if (applicationDateFrom) sp.set('applicationDateFrom', applicationDateFrom)
+  if (applicationDateTo) sp.set('applicationDateTo', applicationDateTo)
+  const { data } = await api.get<{ success: boolean; data: PsychometricEvaluationsResponse }>(
+    `/psychometric-tests?${sp}`
+  )
+  return data.data
+}
 
-/**
- * Creates a new psychometric evaluation.
- * @param data The data for the new psychometric evaluation.
- */
-export const createPsychometricEvaluation = async (data: CreatePsychometricEvaluationInput): Promise<PsychometricEvaluation> => {
-  const response = await api.post<PsychometricEvaluation>('/psychometric-evaluations', data);
-  return response.data;
-};
+export async function getPsychometricEvaluationById(id: string): Promise<PsychometricEvaluation> {
+  const { data } = await api.get<{ success: boolean; data: PsychometricEvaluation }>(
+    `/psychometric-tests/${id}`
+  )
+  return data.data
+}
 
-/**
- * Fetches the count of psychometric evaluations administered by a specific professional.
- * @param administeredById The ID of the professional who administered the evaluations.
- */
-export const getAdministeredEvaluationsCount = async (administeredById: string): Promise<{ count: number }> => {
-  const response = await api.get<{ count: number }>(`/psychometric-evaluations/administered-by/${administeredById}/count`);
-  return response.data;
-};
+export async function createPsychometricEvaluation(
+  body: CreatePsychometricEvaluationInput
+): Promise<PsychometricEvaluation> {
+  const payload: Record<string, unknown> = {
+    psychologyRecordId: body.psychologyRecordId,
+    evaluationType: body.evaluationType,
+    applicationDate: body.applicationDate,
+  }
+  if (body.rawScore !== undefined && body.rawScore !== '') payload.rawScore = Number(body.rawScore)
+  if (body.standardScore !== undefined && body.standardScore !== '') payload.standardScore = Number(body.standardScore)
+  if (body.percentile !== undefined) payload.percentile = body.percentile
+  if (body.interpretation?.trim()) payload.interpretation = body.interpretation.trim()
+  if (body.fileUrl?.trim()) payload.fileUrl = body.fileUrl.trim()
+  const { data } = await api.post<{ success: boolean; data: PsychometricEvaluation }>(
+    '/psychometric-tests',
+    payload
+  )
+  return data.data
+}
 
-/**
- * Updates an existing psychometric evaluation.
- * @param evaluationId The ID of the psychometric evaluation to update.
- * @param data The data to update for the psychometric evaluation.
- */
-export const updatePsychometricEvaluation = async (evaluationId: string, data: UpdatePsychometricEvaluationInput): Promise<PsychometricEvaluation> => {
-  const response = await api.patch<PsychometricEvaluation>(`/psychometric-evaluations/${evaluationId}`, data);
-  return response.data;
-};
+export async function updatePsychometricEvaluation(
+  id: string,
+  body: UpdatePsychometricEvaluationInput
+): Promise<PsychometricEvaluation> {
+  const payload: Record<string, unknown> = {}
+  if (body.evaluationType !== undefined) payload.evaluationType = body.evaluationType
+  if (body.applicationDate !== undefined) payload.applicationDate = body.applicationDate
+  if (body.rawScore !== undefined && body.rawScore !== '') payload.rawScore = Number(body.rawScore)
+  if (body.standardScore !== undefined && body.standardScore !== '') payload.standardScore = Number(body.standardScore)
+  if (body.percentile !== undefined) payload.percentile = body.percentile
+  if (body.interpretation !== undefined) payload.interpretation = body.interpretation
+  if (body.fileUrl !== undefined) payload.fileUrl = body.fileUrl
+  const { data } = await api.put<{ success: boolean; data: PsychometricEvaluation }>(
+    `/psychometric-tests/${id}`,
+    payload
+  )
+  return data.data
+}
+
+export async function deletePsychometricEvaluation(id: string): Promise<void> {
+  await api.delete(`/psychometric-tests/${id}`)
+}

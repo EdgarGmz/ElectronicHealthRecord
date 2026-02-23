@@ -1,17 +1,15 @@
-import { Outlet } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import Header from "./Header";
+import { Outlet } from 'react-router-dom'
+import { Sidebar } from '@/components/organisms/Sidebar'
 
-export default function MainLayout() {
+export function MainLayout() {
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen bg-mesh">
       <Sidebar />
-      <div className="flex flex-col flex-1">
-        <Header />
-        <main className="flex-1 p-4 overflow-y-auto">
+      <main className="pl-64 min-h-screen">
+        <div className="p-6">
           <Outlet />
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
-  );
+  )
 }

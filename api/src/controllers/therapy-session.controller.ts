@@ -34,16 +34,54 @@ export const getTherapySessionByIdValidation = [
   param('id').isUUID().withMessage('Invalid therapy session ID'),
 ];
 
-export const getTherapySessions = (_req: Request, res: Response, _next: NextFunction): void => {
-  res.status(200).json({ success: true, message: 'Therapy sessions list (not implemented)' });
+export const getTherapySessions = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const patientId = req.query.patientId as string | undefined;
+    const therapistId = req.query.therapistId as string | undefined;
+    const psychologyRecordId = req.query.psychologyRecordId as string | undefined;
+    const result = await therapySessionService.getAll(
+      req.user.userId,
+      req.user.role,
+      page,
+      limit,
+      { patientId, therapistId, psychologyRecordId }
+    );
+    res.status(200).json({
+      success: true,
+      message: 'Therapy sessions retrieved successfully',
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const createTherapySession = (_req: AuthRequest, res: Response, _next: NextFunction): void => {
   res.status(201).json({ success: true, message: 'Therapy session created (not implemented)' });
 };
 
-export const getTherapySessionById = (req: Request, res: Response, _next: NextFunction): void => {
-  res.status(200).json({ success: true, message: `Therapy session with id ${req.params.id} (not implemented)` });
+export const getTherapySessionById = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+    const { id } = req.params;
+    const session = await therapySessionService.getById(id, req.user.userId, req.user.role);
+    res.status(200).json({
+      success: true,
+      message: 'Therapy session retrieved successfully',
+      data: session,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const updateTherapySession = (req: Request, res: Response, _next: NextFunction): void => {

@@ -1,55 +1,70 @@
-import api from './api';
-import type { Interconsultation, CreateInterconsultationInput } from '@/types/interconsultation';
-import type { UpdateInterconsultationInput } from '@/types/interconsultation.update.schema';
+import { api } from '@/lib/api'
+import type {
+  Interconsultation,
+  InterconsultationsResponse,
+  CreateInterconsultationInput,
+} from '@/types/interconsultation'
 
-/**
- * Fetches all interconsultations for a specific patient.
- * @param patientId The ID of the patient.
- */
-export const getInterconsultationsByPatientId = async (patientId: string): Promise<Interconsultation[]> => {
-  const response = await api.get<Interconsultation[]>(`/interconsultations/patient/${patientId}`);
-  return response.data;
-};
+export async function getInterconsultations(params: {
+  page?: number
+  limit?: number
+  patientId?: string
+  fromDepartment?: string
+  toDepartment?: string
+  status?: string
+  urgency?: string
+  fromProfessionalId?: string
+  toProfessionalId?: string
+} = {}): Promise<InterconsultationsResponse> {
+  const {
+    page = 1,
+    limit = 10,
+    patientId,
+    fromDepartment,
+    toDepartment,
+    status,
+    urgency,
+    fromProfessionalId,
+    toProfessionalId,
+  } = params
+  const sp = new URLSearchParams({ page: String(page), limit: String(limit) })
+  if (patientId) sp.set('patientId', patientId)
+  if (fromDepartment) sp.set('fromDepartment', fromDepartment)
+  if (toDepartment) sp.set('toDepartment', toDepartment)
+  if (status) sp.set('status', status)
+  if (urgency) sp.set('urgency', urgency)
+  if (fromProfessionalId) sp.set('fromProfessionalId', fromProfessionalId)
+  if (toProfessionalId) sp.set('toProfessionalId', toProfessionalId)
+  const { data } = await api.get<{ success: boolean; data: InterconsultationsResponse }>(
+    `/interconsultations?${sp}`
+  )
+  return data.data
+}
 
-/**
- * Creates a new interconsultation.
- * @param data The data for the new interconsultation.
- */
-export const createInterconsultation = async (data: CreateInterconsultationInput): Promise<Interconsultation> => {
-  const response = await api.post<Interconsultation>('/interconsultations', data);
-  return response.data;
-};
+export async function getInterconsultationById(id: string): Promise<Interconsultation> {
+  const { data } = await api.get<{ success: boolean; data: Interconsultation }>(
+    `/interconsultations/${id}`
+  )
+  return data.data
+}
 
-/**
- * Fetches the count of pending interconsultations for a specific professional.
- * @param professionalId The ID of the professional.
- */
-export const getPendingInterconsultationsForProfessionalCount = async (professionalId: string): Promise<{ count: number }> => {
-  const response = await api.get<any>('/interconsultations', {
-    params: { professionalId, status: 'pending' }
-  });
-  // If backend returns data array directly
-  const items = response.data.data || [];
-  return { count: items.length };
-};
+export async function createInterconsultation(
+  body: CreateInterconsultationInput
+): Promise<Interconsultation> {
+  const { data } = await api.post<{ success: boolean; data: Interconsultation }>(
+    '/interconsultations',
+    body
+  )
+  return data.data
+}
 
-/**
- * Fetches the total count of pending interconsultations.
- */
-export const getPendingInterconsultationsCount = async (): Promise<{ count: number }> => {
-  const response = await api.get<any>('/interconsultations', {
-    params: { status: 'pending' }
-  });
-  const items = response.data.data || [];
-  return { count: items.length };
-};
-
-/**
- * Updates an existing interconsultation.
- * @param interconsultationId The ID of the interconsultation to update.
- * @param data The data to update for the interconsultation.
- */
-export const updateInterconsultation = async (interconsultationId: string, data: UpdateInterconsultationInput): Promise<Interconsultation> => {
-  const response = await api.patch<Interconsultation>(`/interconsultations/${interconsultationId}`, data);
-  return response.data;
-};
+export async function respondToInterconsultation(
+  id: string,
+  response: string
+): Promise<Interconsultation> {
+  const { data } = await api.post<{ success: boolean; data: Interconsultation }>(
+    `/interconsultations/${id}/response`,
+    { response }
+  )
+  return data.data
+}

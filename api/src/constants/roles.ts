@@ -114,3 +114,14 @@ export const ROLES_USER_CRUD = [ROLES.ADMIN] as const;
 
 /** Solo admin tiene CRUD completo de carreras */
 export const ROLES_CAREER_CRUD = [ROLES.ADMIN] as const;
+
+/** Pueden ver listado y detalle de procedimientos de enfermería (mismo criterio que expedientes). */
+export const ROLES_CAN_ACCESS_NURSING_PROCEDURES = [
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
+  ROLES.PSICOLOGO,
+  ROLES.ENFERMERO,
+] as const;
+
+/** Pueden crear procedimientos de enfermería (en el contexto de una consulta de enfermería). */
+export const ROLES_CAN_CREATE_NURSING_PROCEDURE = [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO] as const;

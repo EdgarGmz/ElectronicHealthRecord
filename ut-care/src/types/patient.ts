@@ -1,61 +1,37 @@
-import type { User } from "./auth";
-import { PsychologyRecordDetails } from "./diagnosis"; // Import PsychologyRecordDetails
-
-// New: Nursing Consultation details
-export interface NursingConsultationDetails {
-  id: string;
-  medicalRecordId: string;
-  consultationDate: string;
-  chiefComplaint?: string;
-  nurseId: string;
-  // ... other fields from NursingConsultation model in schema.prisma
-  nursingProcedures?: NursingProcedure[]; // Assuming procedures are nested
-  nurse: User; // Assuming relation to User for nurse details
+export interface PatientUser {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  dateOfBirth: string
+  phone: string | null
+  enrollmentNumber: string | null
 }
 
-export interface NursingProcedure {
-  id: string;
-  nursingConsultationId: string;
-  procedureType: string;
-  procedureDate: string;
-  description: string;
-  performedBy: string;
-  // ... other fields from NursingProcedure model in schema.prisma
-  performedByUser: User; // Assuming relation to User for performedBy details
-}
-
-// This should align with the Prisma schema's relations
-interface MedicalRecord {
-  id: string;
-  psychologyRecord?: PsychologyRecordDetails;
-  nursingConsultations?: NursingConsultationDetails[]; // Add nursing consultations
-  // other medical record fields
+export interface Career {
+  id: string
+  name: string
+  code: string | null
 }
 
 export interface Patient {
-  id: string;
-  userId: string;
-  patientType: string;
-  maritalStatus?: string;
-  guardianName?: string;
-  guardianPhone?: string;
-  careerId: string;
-  group?: string;
-  occupation?: string;
-  trimester?: number;
-  createdAt: string;
-  updatedAt: string;
-  user: User;
-  career: {
-    id: string;
-    name: string;
-  };
-  medicalRecord?: MedicalRecord; // Add medical record relation
+  id: string
+  userId: string
+  patientType: string
+  maritalStatus: string | null
+  guardianName: string | null
+  guardianPhone: string | null
+  careerId: string
+  group: string | null
+  occupation: string | null
+  trimester: number | null
+  createdAt: string
+  updatedAt: string
+  user: PatientUser
+  career: Career
 }
 
-export interface PatientPaginatedResponse {
-  patients: Patient[];
-  total: number;
-  page: number;
-  limit: number;
+export interface PatientsResponse {
+  patients: Patient[]
+  pagination: { page: number; limit: number; total: number; totalPages: number }
 }
