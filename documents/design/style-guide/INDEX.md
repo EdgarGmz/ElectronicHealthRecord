@@ -464,7 +464,7 @@ export default Button;
 ## 📚 Recursos y Referencias
 
 ### Documentación Interna
-- [📊 Requisitos Funcionales](../../Req-Funcionales.md)
+- [📊 Requisitos Funcionales](../../../docs/requisitos/Req-Funcionales.md)
 - [🔒 Requisitos de Seguridad](../../Req-Seguridad.md)
 - [🎨 Diseño UI/UX](../README.md)
 - [📁 Estructura del Proyecto](../../../PROJECT_STRUCTURE.md)

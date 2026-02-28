@@ -6,6 +6,7 @@ import {
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { param } from 'express-validator';
+import { ROLES_CAN_CREATE_NOTIFICATIONS } from '../constants/roles';
 
 const router = Router();
 
@@ -35,10 +36,10 @@ router.put(
   notificationController.markNotificationAsRead
 );
 
-// Create notification - only admins, nurses, and psychologists can create notifications
+// Create notification - admin, enfermero, psicólogo
 router.post(
   '/',
-  authorizeRoles('admin', 'nurse', 'psychologist'),
+  authorizeRoles(...ROLES_CAN_CREATE_NOTIFICATIONS),
   validate(createNotificationValidation),
   notificationController.createNotification
 );

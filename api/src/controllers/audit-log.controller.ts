@@ -54,7 +54,8 @@ export const getAuditLogs = async (req: AuthRequest, res: Response, next: NextFu
       filters.endDate = new Date(req.query.endDate as string);
     }
 
-    const result = await auditLogService.getAuditLogs(page, limit, filters);
+    const userRole = req.user?.role;
+    const result = await auditLogService.getAuditLogs(page, limit, filters, userRole);
 
     res.status(200).json({
       success: true,

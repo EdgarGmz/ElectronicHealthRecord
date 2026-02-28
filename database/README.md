@@ -252,7 +252,7 @@ VALUES ('admin@example.com', 'hashed_password', 'Admin', 'System', '1990-01-01',
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [Database Design Best Practices](https://www.postgresqltutorial.com/)
 - [ER Diagram Tools](https://dbdiagram.io)
-- [Requisitos Funcionales](../../documents/Req-Funcionales.md)
+- [Requisitos Funcionales](../../documents/docs/requisitos/Req-Funcionales.md)
 - [Requisitos No Funcionales](../../documents/Req-NoFuncionales.md)
 
 ## 👥 Contribuciones

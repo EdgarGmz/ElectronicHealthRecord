@@ -27,7 +27,7 @@ Este documento complementa la [Guía de GitHub Projects](./GITHUB_PROJECTS_GUIDE
 - ✅ Documento de requisitos no funcionales  
 - ✅ Casos de uso documentados
 - ✅ Historias de usuario
-- ✅ [Análisis de riesgos y amenazas](./documents/Analisis-Riesgos-Amenazas.md)
+- ✅ [Análisis de riesgos y amenazas](./documents/docs/riesgos/Analisis-Riesgos-Amenazas.md)
 - ✅ Análisis de tecnologías
 
 #### Tareas Principales:
@@ -46,7 +46,7 @@ Este documento complementa la [Guía de GitHub Projects](./GITHUB_PROJECTS_GUIDE
 - [x] Documento de requisitos aprobado por el equipo
 - [x] Casos de uso validados
 - [x] Stack tecnológico confirmado
-- [x] [Riesgos identificados y mitigaciones planteadas](./documents/Analisis-Riesgos-Amenazas.md)
+- [x] [Riesgos identificados y mitigaciones planteadas](./documents/docs/riesgos/Analisis-Riesgos-Amenazas.md)
 
 ---
 

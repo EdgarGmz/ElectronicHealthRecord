@@ -40,16 +40,18 @@ async function seedCareers() {
   console.log('🎓 Seeding Careers...');
   
   const careers = [
-    { name: 'Ingeniería en Sistemas Computacionales', code: 'ISC' },
-    { name: 'Ingeniería Industrial', code: 'IND' },
-    { name: 'Ingeniería Electrónica', code: 'IEL' },
-    { name: 'Ingeniería Mecánica', code: 'IMC' },
-    { name: 'Arquitectura', code: 'ARQ' },
-    { name: 'Licenciatura en Administración', code: 'LAD' },
-    { name: 'Contador Público', code: 'CP' },
-    { name: 'Ingeniería Civil', code: 'ICL' },
-    { name: 'Ingeniería Química', code: 'IQM' },
-    { name: 'Licenciatura en Biología', code: 'LBI' },
+    { name: 'TSU. Gestión Institucional Educativa y Curricular', code: 'TSU-GIEC' },
+    { name: 'TSU. Innovación de Negocios y Mercadotecnia', code: 'TSU-INM' },
+    { name: 'TSU. Mantenimiento Industrial', code: 'TSU-MI' },
+    { name: 'TSU. Sistemas Productivos', code: 'TSU-SP' },
+    { name: 'TSU. Mecatrónica', code: 'TSU-MEC' },
+    { name: 'TSU. Desarrollo y Gestión de Software', code: 'TSU-DGS' },
+    { name: 'Lic. Gestión Institucional Educativa y Curricular', code: 'LIC-GIEC' },
+    { name: 'Lic. Innovación de Negocios y Mercadotecnia', code: 'LIC-INM' },
+    { name: 'Ing. Mantenimiento Industrial', code: 'ING-MI' },
+    { name: 'Ing. Sistemas Productivos', code: 'ING-SP' },
+    { name: 'Ing. Mecatrónica', code: 'ING-MEC' },
+    { name: 'Ing. Desarrollo y Gestión de Software', code: 'ING-DGS' },
   ];
 
   const createdCareers = [];
@@ -111,7 +113,7 @@ async function seedUsers(_careers: any[]) {
       lastName: faker.person.lastName(),
       dateOfBirth: faker.date.past({ years: 40 }),
       phone: faker.string.numeric(10),
-      role: 'psychology_coordinator',
+      role: 'coordinador_psicologia',
       isActive: true,
     },
   });
@@ -128,7 +130,7 @@ async function seedUsers(_careers: any[]) {
       lastName: faker.person.lastName(),
       dateOfBirth: faker.date.past({ years: 40 }),
       phone: faker.string.numeric(10),
-      role: 'nursing_coordinator',
+      role: 'coordinador_enfermeria',
       isActive: true,
     },
   });
@@ -148,7 +150,7 @@ async function seedUsers(_careers: any[]) {
         lastName: faker.person.lastName(),
         dateOfBirth: faker.date.past({ years: 35 }),
         phone: faker.string.numeric(10),
-        role: 'psychologist',
+        role: 'psicologo',
         isActive: true,
       },
     });
@@ -170,7 +172,7 @@ async function seedUsers(_careers: any[]) {
         lastName: faker.person.lastName(),
         dateOfBirth: faker.date.past({ years: 35 }),
         phone: faker.string.numeric(10),
-        role: 'nurse',
+        role: 'enfermero',
         isActive: true,
       },
     });
@@ -747,7 +749,7 @@ async function seedAppointments(patients: any[], psychologists: any[], nurses: a
         : 'scheduled';
 
       const professional = randomElement(professionals);
-      const department = professional.role === 'psychologist' ? 'psychology' : 'nursing';
+      const department = professional.role === 'psicologo' ? 'psychology' : 'nursing';
 
       await prisma.appointment.create({
         data: {

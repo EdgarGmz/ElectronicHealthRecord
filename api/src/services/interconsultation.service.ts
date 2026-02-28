@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { INTERCONSULTATION_STATUS } from '../constants/interconsultation';
+import { ROLES, ROLES_INTERCONSULTA } from '../constants/roles';
 
 export class InterconsultationService {
   async getAll(
@@ -22,9 +23,7 @@ export class InterconsultationService {
     const skip = (page - 1) * limit;
     const where: Prisma.InterconsultationWhereInput = {};
 
-    // Apply role-based filtering
-    if (userRole === 'patient') {
-      // Patients can see their own interconsultations
+    if (userRole === ROLES.PATIENT) {
       const patient = await prisma.patient.findUnique({
         where: { userId },
       });
@@ -32,15 +31,13 @@ export class InterconsultationService {
         throw new AppError('Patient profile not found', 404);
       }
       where.patientId = patient.id;
-    } else if (userRole === 'psychologist' || userRole === 'nurse') {
-      // Professionals can see interconsultations where they are involved
+    } else if (userRole === ROLES.PSICOLOGO || userRole === ROLES.ENFERMERO) {
       where.OR = [
         { fromProfessionalId: userId },
         { toProfessionalId: userId },
         { respondedBy: userId },
       ];
     }
-    // Admins and coordinators can see all interconsultations (no additional filter)
 
     // Apply additional filters
     if (filters?.patientId) {
@@ -189,7 +186,7 @@ export class InterconsultationService {
       if (!patient || interconsultation.patientId !== patient.id) {
         throw new AppError('Access denied', 403);
       }
-    } else if (userRole === 'psychologist' || userRole === 'nurse') {
+    } else if (userRole === ROLES.PSICOLOGO || userRole === ROLES.ENFERMERO) {
       if (
         interconsultation.fromProfessionalId !== userId &&
         interconsultation.toProfessionalId !== userId &&
@@ -227,11 +224,10 @@ export class InterconsultationService {
     if (!fromProfessional) {
       throw new AppError('From professional not found', 404);
     }
-    if (!['psychologist', 'nurse', 'admin', 'coordinator'].includes(fromProfessional.role)) {
-      throw new AppError('Invalid from professional role', 400);
+    if (!ROLES_INTERCONSULTA.includes(fromProfessional.role as any)) {
+      throw new AppError('Rol del profesional de origen no válido para interconsulta', 400);
     }
 
-    // Validate toProfessional if specified
     if (data.toProfessionalId) {
       const toProfessional = await prisma.user.findUnique({
         where: { id: data.toProfessionalId },
@@ -239,8 +235,8 @@ export class InterconsultationService {
       if (!toProfessional) {
         throw new AppError('To professional not found', 404);
       }
-      if (!['psychologist', 'nurse', 'admin', 'coordinator'].includes(toProfessional.role)) {
-        throw new AppError('Invalid to professional role', 400);
+      if (!ROLES_INTERCONSULTA.includes(toProfessional.role as any)) {
+        throw new AppError('Rol del profesional de destino no válido para interconsulta', 400);
       }
     }
 
@@ -310,12 +306,12 @@ export class InterconsultationService {
     }
 
     // Check permissions - only professionals from target department or assigned professional can respond
-    if (userRole === 'patient') {
-      throw new AppError('Patients cannot respond to interconsultations', 403);
+    if (userRole === ROLES.PATIENT) {
+      throw new AppError('Los pacientes no pueden responder interconsultas', 403);
     }
 
-    // Validate that the user is authorized to respond
-    if (userRole !== 'admin' && userRole !== 'coordinator') {
+    const coordinatorsOrAdmin = [ROLES.ADMIN, ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA];
+    if (!coordinatorsOrAdmin.includes(userRole as any)) {
       if (interconsultation.toProfessionalId && interconsultation.toProfessionalId !== userId) {
         throw new AppError('Only the assigned professional can respond to this interconsultation', 403);
       }

@@ -8,43 +8,38 @@ import {
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { param } from 'express-validator';
+import { ROLES_CAN_MANAGE_APPOINTMENTS } from '../constants/roles';
 
 const router = Router();
 
-// All routes require authentication
+// All routes require authentication. Admin solo puede ver citas; no crear/editar/cancelar.
 router.use(authenticateToken);
 
-// List appointments - all authenticated users can list their own appointments
 router.get('/', appointmentController.getAppointments);
-
-// Check availability - all authenticated users can check availability
 router.get('/availability', appointmentController.getAvailability);
-
-// Get specific appointment - all authenticated users can view their own appointments
 router.get(
   '/:id',
   validate([param('id').isUUID()]),
   appointmentController.getAppointmentById
 );
 
-// Create appointment - professionals, coordinators, and admins can create appointments
 router.post(
   '/',
-  authorizeRoles('admin', 'psychologist', 'nurse'),
+  authorizeRoles(...ROLES_CAN_MANAGE_APPOINTMENTS),
   validate(createAppointmentValidation),
   appointmentController.createAppointment
 );
 
-// Update appointment - professionals can update their appointments, patients can update notes
 router.put(
   '/:id',
+  authorizeRoles(...ROLES_CAN_MANAGE_APPOINTMENTS),
   validate(updateAppointmentValidation),
   appointmentController.updateAppointment
 );
 
-// Cancel appointment - all authenticated users can cancel their appointments
 router.delete(
   '/:id',
+  authorizeRoles(...ROLES_CAN_MANAGE_APPOINTMENTS),
   validate(cancelAppointmentValidation),
   appointmentController.cancelAppointment
 );

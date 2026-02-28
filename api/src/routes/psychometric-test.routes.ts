@@ -3,6 +3,7 @@ import * as psychometricTestController from '../controllers/psychometric-test.co
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { param } from 'express-validator';
+import { ROLES_PSICOMETRIA, ROLES_CAN_DELETE_PSICOMETRIA } from '../constants/roles';
 
 const router = Router();
 
@@ -19,26 +20,26 @@ router.get(
   psychometricTestController.getPsychometricTestById
 );
 
-// Create psychometric evaluation - only psychologists and coordinators can create
+// Create psychometric evaluation - psicólogo y coordinadores de psicología
 router.post(
   '/',
-  authorizeRoles('psychologist', 'coordinador_psicologia', 'admin'),
+  authorizeRoles(...ROLES_PSICOMETRIA),
   validate(psychometricTestController.createPsychometricTestValidation),
   psychometricTestController.createPsychometricTest
 );
 
-// Update psychometric evaluation - only psychologists and coordinators can update
+// Update psychometric evaluation
 router.put(
   '/:id',
-  authorizeRoles('psychologist', 'coordinador_psicologia', 'admin'),
+  authorizeRoles(...ROLES_PSICOMETRIA),
   validate(psychometricTestController.updatePsychometricTestValidation),
   psychometricTestController.updatePsychometricTest
 );
 
-// Delete psychometric evaluation - only admins and coordinators can delete
+// Delete psychometric evaluation - solo admin y coordinador de psicología
 router.delete(
   '/:id',
-  authorizeRoles('admin', 'coordinador_psicologia'),
+  authorizeRoles(...ROLES_CAN_DELETE_PSICOMETRIA),
   validate([param('id').isUUID()]),
   psychometricTestController.deletePsychometricTest
 );

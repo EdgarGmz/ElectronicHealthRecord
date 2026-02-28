@@ -1,0 +1,58 @@
+Actividad / Producto entregado,PM / Tech Lead,Backend Developer 1,Backend Developer 2,Frontend Developer 1,Frontend Developer 2,UI/UX Designer,QA Engineer,Profesores (materia),Dept. Psicología (cliente),Dept. Enfermería (cliente),Dirección Académica (Sponsor),Dept. TI
+FASE 1: ANÁLISIS,,,,,,,,,,,,
+Acta de constitución y kick-off,R,A,,,,,,,C,C,I,I
+Requisitos funcionales,R,A,,,,,,C,C,C,I,I
+Requisitos no funcionales,A,R,,,,,,C,C,C,I,I
+Análisis de riesgos y amenazas,R,A,,,,,,C,C,C,I,I
+Casos de uso e historias de usuario,A,R,,,,,,C,C,C,I,I
+Reglas de negocio y diagrama de flujo de atención,R,A,,,,,,C,C,C,I,I
+Revisión con Stakeholders/Profesores - Fase Análisis,R,A,,,,,,A,C,C,I,I
+Entrega Fase Análisis (documentos y aceptación),R,A,,,,,,A,C,C,I,I
+FASE 2: DISEÑO,,,,,,,,,,,,
+Documentación API REST (OpenAPI 3.0),R,A,,,,,,C,C,C,I,I
+Diagrama ER y esquema de base de datos,A,R,,,,,,C,C,C,I,I
+Arquitectura del sistema (diseño detallado),R,A,,,,,,C,C,C,I,I
+Wireframes pantallas principales,A,,,,,R,,C,C,C,I,I
+Wireframes pantallas restantes,A,,,,,R,,C,C,C,I,I
+Mockups de alta fidelidad,A,,,,,R,,C,C,C,I,I
+Design system y guía de estilos,A,,,,,R,,C,C,C,I,I
+Documento Esquema Web Services y Autenticación,A,R,,,,,,C,C,C,I,I
+Plan de Trabajo (MS Project) y estimación,R,A,,,,,,C,C,C,I,I
+Revisión con Stakeholders/Profesores - Fase Diseño,R,A,,,,,,A,C,C,I,I
+Entrega Fase Diseño (documentos y aprobación),R,A,,,,,,A,C,C,I,I
+FASE 3: DESARROLLO,,,,,,,,,,,,
+Setup backend (Express TypeScript Prisma PostgreSQL),A,R,R,,,,,C,C,C,I,I
+Autenticación JWT y autorización RBAC,A,R,,,,,,C,C,C,I,I
+Endpoints módulo pacientes y usuarios,A,R,R,,,,,C,C,C,I,I
+Endpoints módulo citas,A,,R,,,,,C,C,C,I,I
+Endpoints expedientes médicos,A,R,,,,,,C,C,C,I,I
+Revisión con Stakeholders/Profesores - MVP (Prototipo funcional),R,A,,,,,,A,C,C,I,I
+Endpoints medicamentos procedimientos enfermería,A,,R,,,,,C,C,C,I,I
+Endpoints terapia sesiones psicometría interconsultas,A,R,,,,,,C,C,C,I,I
+Endpoints reportes auditoría notificaciones,A,,R,,,,,C,C,C,I,I
+Tests unitarios e integración backend,A,R,R,,,,R,C,C,C,I,I
+Setup frontend (React Vite Tailwind) y estructura,A,,,,R,R,,C,C,C,I,I
+Componentes de autenticación y layout (UI),A,,,,R,,,C,C,C,I,I
+Módulo pacientes y usuarios (UI),A,,,,R,R,,C,C,C,I,I
+Módulo citas y expedientes médicos (UI),A,,,,,R,,C,C,C,I,I
+Módulos medicamentos terapia reportes (UI),A,,,,R,R,,C,C,C,I,I
+Integración Electron y empaquetado,A,,,,,R,,C,C,C,I,I
+Tests E2E frontend,A,,,,,,R,C,C,C,I,I
+Revisión con Stakeholders/Profesores - Desarrollo completo,R,A,,,,,,A,C,C,I,I
+FASE 4: TESTING Y QA,,,,,,,,,,,,
+Pruebas de rendimiento y carga,A,,,,,,R,C,C,C,I,I
+Auditoría de seguridad (revisión OWASP),R,A,,,,,,C,C,C,I,I
+Pruebas de usabilidad con usuarios,A,,,,,R,R,C,C,C,I,I
+Corrección de bugs críticos y optimización,A,R,R,R,R,,C,C,C,I,I
+Revisión con Stakeholders/Profesores - QA y aceptación,R,A,,,,,,A,C,C,I,I
+FASE 5: DESPLIEGUE Y CIERRE,,,,,,,,,,,,
+Configuración de ambiente de producción,R,A,,,,,,C,C,C,I,I
+Documentación de usuario y manual de administración,A,,,,R,,,C,C,C,I,I
+Capacitación a usuarios (Dept. Psicología y Enfermería),R,A,,,,,R,,A,C,C,I,I
+Transferencia de conocimiento y cierre administrativo,R,A,,,,,,C,C,C,I,I
+Entrega final del proyecto (10 Abril 2026),R,A,,,,,,A,C,C,I,I
+LEYENDA RACI,,,,,,,,,,,,
+R = Responsable (ejecuta el trabajo),,,,,,,,,,,,
+A = Rendición de cuentas (aprueba / responsable final),,,,,,,,,,,,
+C = Consultado (se le consulta antes de decisiones),,,,,,,,,,,,
+I = Informado (se le mantiene informado),,,,,,,,,,,,

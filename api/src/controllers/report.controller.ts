@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { query, validationResult } from 'express-validator';
 import reportService from '../services/report.service';
 import { AuthRequest } from '../middleware/auth';
+import psychologistCareerService from '../services/psychologist-career.service';
 
 // Validation rules
 export const reportValidation = [
@@ -41,11 +42,26 @@ export const getStatistics = async (req: AuthRequest, res: Response, next: NextF
       return;
     }
 
-    const filters = {
+    const filters: {
+      periodStart: Date;
+      periodEnd: Date;
+      department?: string;
+      careerIds?: string[];
+    } = {
       periodStart: new Date(req.query.periodStart as string),
       periodEnd: new Date(req.query.periodEnd as string),
       department: req.query.department as string | undefined,
     };
+    if (req.user?.role === 'coordinador_psicologia') {
+      filters.department = 'psychology';
+    }
+    if (req.user?.role === 'coordinador_enfermeria') {
+      filters.department = 'nursing';
+    }
+    if (req.user?.role === 'psicologo' && req.user?.userId) {
+      filters.department = 'psychology';
+      filters.careerIds = await psychologistCareerService.getAssignedCareerIds(req.user.userId);
+    }
 
     const result = await reportService.generateStatisticsReport(filters, generatedBy);
 
@@ -76,11 +92,26 @@ export const getConsultationsReport = async (req: AuthRequest, res: Response, ne
       return;
     }
 
-    const filters = {
+    const filters: {
+      periodStart: Date;
+      periodEnd: Date;
+      department?: string;
+      careerIds?: string[];
+    } = {
       periodStart: new Date(req.query.periodStart as string),
       periodEnd: new Date(req.query.periodEnd as string),
       department: req.query.department as string | undefined,
     };
+    if (req.user?.role === 'coordinador_psicologia') {
+      filters.department = 'psychology';
+    }
+    if (req.user?.role === 'coordinador_enfermeria') {
+      filters.department = 'nursing';
+    }
+    if (req.user?.role === 'psicologo' && req.user?.userId) {
+      filters.department = 'psychology';
+      filters.careerIds = await psychologistCareerService.getAssignedCareerIds(req.user.userId);
+    }
 
     const result = await reportService.generateConsultationsReport(filters, generatedBy);
 
@@ -111,11 +142,30 @@ export const getDiagnosesReport = async (req: AuthRequest, res: Response, next: 
       return;
     }
 
-    const filters = {
+    const filters: {
+      periodStart: Date;
+      periodEnd: Date;
+      department?: string;
+      careerIds?: string[];
+    } = {
       periodStart: new Date(req.query.periodStart as string),
       periodEnd: new Date(req.query.periodEnd as string),
       department: req.query.department as string | undefined,
     };
+    if (req.user?.role === 'coordinador_psicologia') {
+      filters.department = 'psychology';
+    }
+    if (req.user?.role === 'coordinador_enfermeria') {
+      res.status(403).json({
+        success: false,
+        message: 'Solo puede generar reportes del departamento de enfermería',
+      });
+      return;
+    }
+    if (req.user?.role === 'psicologo' && req.user?.userId) {
+      filters.department = 'psychology';
+      filters.careerIds = await psychologistCareerService.getAssignedCareerIds(req.user.userId);
+    }
 
     const result = await reportService.generateDiagnosesReport(filters, generatedBy);
 

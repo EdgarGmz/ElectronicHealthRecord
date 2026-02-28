@@ -24,7 +24,7 @@ Se ha completado exitosamente la investigación y documentación de las reglas d
 
 ### 1. 📋 Documento de Reglas de Negocio
 
-**Archivo:** [`documents/Reglas-Negocio.md`](./Reglas-Negocio.md)  
+**Archivo:** [`documents/docs/requisitos/Reglas-Negocio.md`](./docs/requisitos/Reglas-Negocio.md)  
 **Tamaño:** 37 KB  
 **Secciones:** 12 secciones principales
 
@@ -44,7 +44,7 @@ Se ha completado exitosamente la investigación y documentación de las reglas d
 
 ### 2. 📊 Diagrama de Flujo de Atención
 
-**Archivo:** [`documents/Diagrama-Flujo-Atencion.md`](./Diagrama-Flujo-Atencion.md)  
+**Archivo:** [`documents/docs/diseno-tecnico/Diagrama-Flujo-Atencion.md`](./docs/diseno-tecnico/Diagrama-Flujo-Atencion.md)  
 **Tamaño:** 14 KB  
 **Formato:** Mermaid (renderizable en GitHub)
 
@@ -391,4 +391,4 @@ La documentación está lista para:
 
 Para consultas sobre esta documentación:
 - **Issue GitHub:** [Análisis] Reglas de Negocio
-- **Documentación:** `/documents/Reglas-Negocio.md` y `/documents/Diagrama-Flujo-Atencion.md`
+- **Documentación:** `documents/docs/requisitos/Reglas-Negocio.md` y `documents/docs/diseno-tecnico/Diagrama-Flujo-Atencion.md`
