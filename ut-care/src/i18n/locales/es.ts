@@ -12,6 +12,7 @@ export const es = {
     invalidCredentials: 'Credenciales inválidas',
     showPassword: 'Mostrar contraseña',
     hidePassword: 'Ocultar contraseña',
+    capsLockOn: 'Mayúsculas activadas',
     close: 'Cerrar',
   },
   theme: {

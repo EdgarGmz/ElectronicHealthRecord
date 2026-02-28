@@ -12,6 +12,7 @@ export const en = {
     invalidCredentials: 'Invalid credentials',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
+    capsLockOn: 'Caps Lock is on',
     close: 'Close',
   },
   theme: {

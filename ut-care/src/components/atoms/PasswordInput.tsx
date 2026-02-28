@@ -1,6 +1,6 @@
-import { forwardRef, useState } from 'react'
+import { forwardRef, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 import type { InputHTMLAttributes } from 'react'
 
 export interface PasswordInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -9,9 +9,25 @@ export interface PasswordInputProps extends Omit<InputHTMLAttributes<HTMLInputEl
 }
 
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className = '', wrapperClassName = '', ...props }, ref) => {
+  ({ className = '', wrapperClassName = '', onKeyDown, onKeyUp, ...props }, ref) => {
     const { t } = useTranslation()
     const [visible, setVisible] = useState(false)
+    const [capsLockOn, setCapsLockOn] = useState(false)
+
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent<HTMLInputElement>) => {
+        setCapsLockOn(e.getModifierState('CapsLock'))
+        onKeyDown?.(e)
+      },
+      [onKeyDown]
+    )
+    const handleKeyUp = useCallback(
+      (e: React.KeyboardEvent<HTMLInputElement>) => {
+        setCapsLockOn(e.getModifierState('CapsLock'))
+        onKeyUp?.(e)
+      },
+      [onKeyUp]
+    )
 
     return (
       <div className={`relative ${wrapperClassName}`}>
@@ -19,6 +35,8 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           ref={ref}
           type={visible ? 'text' : 'password'}
           className={`glass-input w-full px-4 py-2.5 pr-12 ${className}`}
+          onKeyDown={handleKeyDown}
+          onKeyUp={handleKeyUp}
           {...props}
         />
         <button
@@ -30,6 +48,16 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
         >
           {visible ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
+        {capsLockOn && (
+          <p
+            className="mt-1.5 flex items-center gap-1.5 text-xs text-[var(--color-warning)]"
+            role="status"
+            aria-live="polite"
+          >
+            <AlertCircle size={14} aria-hidden />
+            {t('auth.capsLockOn')}
+          </p>
+        )}
       </div>
     )
   }
