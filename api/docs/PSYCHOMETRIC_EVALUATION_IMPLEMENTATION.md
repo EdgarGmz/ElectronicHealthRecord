@@ -341,7 +341,7 @@ Authorization: Bearer <token>
 ## 📚 Referencias
 
 - **Modelo de Datos**: `/api/prisma/schema.prisma`
-- **Reglas de Negocio**: `/documents/Reglas-Negocio.md`
+- **Reglas de Negocio**: `documents/docs/requisitos/Reglas-Negocio.md`
 - **Patrones de Implementación**: Basado en módulos de Appointments e Interconsultations
 - **Middleware de Autenticación**: `/api/src/middleware/auth.ts`
 

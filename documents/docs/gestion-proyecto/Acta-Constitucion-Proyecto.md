@@ -460,9 +460,9 @@ Este documento será distribuido a:
 ### Anexo A: Documentos de Referencia
 
 - 📄 [README Principal del Proyecto](../README.md)
-- 📋 [Requisitos Funcionales](./Req-Funcionales.md)
+- 📋 [Requisitos Funcionales](../requisitos/Req-Funcionales.md)
 - 📊 [Requisitos No Funcionales](./Req-NoFuncionales.md)
-- 🔒 [Análisis de Riesgos y Amenazas](./Analisis-Riesgos-Amenazas.md)
+- 🔒 [Análisis de Riesgos y Amenazas](../riesgos/Analisis-Riesgos-Amenazas.md)
 - 🔑 [Requisitos de Seguridad](./Req-Seguridad.md)
 - 🏗️ [Estructura del Proyecto](../guide/PROJECT_STRUCTURE.md)
 - 📚 [Documentación API REST](../api/docs/API_DOCUMENTATION.md)

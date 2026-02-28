@@ -416,8 +416,8 @@ Especificaciones de 44 pantallas principales:
 - [README del Proyecto](../../README.md)
 - [Frontend Stack](../../ut-care/README.md)
 - [Flujo de Navegación Completo](../Flujo-Navegacion-Completo.md)
-- [Diagrama de Flujo de Atención](../Diagrama-Flujo-Atencion.md)
-- [Requisitos Funcionales](../Req-Funcionales.md)
+- [Diagrama de Flujo de Atención](../../../docs/diseno-tecnico/Diagrama-Flujo-Atencion.md)
+- [Requisitos Funcionales](../../../docs/requisitos/Req-Funcionales.md)
 - [Requisitos No Funcionales](../Req-NoFuncionales.md)
 
 ---

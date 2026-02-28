@@ -329,7 +329,7 @@ Los siguientes servicios deben integrarse para registrar eventos:
 - **Prisma Schema**: `api/prisma/schema.prisma` (modelo AuditLog)
 - **OpenAPI**: `api/openapi.yaml` (especificación completa)
 - **Seguridad**: `documents/Req-Seguridad.md` (REQ-AUD-001 a REQ-AUD-006)
-- **Reglas de Negocio**: `documents/Reglas-Negocio.md` (RN-AUD-001 a RN-AUD-003)
+- **Reglas de Negocio**: `documents/docs/requisitos/Reglas-Negocio.md` (RN-AUD-001 a RN-AUD-003)
 
 ## 📞 Soporte
 

@@ -10,7 +10,7 @@ Frontend del Sistema de Registro de Salud Electrónico. Construido con React, Ty
   - **Automático (turno)**: Cambia según horario (día 6:00–18:00, noche 18:00–6:00).
   - **Automático (sistema)**: Sigue la preferencia del SO.
 - **Idioma**: Español e Inglés (configurable, persistido en `localStorage`).
-- **Estructura**: Atomic Design (atoms, molecules, organisms), rutas según `documents/docs/Flujo-Navegacion-Completo.md`.
+- **Estructura**: Atomic Design (atoms, molecules, organisms), rutas según `documents/docs/diseno-tecnico/Flujo-Navegacion-Completo.md`.
 
 ## Requisitos
 
@@ -70,4 +70,4 @@ src/
 
 - `documents/design/style-guide/GLASSMORPHISM_THEME.md` – Tema Crystal Glass
 - `documents/design/style-guide/DARK_MODE.md` – Tema claro/oscuro
-- `documents/docs/Flujo-Navegacion-Completo.md` – Rutas y navegación
+- `documents/docs/diseno-tecnico/Flujo-Navegacion-Completo.md` – Rutas y navegación

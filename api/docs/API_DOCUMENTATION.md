@@ -668,7 +668,7 @@ Futuras versiones: /api/v2, /api/v3, etc.
 - 📖 **Especificación OpenAPI**: [`openapi.yaml`](./openapi.yaml)
 - 📚 **README Backend**: [`README.md`](./README.md)
 - 🏗️ **Estructura del Proyecto**: [`../PROJECT_STRUCTURE.md`](../PROJECT_STRUCTURE.md)
-- 🔒 **Seguridad**: [`../documents/Analisis-Riesgos-Amenazas.md`](../documents/Analisis-Riesgos-Amenazas.md)
+- 🔒 **Seguridad**: [`../../documents/docs/riesgos/Analisis-Riesgos-Amenazas.md`](../../documents/docs/riesgos/Analisis-Riesgos-Amenazas.md)
 
 ### Contacto
 

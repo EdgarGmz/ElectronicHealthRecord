@@ -1,0 +1,54 @@
+ID,Outline Level,Task Name,Duration,Start,Finish,Predecessors,Resource Names,Percent Complete
+1,1,Electronic Health Record (EHR) System,,2026-01-20,2026-04-10,,Edgar Gómez,0
+2,2,Fase 1: Análisis,,2026-01-20,2026-02-10,,Edgar Gómez,100
+3,3,Acta de constitución y kick-off del proyecto,3d,2026-01-20,2026-01-22,,Edgar Gómez,100
+4,3,Requisitos funcionales,5d,2026-01-23,2026-01-29,3,Edgar Gómez,100
+5,3,Requisitos no funcionales,3d,2026-01-27,2026-01-29,3,Backend Developer 1,100
+6,3,Análisis de riesgos y amenazas,4d,2026-01-30,2026-02-04,4,Edgar Gómez,100
+7,3,Casos de uso e historias de usuario,4d,2026-01-30,2026-02-04,4,Frontend Developer 1,100
+8,3,Reglas de negocio y diagrama de flujo de atención,3d,2026-02-03,2026-02-06,6,Edgar Gómez,100
+9,3,Revisión con Stakeholders/Profesores - Fase Análisis,2d,2026-02-05,2026-02-07,7;8,Edgar Gómez,100
+10,3,Entrega Fase Análisis (documentos y aceptación),2d,2026-02-08,2026-02-10,9,Edgar Gómez,100
+11,2,Fase 2: Diseño,,2026-02-11,2026-02-28,,Edgar Gómez,60
+12,3,Documentación API REST (OpenAPI 3.0),5d,2026-02-11,2026-02-17,10,Edgar Gómez,100
+13,3,Diagrama ER y esquema de base de datos,4d,2026-02-12,2026-02-17,10,Backend Developer 1,100
+14,3,Arquitectura del sistema (diseño detallado),3d,2026-02-18,2026-02-20,12;13,Edgar Gómez,100
+15,3,Wireframes pantallas principales,5d,2026-02-18,2026-02-24,10,UI/UX Designer,100
+16,3,Wireframes pantallas restantes,5d,2026-02-25,2026-02-28,15,UI/UX Designer,0
+17,3,Mockups de alta fidelidad,4d,2026-02-21,2026-02-26,15,UI/UX Designer,80
+18,3,Design system y guía de estilos,4d,2026-02-19,2026-02-24,14,UI/UX Designer,100
+19,3,Documento Esquema Web Services y Autenticación,2d,2026-02-17,2026-02-18,12,Backend Developer 1,100
+20,3,Plan de Trabajo (MS Project) y estimación,2d,2026-02-24,2026-02-25,14,Edgar Gómez,100
+21,3,Revisión con Stakeholders/Profesores - Fase Diseño,2d,2026-02-26,2026-02-27,16;17;18;20,Edgar Gómez,0
+22,3,Entrega Fase Diseño (documentos y aprobación),1d,2026-02-28,2026-02-28,21,Edgar Gómez,0
+23,2,Fase 3: Desarrollo,,2026-03-02,2026-03-28,,Edgar Gómez,0
+24,3,Setup backend (Express TypeScript Prisma PostgreSQL),4d,2026-03-02,2026-03-06,22,Backend Developer 1;Backend Developer 2,0
+25,3,Autenticación JWT y autorización RBAC,4d,2026-03-05,2026-03-10,24,Backend Developer 1,0
+26,3,Endpoints módulo pacientes y usuarios,4d,2026-03-09,2026-03-13,25,Backend Developer 1;Backend Developer 2,0
+27,3,Endpoints módulo citas,3d,2026-03-12,2026-03-16,26,Backend Developer 2,0
+28,3,Endpoints expedientes médicos,4d,2026-03-13,2026-03-18,26,Backend Developer 1,0
+29,3,Revisión con Stakeholders/Profesores - MVP (Prototipo funcional),1d,2026-03-14,2026-03-14,27;28,Edgar Gómez,0
+30,3,Endpoints medicamentos procedimientos enfermería,4d,2026-03-17,2026-03-20,28,Backend Developer 2,0
+31,3,Endpoints terapia sesiones psicometría interconsultas,4d,2026-03-19,2026-03-24,30,Backend Developer 1,0
+32,3,Endpoints reportes auditoría notificaciones,3d,2026-03-23,2026-03-26,31,Backend Developer 2,0
+33,3,Tests unitarios e integración backend,4d,2026-03-25,2026-03-30,32,Backend Developer 1;QA Engineer,0
+34,3,Setup frontend (React Vite Tailwind) y estructura,3d,2026-03-09,2026-03-11,22,Frontend Developer 1;Frontend Developer 2,0
+35,3,Componentes de autenticación y layout (UI),4d,2026-03-12,2026-03-17,34,Frontend Developer 1,0
+36,3,Módulo pacientes y usuarios (UI),4d,2026-03-16,2026-03-20,35,Frontend Developer 1;Frontend Developer 2,0
+37,3,Módulo citas y expedientes médicos (UI),5d,2026-03-19,2026-03-25,36,Frontend Developer 2,0
+38,3,Módulos medicamentos terapia reportes (UI),5d,2026-03-24,2026-03-30,37,Frontend Developer 1;Frontend Developer 2,0
+39,3,Integración Electron y empaquetado,3d,2026-03-27,2026-03-31,38,Frontend Developer 2,0
+40,3,Tests E2E frontend,3d,2026-03-30,2026-04-02,39,QA Engineer,0
+41,3,Revisión con Stakeholders/Profesores - Desarrollo completo,1d,2026-03-28,2026-03-28,33;40,Edgar Gómez,0
+42,2,Fase 4: Testing y QA,,2026-03-30,2026-04-03,,QA Engineer,0
+43,3,Pruebas de rendimiento y carga,3d,2026-03-31,2026-04-02,41,QA Engineer,0
+44,3,Auditoría de seguridad (revisión OWASP),2d,2026-03-31,2026-04-01,41,Edgar Gómez;Backend Developer 1,0
+45,3,Pruebas de usabilidad con usuarios,2d,2026-04-01,2026-04-02,43,QA Engineer;UI/UX Designer,0
+46,3,Corrección de bugs críticos y optimización,3d,2026-04-02,2026-04-04,43;44;45,Backend Developer 1;Backend Developer 2;Frontend Developer 1;Frontend Developer 2,0
+47,3,Revisión con Stakeholders/Profesores - QA y aceptación,1d,2026-04-03,2026-04-03,46,Edgar Gómez,0
+48,2,Fase 5: Despliegue y Cierre,,2026-04-04,2026-04-10,,Edgar Gómez,0
+49,3,Configuración de ambiente de producción,2d,2026-04-04,2026-04-05,47,Edgar Gómez;Backend Developer 1,0
+50,3,Documentación de usuario y manual de administración,3d,2026-04-04,2026-04-07,47,Frontend Developer 1;Edgar Gómez,0
+51,3,Capacitación a usuarios (Dept. Psicología y Enfermería),2d,2026-04-06,2026-04-07,49;50,Edgar Gómez;UI/UX Designer,0
+52,3,Transferencia de conocimiento y cierre administrativo,2d,2026-04-08,2026-04-09,51,Edgar Gómez,0
+53,3,Entrega final del proyecto (10 Abril 2026),1d,2026-04-10,2026-04-10,52,Edgar Gómez,0

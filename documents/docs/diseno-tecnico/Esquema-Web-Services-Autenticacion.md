@@ -1,11 +1,13 @@
 # Esquema: Mecanismos para el Desarrollo de Web Services y Autenticación Remota
 
 **Proyecto:** Electronic Health Record (EHR)  
-**Documento:** Identificación de mecanismos de desarrollo de Web Services propios y autenticación remota.
+**Documento:** Esquema de los mecanismos para el desarrollo de Web Services propios e identificación de los mecanismos de autenticación remota de los Web Services desarrollados en el proyecto.
 
 ---
 
 ## 1. Mecanismos para el Desarrollo de Web Services Propios
+
+En el proyecto EHR se han desarrollado Web Services propios siguiendo una API REST. A continuación se describen los mecanismos utilizados y su organización.
 
 ### 1.1 Stack y arquitectura
 
@@ -53,9 +55,58 @@
 3. **Servicios** (`api/src/services/*.service.ts`): lógica de negocio y acceso a datos (Prisma).
 4. **Middleware:** autenticación (`auth.ts`), validación (`validation.ts`), manejo de errores (`errorHandler.ts`).
 
+### 1.5 Esquema de flujo de una petición (desarrollo de Web Services)
+
+```mermaid
+flowchart LR
+  subgraph Cliente
+    FE[Frontend / Cliente HTTP]
+  end
+  subgraph API["API REST (Express)"]
+    R[Routes]
+    MW[Middleware]
+    C[Controllers]
+    S[Services]
+    DB[(Prisma / PostgreSQL)]
+  end
+  FE -->|HTTP + JSON| R
+  R --> MW
+  MW --> C
+  C --> S
+  S --> DB
+  DB --> S
+  S --> C
+  C --> FE
+```
+
+```mermaid
+flowchart TB
+  subgraph Stack
+    A[Express.js]
+    B[TypeScript]
+    C[Prisma ORM]
+    D[PostgreSQL]
+    E[OpenAPI/Swagger]
+  end
+  subgraph Seguridad
+    F[Helmet]
+    G[CORS]
+    H[Rate limiting]
+  end
+  A --> B
+  A --> C
+  C --> D
+  A --> E
+  A --> F
+  A --> G
+  A --> H
+```
+
 ---
 
 ## 2. Mecanismos de Autenticación Remota de Web Services (en el proyecto)
+
+En este apartado se identifican los mecanismos de **autenticación remota** utilizados en los Web Services del proyecto EHR: cómo el cliente se identifica ante el servidor y cómo se verifican las peticiones en cada llamada.
 
 ### 2.1 Esquema general
 
@@ -85,6 +136,32 @@ La API usa **autenticación remota basada en JWT (JSON Web Tokens)**. El cliente
        │  RBAC según rol                      │
        │  Respuesta con datos                 │
        │<─────────────────────────────────────│
+```
+
+**Diagrama de secuencia (autenticación remota):**
+
+```mermaid
+sequenceDiagram
+  participant C as Cliente (Frontend)
+  participant A as API (Backend)
+
+  C->>A: POST /api/auth/login { email, password }
+  A->>A: Validar credenciales (bcrypt)
+  A->>A: Generar accessToken + refreshToken (JWT)
+  A->>C: 200 { user, accessToken, refreshToken }
+
+  Note over C: Cliente guarda tokens (store)
+
+  C->>A: GET /api/... Authorization: Bearer &lt;accessToken&gt;
+  A->>A: authenticateToken (verificar JWT)
+  A->>A: authorizeRoles (RBAC)
+  A->>C: 200 { data }
+
+  opt Token expirado
+    C->>A: POST /api/auth/refresh-token { refreshToken }
+    A->>A: verifyRefreshToken
+    A->>C: 200 { accessToken, refreshToken }
+  end
 ```
 
 ### 2.2 Componentes de autenticación remota

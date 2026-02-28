@@ -424,20 +424,20 @@ El proyecto mantiene una cobertura mínima de:
 ## 📖 Documentación
 
 ### Gestión del Proyecto
-- **[📋 Acta de Constitución del Proyecto](./documents/Acta-Constitucion-Proyecto.md)** - Project Charter oficial
+- **[📋 Acta de Constitución del Proyecto](./documents/docs/gestion-proyecto/Acta-Constitucion-Proyecto.md)** - Project Charter oficial
 - **[Guía de GitHub Projects](./GITHUB_PROJECTS_GUIDE.md)** - Gestión del proyecto
 - **[Templates de Issues](./ISSUE_TEMPLATES.md)** - Plantillas para issues
 - **[Estructura del Proyecto](./PROJECT_STRUCTURE.md)** - Detalles de arquitectura
 - **[Referencia Rápida](./QUICK_REFERENCE.md)** - Comandos y referencias
 
 ### Requisitos y Análisis
-- **[📋 Reglas de Negocio](./documents/Reglas-Negocio.md)** - Reglas de negocio del sistema EHR (ODS 3, HIPAA)
-- **[📊 Diagrama de Flujo de Atención](./documents/Diagrama-Flujo-Atencion.md)** - Proceso completo de atención al paciente
+- **[📋 Reglas de Negocio](./documents/docs/requisitos/Reglas-Negocio.md)** - Reglas de negocio del sistema EHR (ODS 3, HIPAA)
+- **[📊 Diagrama de Flujo de Atención](./documents/docs/diseno-tecnico/Diagrama-Flujo-Atencion.md)** - Proceso completo de atención al paciente
 - **[🗺️ Flujo de Navegación Completo](./documents/Flujo-Navegacion-Completo.md)** - Arquitectura de navegación y flujos de usuario
-- **[Requisitos Funcionales](./documents/Req-Funcionales.md)** - Especificación de funcionalidades
+- **[Requisitos Funcionales](./documents/docs/requisitos/Req-Funcionales.md)** - Especificación de funcionalidades
 - **[Requisitos No Funcionales](./documents/Req-NoFuncionales.md)** - Criterios de calidad
 - **[Requisitos de Seguridad](./documents/Req-Seguridad.md)** - Especificación de seguridad
-- **[Análisis de Riesgos y Amenazas](./documents/Analisis-Riesgos-Amenazas.md)** - Evaluación de seguridad y cumplimiento
+- **[Análisis de Riesgos y Amenazas](./documents/docs/riesgos/Analisis-Riesgos-Amenazas.md)** - Evaluación de seguridad y cumplimiento
 
 ### Documentación Técnica
 - **[📚 Documentación API REST](./api/API_DOCUMENTATION.md)** - Guía completa de endpoints y uso

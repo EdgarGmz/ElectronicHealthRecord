@@ -1360,12 +1360,12 @@ Auto-dismiss en 5 segundos
 
 ### Documentos Relacionados
 
-- **[Requisitos Funcionales](./Req-Funcionales.md)** - Funcionalidades del sistema
+- **[Requisitos Funcionales](../requisitos/Req-Funcionales.md)** - Funcionalidades del sistema
 - **[Wireframes](./design/wireframes/README.md)** - Diseños de baja fidelidad
 - **[Mockups](./design/mockups/README.md)** - Diseños de alta fidelidad
 - **[Prototipos](./design/prototypes/README.md)** - Flujos interactivos
 - **[Diagrama de Flujo de Atención](./Diagrama-Flujo-Atencion.md)** - Proceso clínico
-- **[Reglas de Negocio](./Reglas-Negocio.md)** - Lógica de negocio
+- **[Reglas de Negocio](../requisitos/Reglas-Negocio.md)** - Lógica de negocio
 
 ### Estándares y Guías
 
