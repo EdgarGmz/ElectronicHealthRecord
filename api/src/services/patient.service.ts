@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
@@ -215,7 +216,7 @@ export class PatientService {
 
   async create(data: {
     email: string;
-    password: string;
+    password?: string;
     firstName: string;
     lastName: string;
     dateOfBirth: Date;
@@ -248,7 +249,9 @@ export class PatientService {
       throw new AppError('Email already registered', 409);
     }
 
-    const passwordHash = await hashPassword(data.password);
+    // Patients do not access the system; use provided password or generate a random one
+    const passwordToUse = data.password ?? crypto.randomBytes(32).toString('hex');
+    const passwordHash = await hashPassword(passwordToUse);
 
     // Create user and patient in a transaction
     const patient = await prisma.$transaction(async (tx) => {

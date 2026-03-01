@@ -1,4 +1,4 @@
-import { forwardRef, useState, useCallback } from 'react'
+import { forwardRef, useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 import type { InputHTMLAttributes } from 'react'
@@ -13,6 +13,20 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     const { t } = useTranslation()
     const [visible, setVisible] = useState(false)
     const [capsLockOn, setCapsLockOn] = useState(false)
+
+    useEffect(() => {
+      const syncCapsLock = (e: KeyboardEvent) => {
+        if (e.key === 'CapsLock') {
+          setCapsLockOn(e.getModifierState('CapsLock'))
+        }
+      }
+      window.addEventListener('keydown', syncCapsLock)
+      window.addEventListener('keyup', syncCapsLock)
+      return () => {
+        window.removeEventListener('keydown', syncCapsLock)
+        window.removeEventListener('keyup', syncCapsLock)
+      }
+    }, [])
 
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement>) => {

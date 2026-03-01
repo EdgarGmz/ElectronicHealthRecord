@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getInterconsultations } from '@/services/interconsultation.service'
 import type { Interconsultation } from '@/types/interconsultation'
 import { STATUS_VALUES, URGENCY_VALUES, DEPARTMENT_VALUES } from '@/types/interconsultation'
@@ -114,10 +116,7 @@ export function InterconsultationListPage() {
             ))}
           </select>
         </div>
-        {error && <p className="mb-4 text-sm text-[var(--color-error)]">{error}</p>}
-        {loading ? (
-          <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-        ) : interconsultations.length === 0 ? (
+        {loading ? null : interconsultations.length === 0 ? (
           <p className="py-8 text-center text-[var(--text-secondary)]">{t('interconsultations.noInterconsultations')}</p>
         ) : (
           <>

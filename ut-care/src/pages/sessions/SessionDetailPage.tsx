@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, FileText, User } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getTherapySessionById } from '@/services/therapy-session.service'
 import type { TherapySession } from '@/types/therapy-session'
 
@@ -24,40 +26,24 @@ export function SessionDetailPage() {
     getTherapySessionById(id).then(setSession).catch(() => setError(t('common.error'))).finally(() => setLoading(false))
   }, [id, t])
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Link to="/sessions" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('sessions.list')}
-        </Link>
-        <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-      </div>
-    )
-  }
-  if (error || !session) {
-    return (
-      <div className="space-y-6">
-        <Link to="/sessions" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('sessions.list')}
-        </Link>
-        <GlassCard>
-          <p className="text-[var(--color-error)]">{error || t('sessions.noSessions')}</p>
-        </GlassCard>
-      </div>
-    )
-  }
-
-  const patientName = `${session.psychologyRecord.medicalRecord.patient.user.firstName} ${session.psychologyRecord.medicalRecord.patient.user.lastName}`.trim()
-  const therapistName = `${session.therapist.firstName} ${session.therapist.lastName}`.trim()
+  const patientName = session ? `${session.psychologyRecord.medicalRecord.patient.user.firstName} ${session.psychologyRecord.medicalRecord.patient.user.lastName}`.trim() : ''
+  const therapistName = session ? `${session.therapist.firstName} ${session.therapist.lastName}`.trim() : ''
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error ?? t('sessions.noSessions')} onClose={() => setError(null)} />
       <Link to="/sessions" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
         <ArrowLeft size={18} />
         {t('sessions.list')}
       </Link>
+      {!session && !loading && (
+        <GlassCard>
+          <p className="text-[var(--text-secondary)]">{t('sessions.noSessions')}</p>
+        </GlassCard>
+      )}
+      {session && (
+      <>
       <GlassCard className="border-[var(--color-primary)]/20">
         <div className="flex items-start gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15">
@@ -111,6 +97,8 @@ export function SessionDetailPage() {
           <h2 className="mb-2 text-sm font-semibold text-[var(--text-primary)]">{t('sessions.nextSessionPlan')}</h2>
           <p className="whitespace-pre-wrap text-[var(--text-secondary)]">{session.nextSessionPlan}</p>
         </GlassCard>
+      )}
+      </>
       )}
     </div>
   )

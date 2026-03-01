@@ -211,6 +211,27 @@ export const cancelAppointment = async (
   }
 };
 
+export const getAppointmentProfessionals = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+    const professionals = await appointmentService.getProfessionals();
+    res.status(200).json({
+      success: true,
+      message: 'Professionals retrieved successfully',
+      data: professionals,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getAvailability = async (
   req: AuthRequest,
   res: Response,

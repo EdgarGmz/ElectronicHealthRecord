@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Plus, Bell, ChevronLeft, ChevronRight, CheckCheck, Check, Trash2 } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import {
   getNotifications,
   getUnreadCount,
@@ -98,6 +100,8 @@ export function NotificationListPage() {
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('notifications.title')}</h1>
@@ -142,10 +146,7 @@ export function NotificationListPage() {
             <option value="urgent">{t('notifications.priorityUrgent')}</option>
           </select>
         </div>
-        {error && <p className="mb-4 text-sm text-[var(--color-error)]">{error}</p>}
-        {loading ? (
-          <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-        ) : notifications.length === 0 ? (
+        {loading ? null : notifications.length === 0 ? (
           <p className="py-8 text-center text-[var(--text-secondary)]">{t('notifications.noNotifications')}</p>
         ) : (
           <>

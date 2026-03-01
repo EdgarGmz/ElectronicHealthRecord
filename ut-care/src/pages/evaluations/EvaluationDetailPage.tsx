@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ClipboardList, User, FileText, ExternalLink } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getPsychometricEvaluationById, deletePsychometricEvaluation } from '@/services/psychometric-evaluation.service'
 import type { PsychometricEvaluation } from '@/types/psychometric-evaluation'
 
@@ -49,45 +51,23 @@ export function EvaluationDetailPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Link to="/evaluations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('evaluations.list')}
-        </Link>
-        <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-      </div>
-    )
-  }
-  if (error || !evaluation) {
-    return (
-      <div className="space-y-6">
-        <Link to="/evaluations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('evaluations.list')}
-        </Link>
-        <GlassCard>
-          <p className="text-[var(--color-error)]">{error || t('evaluations.noEvaluations')}</p>
-        </GlassCard>
-      </div>
-    )
-  }
-
-  const administeredByName = evaluation.administeredByUser
+  const administeredByName = evaluation?.administeredByUser
     ? `${evaluation.administeredByUser.firstName} ${evaluation.administeredByUser.lastName}`.trim()
     : '—'
-  const rawScore = evaluation.rawScore != null ? String(evaluation.rawScore) : '—'
-  const standardScore = evaluation.standardScore != null ? String(evaluation.standardScore) : '—'
-  const percentile = evaluation.percentile != null ? `${evaluation.percentile}` : '—'
+  const rawScore = evaluation?.rawScore != null ? String(evaluation.rawScore) : '—'
+  const standardScore = evaluation?.standardScore != null ? String(evaluation.standardScore) : '—'
+  const percentile = evaluation?.percentile != null ? `${evaluation.percentile}` : '—'
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading || deleting} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error ?? t('evaluations.noEvaluations')} onClose={() => setError(null)} />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link to="/evaluations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
           <ArrowLeft size={18} />
           {t('evaluations.list')}
         </Link>
+        {evaluation && (
         <GlassButton
           type="button"
           onClick={handleDelete}
@@ -96,7 +76,15 @@ export function EvaluationDetailPage() {
         >
           {deleting ? t('common.loading') : t('evaluations.delete')}
         </GlassButton>
+        )}
       </div>
+      {!evaluation && !loading && (
+        <GlassCard>
+          <p className="text-[var(--text-secondary)]">{t('evaluations.noEvaluations')}</p>
+        </GlassCard>
+      )}
+      {evaluation && (
+      <>
       <GlassCard className="border-[var(--color-primary)]/20">
         <div className="flex items-start gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15">
@@ -162,6 +150,8 @@ export function EvaluationDetailPage() {
             {t('evaluations.fileUrl')}
           </a>
         </GlassCard>
+      )}
+      </>
       )}
     </div>
   )

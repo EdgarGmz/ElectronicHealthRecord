@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { FileText, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getTherapySessions } from '@/services/therapy-session.service'
 import type { TherapySession } from '@/types/therapy-session'
 
@@ -36,6 +38,8 @@ export function SessionListPage() {
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('sessions.title')}</h1>
         <Link to="/sessions/new" className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium">
@@ -44,10 +48,7 @@ export function SessionListPage() {
         </Link>
       </div>
       <GlassCard>
-        {error && <p className="mb-4 text-sm text-[var(--color-error)]">{error}</p>}
-        {loading ? (
-          <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-        ) : sessions.length === 0 ? (
+        {loading ? null : sessions.length === 0 ? (
           <p className="py-8 text-center text-[var(--text-secondary)]">{t('sessions.noSessions')}</p>
         ) : (
           <>

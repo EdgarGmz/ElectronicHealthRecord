@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Search, Plus, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getPsychometricEvaluations } from '@/services/psychometric-evaluation.service'
 import type { PsychometricEvaluation } from '@/types/psychometric-evaluation'
 
@@ -86,10 +88,7 @@ export function EvaluationListPage() {
             className="glass-input w-full sm:w-40 px-4 py-2.5"
           />
         </div>
-        {error && <p className="mb-4 text-sm text-[var(--color-error)]">{error}</p>}
-        {loading ? (
-          <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-        ) : evaluations.length === 0 ? (
+        {loading ? null : evaluations.length === 0 ? (
           <p className="py-8 text-center text-[var(--text-secondary)]">{t('evaluations.noEvaluations')}</p>
         ) : (
           <>

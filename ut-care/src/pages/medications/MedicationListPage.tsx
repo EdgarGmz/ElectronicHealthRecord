@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Search, Plus, Pill, ChevronLeft, ChevronRight } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getMedications } from '@/services/medication.service'
 import type { Medication } from '@/types/medication'
 
@@ -47,6 +49,8 @@ export function MedicationListPage() {
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('medications.title')}</h1>
         <Link
@@ -83,10 +87,7 @@ export function MedicationListPage() {
           </select>
           <GlassButton type="submit">{t('common.search')}</GlassButton>
         </form>
-        {error && <p className="mb-4 text-sm text-[var(--color-error)]">{error}</p>}
-        {loading ? (
-          <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-        ) : medications.length === 0 ? (
+        {loading ? null : medications.length === 0 ? (
           <p className="py-8 text-center text-[var(--text-secondary)]">{t('medications.noMedications')}</p>
         ) : (
           <>

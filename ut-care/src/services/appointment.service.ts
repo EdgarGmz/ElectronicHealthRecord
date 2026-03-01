@@ -1,6 +1,37 @@
 import { api } from '@/lib/api'
 import type { Appointment, AppointmentsResponse } from '@/types/appointment'
 
+export interface AppointmentProfessional {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  role: string
+}
+
+export interface CreateAppointmentInput {
+  patientId: string
+  professionalId: string
+  appointmentType: string
+  department: string
+  scheduledDate: string
+  durationMinutes: number
+  notes?: string
+}
+
+export async function getAppointmentProfessionals(): Promise<AppointmentProfessional[]> {
+  const { data } = await api.get<{ success: boolean; data: AppointmentProfessional[] }>('/appointments/professionals')
+  return data.data
+}
+
+export async function createAppointment(payload: CreateAppointmentInput): Promise<Appointment> {
+  const { data } = await api.post<{ success: boolean; data: Appointment }>('/appointments', {
+    ...payload,
+    scheduledDate: new Date(payload.scheduledDate).toISOString(),
+  })
+  return data.data
+}
+
 export async function getAppointments(params: {
   page?: number
   limit?: number

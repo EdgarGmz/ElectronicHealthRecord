@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
+import { SuccessModal } from '@/components/molecules/SuccessModal'
 import { createInterconsultation } from '@/services/interconsultation.service'
 import { getPatients } from '@/services/patient.service'
 import type { CreateInterconsultationInput } from '@/types/interconsultation'
@@ -15,6 +18,8 @@ export function NewInterconsultationPage() {
   const navigate = useNavigate()
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [createdId, setCreatedId] = useState<string | null>(null)
   const [patients, setPatients] = useState<Patient[]>([])
   const [patientsLoading, setPatientsLoading] = useState(true)
   const [form, setForm] = useState<CreateInterconsultationInput & { toProfessionalId: string }>({
@@ -58,7 +63,8 @@ export function NewInterconsultationPage() {
       if (form.relevantInformation?.trim()) payload.relevantInformation = form.relevantInformation.trim()
       if (form.toProfessionalId?.trim()) payload.toProfessionalId = form.toProfessionalId.trim()
       const created = await createInterconsultation(payload)
-      navigate(`/interconsultations/${created.id}`, { replace: true })
+      setCreatedId(created.id)
+      setShowSuccess(true)
     } catch (err: unknown) {
       const msg =
         err && typeof err === 'object' && 'response' in err
@@ -75,6 +81,9 @@ export function NewInterconsultationPage() {
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={submitting || patientsLoading} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error || undefined} onClose={() => setError('')} />
+      <SuccessModal open={showSuccess} onClose={() => { setShowSuccess(false); if (createdId) navigate(`/interconsultations/${createdId}`, { replace: true }); setCreatedId(null) }} message={t('common.successSaved')} />
       <Link to="/interconsultations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
         <ArrowLeft size={18} />
         {t('interconsultations.list')}
@@ -82,7 +91,6 @@ export function NewInterconsultationPage() {
       <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('interconsultations.newInterconsultation')}</h1>
       <GlassCard>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <p className="text-sm text-[var(--color-error)]">{error}</p>}
           <div>
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('interconsultations.patient')} *</label>
             <select

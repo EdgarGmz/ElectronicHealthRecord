@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Pill, FileText } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getMedicationById } from '@/services/medication.service'
 import type { MedicationWithPrescriptions } from '@/types/medication'
 
@@ -23,45 +25,31 @@ export function MedicationDetailPage() {
       .finally(() => setLoading(false))
   }, [id, t])
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Link to="/medications" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('medications.list')}
-        </Link>
-        <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-      </div>
-    )
-  }
-  if (error || !medication) {
-    return (
-      <div className="space-y-6">
-        <Link to="/medications" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('medications.list')}
-        </Link>
-        <GlassCard>
-          <p className="text-[var(--color-error)]">{error || t('medications.noMedications')}</p>
-        </GlassCard>
-      </div>
-    )
-  }
-
-  const infoRows: { label: string; value: string | null | undefined }[] = [
-    { label: t('medications.genericName'), value: medication.genericName },
-    { label: t('medications.category'), value: medication.category },
-    { label: t('medications.dosageForms'), value: medication.dosageForms },
-    { label: t('medications.commonDosages'), value: medication.commonDosages },
-    { label: t('medications.administrationRoutes'), value: medication.administrationRoutes },
-  ]
+  const infoRows: { label: string; value: string | null | undefined }[] = medication
+    ? [
+        { label: t('medications.genericName'), value: medication.genericName },
+        { label: t('medications.category'), value: medication.category },
+        { label: t('medications.dosageForms'), value: medication.dosageForms },
+        { label: t('medications.commonDosages'), value: medication.commonDosages },
+        { label: t('medications.administrationRoutes'), value: medication.administrationRoutes },
+      ]
+    : []
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error ?? t('medications.noMedications')} onClose={() => setError(null)} />
       <Link to="/medications" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
         <ArrowLeft size={18} />
         {t('medications.list')}
       </Link>
+      {!medication && !loading && (
+        <GlassCard>
+          <p className="text-[var(--text-secondary)]">{t('medications.noMedications')}</p>
+        </GlassCard>
+      )}
+      {medication && (
+      <>
       <GlassCard className="border-[var(--color-primary)]/20">
         <div className="flex items-start gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15">
@@ -121,6 +109,8 @@ export function MedicationDetailPage() {
             })}
           </ul>
         </GlassCard>
+      )}
+      </>
       )}
     </div>
   )

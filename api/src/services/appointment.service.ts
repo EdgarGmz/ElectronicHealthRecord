@@ -575,6 +575,25 @@ export class AppointmentService {
     return false; // No conflict
   }
 
+  /** List professionals that can be assigned to appointments (psicologo, enfermero). */
+  async getProfessionals() {
+    const users = await prisma.user.findMany({
+      where: {
+        role: { in: [...ROLES_PROFESSIONAL_APPOINTMENT] },
+        isActive: true,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+      },
+      orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+    });
+    return users;
+  }
+
   async getAvailability(
     professionalId: string,
     date: Date
