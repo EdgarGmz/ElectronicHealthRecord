@@ -9,6 +9,7 @@ export const getAuditLogsValidation = [
   query('userId').optional().isUUID().withMessage('User ID must be a valid UUID'),
   query('action').optional().isString().withMessage('Action must be a string'),
   query('tableName').optional().isString().withMessage('Table name must be a string'),
+  query('role').optional().isString().withMessage('Role must be a string'),
   query('startDate').optional().isISO8601().withMessage('Start date must be a valid ISO 8601 date'),
   query('endDate').optional().isISO8601().withMessage('End date must be a valid ISO 8601 date'),
 ];
@@ -30,6 +31,7 @@ export const getAuditLogs = async (req: AuthRequest, res: Response, next: NextFu
       userId?: string;
       action?: string;
       tableName?: string;
+      role?: string;
       startDate?: Date;
       endDate?: Date;
     } = {};
@@ -44,6 +46,10 @@ export const getAuditLogs = async (req: AuthRequest, res: Response, next: NextFu
 
     if (req.query.tableName) {
       filters.tableName = req.query.tableName as string;
+    }
+
+    if (req.query.role) {
+      filters.role = req.query.role as string;
     }
 
     if (req.query.startDate) {

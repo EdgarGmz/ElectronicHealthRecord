@@ -154,12 +154,10 @@ export function NotificationListPage() {
               {notifications.map((n) => (
                 <div
                   key={n.id}
-                  className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${
-                    n.isRead ? 'border-[var(--border)] bg-transparent' : 'border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5'
-                  }`}
+                  className="flex items-start gap-3 rounded-xl border border-[var(--border)] bg-transparent px-4 py-3"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)]/15">
-                    <Bell size={20} className="text-[var(--color-primary)]" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-black/5 dark:bg-white/5">
+                    <Bell size={20} className="text-[var(--text-secondary)]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -168,7 +166,7 @@ export function NotificationListPage() {
                       </Link>
                       <span className="text-xs text-[var(--text-muted)]">{n.type}</span>
                       {n.priority !== 'normal' && (
-                        <span className="rounded px-1.5 py-0.5 text-xs font-medium bg-[var(--color-warning)]/15 text-[var(--color-warning)]">
+                        <span className="text-xs text-[var(--text-muted)]">
                           {t(`notifications.${PRIORITY_KEY[n.priority] || n.priority}`)}
                         </span>
                       )}

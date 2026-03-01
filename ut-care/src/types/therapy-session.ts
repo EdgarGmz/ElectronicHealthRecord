@@ -44,3 +44,16 @@ export interface TherapySessionsResponse {
   sessions: TherapySession[]
   pagination: { page: number; limit: number; total: number; totalPages: number }
 }
+
+export interface CreateTherapySessionInput {
+  psychologyRecordId: string
+  sessionNumber: number
+  sessionDate: string
+  sessionDuration?: number
+  mood: string
+  evolutionNotes?: string
+  patientProgress?: string
+  assignedTasks?: string
+  observations?: string
+  nextSessionPlan?: string
+}

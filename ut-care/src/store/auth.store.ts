@@ -48,7 +48,7 @@ interface AuthState {
   refreshToken: string | null
   user: User | null
   rememberMe: boolean
-  setAuth: (token: string, refreshToken: string | null, user: User) => void
+  setAuth: (token: string, refreshToken: string | null, user: User, rememberMe?: boolean) => void
   setUser: (user: User) => void
   setRememberMe: (value: boolean) => void
   logout: () => void
@@ -62,7 +62,8 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       user: null,
       rememberMe: true,
-      setAuth: (token, refreshToken, user) => set({ token, refreshToken, user }),
+      setAuth: (token, refreshToken, user, rememberMe) =>
+        set((s) => ({ token, refreshToken, user, ...(rememberMe !== undefined ? { rememberMe } : {}) })),
       setUser: (user) => set({ user }),
       setRememberMe: (value) => set({ rememberMe: value }),
       logout: () => set({ token: null, refreshToken: null, user: null }),

@@ -28,7 +28,8 @@ export const config = {
   
   jwt: {
     secret: process.env.JWT_SECRET || 'default-secret-change-me',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    /** Access token: 8h por turno. Override con JWT_EXPIRES_IN (ej. 8h, 1d). */
+    expiresIn: process.env.JWT_EXPIRES_IN || '8h',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-change-me',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },

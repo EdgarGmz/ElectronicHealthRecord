@@ -37,7 +37,7 @@ export function LoginPage() {
     try {
       const res = await api.post<{ success: boolean; data: { accessToken: string; refreshToken?: string; user: { id: string; email: string; firstName: string; lastName: string; role: string } } }>('/auth/login', data)
       const { accessToken, refreshToken, user } = res.data.data
-      setAuth(accessToken, refreshToken ?? null, user)
+      setAuth(accessToken, refreshToken ?? null, user, rememberMe)
       const redirect = searchParams.get('redirect') || '/'
       navigate(redirect, { replace: true })
     } catch (err: unknown) {

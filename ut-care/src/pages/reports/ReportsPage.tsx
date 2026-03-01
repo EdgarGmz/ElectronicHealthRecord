@@ -17,6 +17,7 @@ import {
   exportDiagnosesToExcel,
   exportDiagnosesToPdf,
 } from '@/utils/reportExport'
+import { getTableRowClass } from '@/utils/tableRowColors'
 import type {
   StatisticsReportData,
   ConsultationsReportData,
@@ -326,8 +327,10 @@ export function ReportsPage() {
                   {consultationsData.consultations.length === 0 ? (
                     <tr><td colSpan={6} className="px-4 py-6 text-center text-[var(--text-muted)]">{t('reports.noData')}</td></tr>
                   ) : (
-                    consultationsData.consultations.map((c) => (
-                      <tr key={c.id} className="border-b border-[var(--border)] last:border-0">
+                    consultationsData.consultations.map((c) => {
+                      const rowVariant = c.status === 'Respondida' ? 'success' : (c.status === 'Cancelada' ? 'error' : 'warning')
+                      return (
+                      <tr key={c.id} className={getTableRowClass(rowVariant)}>
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{c.patient}</td>
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{c.fromDepartment}</td>
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{c.toDepartment}</td>
@@ -335,7 +338,7 @@ export function ReportsPage() {
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{c.status}</td>
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{formatDate(c.createdAt)}</td>
                       </tr>
-                    ))
+                    )})
                   )}
                 </tbody>
               </table>

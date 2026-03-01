@@ -6,6 +6,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { PatientListPage } from '@/pages/patients/PatientListPage'
 import { PatientDetailPage } from '@/pages/patients/PatientDetailPage'
+import { PatientExpedientPage } from '@/pages/patients/PatientExpedientPage'
 import { NewPatientPage } from '@/pages/patients/NewPatientPage'
 import { AppointmentListPage } from '@/pages/appointments/AppointmentListPage'
 import { AppointmentDetailPage } from '@/pages/appointments/AppointmentDetailPage'
@@ -32,6 +33,7 @@ import { NotificationDetailPage } from '@/pages/notifications/NotificationDetail
 import { NewNotificationPage } from '@/pages/notifications/NewNotificationPage'
 import { ProfilePage } from '@/pages/profile/ProfilePage'
 import { HelpPage } from '@/pages/help/HelpPage'
+import { AuditLogsPage } from '@/pages/audit-logs/AuditLogsPage'
 
 function App() {
   return (
@@ -50,6 +52,7 @@ function App() {
           <Route path="patients" element={<PatientListPage />} />
           <Route path="patients/new" element={<NewPatientPage />} />
           <Route path="patients/:id" element={<PatientDetailPage />} />
+          <Route path="patients/:id/expedient" element={<RoleGuard><PatientExpedientPage /></RoleGuard>} />
           <Route path="appointments" element={<AppointmentListPage />} />
           <Route path="appointments/new" element={<NewAppointmentPage />} />
           <Route path="appointments/:id" element={<AppointmentDetailPage />} />
@@ -72,6 +75,7 @@ function App() {
           <Route path="notifications" element={<NotificationListPage />} />
           <Route path="notifications/new" element={<NewNotificationPage />} />
           <Route path="notifications/:id" element={<NotificationDetailPage />} />
+          <Route path="audit-logs" element={<RoleGuard><AuditLogsPage /></RoleGuard>} />
           <Route path="admin" element={<SettingsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="help" element={<HelpPage />} />

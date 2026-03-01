@@ -61,6 +61,23 @@ export const createMedicalRecord = async (req: AuthRequest, res: Response, next:
   }
 };
 
+export const getByPatientIdValidation = [param('patientId').isUUID().withMessage('Valid patient ID is required')];
+
+export const getMedicalRecordByPatientId = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { patientId } = req.params;
+    const medicalRecord = await medicalRecordService.getByPatientId(patientId, req.user?.role, req.user?.userId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Medical record retrieved successfully',
+      data: medicalRecord,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getMedicalRecordById = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
