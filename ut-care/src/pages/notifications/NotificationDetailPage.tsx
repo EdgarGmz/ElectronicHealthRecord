@@ -6,6 +6,7 @@ import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
+import { ConfirmModal } from '@/components/molecules/ConfirmModal'
 import {
   getNotificationById,
   markNotificationAsRead,
@@ -31,6 +32,7 @@ export function NotificationDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -45,9 +47,11 @@ export function NotificationDetailPage() {
       .finally(() => setLoading(false))
   }, [id, t])
 
-  const handleDelete = async () => {
-    if (!id || !window.confirm(t('common.delete') + '?')) return
+  const handleDeleteClick = () => setConfirmDeleteOpen(true)
+  const handleConfirmDelete = async () => {
+    if (!id) return
     setDeleting(true)
+    setConfirmDeleteOpen(false)
     try {
       await deleteNotification(id)
       navigate('/notifications', { replace: true })
@@ -62,6 +66,17 @@ export function NotificationDetailPage() {
     <div className="space-y-6">
       <LoadingModal open={loading || deleting} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? t('notifications.noNotifications')} onClose={() => setError(null)} />
+      <ConfirmModal
+        open={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title={t('notifications.confirmDeleteTitle')}
+        message={t('notifications.confirmDeleteMessage')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        confirming={deleting}
+      />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link to="/notifications" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
           <ArrowLeft size={18} />
@@ -70,7 +85,7 @@ export function NotificationDetailPage() {
         {notification && (
         <GlassButton
           type="button"
-          onClick={handleDelete}
+          onClick={handleDeleteClick}
           disabled={deleting}
           className="text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
         >

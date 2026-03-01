@@ -6,6 +6,7 @@ import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
+import { ConfirmModal } from '@/components/molecules/ConfirmModal'
 import {
   getNotifications,
   getUnreadCount,
@@ -35,6 +36,8 @@ export function NotificationListPage() {
   const [priority, setPriority] = useState('')
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const loadList = () => {
     setLoading(true)
@@ -88,20 +91,37 @@ export function NotificationListPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteClick = (id: string) => setConfirmDeleteId(id)
+  const handleConfirmDelete = async () => {
+    if (!confirmDeleteId) return
+    setDeleting(true)
     try {
-      await deleteNotification(id)
-      setNotifications((prev) => prev.filter((n) => n.id !== id))
+      await deleteNotification(confirmDeleteId)
+      setNotifications((prev) => prev.filter((n) => n.id !== confirmDeleteId))
       loadUnreadCount()
+      setConfirmDeleteId(null)
     } catch {
       setError(t('common.error'))
+    } finally {
+      setDeleting(false)
     }
   }
 
   return (
     <div className="space-y-6">
-      <LoadingModal open={loading} message={t('common.loading')} />
+      <LoadingModal open={loading || deleting} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
+      <ConfirmModal
+        open={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={handleConfirmDelete}
+        title={t('notifications.confirmDeleteTitle')}
+        message={t('notifications.confirmDeleteMessage')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        confirming={deleting}
+      />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('notifications.title')}</h1>
@@ -187,7 +207,7 @@ export function NotificationListPage() {
                     )}
                     <button
                       type="button"
-                      onClick={() => handleDelete(n.id)}
+                      onClick={() => handleDeleteClick(n.id)}
                       className="rounded-lg p-2 text-[var(--text-muted)] hover:bg-black/5 hover:text-[var(--color-error)] dark:hover:bg-white/5"
                       title={t('common.delete')}
                     >

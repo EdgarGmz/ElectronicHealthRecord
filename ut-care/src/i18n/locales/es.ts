@@ -306,6 +306,8 @@ export const es = {
     message: 'Mensaje',
     notificationTitle: 'Título',
     readAt: 'Leída',
+    confirmDeleteTitle: 'Confirmar eliminación',
+    confirmDeleteMessage: '¿Está seguro de que desea eliminar esta notificación? Esta acción no se puede deshacer.',
   },
   evaluations: {
     title: 'Evaluaciones psicométricas',
@@ -330,6 +332,7 @@ export const es = {
     of: 'de',
     delete: 'Eliminar',
     deleteConfirm: '¿Eliminar esta evaluación?',
+    deleteConfirmTitle: 'Confirmar eliminación',
   },
   reports: {
     title: 'Reportes',

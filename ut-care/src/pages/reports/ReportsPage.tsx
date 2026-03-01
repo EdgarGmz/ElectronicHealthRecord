@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { BarChart3, MessageSquare, FileText, Calendar, FileSpreadsheet, FileType } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
-import { ConfirmExportModal, type ExportFormat } from '@/components/molecules/ConfirmExportModal'
+import { ConfirmModal } from '@/components/molecules/ConfirmModal'
 import {
   getStatisticsReport,
   getConsultationsReport,
@@ -55,7 +55,7 @@ export function ReportsPage() {
   const [diagnosesError, setDiagnosesError] = useState<string | null>(null)
 
   const [exportModalOpen, setExportModalOpen] = useState(false)
-  const [exportFormat, setExportFormat] = useState<ExportFormat>('excel')
+  const [exportFormat, setExportFormat] = useState<'excel' | 'pdf'>('excel')
   const [exportType, setExportType] = useState<'statistics' | 'consultations' | 'diagnoses'>('statistics')
 
   const params = () => ({
@@ -113,7 +113,7 @@ export function ReportsPage() {
     return d
   }
 
-  const openExportModal = (format: ExportFormat, type: 'statistics' | 'consultations' | 'diagnoses') => {
+  const openExportModal = (format: 'excel' | 'pdf', type: 'statistics' | 'consultations' | 'diagnoses') => {
     setExportFormat(format)
     setExportType(type)
     setExportModalOpen(true)
@@ -134,13 +134,18 @@ export function ReportsPage() {
     setExportModalOpen(false)
   }
 
+  const exportFormatLabel = exportFormat === 'excel' ? t('reports.formatExcel') : t('reports.formatPdf')
+
   return (
     <div className="space-y-6">
-      <ConfirmExportModal
+      <ConfirmModal
         open={exportModalOpen}
         onClose={() => setExportModalOpen(false)}
         onConfirm={handleConfirmExport}
-        format={exportFormat}
+        title={t('reports.confirmExportTitle')}
+        message={t('reports.confirmExportMessage', { format: exportFormatLabel })}
+        confirmLabel={t('common.confirm')}
+        cancelLabel={t('common.cancel')}
       />
       <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('reports.title')}</h1>
 

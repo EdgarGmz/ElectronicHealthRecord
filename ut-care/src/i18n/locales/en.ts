@@ -306,6 +306,8 @@ export const en = {
     message: 'Message',
     notificationTitle: 'Title',
     readAt: 'Read at',
+    confirmDeleteTitle: 'Confirm deletion',
+    confirmDeleteMessage: 'Are you sure you want to delete this notification? This action cannot be undone.',
   },
   evaluations: {
     title: 'Psychometric evaluations',
@@ -330,6 +332,7 @@ export const en = {
     of: 'of',
     delete: 'Delete',
     deleteConfirm: 'Delete this evaluation?',
+    deleteConfirmTitle: 'Confirm deletion',
   },
   reports: {
     title: 'Reports',

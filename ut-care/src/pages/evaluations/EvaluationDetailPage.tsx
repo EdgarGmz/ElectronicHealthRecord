@@ -6,6 +6,7 @@ import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
+import { ConfirmModal } from '@/components/molecules/ConfirmModal'
 import { getPsychometricEvaluationById, deletePsychometricEvaluation } from '@/services/psychometric-evaluation.service'
 import type { PsychometricEvaluation } from '@/types/psychometric-evaluation'
 
@@ -27,6 +28,7 @@ export function EvaluationDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -38,9 +40,11 @@ export function EvaluationDetailPage() {
       .finally(() => setLoading(false))
   }, [id, t])
 
-  const handleDelete = async () => {
-    if (!id || !window.confirm(t('evaluations.deleteConfirm'))) return
+  const handleDeleteClick = () => setConfirmDeleteOpen(true)
+  const handleConfirmDelete = async () => {
+    if (!id) return
     setDeleting(true)
+    setConfirmDeleteOpen(false)
     try {
       await deletePsychometricEvaluation(id)
       navigate('/evaluations', { replace: true })
@@ -62,6 +66,17 @@ export function EvaluationDetailPage() {
     <div className="space-y-6">
       <LoadingModal open={loading || deleting} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? t('evaluations.noEvaluations')} onClose={() => setError(null)} />
+      <ConfirmModal
+        open={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title={t('evaluations.deleteConfirmTitle')}
+        message={t('evaluations.deleteConfirm')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        confirming={deleting}
+      />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link to="/evaluations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
           <ArrowLeft size={18} />
@@ -70,7 +85,7 @@ export function EvaluationDetailPage() {
         {evaluation && (
         <GlassButton
           type="button"
-          onClick={handleDelete}
+          onClick={handleDeleteClick}
           disabled={deleting}
           className="text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
         >
