@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { User as UserIcon } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
+import { SuccessModal } from '@/components/molecules/SuccessModal'
 import { getMyProfile, updateMyProfile } from '@/services/profile.service'
 import { useAuthStore } from '@/store/auth.store'
 import type { Profile, UpdateProfileInput } from '@/types/profile'
@@ -108,41 +111,22 @@ export function ProfilePage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
-          <UserIcon size={28} />
-          {t('profilePage.title')}
-        </h1>
-        <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-      </div>
-    )
-  }
-
-  if (!profile) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('profilePage.title')}</h1>
-        <p className="text-[var(--color-error)]">{error || t('common.error')}</p>
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading || submitting} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error || undefined} onClose={() => setError('')} />
+      <SuccessModal open={!!success} message={success} onClose={() => setSuccess('')} />
       <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
         <UserIcon size={28} />
         {t('profilePage.title')}
       </h1>
-
-      {success && (
-        <p className="rounded-xl bg-[var(--color-primary)]/10 px-4 py-2 text-sm text-[var(--color-primary)]">
-          {success}
-        </p>
+      {!profile && !loading && (
+        <GlassCard>
+          <p className="text-[var(--text-secondary)]">{t('common.error')}</p>
+        </GlassCard>
       )}
-      {error && <p className="text-sm text-[var(--color-error)]">{error}</p>}
-
+      {profile && (
       <GlassCard>
         {editing ? (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -269,6 +253,7 @@ export function ProfilePage() {
           </>
         )}
       </GlassCard>
+      )}
     </div>
   )
 }

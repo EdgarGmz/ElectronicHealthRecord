@@ -243,7 +243,7 @@ export class MedicalRecordService {
     return medicalRecord;
   }
 
-  async getByPatientId(patientId: string, userRole?: string) {
+  async getByPatientId(patientId: string, userRole?: string, userId?: string) {
     const includeNursingOnly = userRole === ROLES.ENFERMERO;
     const medicalRecord = await prisma.medicalRecord.findUnique({
       where: { patientId },
@@ -252,6 +252,27 @@ export class MedicalRecordService {
 
     if (!medicalRecord) {
       throw new AppError('Medical record not found for this patient', 404);
+    }
+
+    if (userRole === 'coordinador_enfermeria') {
+      const hasNursing = medicalRecord.nursingConsultations?.length;
+      if (!hasNursing) {
+        throw new AppError('Acceso denegado: solo puede ver expedientes de pacientes registrados en enfermería', 403);
+      }
+    }
+
+    if (userRole === ROLES.PSICOLOGO && userId) {
+      const p = medicalRecord.patient;
+      const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
+      const isGeneral = PATIENT_TYPES_GENERAL.includes(p.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
+      const isStudentInScope =
+        p.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(p.careerId);
+      if (!isGeneral && !isStudentInScope) {
+        throw new AppError(
+          'Acceso denegado: solo puede ver expedientes de estudiantes de sus carreras asignadas o personal docente/administrativo',
+          403
+        );
+      }
     }
 
     return medicalRecord;

@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
+import { SuccessModal } from '@/components/molecules/SuccessModal'
 import { createMedication } from '@/services/medication.service'
 import type { CreateMedicationInput } from '@/types/medication'
 
@@ -12,6 +15,8 @@ export function NewMedicationPage() {
   const navigate = useNavigate()
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [createdId, setCreatedId] = useState<string | null>(null)
   const [form, setForm] = useState<CreateMedicationInput>({
     name: '',
     genericName: '',
@@ -48,7 +53,8 @@ export function NewMedicationPage() {
       if (form.contraindications?.trim()) payload.contraindications = form.contraindications.trim()
       if (form.sideEffects?.trim()) payload.sideEffects = form.sideEffects.trim()
       const created = await createMedication(payload)
-      navigate(`/medications/${created.id}`, { replace: true })
+      setCreatedId(created.id)
+      setShowSuccess(true)
     } catch (err: unknown) {
       const msg =
         err && typeof err === 'object' && 'response' in err
@@ -62,6 +68,9 @@ export function NewMedicationPage() {
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={submitting} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error || undefined} onClose={() => setError('')} />
+      <SuccessModal open={showSuccess} onClose={() => { setShowSuccess(false); if (createdId) navigate(`/medications/${createdId}`, { replace: true }); setCreatedId(null) }} message={t('common.successSaved')} />
       <Link to="/medications" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
         <ArrowLeft size={18} />
         {t('medications.list')}
@@ -69,7 +78,6 @@ export function NewMedicationPage() {
       <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('medications.newMedication')}</h1>
       <GlassCard>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <p className="text-sm text-[var(--color-error)]">{error}</p>}
           <div>
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('medications.name')} *</label>
             <input

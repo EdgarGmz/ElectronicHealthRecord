@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
+import { SuccessModal } from '@/components/molecules/SuccessModal'
 import { createPsychometricEvaluation } from '@/services/psychometric-evaluation.service'
 import type { CreatePsychometricEvaluationInput } from '@/types/psychometric-evaluation'
 
@@ -12,6 +15,8 @@ export function NewEvaluationPage() {
   const navigate = useNavigate()
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [createdId, setCreatedId] = useState<string | null>(null)
   const [form, setForm] = useState<CreatePsychometricEvaluationInput & { percentileStr: string }>({
     psychologyRecordId: '',
     evaluationType: '',
@@ -49,7 +54,8 @@ export function NewEvaluationPage() {
       if (form.interpretation?.trim()) payload.interpretation = form.interpretation.trim()
       if (form.fileUrl?.trim()) payload.fileUrl = form.fileUrl.trim()
       const created = await createPsychometricEvaluation(payload)
-      navigate(`/evaluations/${created.id}`, { replace: true })
+      setCreatedId(created.id)
+      setShowSuccess(true)
     } catch (err: unknown) {
       const msg =
         err && typeof err === 'object' && 'response' in err
@@ -63,6 +69,9 @@ export function NewEvaluationPage() {
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={submitting} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error || undefined} onClose={() => setError('')} />
+      <SuccessModal open={showSuccess} onClose={() => { setShowSuccess(false); if (createdId) navigate(`/evaluations/${createdId}`, { replace: true }); setCreatedId(null) }} message={t('common.successSaved')} />
       <Link to="/evaluations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
         <ArrowLeft size={18} />
         {t('evaluations.list')}
@@ -70,7 +79,6 @@ export function NewEvaluationPage() {
       <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('evaluations.newEvaluation')}</h1>
       <GlassCard>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <p className="text-sm text-[var(--color-error)]">{error}</p>}
           <div>
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('evaluations.psychologyRecordId')} *</label>
             <input

@@ -8,6 +8,7 @@ import { Lock, Mail, Heart } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/auth.store'
 import { GlassButton } from '@/components/atoms/GlassButton'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { PasswordInput } from '@/components/atoms/PasswordInput'
 import { ThemeToggle } from '@/components/molecules/ThemeToggle'
 import { LanguageSwitcher } from '@/components/molecules/LanguageSwitcher'
@@ -36,7 +37,7 @@ export function LoginPage() {
     try {
       const res = await api.post<{ success: boolean; data: { accessToken: string; refreshToken?: string; user: { id: string; email: string; firstName: string; lastName: string; role: string } } }>('/auth/login', data)
       const { accessToken, refreshToken, user } = res.data.data
-      setAuth(accessToken, refreshToken ?? null, user)
+      setAuth(accessToken, refreshToken ?? null, user, rememberMe)
       const redirect = searchParams.get('redirect') || '/'
       navigate(redirect, { replace: true })
     } catch (err: unknown) {
@@ -53,6 +54,7 @@ export function LoginPage() {
 
   return (
     <div className="login-page min-h-screen flex flex-col">
+      <ErrorModal open={!!error} message={error || undefined} onClose={() => setError('')} />
       {/* Top bar */}
       <header className="flex-shrink-0 flex items-center justify-between px-4 py-3 md:px-6">
         <span className="text-lg font-semibold text-[var(--text-primary)] tracking-tight">
@@ -140,11 +142,6 @@ export function LoginPage() {
                 </button>
               </div>
 
-              {error && (
-                <p className="text-sm text-[var(--color-error)] bg-[var(--color-error)]/10 rounded-lg px-3 py-2">
-                  {error}
-                </p>
-              )}
 
               <GlassButton type="submit" variant="primary" className="w-full py-3 text-base font-semibold">
                 {t('auth.login')}

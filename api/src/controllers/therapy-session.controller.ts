@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { AuthRequest } from '../middleware/auth';
+import therapySessionService from '../services/therapy-session.service';
 
 export const createTherapySessionValidation = [
   body('psychologyRecordId').isUUID().withMessage('Valid psychology record ID is required'),
@@ -62,8 +63,36 @@ export const getTherapySessions = async (req: AuthRequest, res: Response, next: 
   }
 };
 
-export const createTherapySession = (_req: AuthRequest, res: Response, _next: NextFunction): void => {
-  res.status(201).json({ success: true, message: 'Therapy session created (not implemented)' });
+export const createTherapySession = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+    const session = await therapySessionService.create(
+      {
+        psychologyRecordId: req.body.psychologyRecordId,
+        sessionNumber: req.body.sessionNumber,
+        sessionDate: new Date(req.body.sessionDate),
+        sessionDuration: req.body.sessionDuration,
+        mood: req.body.mood,
+        evolutionNotes: req.body.evolutionNotes,
+        patientProgress: req.body.patientProgress,
+        assignedTasks: req.body.assignedTasks,
+        observations: req.body.observations,
+        nextSessionPlan: req.body.nextSessionPlan,
+      },
+      req.user.userId,
+      req.user.role
+    );
+    res.status(201).json({
+      success: true,
+      message: 'Therapy session created successfully',
+      data: session,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const getTherapySessionById = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
@@ -84,6 +113,34 @@ export const getTherapySessionById = async (req: AuthRequest, res: Response, nex
   }
 };
 
-export const updateTherapySession = (req: Request, res: Response, _next: NextFunction): void => {
-  res.status(200).json({ success: true, message: `Therapy session with id ${req.params.id} updated (not implemented)` });
+export const updateTherapySession = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+    const { id } = req.params;
+    const session = await therapySessionService.update(
+      id,
+      {
+        sessionDate: req.body.sessionDate ? new Date(req.body.sessionDate) : undefined,
+        sessionDuration: req.body.sessionDuration,
+        mood: req.body.mood,
+        evolutionNotes: req.body.evolutionNotes,
+        patientProgress: req.body.patientProgress,
+        assignedTasks: req.body.assignedTasks,
+        observations: req.body.observations,
+        nextSessionPlan: req.body.nextSessionPlan,
+      },
+      req.user.userId,
+      req.user.role
+    );
+    res.status(200).json({
+      success: true,
+      message: 'Therapy session updated successfully',
+      data: session,
+    });
+  } catch (error) {
+    next(error);
+  }
 };

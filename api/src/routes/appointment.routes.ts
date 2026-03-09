@@ -16,6 +16,7 @@ const router = Router();
 router.use(authenticateToken);
 
 router.get('/', appointmentController.getAppointments);
+router.get('/professionals', appointmentController.getAppointmentProfessionals);
 router.get('/availability', appointmentController.getAvailability);
 router.get(
   '/:id',

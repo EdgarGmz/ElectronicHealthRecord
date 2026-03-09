@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Search, Plus, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, ClipboardList } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
+import { DataTable } from '@/components/organisms/DataTable'
+import type { DataTableColumn } from '@/components/organisms/DataTable'
 import { getPsychometricEvaluations } from '@/services/psychometric-evaluation.service'
 import type { PsychometricEvaluation } from '@/types/psychometric-evaluation'
 
@@ -31,6 +35,10 @@ export function EvaluationListPage() {
   const [applicationDateTo, setApplicationDateTo] = useState('')
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
+  const [sortState, setSortState] = useState<{ columnId: string | null; order: 'asc' | 'desc' }>({
+    columnId: null,
+    order: 'asc',
+  })
 
   useEffect(() => {
     setLoading(true)
@@ -50,113 +58,92 @@ export function EvaluationListPage() {
       .finally(() => setLoading(false))
   }, [page, evaluationType, applicationDateFrom, applicationDateTo, t])
 
+  const columns: DataTableColumn<PsychometricEvaluation>[] = [
+    { id: 'evaluationType', label: t('evaluations.evaluationType'), getValue: (row) => row.evaluationType, sortable: true },
+    { id: 'patient', label: t('evaluations.patient'), getValue: (row) => patientName(row), sortable: true },
+    { id: 'applicationDate', label: t('evaluations.applicationDate'), getValue: (row) => formatDate(row.applicationDate), sortable: true },
+    { id: 'administeredBy', label: t('evaluations.administeredBy'), getValue: (row) => administeredByName(row), sortable: true },
+  ]
+
+  const sortedData = useMemo(() => {
+    if (!sortState.columnId) return evaluations
+    const col = columns.find((c) => c.id === sortState.columnId)
+    if (!col) return evaluations
+    return [...evaluations].sort((a, b) => {
+      const va = col.getValue(a)
+      const vb = col.getValue(b)
+      const cmp = String(va).localeCompare(String(vb), undefined, { numeric: true })
+      return sortState.order === 'asc' ? cmp : -cmp
+    })
+  }, [evaluations, sortState, columns])
+
+  const filterValues = { evaluationType: evaluationType, applicationDateFrom, applicationDateTo }
+  const onFilterChange = (key: string, value: string) => {
+    if (key === 'evaluationType') setEvaluationType(value)
+    else if (key === 'applicationDateFrom') setApplicationDateFrom(value)
+    else if (key === 'applicationDateTo') setApplicationDateTo(value)
+    setPage(1)
+  }
+  const onClearFilters = () => {
+    setEvaluationType('')
+    setApplicationDateFrom('')
+    setApplicationDateTo('')
+    setPage(1)
+  }
+
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('evaluations.title')}</h1>
-        <Link
-          to="/evaluations/new"
-          className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium"
-        >
+        <Link to="/evaluations/new" className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium">
           <Plus size={18} />
           {t('evaluations.newEvaluation')}
         </Link>
       </div>
       <GlassCard>
-        <div className="mb-4 flex flex-wrap gap-3">
-          <input
-            type="text"
-            value={evaluationType}
-            onChange={(e) => { setEvaluationType(e.target.value); setPage(1) }}
-            placeholder={t('evaluations.evaluationType')}
-            className="glass-input w-full sm:w-48 px-4 py-2.5"
-          />
-          <input
-            type="date"
-            value={applicationDateFrom}
-            onChange={(e) => { setApplicationDateFrom(e.target.value); setPage(1) }}
-            placeholder="Desde"
-            className="glass-input w-full sm:w-40 px-4 py-2.5"
-          />
-          <input
-            type="date"
-            value={applicationDateTo}
-            onChange={(e) => { setApplicationDateTo(e.target.value); setPage(1) }}
-            placeholder="Hasta"
-            className="glass-input w-full sm:w-40 px-4 py-2.5"
-          />
-        </div>
-        {error && <p className="mb-4 text-sm text-[var(--color-error)]">{error}</p>}
-        {loading ? (
-          <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-        ) : evaluations.length === 0 ? (
-          <p className="py-8 text-center text-[var(--text-secondary)]">{t('evaluations.noEvaluations')}</p>
-        ) : (
-          <>
-            <div className="overflow-x-auto rounded-xl border border-[var(--glass-border)]">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--border)] bg-black/5 dark:bg-white/5">
-                    <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('evaluations.evaluationType')}</th>
-                    <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('evaluations.patient')}</th>
-                    <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('evaluations.applicationDate')}</th>
-                    <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('evaluations.administeredBy')}</th>
-                    <th className="w-24 px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {evaluations.map((ev) => (
-                    <tr
-                      key={ev.id}
-                      className="border-b border-[var(--border)] last:border-0 hover:bg-black/5 dark:hover:bg-white/5"
-                    >
-                      <td className="px-4 py-3 font-medium text-[var(--text-primary)]">{ev.evaluationType}</td>
-                      <td className="px-4 py-3 text-[var(--text-secondary)]">{patientName(ev)}</td>
-                      <td className="px-4 py-3 text-[var(--text-secondary)]">{formatDate(ev.applicationDate)}</td>
-                      <td className="px-4 py-3 text-[var(--text-secondary)]">{administeredByName(ev)}</td>
-                      <td className="px-4 py-3">
-                        <Link
-                          to={`/evaluations/${ev.id}`}
-                          className="inline-flex items-center gap-1 text-[var(--color-primary)] hover:underline"
-                        >
-                          <ClipboardList size={16} />
-                          {t('evaluations.viewDetail')}
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {pagination.totalPages > 1 && (
-              <div className="mt-4 flex items-center justify-between border-t border-[var(--border)] pt-4">
-                <p className="text-sm text-[var(--text-muted)]">
-                  {t('evaluations.page')} {pagination.page} {t('evaluations.of')} {pagination.totalPages}
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    disabled={page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    className="glass-button inline-flex items-center gap-1 disabled:opacity-50"
-                  >
-                    <ChevronLeft size={18} />
-                    {t('evaluations.previous')}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={page >= pagination.totalPages}
-                    onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
-                    className="glass-button inline-flex items-center gap-1 disabled:opacity-50"
-                  >
-                    {t('evaluations.next')}
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
+        <DataTable
+          columns={columns}
+          data={sortedData}
+          getRowId={(row) => row.id}
+          loading={loading}
+          error={error}
+          emptyMessage={t('evaluations.noEvaluations')}
+          pagination={pagination}
+          onPageChange={setPage}
+          filters={[
+            { key: 'evaluationType', label: t('evaluations.evaluationType'), type: 'text', placeholder: t('evaluations.evaluationType') },
+            { key: 'applicationDateFrom', label: t('reports.periodStart'), type: 'date' },
+            { key: 'applicationDateTo', label: t('reports.periodEnd'), type: 'date' },
+          ]}
+          filterValues={filterValues}
+          onFilterChange={onFilterChange}
+          onClearFilters={onClearFilters}
+          sortState={sortState}
+          onSort={(columnId, order) => setSortState({ columnId, order })}
+          renderActions={(row) => (
+            <Link to={`/evaluations/${row.id}`} className="inline-flex items-center gap-1 text-[var(--color-primary)] hover:underline">
+              <ClipboardList size={16} />
+              {t('evaluations.viewDetail')}
+            </Link>
+          )}
+          exportFormats={['pdf', 'csv', 'xlsx']}
+          exportFilename="evaluaciones"
+          exportTitle={t('evaluations.title')}
+          i18n={{
+            clearFilters: t('table.clearFilters'),
+            export: t('table.export'),
+            exportPdf: t('table.exportPdf'),
+            exportCsv: t('table.exportCsv'),
+            exportExcel: t('table.exportExcel'),
+            previous: t('table.previous'),
+            next: t('table.next'),
+            page: t('table.page'),
+            of: t('table.of'),
+            all: t('table.all'),
+          }}
+        />
       </GlassCard>
     </div>
   )

@@ -63,7 +63,7 @@ export function getVisibleDashboardCards(role: string | undefined): DashboardCar
   return r ? DASHBOARD_CARDS.filter((c) => c.roles.includes(r)).map((c) => c.id) : []
 }
 
-/** Nav path -> roles that can see it (empty = all staff). Sesiones solo psicología/coords, no admin. */
+/** Nav path -> roles that can see it (empty = all staff). Sesiones solo psicología/coords, no admin. Audit logs solo admin. */
 const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/': [], // dashboard: all
   '/patients': [],
@@ -75,7 +75,17 @@ const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/reports': [],
   '/evaluations': [],
   '/notifications': [],
+  '/audit-logs': [ROLES.ADMIN],
 }
+
+/** Paths that require medical record access (expediente). Same roles as API ROLES_CAN_ACCESS_MEDICAL_RECORDS. */
+const EXPEDIENT_PATH_PREFIX = '/patients/'
+const EXPEDIENT_ALLOWED_ROLES: readonly string[] = [
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
+  ROLES.PSICOLOGO,
+  ROLES.ENFERMERO,
+]
 
 /**
  * Returns whether the given role can see the nav item with path `to`.
@@ -93,8 +103,19 @@ export function canSeeNavItem(to: string, role: string | undefined): boolean {
  * Returns whether the given role can access the given pathname (e.g. /sessions, /sessions/new, /sessions/123).
  * Used to show UnauthorizedPage when user navigates directly to a restricted route.
  */
+/**
+ * Returns whether the given role can access patient expedient (medical record) pages.
+ */
+export function canAccessExpedient(role: string | undefined): boolean {
+  const r = normalizeRole(role)
+  return r ? EXPEDIENT_ALLOWED_ROLES.includes(r) : false
+}
+
 export function canAccessPath(pathname: string, role: string | undefined): boolean {
   const normalized = pathname.replace(/\/$/, '') || '/'
+  if (normalized.startsWith(EXPEDIENT_PATH_PREFIX) && normalized.includes('/expedient')) {
+    return canAccessExpedient(role)
+  }
   for (const key of Object.keys(NAV_VISIBILITY)) {
     if (normalized === key || normalized.startsWith(key + '/')) return canSeeNavItem(key, role)
   }

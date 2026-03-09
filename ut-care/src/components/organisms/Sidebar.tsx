@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -11,6 +12,7 @@ import {
   BarChart3,
   ClipboardList,
   Bell,
+  ClipboardCheck,
   Settings,
   User,
   HelpCircle,
@@ -32,6 +34,7 @@ const navItems = [
   { to: '/reports', icon: BarChart3, key: 'nav.reports' },
   { to: '/evaluations', icon: ClipboardList, key: 'nav.evaluations' },
   { to: '/notifications', icon: Bell, key: 'nav.notifications' },
+  { to: '/audit-logs', icon: ClipboardCheck, key: 'nav.auditLogs' },
 ]
 
 export function Sidebar() {

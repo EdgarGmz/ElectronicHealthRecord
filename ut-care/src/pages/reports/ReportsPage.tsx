@@ -1,13 +1,23 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BarChart3, MessageSquare, FileText, Calendar } from 'lucide-react'
+import { BarChart3, MessageSquare, FileText, Calendar, FileSpreadsheet, FileType } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
+import { ConfirmModal } from '@/components/molecules/ConfirmModal'
 import {
   getStatisticsReport,
   getConsultationsReport,
   getDiagnosesReport,
 } from '@/services/report.service'
+import {
+  exportStatisticsToExcel,
+  exportStatisticsToPdf,
+  exportConsultationsToExcel,
+  exportConsultationsToPdf,
+  exportDiagnosesToExcel,
+  exportDiagnosesToPdf,
+} from '@/utils/reportExport'
+import { getTableRowClass } from '@/utils/tableRowColors'
 import type {
   StatisticsReportData,
   ConsultationsReportData,
@@ -43,6 +53,10 @@ export function ReportsPage() {
   const [diagnosesData, setDiagnosesData] = useState<DiagnosesReportData | null>(null)
   const [diagnosesLoading, setDiagnosesLoading] = useState(false)
   const [diagnosesError, setDiagnosesError] = useState<string | null>(null)
+
+  const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [exportFormat, setExportFormat] = useState<'excel' | 'pdf'>('excel')
+  const [exportType, setExportType] = useState<'statistics' | 'consultations' | 'diagnoses'>('statistics')
 
   const params = () => ({
     periodStart: new Date(periodStart),
@@ -99,8 +113,40 @@ export function ReportsPage() {
     return d
   }
 
+  const openExportModal = (format: 'excel' | 'pdf', type: 'statistics' | 'consultations' | 'diagnoses') => {
+    setExportFormat(format)
+    setExportType(type)
+    setExportModalOpen(true)
+  }
+
+  const handleConfirmExport = () => {
+    const baseName = `reporte_${periodStart}_${periodEnd}`
+    if (exportType === 'statistics' && statisticsData) {
+      if (exportFormat === 'excel') exportStatisticsToExcel(statisticsData, baseName)
+      else exportStatisticsToPdf(statisticsData, baseName)
+    } else if (exportType === 'consultations' && consultationsData) {
+      if (exportFormat === 'excel') exportConsultationsToExcel(consultationsData, baseName)
+      else exportConsultationsToPdf(consultationsData, baseName)
+    } else if (exportType === 'diagnoses' && diagnosesData) {
+      if (exportFormat === 'excel') exportDiagnosesToExcel(diagnosesData, baseName)
+      else exportDiagnosesToPdf(diagnosesData, baseName)
+    }
+    setExportModalOpen(false)
+  }
+
+  const exportFormatLabel = exportFormat === 'excel' ? t('reports.formatExcel') : t('reports.formatPdf')
+
   return (
     <div className="space-y-6">
+      <ConfirmModal
+        open={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        onConfirm={handleConfirmExport}
+        title={t('reports.confirmExportTitle')}
+        message={t('reports.confirmExportMessage', { format: exportFormatLabel })}
+        confirmLabel={t('common.confirm')}
+        cancelLabel={t('common.cancel')}
+      />
       <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('reports.title')}</h1>
 
       <GlassCard>
@@ -149,9 +195,33 @@ export function ReportsPage() {
             <BarChart3 size={22} />
             {t('reports.statistics')}
           </h2>
-          <GlassButton onClick={handleStatistics} disabled={statisticsLoading}>
-            {statisticsLoading ? t('common.loading') : t('reports.generate')}
-          </GlassButton>
+          <div className="flex items-center gap-2">
+            <GlassButton onClick={handleStatistics} disabled={statisticsLoading}>
+              {statisticsLoading ? t('common.loading') : t('reports.generate')}
+            </GlassButton>
+            {statisticsData && (
+              <>
+                <GlassButton
+                  type="button"
+                  variant="glass"
+                  title={t('reports.exportExcel')}
+                  onClick={() => openExportModal('excel', 'statistics')}
+                  className="p-2"
+                >
+                  <FileSpreadsheet size={20} aria-hidden />
+                </GlassButton>
+                <GlassButton
+                  type="button"
+                  variant="glass"
+                  title={t('reports.exportPdf')}
+                  onClick={() => openExportModal('pdf', 'statistics')}
+                  className="p-2"
+                >
+                  <FileType size={20} aria-hidden />
+                </GlassButton>
+              </>
+            )}
+          </div>
         </div>
         {statisticsError && <p className="mt-2 text-sm text-[var(--color-error)]">{statisticsError}</p>}
         {statisticsData && (
@@ -211,9 +281,33 @@ export function ReportsPage() {
             <MessageSquare size={22} />
             {t('reports.consultations')}
           </h2>
-          <GlassButton onClick={handleConsultations} disabled={consultationsLoading}>
-            {consultationsLoading ? t('common.loading') : t('reports.generate')}
-          </GlassButton>
+          <div className="flex items-center gap-2">
+            <GlassButton onClick={handleConsultations} disabled={consultationsLoading}>
+              {consultationsLoading ? t('common.loading') : t('reports.generate')}
+            </GlassButton>
+            {consultationsData && (
+              <>
+                <GlassButton
+                  type="button"
+                  variant="glass"
+                  title={t('reports.exportExcel')}
+                  onClick={() => openExportModal('excel', 'consultations')}
+                  className="p-2"
+                >
+                  <FileSpreadsheet size={20} aria-hidden />
+                </GlassButton>
+                <GlassButton
+                  type="button"
+                  variant="glass"
+                  title={t('reports.exportPdf')}
+                  onClick={() => openExportModal('pdf', 'consultations')}
+                  className="p-2"
+                >
+                  <FileType size={20} aria-hidden />
+                </GlassButton>
+              </>
+            )}
+          </div>
         </div>
         {consultationsError && <p className="mt-2 text-sm text-[var(--color-error)]">{consultationsError}</p>}
         {consultationsData && (
@@ -238,8 +332,10 @@ export function ReportsPage() {
                   {consultationsData.consultations.length === 0 ? (
                     <tr><td colSpan={6} className="px-4 py-6 text-center text-[var(--text-muted)]">{t('reports.noData')}</td></tr>
                   ) : (
-                    consultationsData.consultations.map((c) => (
-                      <tr key={c.id} className="border-b border-[var(--border)] last:border-0">
+                    consultationsData.consultations.map((c) => {
+                      const rowVariant = c.status === 'Respondida' ? 'success' : (c.status === 'Cancelada' ? 'error' : 'warning')
+                      return (
+                      <tr key={c.id} className={getTableRowClass(rowVariant)}>
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{c.patient}</td>
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{c.fromDepartment}</td>
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{c.toDepartment}</td>
@@ -247,7 +343,7 @@ export function ReportsPage() {
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{c.status}</td>
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{formatDate(c.createdAt)}</td>
                       </tr>
-                    ))
+                    )})
                   )}
                 </tbody>
               </table>
@@ -263,9 +359,33 @@ export function ReportsPage() {
             <FileText size={22} />
             {t('reports.diagnoses')}
           </h2>
-          <GlassButton onClick={handleDiagnoses} disabled={diagnosesLoading}>
-            {diagnosesLoading ? t('common.loading') : t('reports.generate')}
-          </GlassButton>
+          <div className="flex items-center gap-2">
+            <GlassButton onClick={handleDiagnoses} disabled={diagnosesLoading}>
+              {diagnosesLoading ? t('common.loading') : t('reports.generate')}
+            </GlassButton>
+            {diagnosesData && (
+              <>
+                <GlassButton
+                  type="button"
+                  variant="glass"
+                  title={t('reports.exportExcel')}
+                  onClick={() => openExportModal('excel', 'diagnoses')}
+                  className="p-2"
+                >
+                  <FileSpreadsheet size={20} aria-hidden />
+                </GlassButton>
+                <GlassButton
+                  type="button"
+                  variant="glass"
+                  title={t('reports.exportPdf')}
+                  onClick={() => openExportModal('pdf', 'diagnoses')}
+                  className="p-2"
+                >
+                  <FileType size={20} aria-hidden />
+                </GlassButton>
+              </>
+            )}
+          </div>
         </div>
         {diagnosesError && <p className="mt-2 text-sm text-[var(--color-error)]">{diagnosesError}</p>}
         {diagnosesData && (

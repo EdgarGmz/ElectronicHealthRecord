@@ -3,12 +3,18 @@ import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, User, Mail, Hash, BookOpen } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { GlassButton } from '@/components/atoms/GlassButton'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getPatientById } from '@/services/patient.service'
+import { canAccessExpedient } from '@/constants/roles'
+import { useAuthStore } from '@/store/auth.store'
 import type { Patient } from '@/types/patient'
 
 export function PatientDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
+  const { user } = useAuthStore()
   const [patient, setPatient] = useState<Patient | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -20,38 +26,22 @@ export function PatientDetailPage() {
     getPatientById(id).then(setPatient).catch(() => setError(t('common.error'))).finally(() => setLoading(false))
   }, [id, t])
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Link to="/patients" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('patients.list')}
-        </Link>
-        <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-      </div>
-    )
-  }
-  if (error || !patient) {
-    return (
-      <div className="space-y-6">
-        <Link to="/patients" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('patients.list')}
-        </Link>
-        <GlassCard>
-          <p className="text-[var(--color-error)]">{error || t('patients.noPatients')}</p>
-        </GlassCard>
-      </div>
-    )
-  }
-
-  const fullName = `${patient.user.firstName} ${patient.user.lastName}`.trim()
+  const fullName = patient ? `${patient.user.firstName} ${patient.user.lastName}`.trim() : ''
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error ?? t('patients.noPatients')} onClose={() => setError(null)} />
       <Link to="/patients" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
         <ArrowLeft size={18} />
         {t('patients.list')}
       </Link>
+      {!patient && !loading && (
+        <GlassCard>
+          <p className="text-[var(--text-secondary)]">{t('patients.noPatients')}</p>
+        </GlassCard>
+      )}
+      {patient && (
+      <>
       <GlassCard className="border-[var(--color-primary)]/20">
         <div className="flex items-start gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15">
@@ -81,13 +71,23 @@ export function PatientDetailPage() {
           <p className="text-[var(--text-secondary)]">{patient.user.enrollmentNumber ?? '—'}</p>
         </GlassCard>
       </div>
-      <GlassCard>
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-          <BookOpen size={18} />
-          Expediente médico
-        </h2>
-        <p className="text-sm text-[var(--text-muted)]">Módulo de expediente en construcción.</p>
-      </GlassCard>
+      {canAccessExpedient(user?.role) && (
+        <GlassCard>
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+            <BookOpen size={18} />
+            {t('expedient.title')}
+          </h2>
+          <p className="text-sm text-[var(--text-secondary)] mb-3">{t('expedient.subtitle')}</p>
+          <Link to={`/patients/${id}/expedient`}>
+            <GlassButton variant="primary" className="inline-flex items-center gap-2">
+              <BookOpen size={18} />
+              {t('patients.viewRecord')}
+            </GlassButton>
+          </Link>
+        </GlassCard>
+      )}
+      </>
+      )}
     </div>
   )
 }

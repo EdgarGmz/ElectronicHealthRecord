@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Users, Calendar, Clock } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { getVisibleDashboardCards, type DashboardCardId } from '@/constants/roles'
 import { getPatients } from '@/services/patient.service'
 import { getAppointments } from '@/services/appointment.service'
@@ -96,6 +97,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading} message={t('common.loading')} />
       <h1 className="text-2xl font-bold text-[var(--text-primary)]">
         {t('dashboard.title')}, {user?.firstName}
       </h1>

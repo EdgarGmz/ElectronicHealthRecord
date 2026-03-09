@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft, MessageSquare, User, FileText } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getInterconsultationById, respondToInterconsultation } from '@/services/interconsultation.service'
 import type { Interconsultation } from '@/types/interconsultation'
 
@@ -77,39 +79,23 @@ export function InterconsultationDetailPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Link to="/interconsultations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('interconsultations.list')}
-        </Link>
-        <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-      </div>
-    )
-  }
-  if (error || !interconsultation) {
-    return (
-      <div className="space-y-6">
-        <Link to="/interconsultations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('interconsultations.list')}
-        </Link>
-        <GlassCard>
-          <p className="text-[var(--color-error)]">{error || t('interconsultations.noInterconsultations')}</p>
-        </GlassCard>
-      </div>
-    )
-  }
-
-  const isPending = interconsultation.status === 'Pendiente'
+  const isPending = interconsultation?.status === 'Pendiente'
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading || submittingResponse} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error ?? t('interconsultations.noInterconsultations')} onClose={() => setError(null)} />
       <Link to="/interconsultations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
         <ArrowLeft size={18} />
         {t('interconsultations.list')}
       </Link>
+      {!interconsultation && !loading && (
+        <GlassCard>
+          <p className="text-[var(--text-secondary)]">{t('interconsultations.noInterconsultations')}</p>
+        </GlassCard>
+      )}
+      {interconsultation && (
+      <>
       <GlassCard className="border-[var(--color-primary)]/20">
         <div className="flex items-start gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15">
@@ -194,6 +180,8 @@ export function InterconsultationDetailPage() {
             </GlassButton>
           </form>
         </GlassCard>
+      )}
+      </>
       )}
     </div>
   )

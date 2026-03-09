@@ -40,6 +40,7 @@ export class AuditLogService {
       userId?: string;
       action?: string;
       tableName?: string;
+      role?: string;
       startDate?: Date;
       endDate?: Date;
     },
@@ -66,6 +67,10 @@ export class AuditLogService {
 
     if (filters?.tableName) {
       where.tableName = filters.tableName;
+    }
+
+    if (filters?.role && userRole === 'admin') {
+      where.user = { ...where.user, role: filters.role };
     }
 
     if (filters?.startDate || filters?.endDate) {

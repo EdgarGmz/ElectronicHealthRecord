@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Calendar, User } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { LoadingModal } from '@/components/molecules/LoadingModal'
+import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getAppointmentById } from '@/services/appointment.service'
 import type { Appointment } from '@/types/appointment'
 import { APPOINTMENT_STATUS, DEPARTMENT_KEYS } from '@/types/appointment'
@@ -33,40 +35,24 @@ export function AppointmentDetailPage() {
     getAppointmentById(id).then(setAppointment).catch(() => setError(t('common.error'))).finally(() => setLoading(false))
   }, [id, t])
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Link to="/appointments" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('appointments.list')}
-        </Link>
-        <p className="py-8 text-center text-[var(--text-muted)]">{t('common.loading')}</p>
-      </div>
-    )
-  }
-  if (error || !appointment) {
-    return (
-      <div className="space-y-6">
-        <Link to="/appointments" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-          <ArrowLeft size={18} />
-          {t('appointments.list')}
-        </Link>
-        <GlassCard>
-          <p className="text-[var(--color-error)]">{error || t('appointments.noAppointments')}</p>
-        </GlassCard>
-      </div>
-    )
-  }
-
-  const patientName = `${appointment.patient.user.firstName} ${appointment.patient.user.lastName}`.trim()
-  const professionalName = `${appointment.professional.firstName} ${appointment.professional.lastName}`.trim()
+  const patientName = appointment ? `${appointment.patient.user.firstName} ${appointment.patient.user.lastName}`.trim() : ''
+  const professionalName = appointment ? `${appointment.professional.firstName} ${appointment.professional.lastName}`.trim() : ''
 
   return (
     <div className="space-y-6">
+      <LoadingModal open={loading} message={t('common.loading')} />
+      <ErrorModal open={!!error} message={error ?? t('appointments.noAppointments')} onClose={() => setError(null)} />
       <Link to="/appointments" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
         <ArrowLeft size={18} />
         {t('appointments.list')}
       </Link>
+      {!appointment && !loading && (
+        <GlassCard>
+          <p className="text-[var(--text-secondary)]">{t('appointments.noAppointments')}</p>
+        </GlassCard>
+      )}
+      {appointment && (
+      <>
       <GlassCard className="border-[var(--color-primary)]/20">
         <div className="flex items-start gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15">
@@ -111,6 +97,8 @@ export function AppointmentDetailPage() {
           <h2 className="mb-2 text-sm font-semibold text-[var(--color-error)]">{t('appointments.cancellationReason')}</h2>
           <p className="text-[var(--text-secondary)]">{appointment.cancellationReason}</p>
         </GlassCard>
+      )}
+      </>
       )}
     </div>
   )
