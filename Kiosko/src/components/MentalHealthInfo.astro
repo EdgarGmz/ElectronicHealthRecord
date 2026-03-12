@@ -1,19 +1,392 @@
 ---
 // Kiosko/src/components/MentalHealthInfo.astro
+const mentalHealthTips = [
+    {
+        title: "Habla de tus sentimientos",
+        description: "Expresar lo que sientes te ayuda a procesar emociones y a sentirte acompañado.",
+        icon: "💬"
+    },
+    {
+        title: "Mantente activo",
+        description: "El ejercicio regular libera endorfinas que mejoran tu estado de ánimo de forma natural.",
+        icon: "🏃‍♂️"
+    },
+    {
+        title: "Aliméntate bien",
+        description: "Una dieta equilibrada nutre no solo tu cuerpo, sino también tu cerebro.",
+        icon: "🍎"
+    },
+    {
+        title: "Descansa adecuadamente",
+        description: "El sueño reparador es esencial para la regulación emocional y la concentración.",
+        icon: "😴"
+    },
+    {
+        title: "Pide ayuda",
+        description: "No tienes que cargar con todo solo. Buscar apoyo profesional es un signo de fortaleza.",
+        icon: "🤝"
+    },
+    {
+        title: "Practica el autocuidado",
+        description: "Dedica tiempo a actividades que disfrutes y que te brinden paz mental.",
+        icon: "✨"
+    }
+];
+
+const healthCareTips = [
+    {
+        title: "Hidrátate constante",
+        description: "Beber suficiente agua mantiene tus niveles de energía y mejora la concentración.",
+        icon: "💧"
+    },
+    {
+        title: "Chequeos regulares",
+        description: "La prevención es clave. Visita a tu médico para revisiones periódicas.",
+        icon: "🩺"
+    },
+    {
+        title: "Cuida tu postura",
+        description: "Mantén una espalda sana ajustando tu espacio de trabajo y estirando con frecuencia.",
+        icon: "🧘‍♀️"
+    },
+    {
+        title: "Límites de pantalla",
+        description: "Reduce la fatiga visual tomando descansos de tus dispositivos cada 20 minutos.",
+        icon: "📱"
+    },
+    {
+        title: "Higiene personal",
+        description: "Pequeños hábitos diarios protegen tu cuerpo de enfermedades e infecciones.",
+        icon: "🧼"
+    },
+    {
+        title: "Conecta con otros",
+        description: "Las relaciones sociales positivas fortalecen tu sistema inmunológico y bienestar general.",
+        icon: "👥"
+    }
+];
 ---
+
 <section id="mental-health-info" class="page-section">
-    <h2>Salud Mental es Salud</h2>
-    <p>Aquí irá la información sobre salud mental. Puedes añadir artículos, consejos o recursos.</p>
+    <div class="container">
+        <!-- Carrusel 1: Salud Mental -->
+        <h2 class="section-title">Salud Mental es Salud</h2>
+        <div class="carousel-wrapper" id="wrapper-mental">
+            <button class="nav-btn prev" aria-label="Anterior">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            
+            <div class="carousel-container" id="carousel-mental">
+                {mentalHealthTips.map((tip) => (
+                    <div class="carousel-card">
+                        <div class="card-icon">{tip.icon}</div>
+                        <h3>{tip.title}</h3>
+                        <p>{tip.description}</p>
+                    </div>
+                ))}
+            </div>
+
+            <button class="nav-btn next" aria-label="Siguiente">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+        </div>
+        
+        <div class="carousel-indicators" id="indicators-mental">
+            {mentalHealthTips.map((_, index) => (
+                <button class={`indicator ${index === 0 ? 'active' : ''}`} data-index={index}></button>
+            ))}
+        </div>
+
+        <div class="spacer"></div>
+
+        <!-- Carrusel 2: Bienestar General -->
+        <h2 class="section-title">Bienestar y Cuidado</h2>
+        <div class="carousel-wrapper" id="wrapper-health">
+            <button class="nav-btn prev" aria-label="Anterior">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            
+            <div class="carousel-container" id="carousel-health">
+                {healthCareTips.map((tip) => (
+                    <div class="carousel-card accent">
+                        <div class="card-icon">{tip.icon}</div>
+                        <h3>{tip.title}</h3>
+                        <p>{tip.description}</p>
+                    </div>
+                ))}
+            </div>
+
+            <button class="nav-btn next" aria-label="Siguiente">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+        </div>
+        
+        <div class="carousel-indicators" id="indicators-health">
+            {healthCareTips.map((_, index) => (
+                <button class={`indicator ${index === 0 ? 'active' : ''}`} data-index={index}></button>
+            ))}
+        </div>
+    </div>
 </section>
+
+<script>
+    const setupCarousel = (carouselId, indicatorsId, wrapperId, autoPlay = false) => {
+        const carousel = document.getElementById(carouselId);
+        const indicatorsContainer = document.getElementById(indicatorsId);
+        const indicators = indicatorsContainer.querySelectorAll('.indicator');
+        const wrapper = document.getElementById(wrapperId);
+        const prevBtn = wrapper.querySelector('.nav-btn.prev');
+        const nextBtn = wrapper.querySelector('.nav-btn.next');
+
+        if (!carousel || !prevBtn || !nextBtn) return;
+
+        let autoPlayInterval;
+
+        const getCardWidth = () => {
+            const card = carousel.querySelector('.carousel-card');
+            return card ? card.offsetWidth + 24 : 324;
+        };
+
+        const updateIndicators = () => {
+            const scrollPosition = carousel.scrollLeft;
+            const cardWidth = getCardWidth();
+            const activeIndex = Math.round(scrollPosition / cardWidth);
+            
+            indicators.forEach((indicator, index) => {
+                indicator.classList.toggle('active', index === activeIndex);
+            });
+        };
+
+        const scrollToIndex = (index) => {
+            const cardWidth = getCardWidth();
+            carousel.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+        };
+
+        const nextSlide = () => {
+            const cardWidth = getCardWidth();
+            const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+            
+            if (carousel.scrollLeft >= maxScroll - 10) {
+                carousel.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                carousel.scrollBy({ left: cardWidth, behavior: 'smooth' });
+            }
+        };
+
+        const prevSlide = () => {
+            const cardWidth = getCardWidth();
+            if (carousel.scrollLeft <= 10) {
+                carousel.scrollTo({ left: carousel.scrollWidth, behavior: 'smooth' });
+            } else {
+                carousel.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+            }
+        };
+
+        // Event Listeners
+        carousel.addEventListener('scroll', updateIndicators);
+        prevBtn.addEventListener('click', () => {
+            prevSlide();
+            resetAutoPlay();
+        });
+        nextBtn.addEventListener('click', () => {
+            nextSlide();
+            resetAutoPlay();
+        });
+
+        indicators.forEach((indicator) => {
+            indicator.addEventListener('click', () => {
+                const index = parseInt(indicator.getAttribute('data-index'));
+                scrollToIndex(index);
+                resetAutoPlay();
+            });
+        });
+
+        // AutoPlay Logic
+        const startAutoPlay = () => {
+            if (autoPlay) {
+                autoPlayInterval = setInterval(nextSlide, 5000); // Cambia cada 5 segundos
+            }
+        };
+
+        const stopAutoPlay = () => {
+            clearInterval(autoPlayInterval);
+        };
+
+        const resetAutoPlay = () => {
+            stopAutoPlay();
+            startAutoPlay();
+        };
+
+        // Pause on hover
+        carousel.addEventListener('mouseenter', stopAutoPlay);
+        carousel.addEventListener('mouseleave', startAutoPlay);
+
+        startAutoPlay();
+    };
+
+    const initAllCarousels = () => {
+        setupCarousel('carousel-mental', 'indicators-mental', 'wrapper-mental', true);
+        setupCarousel('carousel-health', 'indicators-health', 'wrapper-health', true);
+    };
+
+    initAllCarousels();
+    document.addEventListener('astro:after-swap', initAllCarousels);
+</script>
 
 <style>
     .page-section {
         width: 100%;
         max-width: 1200px;
-        padding: 60px 30px;
+        padding: 4rem 2rem;
         box-sizing: border-box;
         text-align: center;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #e5e5e5;
         background-color: #fff;
+    }
+
+    .spacer {
+        height: 4rem;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+        color: #2C3E50;
+        position: relative;
+        display: inline-block;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 4px;
+        background-color: #A2D9CE;
+        border-radius: 2px;
+    }
+
+    .carousel-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .carousel-container {
+        display: flex;
+        gap: 24px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding: 20px 0;
+        scroll-behavior: smooth;
+    }
+
+    .carousel-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .carousel-card {
+        flex: 0 0 300px;
+        scroll-snap-align: center;
+        background: #fdfdfd;
+        padding: 40px 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #f0f0f0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Color de acento para el segundo carrusel */
+    .carousel-card.accent {
+        border-top: 4px solid #A2D9CE;
+    }
+
+    .carousel-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    }
+
+    .card-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+    }
+
+    .carousel-card h3 {
+        margin-bottom: 15px;
+        color: #2C3E50;
+        font-size: 1.4rem;
+    }
+
+    .carousel-card p {
+        color: #666;
+        line-height: 1.6;
+        font-size: 1rem;
+    }
+
+    .nav-btn {
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+        z-index: 10;
+        color: #2C3E50;
+    }
+
+    .nav-btn:hover {
+        background: #2C3E50;
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .carousel-indicators {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+
+    .indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #ddd;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        transition: all 0.3s;
+    }
+
+    .indicator.active {
+        background-color: #A2D9CE;
+        width: 25px;
+        border-radius: 5px;
+    }
+
+    @media (max-width: 768px) {
+        .carousel-card {
+            flex: 0 0 260px;
+        }
+        .nav-btn {
+            display: none;
+        }
+        .section-title {
+            font-size: 2rem;
+        }
     }
 </style>

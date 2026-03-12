@@ -16,7 +16,7 @@ const sections = [
             { text: "Ridiculizar / Ofender", description: "Burlarse, hacer mofa o insultar a alguien, afectando su autoestima y dignidad." },
             { text: "Humillar en público", description: "Exponer a alguien a la vergüenza o al ridículo frente a otras personas." },
             { text: "Intimidar / Amenazar", description: "Asustar o presionar a alguien para que haga algo que no quiere, usando el miedo como herramienta." },
-            { text: "Controlar / Prohibir (vestimenta, amistades, dinero, etc.)", description: "Restringir la autonomía de alguien imponiendo reglas sobre su forma de vestir, con quién se relaciona o cómo gasta su dinero." }
+            { text: "Controlar / Prohibir", description: "Restringir la autonomía de alguien imponiendo reglas sobre su forma de vestir, con quién se relaciona o cómo gasta su dinero." }
         ]
     },
     {
@@ -32,216 +32,199 @@ const sections = [
             { text: "Manosear", description: "Tocar a alguien de forma sexual sin su permiso, invadiendo su espacio personal." },
             { text: "Acariciar agresivamente", description: "Contacto físico que parece afectuoso pero es forzado, incómodo o excesivo." },
             { text: "Encerrar / Aislar", description: "Impedir la libertad de movimiento de alguien o alejarle de sus seres queridos." },
-            { text: "Amenazar con objetos o armas", description: "Usar objetos o armas para intimidar y generar miedo, sin llegar al contacto físico." },
+            { text: "Amenazar con objetos", description: "Usar objetos o armas para intimidar y generar miedo." },
         ]
     },
     {
         title: "ACTÚA",
-        color: "#6f42c1", // Púrpura, para un nivel más intenso
+        color: "#6f42c1", // Púrpura
         rgb: "111, 66, 193",
         items: [
             { text: "Amenazar de muerte", description: "Expresar la intención de causar la muerte a alguien, generando terror extremo." },
             { text: "Forzar a una relación sexual", description: "Presionar o coaccionar a alguien para tener relaciones sexuales contra su voluntad." },
             { text: "Abusar sexualmente", description: "Cualquier acto sexual sin consentimiento, que viola la integridad de una persona." },
             { text: "Violar", description: "Acto sexual forzado, constituyendo una grave agresión sexual." },
-            { text: "Mutilar", description: "Causar daños permanentes o la pérdida de una parte del cuerpo, un acto de extrema violencia." },
+            { text: "Mutilar", description: "Causar daños permanentes o la pérdida de una parte del cuerpo." },
             { text: "Asesinar", description: "Quitar la vida a una persona, el nivel más extremo de violencia." }
         ]
     }
 ];
 ---
 <section id="violentometro" class="page-section">
-    <h2>Violentómetro</h2>
-    <p>Identifica las señales de violencia. Cada nivel aumenta la gravedad.</p>
+    <div class="container">
+        <h2 class="section-title">Violentómetro</h2>
+        <p class="section-subtitle">Identifica las señales de violencia. Cada nivel aumenta la gravedad.</p>
 
-    <div class="violentometro-container">
-        {sections.map((section, sectionIndex) => (
-            <div class="violentometro-section" style={`--section-color: ${section.color};`}>
-                <div class="section-legend">
-                    <h3>{section.title}</h3>
-                </div>
-                <ul class="section-items">
-                    {section.items.map((item, itemIndex) => (
-                        <li class="violentometro-item" role="button" tabindex="0">
-                            <div class="item-content">
-                                <p class="item-text">{item.text}</p>
-                                <div class="item-description-wrapper">
-                                    <p class="item-description">{item.description}</p>
+        <div class="violentometro-grid">
+            {sections.map((section) => (
+                <div class="violentometro-column" style={`--section-color: ${section.color}; --section-color-rgb: ${section.rgb};`}>
+                    <div class="section-header">
+                        <h3>{section.title}</h3>
+                    </div>
+                    <ul class="section-items">
+                        {section.items.map((item) => (
+                            <li class="violentometro-item" role="button" tabindex="0">
+                                <div class="item-content">
+                                    <p class="item-text">{item.text}</p>
+                                    <div class="item-description-wrapper">
+                                        <p class="item-description">{item.description}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        ))}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ))}
+        </div>
+        
+        <p class="call-to-action">
+            Si identificas alguna de estas situaciones, busca ayuda. No estás solo/a.
+        </p>
     </div>
-    <p class="call-to-action">
-        Si identificas alguna de estas situaciones, busca ayuda. No estás solo/a.
-    </p>
 </section>
+
+<script>
+    const initViolentometro = () => {
+        const items = document.querySelectorAll('.violentometro-item');
+        items.forEach(item => {
+            const toggle = () => item.classList.toggle('expanded');
+            item.addEventListener('click', toggle);
+            item.addEventListener('keydown', (e) => {
+                // @ts-ignore
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggle();
+                }
+            });
+        });
+    };
+
+    initViolentometro();
+    document.addEventListener('astro:after-swap', initViolentometro);
+</script>
 
 <style>
     .page-section {
         width: 100%;
-        max-width: 800px; /* Even smaller max-width for the whole section */
-        padding: 2.5rem 1.5rem; /* Reduced padding */
+        max-width: 1200px;
+        padding: 4rem 2rem;
         box-sizing: border-box;
         text-align: center;
         border-bottom: 1px solid #e5e5e5;
         background-color: #fff;
     }
 
-    .page-section h2 {
-        font-size: 2rem; /* Smaller font size */
-        margin-bottom: 0.8rem;
-    }
-    .page-section p {
-        color: #555;
-        margin-bottom: 1.5rem; /* Smaller margin */
-        font-size: 0.9rem; /* Smaller font size */
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        color: #2C3E50;
     }
 
-    .violentometro-container {
+    .section-subtitle {
+        color: #666;
+        margin-bottom: 3rem;
+        font-size: 1rem;
+    }
+
+    .violentometro-grid {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-start;
+        justify-content: center;
+    }
+
+    .violentometro-column {
+        flex: 1;
+        background-color: #fdfdfd;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         display: flex;
         flex-direction: column;
-        gap: 1.2rem; /* Smaller gap */
-        margin: 0 auto;
-        max-width: 600px; /* Smaller max-width for the container */
+        border: 1px solid #eee;
     }
 
-    .violentometro-section {
-        display: flex;
-        border-radius: 6px; /* Slightly smaller radius */
-        overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05); /* Softer shadow */
-        text-align: left;
-    }
-
-    .section-legend {
+    .section-header {
         background-color: var(--section-color);
         color: white;
-        padding: 0.8rem 0.6rem; /* Smaller padding */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 100px; /* Smaller fixed width for legend */
+        padding: 1.2rem;
         text-align: center;
     }
 
-    .section-legend h3 {
-        font-family: 'Playfair Display', serif;
-        font-size: 1rem; /* Smaller font size */
+    .section-header h3 {
         margin: 0;
+        font-size: 1.2rem;
+        font-weight: bold;
         text-transform: uppercase;
-        line-height: 1.2;
+        letter-spacing: 1px;
     }
 
     .section-items {
         list-style: none;
-        padding: 0.8rem 1rem; /* Adjusted padding */
+        padding: 1rem;
         margin: 0;
-        flex-grow: 1;
-        background-color: #fdfdfd;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
     }
 
     .violentometro-item {
-        margin-bottom: 0.5rem; /* Smaller margin */
-        font-size: 0.9rem; /* Slightly smaller font size */
-        color: #333;
-        display: flex;
-        align-items: center; /* Changed to center for vertical alignment */
-        background-color: rgba(var(--section-color-rgb), 0.1); /* Colored background for each item box */
-        padding: 0.8rem 1rem; /* Adjusted padding */
-        border-radius: 4px; /* Smaller radius */
-        box-shadow: none; /* Remove box shadow */
-        cursor: pointer; /* Indicate clickable */
-        transition: background-color 0.2s ease-in-out;
-        flex-wrap: wrap; /* Allow content to wrap */
+        background-color: rgba(var(--section-color-rgb), 0.1);
+        padding: 0.8rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
     }
-    .violentometro-item:last-child {
-        margin-bottom: 0;
-    }
+
     .violentometro-item:hover {
-        background-color: rgba(var(--section-color-rgb), 0.2); /* Lighter on hover */
-    }
-    
-    .item-content {
-        flex-grow: 1;
+        background-color: rgba(var(--section-color-rgb), 0.2);
+        transform: translateX(5px);
     }
 
     .item-text {
         margin: 0;
-        line-height: 1.4;
-        font-weight: bold; /* Make text bold */
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #333;
+        line-height: 1.3;
     }
 
     .item-description-wrapper {
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.3s ease-out;
-        width: 100%; /* Ensure it takes full width */
     }
+
     .violentometro-item.expanded .item-description-wrapper {
-        max-height: 100px; /* Adjust as needed */
-        margin-top: 0.5rem;
+        max-height: 120px;
+        margin-top: 0.6rem;
     }
+
     .item-description {
-        font-size: 0.8rem; /* Smaller font for description */
+        font-size: 0.8rem;
         color: #555;
         margin: 0;
         line-height: 1.4;
+        border-top: 1px solid rgba(var(--section-color-rgb), 0.2);
+        padding-top: 0.5rem;
     }
 
     .call-to-action {
-        margin-top: 2rem; /* Smaller margin */
-        font-size: 1rem; /* Smaller font size */
+        margin-top: 3rem;
+        font-size: 1.1rem;
         font-weight: bold;
-        color: #333; /* Default text color for general call to action */
+        color: #2C3E50;
     }
 
-    @media (max-width: 768px) {
-        .violentometro-container {
-            max-width: 100%;
-        }
-        .violentometro-section {
+    @media (max-width: 992px) {
+        .violentometro-grid {
             flex-direction: column;
+            max-width: 600px;
+            margin: 0 auto;
         }
-        .section-legend {
-            flex: none;
+        .violentometro-column {
             width: 100%;
-            padding: 0.6rem; /* Smaller padding */
-            border-radius: 6px 6px 0 0;
-        }
-        .section-legend h3 {
-            font-size: 0.9rem;
-        }
-        .section-items {
-            padding: 0.6rem 0.8rem; /* Smaller padding */
-        }
-        .violentometro-item {
-            padding: 0.7rem 0.8rem;
-            font-size: 0.85rem;
-        }
-        .item-description {
-            font-size: 0.75rem;
         }
     }
 </style>
-
-<script is:inline>
-    document.addEventListener('DOMContentLoaded', () => {
-        const items = document.querySelectorAll('.violentometro-item');
-
-        items.forEach(item => {
-            item.addEventListener('click', () => {
-                item.classList.toggle('expanded');
-            });
-            item.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    item.classList.toggle('expanded');
-                }
-            });
-        });
-    });
-</script>
