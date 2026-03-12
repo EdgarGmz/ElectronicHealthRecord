@@ -48,9 +48,12 @@ interface AuthState {
   refreshToken: string | null
   user: User | null
   rememberMe: boolean
+  /** False until persist has rehydrated from storage (avoids redirect to login on F5). */
+  _hasHydrated: boolean
   setAuth: (token: string, refreshToken: string | null, user: User, rememberMe?: boolean) => void
   setUser: (user: User) => void
   setRememberMe: (value: boolean) => void
+  setHasHydrated: (value: boolean) => void
   logout: () => void
   isAuthenticated: () => boolean
 }
@@ -62,13 +65,22 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       user: null,
       rememberMe: true,
+      _hasHydrated: false,
       setAuth: (token, refreshToken, user, rememberMe) =>
         set((s) => ({ token, refreshToken, user, ...(rememberMe !== undefined ? { rememberMe } : {}) })),
       setUser: (user) => set({ user }),
       setRememberMe: (value) => set({ rememberMe: value }),
+      setHasHydrated: (value) => set({ _hasHydrated: value }),
       logout: () => set({ token: null, refreshToken: null, user: null }),
       isAuthenticated: () => !!get().token,
     }),
-    { name: AUTH_KEY, storage: authStorage, partialize: (s) => ({ token: s.token, refreshToken: s.refreshToken, user: s.user, rememberMe: s.rememberMe }) }
+    {
+      name: AUTH_KEY,
+      storage: authStorage,
+      partialize: (s) => ({ token: s.token, refreshToken: s.refreshToken, user: s.user, rememberMe: s.rememberMe }),
+      onRehydrateStorage: () => () => {
+        useAuthStore.getState().setHasHydrated(true)
+      },
+    }
   )
 )
