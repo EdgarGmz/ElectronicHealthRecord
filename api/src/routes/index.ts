@@ -18,6 +18,7 @@ import interconsultationRoutes from './interconsultation.routes';
 import reportRoutes from './report.routes';
 import auditLogRoutes from './audit-log.routes';
 import notificationRoutes from './notification.routes';
+import dashboardRoutes from './dashboard.routes';
 
 const router = Router();
 
@@ -39,6 +40,7 @@ router.use('/therapy-sessions', therapySessionRoutes);
 router.use('/psychometric-tests', psychometricTestRoutes);
 router.use('/interconsultations', interconsultationRoutes);
 router.use('/reports', reportRoutes);
+router.use('/dashboard', dashboardRoutes);
 router.use('/audit-logs', auditLogRoutes);
 router.use('/notifications', notificationRoutes);
 

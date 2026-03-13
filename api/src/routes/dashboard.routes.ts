@@ -1,0 +1,16 @@
+import { Router } from 'express';
+import * as dashboardController from '../controllers/dashboard.controller';
+import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { ROLES } from '../constants/roles';
+
+const router = Router();
+
+router.use(authenticateToken);
+router.get(
+  '/chart-data',
+  authorizeRoles(ROLES.ADMIN),
+  dashboardController.dashboardChartValidation,
+  dashboardController.getChartData
+);
+
+export default router;

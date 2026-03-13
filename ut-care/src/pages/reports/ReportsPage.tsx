@@ -16,8 +16,14 @@ import {
   exportConsultationsToPdf,
   exportDiagnosesToExcel,
   exportDiagnosesToPdf,
+  exportStatisticsToCsv,
+  exportConsultationsToCsv,
+  exportDiagnosesToCsv,
 } from '@/utils/reportExport'
 import { getTableRowClass } from '@/utils/tableRowColors'
+import { api } from '@/lib/api'
+import { useAuthStore } from '@/store/auth.store'
+import { PasswordInput } from '@/components/atoms/PasswordInput'
 import type {
   StatisticsReportData,
   ConsultationsReportData,
@@ -38,6 +44,7 @@ function formatDate(iso: string): string {
 
 export function ReportsPage() {
   const { t } = useTranslation()
+  const currentUser = useAuthStore((s) => s.user)
   const [periodStart, setPeriodStart] = useState(toDateInput(startOfMonth))
   const [periodEnd, setPeriodEnd] = useState(toDateInput(endOfMonth))
   const [department, setDepartment] = useState('')
@@ -55,8 +62,11 @@ export function ReportsPage() {
   const [diagnosesError, setDiagnosesError] = useState<string | null>(null)
 
   const [exportModalOpen, setExportModalOpen] = useState(false)
-  const [exportFormat, setExportFormat] = useState<'excel' | 'pdf'>('excel')
+  const [exportFormat, setExportFormat] = useState<'excel' | 'pdf' | 'csv'>('excel')
   const [exportType, setExportType] = useState<'statistics' | 'consultations' | 'diagnoses'>('statistics')
+  const [exportPassword, setExportPassword] = useState('')
+  const [exportPasswordError, setExportPasswordError] = useState<string | null>(null)
+  const [exportVerifying, setExportVerifying] = useState(false)
 
   const params = () => ({
     periodStart: new Date(periodStart),
@@ -113,28 +123,65 @@ export function ReportsPage() {
     return d
   }
 
-  const openExportModal = (format: 'excel' | 'pdf', type: 'statistics' | 'consultations' | 'diagnoses') => {
+  const openExportModal = (format: 'excel' | 'pdf' | 'csv', type: 'statistics' | 'consultations' | 'diagnoses') => {
     setExportFormat(format)
     setExportType(type)
+    setExportPassword('')
+    setExportPasswordError(null)
     setExportModalOpen(true)
   }
 
-  const handleConfirmExport = () => {
+  const handleConfirmExport = async () => {
+    if (!currentUser?.email) {
+      setExportPasswordError(t('auth.invalidCredentials'))
+      return
+    }
+    if (!exportPassword) {
+      setExportPasswordError(t('auth.passwordMinLength'))
+      return
+    }
+    setExportVerifying(true)
+    setExportPasswordError(null)
+    try {
+      // Reautenticar antes de permitir la descarga
+      await api.post('/auth/login', {
+        email: currentUser.email,
+        password: exportPassword,
+      })
+
     const baseName = `reporte_${periodStart}_${periodEnd}`
     if (exportType === 'statistics' && statisticsData) {
       if (exportFormat === 'excel') exportStatisticsToExcel(statisticsData, baseName)
-      else exportStatisticsToPdf(statisticsData, baseName)
+      else if (exportFormat === 'pdf') exportStatisticsToPdf(statisticsData, baseName)
+      else exportStatisticsToCsv(statisticsData, baseName)
     } else if (exportType === 'consultations' && consultationsData) {
       if (exportFormat === 'excel') exportConsultationsToExcel(consultationsData, baseName)
-      else exportConsultationsToPdf(consultationsData, baseName)
+      else if (exportFormat === 'pdf') exportConsultationsToPdf(consultationsData, baseName)
+      else exportConsultationsToCsv(consultationsData, baseName)
     } else if (exportType === 'diagnoses' && diagnosesData) {
       if (exportFormat === 'excel') exportDiagnosesToExcel(diagnosesData, baseName)
-      else exportDiagnosesToPdf(diagnosesData, baseName)
+      else if (exportFormat === 'pdf') exportDiagnosesToPdf(diagnosesData, baseName)
+      else exportDiagnosesToCsv(diagnosesData, baseName)
     }
     setExportModalOpen(false)
+    setExportPassword('')
+    } catch (e: unknown) {
+      const msg =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : null
+      setExportPasswordError(msg || t('auth.invalidCredentials'))
+    } finally {
+      setExportVerifying(false)
+    }
   }
 
-  const exportFormatLabel = exportFormat === 'excel' ? t('reports.formatExcel') : t('reports.formatPdf')
+  const exportFormatLabel =
+    exportFormat === 'excel'
+      ? t('reports.formatExcel')
+      : exportFormat === 'pdf'
+        ? t('reports.formatPdf')
+        : 'CSV'
 
   return (
     <div className="space-y-6">
@@ -146,6 +193,25 @@ export function ReportsPage() {
         message={t('reports.confirmExportMessage', { format: exportFormatLabel })}
         confirmLabel={t('common.confirm')}
         cancelLabel={t('common.cancel')}
+        confirming={exportVerifying}
+        detail={
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+              {t('auth.password')}
+            </label>
+            <PasswordInput
+              value={exportPassword}
+              onChange={(e) => {
+                setExportPassword(e.target.value)
+                setExportPasswordError(null)
+              }}
+              placeholder="********"
+            />
+            {exportPasswordError && (
+              <p className="text-xs text-[var(--color-error)]">{exportPasswordError}</p>
+            )}
+          </div>
+        }
       />
       <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('reports.title')}</h1>
 
@@ -196,26 +262,36 @@ export function ReportsPage() {
             {t('reports.statistics')}
           </h2>
           <div className="flex items-center gap-2">
-            <GlassButton onClick={handleStatistics} disabled={statisticsLoading}>
-              {statisticsLoading ? t('common.loading') : t('reports.generate')}
-            </GlassButton>
-            {statisticsData && (
+            {!statisticsData ? (
+              <GlassButton onClick={handleStatistics} disabled={statisticsLoading}>
+                {statisticsLoading ? t('common.loading') : t('reports.generate')}
+              </GlassButton>
+            ) : (
               <>
                 <GlassButton
                   type="button"
                   variant="glass"
                   title={t('reports.exportExcel')}
                   onClick={() => openExportModal('excel', 'statistics')}
-                  className="p-2"
+                  className="p-2 bg-emerald-500 text-white hover:bg-emerald-600"
                 >
                   <FileSpreadsheet size={20} aria-hidden />
                 </GlassButton>
                 <GlassButton
                   type="button"
                   variant="glass"
+                  title="CSV"
+                  onClick={() => openExportModal('csv', 'statistics')}
+                  className="p-2 bg-black text-white hover:bg-neutral-800"
+                >
+                  CSV
+                </GlassButton>
+                <GlassButton
+                  type="button"
+                  variant="glass"
                   title={t('reports.exportPdf')}
                   onClick={() => openExportModal('pdf', 'statistics')}
-                  className="p-2"
+                  className="p-2 bg-rose-500 text-white hover:bg-rose-600"
                 >
                   <FileType size={20} aria-hidden />
                 </GlassButton>
@@ -282,26 +358,36 @@ export function ReportsPage() {
             {t('reports.consultations')}
           </h2>
           <div className="flex items-center gap-2">
-            <GlassButton onClick={handleConsultations} disabled={consultationsLoading}>
-              {consultationsLoading ? t('common.loading') : t('reports.generate')}
-            </GlassButton>
-            {consultationsData && (
+            {!consultationsData ? (
+              <GlassButton onClick={handleConsultations} disabled={consultationsLoading}>
+                {consultationsLoading ? t('common.loading') : t('reports.generate')}
+              </GlassButton>
+            ) : (
               <>
                 <GlassButton
                   type="button"
                   variant="glass"
                   title={t('reports.exportExcel')}
                   onClick={() => openExportModal('excel', 'consultations')}
-                  className="p-2"
+                  className="p-2 bg-emerald-500 text-white hover:bg-emerald-600"
                 >
                   <FileSpreadsheet size={20} aria-hidden />
                 </GlassButton>
                 <GlassButton
                   type="button"
                   variant="glass"
+                  title="CSV"
+                  onClick={() => openExportModal('csv', 'consultations')}
+                  className="p-2 bg-black text-white hover:bg-neutral-800"
+                >
+                  CSV
+                </GlassButton>
+                <GlassButton
+                  type="button"
+                  variant="glass"
                   title={t('reports.exportPdf')}
                   onClick={() => openExportModal('pdf', 'consultations')}
-                  className="p-2"
+                  className="p-2 bg-rose-500 text-white hover:bg-rose-600"
                 >
                   <FileType size={20} aria-hidden />
                 </GlassButton>
@@ -360,26 +446,36 @@ export function ReportsPage() {
             {t('reports.diagnoses')}
           </h2>
           <div className="flex items-center gap-2">
-            <GlassButton onClick={handleDiagnoses} disabled={diagnosesLoading}>
-              {diagnosesLoading ? t('common.loading') : t('reports.generate')}
-            </GlassButton>
-            {diagnosesData && (
+            {!diagnosesData ? (
+              <GlassButton onClick={handleDiagnoses} disabled={diagnosesLoading}>
+                {diagnosesLoading ? t('common.loading') : t('reports.generate')}
+              </GlassButton>
+            ) : (
               <>
                 <GlassButton
                   type="button"
                   variant="glass"
                   title={t('reports.exportExcel')}
                   onClick={() => openExportModal('excel', 'diagnoses')}
-                  className="p-2"
+                  className="p-2 bg-emerald-500 text-white hover:bg-emerald-600"
                 >
                   <FileSpreadsheet size={20} aria-hidden />
                 </GlassButton>
                 <GlassButton
                   type="button"
                   variant="glass"
+                  title="CSV"
+                  onClick={() => openExportModal('csv', 'diagnoses')}
+                  className="p-2 bg-black text-white hover:bg-neutral-800"
+                >
+                  CSV
+                </GlassButton>
+                <GlassButton
+                  type="button"
+                  variant="glass"
                   title={t('reports.exportPdf')}
                   onClick={() => openExportModal('pdf', 'diagnoses')}
-                  className="p-2"
+                  className="p-2 bg-rose-500 text-white hover:bg-rose-600"
                 >
                   <FileType size={20} aria-hidden />
                 </GlassButton>

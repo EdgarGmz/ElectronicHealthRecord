@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import userService from '../services/user.service';
 import { AuthRequest } from '../middleware/auth';
-import { ROLES } from '../constants/roles';
+import { ROLES, ROLES_VISIBLE_IN_USERS } from '../constants/roles';
 
 export const createUserValidation = [
   body('email').isEmail().withMessage('Email válido requerido'),
@@ -10,7 +10,7 @@ export const createUserValidation = [
   body('firstName').notEmpty().withMessage('Nombre requerido'),
   body('lastName').notEmpty().withMessage('Apellido requerido'),
   body('dateOfBirth').isISO8601().withMessage('Fecha de nacimiento válida requerida'),
-  body('role').notEmpty().withMessage('Rol requerido'),
+  body('role').isIn(ROLES_VISIBLE_IN_USERS).withMessage('Rol debe ser uno de: coordinador_psicologia, coordinador_enfermeria, psicologo, enfermero'),
   body('phone').optional().trim(),
   body('enrollmentNumber').optional().trim(),
 ];
@@ -21,6 +21,8 @@ export const updateUserValidation = [
   body('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),
   body('phone').optional().isMobilePhone('any').withMessage('Invalid phone number'),
   body('dateOfBirth').optional().isISO8601().withMessage('Invalid date of birth'),
+  body('role').optional().isIn(ROLES_VISIBLE_IN_USERS).withMessage('Rol debe ser uno de: coordinador_psicologia, coordinador_enfermeria, psicologo, enfermero'),
+  body('isActive').optional().isBoolean().withMessage('isActive must be boolean'),
 ];
 
 export const updateMeValidation = [
@@ -33,18 +35,9 @@ export const updateMeValidation = [
 export class UserController {
   async create(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      if (req.user?.role === ROLES.COORDINADOR_PSICOLOGIA && req.body.role !== ROLES.PSICOLOGO) {
-        res.status(403).json({
-          success: false,
-          message: 'El coordinador de psicología solo puede crear usuarios con rol psicólogo',
-        });
-        return;
-      }
-      if (req.user?.role === ROLES.COORDINADOR_ENFERMERIA && req.body.role !== ROLES.ENFERMERO) {
-        res.status(403).json({
-          success: false,
-          message: 'El coordinador de enfermería solo puede crear usuarios con rol enfermero',
-        });
+      // Security is enforced at route-level (admin-only). Keep an explicit check as defense-in-depth.
+      if (req.user?.role !== ROLES.ADMIN) {
+        res.status(403).json({ success: false, message: 'Insufficient permissions' });
         return;
       }
       const data = {

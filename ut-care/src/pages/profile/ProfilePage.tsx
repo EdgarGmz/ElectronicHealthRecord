@@ -22,7 +22,7 @@ function formatDate(value: string | null | undefined): string {
 
 export function ProfilePage() {
   const { t } = useTranslation()
-  const { user, setUser } = useAuthStore()
+  const { setUser } = useAuthStore()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
