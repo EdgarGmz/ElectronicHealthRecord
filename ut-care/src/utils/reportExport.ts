@@ -55,6 +55,45 @@ export function exportStatisticsToExcel(
   XLSX.writeFile(wb, `${filenameBase}_estadisticas.xlsx`)
 }
 
+/** Export statistics report to CSV */
+export function exportStatisticsToCsv(
+  data: StatisticsReportData,
+  filenameBase: string
+): void {
+  const rows: (string | number)[][] = [
+    ['Periodo', `${formatDate(data.period.start)} - ${formatDate(data.period.end)}`],
+    ['Departamento', data.department || 'Todos'],
+    [],
+    ['Citas', ''],
+    ['Total citas', data.appointments.total],
+    ['Completadas', data.appointments.completed],
+    ['Canceladas', data.appointments.cancelled],
+    [],
+    ['Pacientes', ''],
+    ['Total pacientes', data.patients.total],
+    ['Nuevos en período', data.patients.newPatients],
+  ]
+  if (data.therapySessions !== undefined) {
+    rows.push([], ['Sesiones de terapia', data.therapySessions])
+  }
+  if (data.nursingConsultations) {
+    rows.push(
+      [],
+      ['Enfermería', ''],
+      ['Total consultas', data.nursingConsultations.totalConsultations],
+      ['Medicamentos administrados', data.nursingConsultations.medicationsAdministered],
+      ['Procedimientos realizados', data.nursingConsultations.proceduresPerformed],
+    )
+  }
+  if (data.appointments.byType.length > 0) {
+    rows.push([], ['Citas por tipo', ''])
+    data.appointments.byType.forEach((item) => {
+      rows.push([item.type, item.count])
+    })
+  }
+  downloadCsv(`${filenameBase}_estadisticas`, rows)
+}
+
 /** Export statistics report to PDF */
 export function exportStatisticsToPdf(
   data: StatisticsReportData,
@@ -112,6 +151,23 @@ export function exportConsultationsToExcel(
   XLSX.writeFile(wb, `${filenameBase}_interconsultas.xlsx`)
 }
 
+/** Export consultations report to CSV */
+export function exportConsultationsToCsv(
+  data: ConsultationsReportData,
+  filenameBase: string
+): void {
+  const headers = ['Paciente', 'De', 'A', 'Urgencia', 'Estado', 'Fecha']
+  const body = data.consultations.map((c) => [
+    c.patient,
+    c.fromDepartment,
+    c.toDepartment,
+    c.urgency,
+    c.status,
+    formatDate(c.createdAt),
+  ])
+  downloadCsv(`${filenameBase}_interconsultas`, [headers, ...body])
+}
+
 /** Export consultations report to PDF */
 export function exportConsultationsToPdf(
   data: ConsultationsReportData,
@@ -154,6 +210,45 @@ export function exportDiagnosesToExcel(
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Diagnósticos')
   XLSX.writeFile(wb, `${filenameBase}_diagnosticos.xlsx`)
+}
+
+/** Export diagnoses report to CSV */
+export function exportDiagnosesToCsv(
+  data: DiagnosesReportData,
+  filenameBase: string
+): void {
+  const headers = ['Paciente', 'DSM-5', 'CIE-10', 'Sesiones', 'Fecha']
+  const body = data.records.map((r) => [
+    r.patient,
+    r.diagnosisDsm5 ?? '—',
+    r.diagnosisCie10 ?? '—',
+    r.sessionCount,
+    formatDate(r.createdAt),
+  ])
+  downloadCsv(`${filenameBase}_diagnosticos`, [headers, ...body])
+}
+
+function downloadCsv(filename: string, rows: (string | number)[][]): void {
+  const csv = rows
+    .map((row) =>
+      row
+        .map((value) => {
+          const v = String(value ?? '')
+          const escaped = v.replace(/"/g, '""')
+          return `"${escaped}"`
+        })
+        .join(','),
+    )
+    .join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `${filename}.csv`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }
 
 /** Export diagnoses report to PDF */

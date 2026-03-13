@@ -5,9 +5,11 @@ import { useAuthStore } from '@/store/auth.store'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { getVisibleDashboardCards, type DashboardCardId } from '@/constants/roles'
+import { ROLES } from '@/constants/roles'
 import { getPatients } from '@/services/patient.service'
 import { getAppointments } from '@/services/appointment.service'
 import { getUnreadCount } from '@/services/notification.service'
+import { DashboardChartsSection } from '@/components/dashboard/DashboardChartsSection'
 
 const CARD_CONFIG: Record<
   DashboardCardId,
@@ -121,6 +123,10 @@ export function DashboardPage() {
         <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{t('dashboard.welcome')}</h2>
         <p className="text-[var(--text-secondary)]">{t('dashboard.welcomeMessage')}</p>
       </GlassCard>
+
+      {user?.role === ROLES.ADMIN && (
+        <DashboardChartsSection />
+      )}
     </div>
   )
 }

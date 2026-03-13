@@ -12,6 +12,14 @@ export const ROLES = {
 
 export type Role = (typeof ROLES)[keyof typeof ROLES]
 
+/** Roles que se listan en el módulo de usuarios (psicólogos, enfermeros y sus coordinadores). Solo ellos tienen acceso al sistema. */
+export const ROLES_VISIBLE_IN_USERS: readonly string[] = [
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
+  ROLES.PSICOLOGO,
+  ROLES.ENFERMERO,
+]
+
 /** Roles that see "Total pacientes" on dashboard (coordinators + admin) */
 const ROLES_TOTAL_PATIENTS: readonly string[] = [
   ROLES.ADMIN,
@@ -66,15 +74,17 @@ export function getVisibleDashboardCards(role: string | undefined): DashboardCar
 /** Nav path -> roles that can see it (empty = all staff). Sesiones solo psicología/coords, no admin. Audit logs solo admin. */
 const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/': [], // dashboard: all
-  '/patients': [],
-  '/appointments': [],
+  // Admin is an auditor; hide operational modules from admin UI
+  '/patients': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
+  '/appointments': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
   '/sessions': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO],
-  '/medications': [],
-  '/procedures': [],
+  '/medications': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
+  '/procedures': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
   '/interconsultations': [],
   '/reports': [],
-  '/evaluations': [],
+  '/evaluations': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
   '/notifications': [],
+  '/users': [ROLES.ADMIN],
   '/audit-logs': [ROLES.ADMIN],
 }
 

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { body } from 'express-validator';
 import authService from '../services/auth.service';
 import logger from '../utils/logger';
+import { createAuditLog, AUDIT_ACTIONS, AUDIT_TABLES } from '../utils/audit';
 
 export const loginValidation = [
   body('email').isEmail().withMessage('Valid email is required'),
@@ -30,6 +31,14 @@ export class AuthController {
       const result = await authService.login(email, password);
 
       logger.info(`User logged in: ${email}`);
+      await createAuditLog({
+        userId: result.user.id,
+        action: AUDIT_ACTIONS.LOGIN,
+        tableName: AUDIT_TABLES.USER,
+        recordId: result.user.id,
+        newValues: { email: result.user.email, role: result.user.role },
+        req,
+      });
 
       res.status(200).json({
         success: true,
@@ -37,6 +46,11 @@ export class AuthController {
         data: result,
       });
     } catch (error) {
+      const email = req.body?.email;
+      if (typeof email === 'string' && email) {
+        // Best-effort logging (no userId available on failed login)
+        logger.warn(`Login failed: ${email}`);
+      }
       next(error);
     }
   }
