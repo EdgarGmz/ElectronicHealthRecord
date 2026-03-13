@@ -11,6 +11,7 @@ import { config } from './config/env';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import logger from './utils/logger';
+import { runWithAuditContext } from './utils/audit-context';
 
 const app: Application = express();
 
@@ -37,6 +38,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Compression middleware
 app.use(compression());
+
+// Request-scoped context for audit logging (Prisma middleware uses this)
+app.use((req, _res, next) => runWithAuditContext(req, next));
 
 // Logging middleware
 if (config.env === 'development') {

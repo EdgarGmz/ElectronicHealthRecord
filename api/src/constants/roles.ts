@@ -112,6 +112,14 @@ export const ROLES_INTERCONSULTA = [
 /** Solo admin tiene CRUD completo de usuarios */
 export const ROLES_USER_CRUD = [ROLES.ADMIN] as const;
 
+/** Roles que se listan en el módulo de usuarios (psicólogos, enfermeros y sus coordinadores). Solo ellos tienen acceso al sistema. */
+export const ROLES_VISIBLE_IN_USERS = [
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
+  ROLES.PSICOLOGO,
+  ROLES.ENFERMERO,
+] as const;
+
 /** Solo admin tiene CRUD completo de carreras */
 export const ROLES_CAREER_CRUD = [ROLES.ADMIN] as const;
 

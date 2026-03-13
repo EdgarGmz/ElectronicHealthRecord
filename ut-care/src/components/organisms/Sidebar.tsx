@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -13,14 +12,13 @@ import {
   ClipboardList,
   Bell,
   ClipboardCheck,
+  Settings2,
   Settings,
   User,
   HelpCircle,
   LogOut,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
-import { ThemeToggle } from '@/components/molecules/ThemeToggle'
-import { LanguageSwitcher } from '@/components/molecules/LanguageSwitcher'
 import { canSeeNavItem } from '@/constants/roles'
 
 const navItems = [
@@ -34,6 +32,7 @@ const navItems = [
   { to: '/reports', icon: BarChart3, key: 'nav.reports' },
   { to: '/evaluations', icon: ClipboardList, key: 'nav.evaluations' },
   { to: '/notifications', icon: Bell, key: 'nav.notifications' },
+  { to: '/users', icon: Settings2, key: 'nav.users' },
   { to: '/audit-logs', icon: ClipboardCheck, key: 'nav.auditLogs' },
 ]
 

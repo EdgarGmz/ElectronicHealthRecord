@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,6 +10,8 @@ import {
   FileDown,
 } from 'lucide-react'
 import { GlassButton } from '@/components/atoms/GlassButton'
+import { ConfirmModal } from '@/components/molecules/ConfirmModal'
+import { PasswordInput } from '@/components/atoms/PasswordInput'
 import { getTableRowClass, getStatusBadgeClass } from '@/utils/tableRowColors'
 import type { TableRowVariant } from '@/utils/tableRowColors'
 import {
@@ -17,6 +19,8 @@ import {
   exportTableToXlsx,
   exportTableToPdf,
 } from '@/utils/tableExport'
+import { api } from '@/lib/api'
+import { useAuthStore } from '@/store/auth.store'
 
 export interface DataTableFilterConfig {
   key: string
@@ -106,6 +110,13 @@ export function DataTable<T>({
   exportTitle,
   i18n = {},
 }: DataTableProps<T>) {
+  const currentUser = useAuthStore((s) => s.user)
+  const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [pendingFormat, setPendingFormat] = useState<'pdf' | 'csv' | 'xlsx' | null>(null)
+  const [exportPassword, setExportPassword] = useState('')
+  const [exportPasswordError, setExportPasswordError] = useState<string | null>(null)
+  const [exportVerifying, setExportVerifying] = useState(false)
+
   const t = i18n
   const activeFilters = hasActiveFilters(filterValues)
 
@@ -117,6 +128,47 @@ export function DataTable<T>({
     if (format === 'csv') exportTableToCsv(headers, rows, exportFilename)
     else if (format === 'xlsx') exportTableToXlsx(headers, rows, exportFilename)
     else exportTableToPdf(headers, rows, exportFilename, exportTitle)
+  }
+
+  const openExportModal = (format: 'pdf' | 'csv' | 'xlsx') => {
+    if (!data.length) return
+    setPendingFormat(format)
+    setExportPassword('')
+    setExportPasswordError(null)
+    setExportModalOpen(true)
+  }
+
+  const handleConfirmExport = async () => {
+    if (!pendingFormat) return
+    if (!currentUser?.email) {
+      setExportPasswordError('No hay usuario en sesión')
+      return
+    }
+    if (!exportPassword) {
+      setExportPasswordError('La contraseña es requerida')
+      return
+    }
+    setExportVerifying(true)
+    setExportPasswordError(null)
+    try {
+      // Validar credenciales antes de exportar
+      await api.post('/auth/login', {
+        email: currentUser.email,
+        password: exportPassword,
+      })
+      handleExport(pendingFormat)
+      setExportModalOpen(false)
+      setExportPassword('')
+      setPendingFormat(null)
+    } catch (e: unknown) {
+      const msg =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : null
+      setExportPasswordError(msg || 'Credenciales inválidas')
+    } finally {
+      setExportVerifying(false)
+    }
   }
 
   const renderCell = (col: DataTableColumn<T>, row: T): ReactNode => {
@@ -137,6 +189,35 @@ export function DataTable<T>({
 
   return (
     <div className="space-y-4">
+      <ConfirmModal
+        open={exportModalOpen}
+        onClose={() => {
+          if (exportVerifying) return
+          setExportModalOpen(false)
+        }}
+        onConfirm={handleConfirmExport}
+        confirming={exportVerifying}
+        title="Confirmar descarga"
+        message="Por seguridad, introduce tu contraseña para exportar estos datos."
+        detail={
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+              Contraseña
+            </label>
+            <PasswordInput
+              value={exportPassword}
+              onChange={(e) => {
+                setExportPassword(e.target.value)
+                setExportPasswordError(null)
+              }}
+              placeholder="********"
+            />
+            {exportPasswordError && (
+              <p className="text-xs text-[var(--color-error)]">{exportPasswordError}</p>
+            )}
+          </div>
+        }
+      />
       {/* Filtros + Limpiar + Export */}
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div className="flex flex-wrap items-end gap-3">
@@ -195,8 +276,8 @@ export function DataTable<T>({
             {exportFormats.includes('pdf') && (
               <button
                 type="button"
-                onClick={() => handleExport('pdf')}
-                className="glass-button inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm"
+                onClick={() => openExportModal('pdf')}
+                className="glass-button inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm bg-rose-500 text-white hover:bg-rose-600"
                 title={t.exportPdf ?? 'PDF'}
               >
                 <FileText size={16} />
@@ -205,8 +286,8 @@ export function DataTable<T>({
             {exportFormats.includes('csv') && (
               <button
                 type="button"
-                onClick={() => handleExport('csv')}
-                className="glass-button inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm"
+                onClick={() => openExportModal('csv')}
+                className="glass-button inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm bg-black text-white hover:bg-neutral-800"
                 title={t.exportCsv ?? 'CSV'}
               >
                 <FileDown size={16} />
@@ -215,8 +296,8 @@ export function DataTable<T>({
             {exportFormats.includes('xlsx') && (
               <button
                 type="button"
-                onClick={() => handleExport('xlsx')}
-                className="glass-button inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm"
+                onClick={() => openExportModal('xlsx')}
+                className="glass-button inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm bg-emerald-500 text-white hover:bg-emerald-600"
                 title={t.exportExcel ?? 'Excel'}
               >
                 <FileSpreadsheet size={16} />

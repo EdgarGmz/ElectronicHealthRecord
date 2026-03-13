@@ -1,6 +1,7 @@
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { hashPassword } from '../utils/password';
+import { ROLES_VISIBLE_IN_USERS } from '../constants/roles';
 
 export class UserService {
   async create(data: {
@@ -49,15 +50,21 @@ export class UserService {
   async getAll(page: number = 1, limit: number = 10, search?: string) {
     const skip = (page - 1) * limit;
 
-    const where = search
+    const roleFilter = { role: { in: [...ROLES_VISIBLE_IN_USERS] } };
+    const where = search?.trim()
       ? {
-          OR: [
-            { email: { contains: search, mode: 'insensitive' as const } },
-            { firstName: { contains: search, mode: 'insensitive' as const } },
-            { lastName: { contains: search, mode: 'insensitive' as const } },
+          AND: [
+            roleFilter,
+            {
+              OR: [
+                { email: { contains: search.trim(), mode: 'insensitive' as const } },
+                { firstName: { contains: search.trim(), mode: 'insensitive' as const } },
+                { lastName: { contains: search.trim(), mode: 'insensitive' as const } },
+              ],
+            },
           ],
         }
-      : {};
+      : roleFilter;
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -123,11 +130,19 @@ export class UserService {
     lastName?: string;
     phone?: string;
     dateOfBirth?: Date;
+    role?: string;
+    isActive?: boolean;
   }) {
     const user = await prisma.user.findUnique({ where: { id } });
 
     if (!user) {
       throw new AppError('User not found', 404);
+    }
+
+    // Protect system admin from being deactivated or role-changed
+    if (user.role === 'admin') {
+      if (data.isActive === false) throw new AppError('El administrador del sistema no puede ser desactivado', 403);
+      if (data.role && data.role !== 'admin') throw new AppError('El rol del administrador no puede ser modificado', 403);
     }
 
     const updatedUser = await prisma.user.update({

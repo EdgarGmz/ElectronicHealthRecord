@@ -3,7 +3,7 @@ import userController, { createUserValidation, updateUserValidation, updateMeVal
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { param } from 'express-validator';
-import { ROLES_USER_CRUD, ROLES_CAN_CREATE_PSYCHOLOGY_USER, ROLES_CAN_CREATE_NURSING_USER } from '../constants/roles';
+import { ROLES, ROLES_USER_CRUD } from '../constants/roles';
 
 const router = Router();
 
@@ -19,10 +19,10 @@ router.get('/:id', authorizeRoles(...ROLES_USER_CRUD), validate([param('id').isU
 router.put('/:id', authorizeRoles(...ROLES_USER_CRUD), validate(updateUserValidation), userController.update.bind(userController));
 router.delete('/:id', authorizeRoles(...ROLES_USER_CRUD), validate([param('id').isUUID()]), userController.delete.bind(userController));
 
-// Crear usuarios: admin; coordinador psicología (solo rol psicólogo); coordinador enfermería (solo rol enfermero).
+// Crear usuarios: solo admin
 router.post(
   '/',
-  authorizeRoles(...ROLES_CAN_CREATE_PSYCHOLOGY_USER, ...ROLES_CAN_CREATE_NURSING_USER),
+  authorizeRoles(ROLES.ADMIN),
   validate(createUserValidation),
   userController.create.bind(userController)
 );

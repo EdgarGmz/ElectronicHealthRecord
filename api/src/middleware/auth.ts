@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken, JwtPayload } from '../utils/jwt';
 import logger from '../utils/logger';
+import { setAuditUserId } from '../utils/audit-context';
 
 export interface AuthRequest extends Request {
   user?: JwtPayload;
@@ -25,6 +26,7 @@ export const authenticateToken = (
 
     const payload = verifyAccessToken(token);
     req.user = payload;
+    setAuditUserId(payload.userId);
     next();
   } catch (error) {
     logger.error('Authentication error:', error);
