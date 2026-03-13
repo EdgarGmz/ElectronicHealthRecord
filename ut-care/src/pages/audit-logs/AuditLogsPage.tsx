@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ClipboardList } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { DataTable } from '@/components/organisms/DataTable'
 import type { DataTableColumn } from '@/components/organisms/DataTable'
+import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { getAuditLogs } from '@/services/audit-log.service'
 import type { AuditLog, AuditLogsResponse } from '@/types/audit-log'
 import { ROLES } from '@/constants/roles'
@@ -48,7 +48,7 @@ export function AuditLogsPage() {
   const [actionFilter, setActionFilter] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
-  const limit = 25
+  const [limit, setLimit] = useState(() => getDefaultTableLimit())
 
   useEffect(() => {
     setLoading(true)
@@ -122,13 +122,7 @@ export function AuditLogsPage() {
     <div className="space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-[var(--text-primary)]">
-          <ClipboardList size={28} />
-          {t('auditLogs.title')}
-        </h1>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">{t('auditLogs.subtitle')}</p>
-      </div>
+      <p className="text-sm text-[var(--text-muted)]">{t('auditLogs.subtitle')}</p>
 
       <GlassCard>
         <DataTable
@@ -140,6 +134,7 @@ export function AuditLogsPage() {
           emptyMessage={t('auditLogs.noData')}
           pagination={pagination}
           onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
             { key: 'role', label: t('auditLogs.filterRole'), type: 'select', options: [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO].map((v) => ({ value: v, label: t(`roles.${v}`) })) },
             { key: 'action', label: t('auditLogs.filterAction'), type: 'select', options: ACTION_VALUES.map((ac) => ({ value: ac, label: getActionLabel(ac, t) })) },
@@ -167,6 +162,7 @@ export function AuditLogsPage() {
             page: t('auditLogs.page'),
             of: '/',
             all: t('reports.departmentAll'),
+            rowsPerPage: t('table.rowsPerPage'),
           }}
         />
       </GlassCard>

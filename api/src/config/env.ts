@@ -35,7 +35,10 @@ export const config = {
   },
   
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    /** In development: allow any http://localhost:* . In production: use CORS_ORIGIN (comma-separated) or default 5173/5174 */
+    allowedOrigins: process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+      : ['http://localhost:5173', 'http://localhost:5174'],
   },
   
   rateLimit: {

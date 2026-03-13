@@ -2,16 +2,20 @@ import { Router } from 'express';
 import * as medicationController from '../controllers/medication.controller';
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
-import { ROLES_CAN_MANAGE_MEDICATIONS, ROLES_CAN_CREATE_MEDICATION } from '../constants/roles';
+import {
+  ROLES_CAN_ACCESS_MEDICATIONS,
+  ROLES_CAN_MANAGE_MEDICATIONS,
+  ROLES_CAN_CREATE_MEDICATION,
+} from '../constants/roles';
 
 const router = Router();
 
-// Todas las rutas requieren autenticación. Admin solo puede ver inventario; crear/editar solo enfermero.
+// Todas las rutas requieren autenticación. Coord. psicología no tiene acceso al módulo.
 router.use(authenticateToken);
 
 // Inventario de medicamentos (catálogo) — rutas relativas al mount /medications
-router.get('/', medicationController.getMedications);
-router.get('/:id', medicationController.getMedicationById);
+router.get('/', authorizeRoles(...ROLES_CAN_ACCESS_MEDICATIONS), medicationController.getMedications);
+router.get('/:id', authorizeRoles(...ROLES_CAN_ACCESS_MEDICATIONS), medicationController.getMedicationById);
 
 router.post(
   '/',

@@ -7,6 +7,7 @@ import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { DataTable } from '@/components/organisms/DataTable'
 import type { DataTableColumn } from '@/components/organisms/DataTable'
+import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { getMedications } from '@/services/medication.service'
 import type { Medication } from '@/types/medication'
 
@@ -19,6 +20,7 @@ export function MedicationListPage() {
   const [category, setCategory] = useState('')
   const [isActiveFilter, setIsActiveFilter] = useState('')
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(() => getDefaultTableLimit())
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [sortState, setSortState] = useState<{ columnId: string | null; order: 'asc' | 'desc' }>({
     columnId: null,
@@ -32,7 +34,7 @@ export function MedicationListPage() {
       isActiveFilter === 'true' ? true : isActiveFilter === 'false' ? false : undefined
     getMedications({
       page,
-      limit: 10,
+      limit,
       search: search || undefined,
       category: category || undefined,
       isActive,
@@ -43,7 +45,7 @@ export function MedicationListPage() {
       })
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
-  }, [page, search, category, isActiveFilter, t])
+  }, [page, limit, search, category, isActiveFilter, t])
 
   const activeLabel = t('medications.active')
   const inactiveLabel = t('medications.inactive')
@@ -109,8 +111,7 @@ export function MedicationListPage() {
     <div className="space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('medications.title')}</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
         <Link
           to="/medications/new"
           className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium"
@@ -129,6 +130,7 @@ export function MedicationListPage() {
           emptyMessage={t('medications.noMedications')}
           pagination={pagination}
           onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
             {
               key: 'search',
@@ -180,6 +182,7 @@ export function MedicationListPage() {
             page: t('table.page'),
             of: t('table.of'),
             all: t('table.all'),
+            rowsPerPage: t('table.rowsPerPage'),
           }}
         />
       </GlassCard>

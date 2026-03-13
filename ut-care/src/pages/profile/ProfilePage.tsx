@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { User as UserIcon } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
@@ -117,10 +116,6 @@ export function ProfilePage() {
       <LoadingModal open={loading || submitting} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error || undefined} onClose={() => setError('')} />
       <SuccessModal open={!!success} message={success} onClose={() => setSuccess('')} />
-      <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
-        <UserIcon size={28} />
-        {t('profilePage.title')}
-      </h1>
       {!profile && !loading && (
         <GlassCard>
           <p className="text-[var(--text-secondary)]">{t('common.error')}</p>

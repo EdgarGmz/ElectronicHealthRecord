@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
-import { HelpCircle, LayoutDashboard, Users, Calendar, User, ArrowRight, Mail, Send, ClipboardList, FileText, Stethoscope } from 'lucide-react'
+import { LayoutDashboard, Users, Calendar, User, ArrowRight, Mail, Send, ClipboardList, FileText, Stethoscope } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { useAuthStore } from '@/store/auth.store'
 import { ROLES } from '@/constants/roles'
@@ -23,11 +23,6 @@ export function HelpPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
-        <HelpCircle size={28} />
-        {t('help.title')}
-      </h1>
-
       <p className="text-[var(--text-secondary)] max-w-2xl">{t('help.intro')}</p>
 
       {isAdmin && (

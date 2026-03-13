@@ -23,6 +23,7 @@ import {
 import { getTableRowClass } from '@/utils/tableRowColors'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/auth.store'
+import { ROLES } from '@/constants/roles'
 import { PasswordInput } from '@/components/atoms/PasswordInput'
 import type {
   StatisticsReportData,
@@ -45,9 +46,10 @@ function formatDate(iso: string): string {
 export function ReportsPage() {
   const { t } = useTranslation()
   const currentUser = useAuthStore((s) => s.user)
+  const isCoordinatorPsychology = currentUser?.role === ROLES.COORDINADOR_PSICOLOGIA
   const [periodStart, setPeriodStart] = useState(toDateInput(startOfMonth))
   const [periodEnd, setPeriodEnd] = useState(toDateInput(endOfMonth))
-  const [department, setDepartment] = useState('')
+  const [department, setDepartment] = useState(isCoordinatorPsychology ? 'psychology' : '')
 
   const [statisticsData, setStatisticsData] = useState<StatisticsReportData | null>(null)
   const [statisticsLoading, setStatisticsLoading] = useState(false)
@@ -71,7 +73,7 @@ export function ReportsPage() {
   const params = () => ({
     periodStart: new Date(periodStart),
     periodEnd: new Date(periodEnd),
-    department: department || undefined,
+    department: isCoordinatorPsychology ? 'psychology' : (department || undefined),
   })
 
   const handleStatistics = async () => {
@@ -213,8 +215,11 @@ export function ReportsPage() {
           </div>
         }
       />
-      <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('reports.title')}</h1>
-
+      {isCoordinatorPsychology && (
+        <p className="rounded-xl border border-[var(--border)] bg-[var(--color-primary)]/10 px-4 py-3 text-sm text-[var(--text-primary)]">
+          {t('reports.coordinatorPsychologyNote')}
+        </p>
+      )}
       <GlassCard>
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
           <Calendar size={18} />
@@ -239,18 +244,28 @@ export function ReportsPage() {
               className="glass-input px-4 py-2.5"
             />
           </div>
-          <div>
-            <label className="block text-xs text-[var(--text-muted)] mb-1">{t('reports.department')}</label>
-            <select
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
-              className="glass-input px-4 py-2.5 min-w-[140px]"
-            >
-              <option value="">{t('reports.departmentAll')}</option>
-              <option value="psychology">{t('reports.departmentPsychology')}</option>
-              <option value="nursing">{t('reports.departmentNursing')}</option>
-            </select>
-          </div>
+          {!isCoordinatorPsychology && (
+            <div>
+              <label className="block text-xs text-[var(--text-muted)] mb-1">{t('reports.department')}</label>
+              <select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                className="glass-input px-4 py-2.5 min-w-[140px]"
+              >
+                <option value="">{t('reports.departmentAll')}</option>
+                <option value="psychology">{t('reports.departmentPsychology')}</option>
+                <option value="nursing">{t('reports.departmentNursing')}</option>
+              </select>
+            </div>
+          )}
+          {isCoordinatorPsychology && (
+            <div>
+              <label className="block text-xs text-[var(--text-muted)] mb-1">{t('reports.department')}</label>
+              <div className="glass-input px-4 py-2.5 min-w-[140px] text-[var(--text-primary)]">
+                {t('reports.departmentPsychology')}
+              </div>
+            </div>
+          )}
         </div>
       </GlassCard>
 

@@ -12,5 +12,10 @@ router.get(
   dashboardController.dashboardChartValidation,
   dashboardController.getChartData
 );
+router.get(
+  '/coordinator-psychology',
+  authorizeRoles(ROLES.COORDINADOR_PSICOLOGIA),
+  dashboardController.getCoordinatorPsychology
+);
 
 export default router;

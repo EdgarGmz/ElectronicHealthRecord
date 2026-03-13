@@ -7,6 +7,7 @@ import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { DataTable } from '@/components/organisms/DataTable'
 import type { DataTableColumn } from '@/components/organisms/DataTable'
+import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { getNursingProcedures } from '@/services/nursing-procedure.service'
 import type { NursingProcedure } from '@/types/nursing-procedure'
 
@@ -33,6 +34,7 @@ export function ProcedureListPage() {
   const [search, setSearch] = useState('')
   const [procedureType, setProcedureType] = useState('')
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(() => getDefaultTableLimit())
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [sortState, setSortState] = useState<{ columnId: string | null; order: 'asc' | 'desc' }>({
     columnId: null,
@@ -44,7 +46,7 @@ export function ProcedureListPage() {
     setError(null)
     getNursingProcedures({
       page,
-      limit: 10,
+      limit,
       search: search || undefined,
       procedureType: procedureType || undefined,
     })
@@ -54,7 +56,7 @@ export function ProcedureListPage() {
       })
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
-  }, [page, search, procedureType, t])
+  }, [page, limit, search, procedureType, t])
 
   const columns: DataTableColumn<NursingProcedure>[] = [
     { id: 'procedureType', label: t('procedures.procedureType'), getValue: (row) => row.procedureType, sortable: true },
@@ -91,8 +93,7 @@ export function ProcedureListPage() {
     <div className="space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('procedures.title')}</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
         <Link to="/procedures/new" className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium">
           <Plus size={18} />
           {t('procedures.newProcedure')}
@@ -108,6 +109,7 @@ export function ProcedureListPage() {
           emptyMessage={t('procedures.noProcedures')}
           pagination={pagination}
           onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
             { key: 'search', label: t('common.search'), type: 'text', placeholder: t('procedures.searchPlaceholder') },
             { key: 'procedureType', label: t('procedures.procedureType'), type: 'text', placeholder: t('procedures.procedureType') },
@@ -137,6 +139,7 @@ export function ProcedureListPage() {
             page: t('table.page'),
             of: t('table.of'),
             all: t('table.all'),
+            rowsPerPage: t('table.rowsPerPage'),
           }}
         />
       </GlassCard>

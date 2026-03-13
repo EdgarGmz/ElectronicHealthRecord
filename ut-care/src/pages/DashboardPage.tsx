@@ -10,6 +10,7 @@ import { getPatients } from '@/services/patient.service'
 import { getAppointments } from '@/services/appointment.service'
 import { getUnreadCount } from '@/services/notification.service'
 import { DashboardChartsSection } from '@/components/dashboard/DashboardChartsSection'
+import { DashboardCoordinatorPsychology } from '@/components/dashboard/DashboardCoordinatorPsychology'
 
 const CARD_CONFIG: Record<
   DashboardCardId,
@@ -33,6 +34,7 @@ function getTodayRange(): { startDate: string; endDate: string } {
 export function DashboardPage() {
   const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
+  const token = useAuthStore((s) => s.token)
   const visibleCards = useMemo(
     () => (user?.role ? getVisibleDashboardCards(user.role) : []),
     [user?.role]
@@ -100,9 +102,6 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
-      <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-        {t('dashboard.title')}, {user?.firstName}
-      </h1>
       {visibleCards.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visibleCards.map((id) => {
@@ -126,6 +125,10 @@ export function DashboardPage() {
 
       {user?.role === ROLES.ADMIN && (
         <DashboardChartsSection />
+      )}
+
+      {user?.role === ROLES.COORDINADOR_PSICOLOGIA && token && (
+        <DashboardCoordinatorPsychology />
       )}
     </div>
   )

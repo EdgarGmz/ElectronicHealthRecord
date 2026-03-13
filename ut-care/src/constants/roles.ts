@@ -20,6 +20,16 @@ export const ROLES_VISIBLE_IN_USERS: readonly string[] = [
   ROLES.ENFERMERO,
 ]
 
+/** Pueden crear pacientes nuevos. Coord. psicología solo ve la lista. */
+export const ROLES_CAN_CREATE_PATIENT: readonly string[] = [
+  ROLES.COORDINADOR_ENFERMERIA,
+  ROLES.PSICOLOGO,
+  ROLES.ENFERMERO,
+]
+
+/** Pueden crear citas nuevas. Coord. psicología solo ve la lista. */
+export const ROLES_CAN_CREATE_APPOINTMENT: readonly string[] = [ROLES.PSICOLOGO]
+
 /** Roles that see "Total pacientes" on dashboard (coordinators + admin) */
 const ROLES_TOTAL_PATIENTS: readonly string[] = [
   ROLES.ADMIN,
@@ -77,12 +87,12 @@ const NAV_VISIBILITY: Record<string, readonly string[]> = {
   // Admin is an auditor; hide operational modules from admin UI
   '/patients': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
   '/appointments': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
-  '/sessions': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO],
-  '/medications': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
-  '/procedures': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
+  '/sessions': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO],
+  '/medications': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
+  '/procedures': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
   '/interconsultations': [],
   '/reports': [],
-  '/evaluations': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
+  '/evaluations': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
   '/notifications': [],
   '/users': [ROLES.ADMIN],
   '/audit-logs': [ROLES.ADMIN],
@@ -125,6 +135,16 @@ export function canAccessPath(pathname: string, role: string | undefined): boole
   const normalized = pathname.replace(/\/$/, '') || '/'
   if (normalized.startsWith(EXPEDIENT_PATH_PREFIX) && normalized.includes('/expedient')) {
     return canAccessExpedient(role)
+  }
+  // Solo roles que pueden crear pacientes acceden a /patients/new
+  if (normalized === '/patients/new') {
+    const r = normalizeRole(role)
+    return r ? ROLES_CAN_CREATE_PATIENT.includes(r) : false
+  }
+  // Solo roles que pueden crear citas acceden a /appointments/new
+  if (normalized === '/appointments/new') {
+    const r = normalizeRole(role)
+    return r ? ROLES_CAN_CREATE_APPOINTMENT.includes(r) : false
   }
   for (const key of Object.keys(NAV_VISIBILITY)) {
     if (normalized === key || normalized.startsWith(key + '/')) return canSeeNavItem(key, role)

@@ -3,19 +3,28 @@ import * as psychometricTestController from '../controllers/psychometric-test.co
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { param } from 'express-validator';
-import { ROLES_PSICOMETRIA, ROLES_CAN_DELETE_PSICOMETRIA } from '../constants/roles';
+import {
+  ROLES_PSICOMETRIA,
+  ROLES_PSICOMETRIA_READ,
+  ROLES_CAN_DELETE_PSICOMETRIA,
+} from '../constants/roles';
 
 const router = Router();
 
 // All routes require authentication
 router.use(authenticateToken);
 
-// Get all psychometric evaluations - all authenticated users can list (filtered by service)
-router.get('/', psychometricTestController.getPsychometricTests);
+// Get all psychometric evaluations - solo roles con acceso al módulo (coord. psicología excluido)
+router.get(
+  '/',
+  authorizeRoles(...ROLES_PSICOMETRIA_READ),
+  psychometricTestController.getPsychometricTests
+);
 
-// Get specific psychometric evaluation - all authenticated users can view (filtered by service)
+// Get specific psychometric evaluation
 router.get(
   '/:id',
+  authorizeRoles(...ROLES_PSICOMETRIA_READ),
   validate([param('id').isUUID()]),
   psychometricTestController.getPsychometricTestById
 );

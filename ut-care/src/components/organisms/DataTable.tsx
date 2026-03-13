@@ -53,6 +53,8 @@ export interface DataTableProps<T> {
   emptyMessage: string
   pagination: { page: number; limit: number; total: number; totalPages: number }
   onPageChange: (page: number) => void
+  /** Si se define, se muestra selector de elementos por página (5, 10, 15, 20). */
+  onLimitChange?: (limit: number) => void
   filters?: DataTableFilterConfig[]
   filterValues: Record<string, string>
   onFilterChange: (key: string, value: string) => void
@@ -80,8 +82,11 @@ export interface DataTableProps<T> {
     page?: string
     of?: string
     all?: string
+    rowsPerPage?: string
   }
 }
+
+const PAGE_SIZE_OPTIONS = [5, 10, 15, 20] as const
 
 function hasActiveFilters(filterValues: Record<string, string>): boolean {
   return Object.values(filterValues).some((v) => v !== '' && v != null)
@@ -96,6 +101,7 @@ export function DataTable<T>({
   emptyMessage,
   pagination,
   onPageChange,
+  onLimitChange,
   filters = [],
   filterValues,
   onFilterChange,
@@ -377,12 +383,37 @@ export function DataTable<T>({
               </tbody>
             </table>
           </div>
-          {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-[var(--border)] pt-4">
-              <p className="text-sm text-[var(--text-muted)]">
-                {t.page ?? 'Página'} {pagination.page} {t.of ?? 'de'}{' '}
-                {pagination.totalPages}
-              </p>
+          {(pagination.totalPages > 1 || onLimitChange) && (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
+              <div className="flex flex-wrap items-center gap-4">
+                {onLimitChange && (
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-[var(--text-muted)]" htmlFor="dt-page-size">
+                      {t.rowsPerPage ?? 'Por página'}
+                    </label>
+                    <select
+                      id="dt-page-size"
+                      value={pagination.limit}
+                      onChange={(e) => {
+                        const val = Number(e.target.value)
+                        if (PAGE_SIZE_OPTIONS.includes(val as 5 | 10 | 15 | 20)) onLimitChange(val)
+                      }}
+                      className="glass-input w-16 px-2 py-1.5 text-sm"
+                    >
+                      {PAGE_SIZE_OPTIONS.map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {pagination.totalPages > 1 && (
+                  <p className="text-sm text-[var(--text-muted)]">
+                    {t.page ?? 'Página'} {pagination.page} {t.of ?? 'de'}{' '}
+                    {pagination.totalPages}
+                  </p>
+                )}
+              </div>
+              {pagination.totalPages > 1 && (
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -403,6 +434,7 @@ export function DataTable<T>({
                   <ChevronRight size={18} />
                 </button>
               </div>
+              )}
             </div>
           )}
         </>

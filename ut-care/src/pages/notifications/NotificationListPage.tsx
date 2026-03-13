@@ -14,6 +14,7 @@ import {
   markNotificationAsRead,
   deleteNotification,
 } from '@/services/notification.service'
+import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import type { Notification } from '@/types/notification'
 
 function formatDateTime(iso: string) {
@@ -35,6 +36,7 @@ export function NotificationListPage() {
   const [isReadFilter, setIsReadFilter] = useState<string>('')
   const [priority, setPriority] = useState('')
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(() => getDefaultTableLimit())
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -45,7 +47,7 @@ export function NotificationListPage() {
     const isRead = isReadFilter === 'true' ? true : isReadFilter === 'false' ? false : undefined
     getNotifications({
       page,
-      limit: 10,
+      limit,
       isRead,
       priority: priority || undefined,
     })
@@ -63,7 +65,7 @@ export function NotificationListPage() {
 
   useEffect(() => {
     loadList()
-  }, [page, isReadFilter, priority, t])
+  }, [page, limit, isReadFilter, priority, t])
 
   useEffect(() => {
     loadUnreadCount()
@@ -123,14 +125,13 @@ export function NotificationListPage() {
         confirming={deleting}
       />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('notifications.title')}</h1>
-          {unreadCount > 0 && (
-            <p className="mt-1 text-sm text-[var(--text-muted)]">
-              {unreadCount} {t('notifications.unread')}
-            </p>
-          )}
-        </div>
+        {unreadCount > 0 ? (
+          <p className="text-sm text-[var(--text-muted)]">
+            {unreadCount} {t('notifications.unread')}
+          </p>
+        ) : (
+          <span />
+        )}
         <div className="flex flex-wrap gap-2">
           {unreadCount > 0 && (
             <GlassButton onClick={handleMarkAllRead} className="inline-flex items-center gap-2">
@@ -217,11 +218,25 @@ export function NotificationListPage() {
                 </div>
               ))}
             </div>
-            {pagination.totalPages > 1 && (
-              <div className="mt-4 flex items-center justify-between border-t border-[var(--border)] pt-4">
-                <p className="text-sm text-[var(--text-muted)]">
-                  {t('notifications.page')} {pagination.page} {t('notifications.of')} {pagination.totalPages}
-                </p>
+            {(pagination.totalPages > 1 || limit !== 10) && (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="text-sm text-[var(--text-muted)]">
+                    {t('notifications.page')} {pagination.page} {t('notifications.of')} {pagination.totalPages}
+                  </p>
+                  <label className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+                    <span>{t('table.rowsPerPage')}</span>
+                    <select
+                      value={limit}
+                      onChange={(e) => { setLimit(Number(e.target.value)); setPage(1) }}
+                      className="glass-input rounded-lg px-2 py-1 text-sm"
+                    >
+                      {[5, 10, 15, 20].map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
                 <div className="flex gap-2">
                   <button
                     type="button"

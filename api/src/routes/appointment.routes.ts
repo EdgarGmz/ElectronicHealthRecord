@@ -8,7 +8,7 @@ import {
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { param } from 'express-validator';
-import { ROLES_CAN_MANAGE_APPOINTMENTS } from '../constants/roles';
+import { ROLES_CAN_MANAGE_APPOINTMENTS, ROLES_CAN_CREATE_APPOINTMENT } from '../constants/roles';
 
 const router = Router();
 
@@ -26,7 +26,7 @@ router.get(
 
 router.post(
   '/',
-  authorizeRoles(...ROLES_CAN_MANAGE_APPOINTMENTS),
+  authorizeRoles(...ROLES_CAN_CREATE_APPOINTMENT),
   validate(createAppointmentValidation),
   appointmentController.createAppointment
 );

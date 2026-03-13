@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { query, validationResult } from 'express-validator';
 import { getDashboardChartData, type PeriodType } from '../services/dashboard-stats.service';
+import { getCoordinatorPsychologyDashboardData } from '../services/coordinator-psychology-dashboard.service';
 import { AuthRequest } from '../middleware/auth';
 
 export const dashboardChartValidation = [
@@ -31,6 +32,25 @@ export const getChartData = async (req: AuthRequest, res: Response, next: NextFu
     res.status(200).json({
       success: true,
       message: 'Dashboard chart data retrieved successfully',
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getCoordinatorPsychology = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+    if (!userId || !userRole) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+    const data = await getCoordinatorPsychologyDashboardData(userId, userRole);
+    res.status(200).json({
+      success: true,
+      message: 'Coordinator psychology dashboard data',
       data,
     });
   } catch (error) {

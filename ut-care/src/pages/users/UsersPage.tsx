@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Pencil, Power, PowerOff, Users as UsersIcon } from 'lucide-react'
+import { Plus, Pencil, Power, PowerOff } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
@@ -10,6 +10,7 @@ import { DataTable } from '@/components/organisms/DataTable'
 import type { DataTableColumn } from '@/components/organisms/DataTable'
 import type { User, CreateUserInput, UpdateUserInput } from '@/types/user'
 import { createUser, deactivateUser, getUsers, updateUser } from '@/services/user.service'
+import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { ROLES, ROLES_VISIBLE_IN_USERS } from '@/constants/roles'
 import { PasswordInput } from '@/components/atoms/PasswordInput'
 
@@ -28,6 +29,7 @@ export function UsersPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(() => getDefaultTableLimit())
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [search, setSearch] = useState('')
   const [role, setRole] = useState('')
@@ -55,7 +57,7 @@ export function UsersPage() {
   const load = () => {
     setLoading(true)
     setError(null)
-    getUsers({ page, limit: 10, search: search || undefined })
+    getUsers({ page, limit, search: search || undefined })
       .then((r) => {
         let list = r.users
         if (role) list = list.filter((u) => u.role === role)
@@ -238,11 +240,7 @@ export function UsersPage() {
         confirmLabel="Reactivar"
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-[var(--text-primary)]">
-          <UsersIcon size={26} />
-          {t('nav.users')}
-        </h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
         <GlassButton
           type="button"
           variant="primary"
@@ -264,6 +262,7 @@ export function UsersPage() {
           emptyMessage="No hay usuarios."
           pagination={pagination}
           onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
             { key: 'search', label: t('common.search'), type: 'text', placeholder: 'Buscar por email o nombre' },
             {
@@ -334,6 +333,7 @@ export function UsersPage() {
             page: t('table.page'),
             of: t('table.of'),
             all: t('table.all'),
+            rowsPerPage: t('table.rowsPerPage'),
           }}
         />
       </GlassCard>
