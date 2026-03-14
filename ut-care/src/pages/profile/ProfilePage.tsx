@@ -111,143 +111,160 @@ export function ProfilePage() {
   }
 
 
+  const initial = [profile?.firstName?.[0], profile?.lastName?.[0]]
+    .filter(Boolean)
+    .join('')
+    .toUpperCase() || '?'
+
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-2xl space-y-8 pb-8">
       <LoadingModal open={loading || submitting} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error || undefined} onClose={() => setError('')} />
       <SuccessModal open={!!success} message={success} onClose={() => setSuccess('')} />
       {!profile && !loading && (
-        <GlassCard>
+        <GlassCard className="profile-animate-in">
           <p className="text-[var(--text-secondary)]">{t('common.error')}</p>
         </GlassCard>
       )}
       {profile && (
-      <GlassCard>
-        {editing ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-                {t('profilePage.firstName')} *
-              </label>
-              <input
-                type="text"
-                value={form.firstName}
-                onChange={(e) => update('firstName', e.target.value)}
-                className="glass-input w-full px-4 py-2.5"
-                required
-              />
+        <>
+          {/* Hero: avatar + name */}
+          <div className="flex flex-col items-center gap-4 text-center opacity-0 profile-avatar-animate">
+            <div
+              className="flex h-24 w-24 items-center justify-center rounded-full text-3xl font-semibold text-white shadow-lg transition-transform duration-300 hover:scale-105"
+              style={{
+                background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark, #1d4ed8) 100%)',
+              }}
+            >
+              {initial}
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-                {t('profilePage.lastName')} *
-              </label>
-              <input
-                type="text"
-                value={form.lastName}
-                onChange={(e) => update('lastName', e.target.value)}
-                className="glass-input w-full px-4 py-2.5"
-                required
-              />
+              <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+                {profile.firstName} {profile.lastName}
+              </h1>
+              <p className="mt-1 text-sm font-medium uppercase tracking-wider text-[var(--text-muted)]">
+                {profile.role || '—'}
+              </p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-                {t('profilePage.email')}
-              </label>
-              <input
-                type="email"
-                value={profile.email}
-                readOnly
-                className="glass-input w-full px-4 py-2.5 bg-black/5 dark:bg-white/5 cursor-not-allowed"
-              />
-              <p className="mt-1 text-xs text-[var(--text-muted)]">{t('profilePage.emailReadOnly')}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-                {t('profilePage.phone')}
-              </label>
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={(e) => update('phone', e.target.value)}
-                className="glass-input w-full px-4 py-2.5"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-                {t('profilePage.dateOfBirth')}
-              </label>
-              <input
-                type="date"
-                value={form.dateOfBirth}
-                onChange={(e) => update('dateOfBirth', e.target.value)}
-                className="glass-input w-full px-4 py-2.5"
-              />
-            </div>
-            <div className="flex gap-3 pt-2">
-              <GlassButton type="submit" disabled={submitting}>
-                {submitting ? t('common.loading') : t('common.save')}
-              </GlassButton>
-              <GlassButton type="button" onClick={() => setEditing(false)} disabled={submitting}>
-                {t('common.cancel')}
-              </GlassButton>
-            </div>
-          </form>
-        ) : (
-          <>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
-                  {t('profilePage.firstName')}
-                </p>
-                <p className="mt-0.5 text-[var(--text-primary)]">{profile.firstName || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
-                  {t('profilePage.lastName')}
-                </p>
-                <p className="mt-0.5 text-[var(--text-primary)]">{profile.lastName || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
-                  {t('profilePage.email')}
-                </p>
-                <p className="mt-0.5 text-[var(--text-primary)]">{profile.email || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
-                  {t('profilePage.role')}
-                </p>
-                <p className="mt-0.5 text-[var(--text-primary)]">{profile.role || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
-                  {t('profilePage.phone')}
-                </p>
-                <p className="mt-0.5 text-[var(--text-primary)]">{profile.phone || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
-                  {t('profilePage.dateOfBirth')}
-                </p>
-                <p className="mt-0.5 text-[var(--text-primary)]">{formatDate(profile.dateOfBirth)}</p>
-              </div>
-              {profile.enrollmentNumber && (
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
-                    {t('profilePage.enrollmentNumber')}
-                  </p>
-                  <p className="mt-0.5 text-[var(--text-primary)]">{profile.enrollmentNumber}</p>
+          </div>
+
+          <GlassCard className="profile-animate-in profile-card-delay transition-shadow duration-300 hover:shadow-xl rounded-2xl overflow-hidden">
+            {editing ? (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-[var(--text-primary)]">
+                    {t('profilePage.firstName')} *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.firstName}
+                    onChange={(e) => update('firstName', e.target.value)}
+                    className="glass-input w-full px-4 py-2.5 rounded-lg transition focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)]"
+                    required
+                  />
                 </div>
-              )}
-            </div>
-            <div className="mt-6 pt-4 border-t border-[var(--border)]">
-              <GlassButton type="button" onClick={() => setEditing(true)}>
-                {t('profilePage.editProfile')}
-              </GlassButton>
-            </div>
-          </>
-        )}
-      </GlassCard>
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-[var(--text-primary)]">
+                    {t('profilePage.lastName')} *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.lastName}
+                    onChange={(e) => update('lastName', e.target.value)}
+                    className="glass-input w-full px-4 py-2.5 rounded-lg transition focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)]"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-[var(--text-primary)]">
+                    {t('profilePage.email')}
+                  </label>
+                  <input
+                    type="email"
+                    value={profile.email}
+                    readOnly
+                    className="glass-input w-full px-4 py-2.5 rounded-lg bg-black/5 dark:bg-white/5 cursor-not-allowed"
+                  />
+                  <p className="text-xs text-[var(--text-muted)]">{t('profilePage.emailReadOnly')}</p>
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-[var(--text-primary)]">
+                    {t('profilePage.phone')}
+                  </label>
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={(e) => update('phone', e.target.value)}
+                    className="glass-input w-full px-4 py-2.5 rounded-lg transition focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)]"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-[var(--text-primary)]">
+                    {t('profilePage.dateOfBirth')}
+                  </label>
+                  <input
+                    type="date"
+                    value={form.dateOfBirth}
+                    onChange={(e) => update('dateOfBirth', e.target.value)}
+                    className="glass-input w-full px-4 py-2.5 rounded-lg transition focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)]"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <GlassButton
+                    type="submit"
+                    disabled={submitting}
+                    className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    {submitting ? t('common.loading') : t('common.save')}
+                  </GlassButton>
+                  <GlassButton
+                    type="button"
+                    onClick={() => setEditing(false)}
+                    disabled={submitting}
+                    className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    {t('common.cancel')}
+                  </GlassButton>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[
+                    { key: 'firstName', label: t('profilePage.firstName'), value: profile.firstName || '—' },
+                    { key: 'lastName', label: t('profilePage.lastName'), value: profile.lastName || '—' },
+                    { key: 'email', label: t('profilePage.email'), value: profile.email || '—' },
+                    { key: 'role', label: t('profilePage.role'), value: profile.role || '—' },
+                    { key: 'phone', label: t('profilePage.phone'), value: profile.phone || '—' },
+                    { key: 'dateOfBirth', label: t('profilePage.dateOfBirth'), value: formatDate(profile.dateOfBirth) },
+                    ...(profile.enrollmentNumber
+                      ? [{ key: 'enrollmentNumber', label: t('profilePage.enrollmentNumber'), value: profile.enrollmentNumber }]
+                      : []),
+                  ].map((item, i) => (
+                    <div
+                      key={item.key}
+                      className={`opacity-0 profile-animate-in profile-stagger-${Math.min(i + 1, 8)} rounded-xl border border-[var(--border)] bg-[var(--bg)]/50 p-3 transition-all duration-200 hover:border-[var(--primary)]/30 hover:shadow-md`}
+                    >
+                      <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
+                        {item.label}
+                      </p>
+                      <p className="mt-1 text-[var(--text-primary)]">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 pt-4 border-t border-[var(--border)]">
+                  <GlassButton
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    {t('profilePage.editProfile')}
+                  </GlassButton>
+                </div>
+              </>
+            )}
+          </GlassCard>
+        </>
       )}
     </div>
   )

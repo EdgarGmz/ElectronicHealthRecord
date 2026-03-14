@@ -31,25 +31,37 @@ export function SettingsPage() {
   const currentLang = i18n.language.startsWith('es') ? 'es' : 'en'
 
   return (
-    <div className="space-y-6">
-      <Link
-        to="/"
-        className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline"
-      >
-        <ArrowLeft size={18} />
-        {t('nav.dashboard')}
-      </Link>
-
-      <p className="text-sm text-[var(--text-secondary)] max-w-xl">
-        {t('help.settings')}
-      </p>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <GlassCard className="flex flex-col">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-              <Sun size={20} />
+    <div className="mx-auto flex min-h-0 max-w-4xl flex-col items-center px-2 py-4 sm:px-4">
+      <div className="w-full space-y-8">
+        <header className="flex flex-col items-center text-center">
+          <Link
+            to="/"
+            className="mb-4 inline-flex items-center gap-2 self-center text-[var(--color-primary)] transition-colors hover:underline"
+          >
+            <ArrowLeft size={18} />
+            {t('nav.dashboard')}
+          </Link>
+          <div className="flex items-center justify-center gap-3">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-primary)]/15 text-[var(--color-primary)] shadow-sm">
+              <SettingsIcon size={26} />
             </span>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">
+                {t('nav.settings')}
+              </h1>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                {t('help.settings')}
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <div className="grid w-full gap-6 md:grid-cols-2">
+          <GlassCard className="flex flex-col border-[var(--border)] shadow-lg transition-shadow hover:shadow-xl">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15 text-[var(--color-primary)]">
+                <Sun size={22} />
+              </span>
             <div>
               <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                 {t('theme.title')}
@@ -79,11 +91,11 @@ export function SettingsPage() {
           </div>
         </GlassCard>
 
-        <GlassCard className="flex flex-col">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-              <Languages size={20} />
-            </span>
+          <GlassCard className="flex flex-col border-[var(--border)] shadow-lg transition-shadow hover:shadow-xl">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15 text-[var(--color-primary)]">
+                <Languages size={22} />
+              </span>
             <div>
               <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                 {t('language.title')}
@@ -121,11 +133,11 @@ export function SettingsPage() {
           </div>
         </GlassCard>
 
-        <GlassCard className="flex flex-col md:col-span-2">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-              <Type size={20} />
-            </span>
+          <GlassCard className="flex flex-col border-[var(--border)] shadow-lg transition-shadow hover:shadow-xl md:col-span-2">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15 text-[var(--color-primary)]">
+                <Type size={22} />
+              </span>
             <div>
               <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                 {t('fontSize.title')}
@@ -154,11 +166,11 @@ export function SettingsPage() {
           </div>
         </GlassCard>
 
-        <GlassCard className="flex flex-col md:col-span-2">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-              <List size={20} />
-            </span>
+          <GlassCard className="flex flex-col border-[var(--border)] shadow-lg transition-shadow hover:shadow-xl md:col-span-2">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15 text-[var(--color-primary)]">
+                <List size={22} />
+              </span>
             <div>
               <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                 {t('tablePageSize.title')}
@@ -197,15 +209,15 @@ export function SettingsPage() {
           </div>
         </GlassCard>
 
-        <GlassCard className="flex flex-col md:col-span-2">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-              <PanelTop size={20} />
-            </span>
-            <div>
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                {t('statusBar.title')}
-              </h2>
+          <GlassCard className="flex flex-col border-[var(--border)] shadow-lg transition-shadow hover:shadow-xl md:col-span-2">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15 text-[var(--color-primary)]">
+                <PanelTop size={22} />
+              </span>
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                  {t('statusBar.title')}
+                </h2>
               <p className="text-xs text-[var(--text-muted)]">
                 {t('statusBar.description')}
               </p>
@@ -235,22 +247,22 @@ export function SettingsPage() {
           </div>
         </GlassCard>
 
-        <GlassCard className="flex flex-col md:col-span-2">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-              <PanelTop size={20} />
-            </span>
-            <div>
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                {t('statusBar.elementsTitle')}
-              </h2>
+          <GlassCard className="flex flex-col border-[var(--border)] shadow-lg transition-shadow hover:shadow-xl md:col-span-2">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15 text-[var(--color-primary)]">
+                <PanelTop size={22} />
+              </span>
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                  {t('statusBar.elementsTitle')}
+                </h2>
               <p className="text-xs text-[var(--text-muted)]">
                 {t('statusBar.elementsDescription')}
               </p>
             </div>
           </div>
           <div className="space-y-4">
-            <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-3">
               <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text-primary)]">
                 <input
                   type="checkbox"
@@ -306,11 +318,11 @@ export function SettingsPage() {
                 {t('statusBar.showSettings')}
               </label>
             </div>
-            <div>
+            <div className="flex flex-col items-center">
               <label className="mb-2 block text-sm font-medium text-[var(--text-primary)]">
                 {t('statusBar.dateFormat')}
               </label>
-              <div className="flex flex-wrap gap-2 rounded-xl bg-black/5 p-1.5 dark:bg-white/5">
+              <div className="flex flex-wrap justify-center gap-2 rounded-xl bg-black/5 p-1.5 dark:bg-white/5">
                 {DATE_FORMAT_OPTIONS.map((value) => {
                   const labelKey =
                     value === 'short'
@@ -338,6 +350,7 @@ export function SettingsPage() {
             </div>
           </div>
         </GlassCard>
+        </div>
       </div>
     </div>
   )

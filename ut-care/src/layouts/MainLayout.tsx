@@ -8,6 +8,7 @@ import { DateTimeWeather } from '@/components/molecules/DateTimeWeather'
 import { GlobalSettingsDropdown } from '@/components/molecules/GlobalSettingsDropdown'
 import { useHeaderBarStore } from '@/store/headerBar.store'
 import { useStatusBarElementsStore } from '@/store/statusBarElements.store'
+import { useSidebarStore } from '@/store/sidebar.store'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 /** Devuelve la clave i18n del módulo (nav.*) según la ruta actual. */
@@ -15,6 +16,7 @@ function getModuleKey(pathname: string): string {
   const segment = pathname.split('/').filter(Boolean)[0] ?? ''
   if (!segment) return 'nav.dashboard'
   const map: Record<string, string> = {
+    supervision: 'nav.supervision',
     patients: 'nav.patients',
     appointments: 'nav.appointments',
     sessions: 'nav.sessions',
@@ -43,6 +45,7 @@ export function MainLayout() {
   const { pathname } = useLocation()
   const { t } = useTranslation()
   const isDesktop = useMediaQuery(DESKTOP_MEDIA)
+  const sidebarCollapsed = useSidebarStore((s) => s.collapsed)
   const headerBarMode = useHeaderBarStore((s) => s.mode)
   const showSettings = useStatusBarElementsStore((s) => s.showSettings)
   const moduleLabel = t(getModuleKey(pathname))
@@ -81,11 +84,15 @@ export function MainLayout() {
         onClose={() => setSidebarOpen(false)}
         isDrawer={!isDesktop}
       />
-      <main className="min-h-screen pl-0 lg:pl-64">
+      <main
+        className={`min-h-screen pl-0 transition-[padding-left] duration-300 ease-in-out ${
+          sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
+        }`}
+      >
         <header
-          className={`fixed left-0 right-0 top-0 z-30 flex h-14 items-center gap-2 border-b border-[var(--border)] bg-[var(--glass-bg)]/80 px-3 backdrop-blur-sm transition-transform duration-300 ease-in-out lg:left-64 lg:gap-4 lg:px-6 ${
-            effectiveVisible ? 'translate-y-0' : '-translate-y-full'
-          }`}
+          className={`fixed left-0 right-0 top-0 z-30 flex h-14 items-center gap-2 border-b border-[var(--border)] bg-[var(--glass-bg)]/80 px-3 backdrop-blur-sm transition-[left,transform] duration-300 ease-in-out lg:gap-4 lg:px-6 ${
+            sidebarCollapsed ? 'lg:left-20' : 'lg:left-64'
+          } ${effectiveVisible ? 'translate-y-0' : '-translate-y-full'}`}
           aria-hidden={!effectiveVisible}
         >
           <button

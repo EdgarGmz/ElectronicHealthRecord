@@ -84,9 +84,12 @@ export function getVisibleDashboardCards(role: string | undefined): DashboardCar
 /** Nav path -> roles that can see it (empty = all staff). Sesiones solo psicología/coords, no admin. Audit logs solo admin. */
 const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/': [], // dashboard: all
+  /** Módulo Supervisión y Gestión de Personal: solo coordinador psicología */
+  '/supervision': [ROLES.COORDINADOR_PSICOLOGIA],
   // Admin is an auditor; hide operational modules from admin UI
   '/patients': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
-  '/appointments': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
+  /** Coord. psicología no tiene acceso al módulo Citas; solo coordinador enfermería, psicólogo y enfermero */
+  '/appointments': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
   '/sessions': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO],
   '/medications': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
   '/procedures': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
@@ -98,10 +101,9 @@ const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/audit-logs': [ROLES.ADMIN],
 }
 
-/** Paths that require medical record access (expediente). Same roles as API ROLES_CAN_ACCESS_MEDICAL_RECORDS. */
+/** Paths that require medical record access (expediente). Coordinator can see patient history but not full expedient. */
 const EXPEDIENT_PATH_PREFIX = '/patients/'
 const EXPEDIENT_ALLOWED_ROLES: readonly string[] = [
-  ROLES.COORDINADOR_PSICOLOGIA,
   ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
@@ -141,10 +143,13 @@ export function canAccessPath(pathname: string, role: string | undefined): boole
     const r = normalizeRole(role)
     return r ? ROLES_CAN_CREATE_PATIENT.includes(r) : false
   }
-  // Solo roles que pueden crear citas acceden a /appointments/new
+  // Solo roles que pueden crear citas acceden a /appointments/new; list y detalle los ve quien tenga nav
   if (normalized === '/appointments/new') {
     const r = normalizeRole(role)
     return r ? ROLES_CAN_CREATE_APPOINTMENT.includes(r) : false
+  }
+  if (normalized === '/appointments' || (normalized.startsWith('/appointments/') && normalized !== '/appointments/new')) {
+    return canSeeNavItem('/appointments', role)
   }
   for (const key of Object.keys(NAV_VISIBILITY)) {
     if (normalized === key || normalized.startsWith(key + '/')) return canSeeNavItem(key, role)

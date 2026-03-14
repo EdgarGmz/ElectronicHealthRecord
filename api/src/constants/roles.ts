@@ -68,9 +68,10 @@ export const ROLES_PROFESSIONAL_APPOINTMENT = [ROLES.PSICOLOGO, ROLES.ENFERMERO]
 /** Acceso completo a sesiones de terapia (crear/editar). Coord. psicología no tiene acceso al módulo. */
 export const ROLES_THERAPY_SESSIONS = [ROLES.PSICOLOGO] as const;
 
-/** Pueden ver sesiones de terapia (solo lectura; coordinador enfermería solo de pacientes con consultas de enfermería). Coord. psicología no tiene acceso. */
+/** Pueden ver sesiones de terapia (solo lectura). Coord. psicología solo para historial por paciente en /patients/:id. */
 export const ROLES_THERAPY_SESSIONS_READ = [
   ROLES.PSICOLOGO,
+  ROLES.COORDINADOR_PSICOLOGIA,
   ROLES.COORDINADOR_ENFERMERIA,
 ] as const;
 

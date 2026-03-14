@@ -231,6 +231,8 @@ export class AppointmentService {
       throw new AppError('El profesional debe ser psicólogo o enfermero', 400);
     }
 
+    // Restricción por carrera (estudiantes): el psicólogo solo puede agendar con estudiantes de sus carreras asignadas.
+    // Excepción: personal docente y administrativo (faculty, administrative) puede ser agendado por cualquier psicólogo.
     if (professional.role === ROLES.PSICOLOGO) {
       const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(professional.id);
       const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);

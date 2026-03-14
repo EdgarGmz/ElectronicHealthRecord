@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { UserPlus, FileText } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { getDefaultTableLimit } from '@/store/tablePageSize.store'
-import { ROLES_CAN_CREATE_PATIENT } from '@/constants/roles'
+import { ROLES_CAN_CREATE_PATIENT, canAccessExpedient } from '@/constants/roles'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
@@ -19,6 +19,7 @@ export function PatientListPage() {
   const { t } = useTranslation()
   const role = useAuthStore((s) => s.user?.role)
   const canCreatePatient = role ? ROLES_CAN_CREATE_PATIENT.includes(role) : false
+  const showExpedientLabel = canAccessExpedient(role)
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -87,15 +88,19 @@ export function PatientListPage() {
     <div className="space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl font-bold text-[var(--text-primary)]">{t('nav.patients')}</h1>
         {canCreatePatient && (
-          <Link to="/patients/new" className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium">
+          <Link
+            to="/patients/new"
+            className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium transition-transform hover:scale-[1.02]"
+          >
             <UserPlus size={18} />
             {t('patients.newPatient')}
           </Link>
         )}
       </div>
-      <GlassCard>
+      <GlassCard className="rounded-2xl overflow-hidden transition-shadow hover:shadow-lg">
         <DataTable
           columns={columns}
           data={sortedData}
@@ -116,9 +121,12 @@ export function PatientListPage() {
           sortState={sortState}
           onSort={(columnId, order) => setSortState({ columnId, order })}
           renderActions={(row) => (
-            <Link to={`/patients/${row.id}`} className="inline-flex items-center gap-1 text-[var(--color-primary)] hover:underline">
+            <Link
+              to={`/patients/${row.id}`}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/10 hover:underline"
+            >
               <FileText size={16} />
-              {t('patients.viewRecord')}
+              {showExpedientLabel ? t('patients.viewRecord') : t('patients.viewHistory')}
             </Link>
           )}
           exportFormats={['pdf', 'csv', 'xlsx']}

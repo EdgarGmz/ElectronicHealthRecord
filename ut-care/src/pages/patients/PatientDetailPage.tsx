@@ -1,92 +1,419 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, User, Mail, Hash, BookOpen } from 'lucide-react'
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Hash,
+  BookOpen,
+  Calendar,
+  Activity,
+  BarChart3,
+} from 'lucide-react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getPatientById } from '@/services/patient.service'
+import { getTherapySessions } from '@/services/therapy-session.service'
+import { getAppointments } from '@/services/appointment.service'
 import { canAccessExpedient } from '@/constants/roles'
 import { useAuthStore } from '@/store/auth.store'
 import type { Patient } from '@/types/patient'
+import type { TherapySession } from '@/types/therapy-session'
+import type { Appointment } from '@/types/appointment'
+import { ROLES } from '@/constants/roles'
+
+const CHART_COLORS = ['#8b5cf6', '#06b6d4', '#22c55e', '#eab308', '#ef4444']
+
+function formatDateShort(value: string | null | undefined): string {
+  if (!value) return '—'
+  try {
+    const d = new Date(value)
+    return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+  } catch {
+    return value
+  }
+}
+
+function groupSessionsByMonth(sessions: TherapySession[]): { month: string; count: number }[] {
+  const byMonth = new Map<string, number>()
+  for (const s of sessions) {
+    const d = new Date(s.sessionDate)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    byMonth.set(key, (byMonth.get(key) ?? 0) + 1)
+  }
+  return Array.from(byMonth.entries())
+    .map(([month, count]) => ({ month, count }))
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .slice(-12)
+}
+
+function groupAppointmentsByStatus(appointments: Appointment[]): { name: string; value: number; status: string }[] {
+  const byStatus = new Map<string, number>()
+  for (const a of appointments) {
+    const status = a.status || 'unknown'
+    byStatus.set(status, (byStatus.get(status) ?? 0) + 1)
+  }
+  return Array.from(byStatus.entries()).map(([status, value]) => ({
+    status,
+    value,
+    name: status,
+  }))
+}
+
+function groupMoodCount(sessions: TherapySession[]): { mood: string; count: number }[] {
+  const byMood = new Map<string, number>()
+  for (const s of sessions) {
+    const m = s.mood?.trim() || '—'
+    byMood.set(m, (byMood.get(m) ?? 0) + 1)
+  }
+  return Array.from(byMood.entries())
+    .map(([mood, count]) => ({ mood, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8)
+}
 
 export function PatientDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
   const { user } = useAuthStore()
   const [patient, setPatient] = useState<Patient | null>(null)
+  const [sessions, setSessions] = useState<TherapySession[]>([])
+  const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
+  const [historyLoading, setHistoryLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const isCoordinator = user?.role === ROLES.COORDINADOR_PSICOLOGIA
+  const showExpedient = canAccessExpedient(user?.role)
+  const showHistory = isCoordinator || showExpedient
 
   useEffect(() => {
     if (!id) return
     setLoading(true)
     setError(null)
-    getPatientById(id).then(setPatient).catch(() => setError(t('common.error'))).finally(() => setLoading(false))
+    getPatientById(id)
+      .then(setPatient)
+      .catch(() => setError(t('common.error')))
+      .finally(() => setLoading(false))
   }, [id, t])
 
+  useEffect(() => {
+    if (!id || !showHistory) return
+    setHistoryLoading(true)
+    Promise.all([
+      getTherapySessions({ patientId: id, limit: 200 }),
+      getAppointments({ patientId: id, limit: 200 }),
+    ])
+      .then(([sessRes, apptRes]) => {
+        setSessions(sessRes.sessions)
+        setAppointments(apptRes.appointments)
+      })
+      .catch(() => {})
+      .finally(() => setHistoryLoading(false))
+  }, [id, showHistory])
+
+  const sessionsByMonth = useMemo(() => groupSessionsByMonth(sessions), [sessions])
+  const appointmentsByStatus = useMemo(() => groupAppointmentsByStatus(appointments), [appointments])
+  const moodData = useMemo(() => groupMoodCount(sessions), [sessions])
+
+  const statusLabel = (status: string) => {
+    const keyMap: Record<string, string> = {
+      scheduled: 'appointments.statusScheduled',
+      confirmed: 'appointments.statusConfirmed',
+      completed: 'appointments.statusCompleted',
+      cancelled: 'appointments.statusCancelled',
+      'no-show': 'appointments.statusNoShow',
+    }
+    const key = keyMap[status] ?? status
+    const translated = t(key)
+    return typeof translated === 'string' ? translated : status
+  }
+
+  const lastSessions = useMemo(() => [...sessions].sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime()).slice(0, 5), [sessions])
+  const lastAppointments = useMemo(
+    () => [...appointments].sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime()).slice(0, 5),
+    [appointments]
+  )
+
   const fullName = patient ? `${patient.user.firstName} ${patient.user.lastName}`.trim() : ''
+  const initial = [patient?.user.firstName?.[0], patient?.user.lastName?.[0]].filter(Boolean).join('').toUpperCase() || '?'
+
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-5xl space-y-8 pb-8">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? t('patients.noPatients')} onClose={() => setError(null)} />
-      <Link to="/patients" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
+
+      <Link
+        to="/patients"
+        className="inline-flex items-center gap-2 text-[var(--color-primary)] transition-colors hover:underline"
+      >
         <ArrowLeft size={18} />
         {t('patients.list')}
       </Link>
+
       {!patient && !loading && (
-        <GlassCard>
+        <GlassCard className="rounded-2xl">
           <p className="text-[var(--text-secondary)]">{t('patients.noPatients')}</p>
         </GlassCard>
       )}
+
       {patient && (
-      <>
-      <GlassCard className="border-[var(--color-primary)]/20">
-        <div className="flex items-start gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15">
-            <User className="text-[var(--color-primary)]" size={28} />
+        <>
+          {/* Hero */}
+          <GlassCard className="overflow-hidden rounded-2xl border border-[var(--border)] transition-shadow hover:shadow-lg">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+              <div
+                className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-2xl font-semibold text-white"
+                style={{
+                  background: 'linear-gradient(135deg, var(--color-primary) 0%, #1d4ed8 100%)',
+                }}
+              >
+                {initial}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">{fullName}</h1>
+                <p className="mt-1 text-[var(--text-secondary)]">
+                  {t(`patients.${patient.patientType}`) || patient.patientType} · {patient.career.name}
+                </p>
+              </div>
+            </div>
+          </GlassCard>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <GlassCard className="rounded-2xl transition-shadow hover:shadow-md">
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                <Mail size={18} className="text-[var(--color-primary)]" />
+                {t('patients.email')}
+              </h2>
+              <p className="text-[var(--text-secondary)]">{patient.user.email}</p>
+            </GlassCard>
+            <GlassCard className="rounded-2xl transition-shadow hover:shadow-md">
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                <Hash size={18} className="text-[var(--color-primary)]" />
+                {t('patients.enrollment')}
+              </h2>
+              <p className="text-[var(--text-secondary)]">{patient.user.enrollmentNumber ?? '—'}</p>
+            </GlassCard>
           </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold text-[var(--text-primary)]">{fullName}</h1>
-            <p className="mt-1 text-[var(--text-secondary)]">
-              {t(`patients.${patient.patientType}`) || patient.patientType} · {patient.career.name}
-            </p>
-          </div>
-        </div>
-      </GlassCard>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <GlassCard>
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-            <Mail size={18} />
-            {t('patients.email')}
-          </h2>
-          <p className="text-[var(--text-secondary)]">{patient.user.email}</p>
-        </GlassCard>
-        <GlassCard>
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-            <Hash size={18} />
-            {t('patients.enrollment')}
-          </h2>
-          <p className="text-[var(--text-secondary)]">{patient.user.enrollmentNumber ?? '—'}</p>
-        </GlassCard>
-      </div>
-      {canAccessExpedient(user?.role) && (
-        <GlassCard>
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-            <BookOpen size={18} />
-            {t('expedient.title')}
-          </h2>
-          <p className="text-sm text-[var(--text-secondary)] mb-3">{t('expedient.subtitle')}</p>
-          <Link to={`/patients/${id}/expedient`}>
-            <GlassButton variant="primary" className="inline-flex items-center gap-2">
-              <BookOpen size={18} />
-              {t('patients.viewRecord')}
-            </GlassButton>
-          </Link>
-        </GlassCard>
-      )}
-      </>
+
+          {/* Expedient (solo roles con permiso) */}
+          {showExpedient && (
+            <GlassCard className="rounded-2xl transition-shadow hover:shadow-md">
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                <BookOpen size={18} className="text-[var(--color-primary)]" />
+                {t('expedient.title')}
+              </h2>
+              <p className="mb-4 text-sm text-[var(--text-secondary)]">{t('expedient.subtitle')}</p>
+              <Link to={`/patients/${id}/expedient`}>
+                <GlassButton variant="primary" className="inline-flex gap-2 transition-transform hover:scale-[1.02]">
+                  <BookOpen size={18} />
+                  {t('patients.viewRecord')}
+                </GlassButton>
+              </Link>
+            </GlassCard>
+          )}
+
+          {/* Historial (coordinador siempre; otros opcional con resumen) */}
+          {showHistory && (
+            <section className="space-y-6">
+              <div className="flex items-center gap-3">
+                <Activity size={24} className="text-[var(--color-primary)]" />
+                <div>
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">{t('patients.historyTitle')}</h2>
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    {t('patients.sessionsOverTime')}
+                  </p>
+                </div>
+              </div>
+
+              {historyLoading && (
+                <div className="flex h-32 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--bg)]/50">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-primary)] border-t-transparent" />
+                </div>
+              )}
+
+              {!historyLoading && (sessions.length > 0 || appointments.length > 0) && (
+                <>
+                  {/* KPI cards */}
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <GlassCard className="rounded-2xl border-l-4 border-l-[var(--color-primary)] transition-shadow hover:shadow-md">
+                      <p className="text-sm font-medium text-[var(--text-muted)]">{t('patients.totalSessions')}</p>
+                      <p className="mt-1 text-3xl font-bold text-[var(--text-primary)]">{sessions.length}</p>
+                    </GlassCard>
+                    <GlassCard className="rounded-2xl border-l-4 border-l-[#06b6d4] transition-shadow hover:shadow-md">
+                      <p className="text-sm font-medium text-[var(--text-muted)]">{t('patients.totalAppointments')}</p>
+                      <p className="mt-1 text-3xl font-bold text-[var(--text-primary)]">{appointments.length}</p>
+                    </GlassCard>
+                  </div>
+
+                  {/* Sessions over time */}
+                  {sessionsByMonth.length > 0 && (
+                    <GlassCard className="rounded-2xl p-6 transition-shadow hover:shadow-md">
+                      <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-[var(--text-primary)]">
+                        <BarChart3 size={20} className="text-[var(--color-primary)]" />
+                        {t('patients.sessionsOverTime')}
+                      </h3>
+                      <div className="h-[240px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={sessionsByMonth} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                            <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
+                            <YAxis stroke="var(--text-muted)" fontSize={11} />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: 'var(--glass-bg)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '8px',
+                              }}
+                              formatter={(value: number) => [value, t('patients.totalSessions')]}
+                              labelFormatter={(label) => label}
+                            />
+                            <Bar dataKey="count" fill="var(--color-primary)" radius={[4, 4, 0, 0]} name={t('patients.totalSessions')} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </GlassCard>
+                  )}
+
+                  <div className="grid gap-6 lg:grid-cols-2">
+                    {/* Appointments by status */}
+                    {appointmentsByStatus.length > 0 && (
+                      <GlassCard className="rounded-2xl p-6 transition-shadow hover:shadow-md">
+                        <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-[var(--text-primary)]">
+                          <Calendar size={20} className="text-[var(--color-primary)]" />
+                          {t('patients.appointmentsByStatus')}
+                        </h3>
+                        <div className="h-[220px] w-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={appointmentsByStatus.map((d) => ({ ...d, name: statusLabel(d.status) }))}
+                                dataKey="value"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={72}
+                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                              >
+                                {appointmentsByStatus.map((_, i) => (
+                                  <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: 'var(--glass-bg)',
+                                  border: '1px solid var(--border)',
+                                  borderRadius: '8px',
+                                }}
+                                formatter={(value: number, name: string) => [value, name]}
+                              />
+                              <Legend />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </GlassCard>
+                    )}
+
+                    {/* Mood distribution */}
+                    {moodData.length > 0 && (
+                      <GlassCard className="rounded-2xl p-6 transition-shadow hover:shadow-md">
+                        <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-[var(--text-primary)]">
+                          <Activity size={20} className="text-[var(--color-primary)]" />
+                          {t('patients.moodDistribution')}
+                        </h3>
+                        <div className="h-[220px] w-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={moodData} layout="vertical" margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                              <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
+                              <YAxis type="category" dataKey="mood" stroke="var(--text-muted)" fontSize={11} width={80} />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: 'var(--glass-bg)',
+                                  border: '1px solid var(--border)',
+                                  borderRadius: '8px',
+                                }}
+                              />
+                              <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </GlassCard>
+                    )}
+                  </div>
+
+                  {/* Last sessions & appointments */}
+                  <div className="grid gap-6 lg:grid-cols-2">
+                    <GlassCard className="rounded-2xl p-6 transition-shadow hover:shadow-md">
+                      <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-[var(--text-primary)]">
+                        <Activity size={20} />
+                        {t('patients.lastSessions')}
+                      </h3>
+                      {lastSessions.length === 0 ? (
+                        <p className="text-sm text-[var(--text-muted)]">{t('patients.noHistoryData')}</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {lastSessions.map((s) => (
+                            <li
+                              key={s.id}
+                              className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--bg)]/30 px-3 py-2 text-sm"
+                            >
+                              <span className="text-[var(--text-primary)]">Sesión #{s.sessionNumber}</span>
+                              <span className="text-[var(--text-muted)]">{formatDateShort(s.sessionDate)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </GlassCard>
+                    <GlassCard className="rounded-2xl p-6 transition-shadow hover:shadow-md">
+                      <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-[var(--text-primary)]">
+                        <Calendar size={20} />
+                        {t('patients.lastAppointments')}
+                      </h3>
+                      {lastAppointments.length === 0 ? (
+                        <p className="text-sm text-[var(--text-muted)]">{t('patients.noHistoryData')}</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {lastAppointments.map((a) => (
+                            <li
+                              key={a.id}
+                              className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--bg)]/30 px-3 py-2 text-sm"
+                            >
+                              <span className="text-[var(--text-primary)]">{statusLabel(a.status)}</span>
+                              <span className="text-[var(--text-muted)]">{formatDateShort(a.scheduledDate)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </GlassCard>
+                  </div>
+                </>
+              )}
+
+              {!historyLoading && sessions.length === 0 && appointments.length === 0 && (
+                <GlassCard className="rounded-2xl p-8 text-center">
+                  <p className="text-[var(--text-muted)]">{t('patients.noHistoryData')}</p>
+                </GlassCard>
+              )}
+            </section>
+          )}
+        </>
       )}
     </div>
   )

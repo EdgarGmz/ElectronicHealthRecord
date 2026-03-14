@@ -1,7 +1,7 @@
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { hashPassword } from '../utils/password';
-import { ROLES_VISIBLE_IN_USERS } from '../constants/roles';
+import { ROLES_VISIBLE_IN_USERS, ROLES } from '../constants/roles';
 
 export class UserService {
   async create(data: {
@@ -47,10 +47,12 @@ export class UserService {
     return user;
   }
 
-  async getAll(page: number = 1, limit: number = 10, search?: string) {
+  async getAll(page: number = 1, limit: number = 10, search?: string, roleFilterParam?: string) {
     const skip = (page - 1) * limit;
 
-    const roleFilter = { role: { in: [...ROLES_VISIBLE_IN_USERS] } };
+    const roleFilter = roleFilterParam
+      ? { role: roleFilterParam }
+      : { role: { in: [...ROLES_VISIBLE_IN_USERS] } };
     const where = search?.trim()
       ? {
           AND: [
@@ -185,6 +187,36 @@ export class UserService {
     });
 
     return { message: 'User deactivated successfully' };
+  }
+
+  /** Elimina permanentemente un usuario psicólogo y sus asignaciones de carreras. No permite si tiene sesiones, citas o horarios. */
+  async deletePermanently(id: string) {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new AppError('Usuario no encontrado', 404);
+    }
+    if (user.role === ROLES.ADMIN) {
+      throw new AppError('El administrador del sistema no puede ser eliminado', 403);
+    }
+    if (user.role !== ROLES.PSICOLOGO) {
+      throw new AppError('Solo se puede eliminar permanentemente a usuarios con rol psicólogo', 403);
+    }
+    const [sessionsCount, appointmentsCount, schedulesCount] = await Promise.all([
+      prisma.therapySession.count({ where: { therapistId: id } }),
+      prisma.appointment.count({ where: { professionalId: id } }),
+      prisma.professionalSchedule.count({ where: { professionalId: id } }),
+    ]);
+    if (sessionsCount > 0 || appointmentsCount > 0 || schedulesCount > 0) {
+      throw new AppError(
+        'No se puede eliminar: el psicólogo tiene sesiones, citas o horarios asignados. Desasigne o elimine esos registros primero.',
+        400
+      );
+    }
+    await prisma.$transaction([
+      prisma.psychologistCareer.deleteMany({ where: { psychologistId: id } }),
+      prisma.user.delete({ where: { id } }),
+    ]);
+    return { message: 'Psicólogo eliminado permanentemente' };
   }
 }
 

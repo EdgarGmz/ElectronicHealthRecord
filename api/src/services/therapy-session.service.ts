@@ -60,13 +60,18 @@ export class TherapySessionService {
       where.psychologyRecord = {
         medicalRecord: { patient: patientScope },
       };
+    } else if (userRole === ROLES.COORDINADOR_PSICOLOGIA) {
+      if (!filters?.patientId) {
+        return { sessions: [], pagination: { page, limit, total: 0, totalPages: 0 } };
+      }
+      where.psychologyRecord = { medicalRecord: { patientId: filters.patientId } };
     } else if (userRole === 'coordinador_enfermeria') {
       where.psychologyRecord = {
         medicalRecord: { nursingConsultations: { some: {} } },
       };
     }
 
-    if (filters?.patientId) {
+    if (filters?.patientId && userRole !== ROLES.COORDINADOR_PSICOLOGIA) {
       const mr = (where.psychologyRecord as Prisma.PsychologyRecordWhereInput)?.medicalRecord as Prisma.MedicalRecordWhereInput | undefined;
       where.psychologyRecord = {
         ...where.psychologyRecord,

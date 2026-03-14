@@ -57,7 +57,7 @@ model Career {
   updatedAt  DateTime             @map("updated_at") @default(now())
 
   patients   Patient[]
-  assignment PsychologistCareer?
+  assignments PsychologistCareer[]
 
   @@map("careers")
 }
@@ -91,7 +91,7 @@ model Patient {
 model PsychologistCareer {
   id            String   @id @default(uuid()) @db.Uuid
   psychologistId String  @map("psychologist_id") @db.Uuid
-  careerId      String   @unique @map("career_id") @db.Uuid
+  careerId      String   @map("career_id") @db.Uuid
   assignedAt    DateTime @map("assigned_at") @default(now())
 
   psychologist  User     @relation(fields: [psychologistId], references: [id])
