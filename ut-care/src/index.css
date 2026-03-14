@@ -56,6 +56,14 @@
     background: var(--bg-primary);
     color: var(--text-primary);
     transition: background-color 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
+  }
+
+  @supports (padding: max(0px)) {
+    body {
+      padding-left: env(safe-area-inset-left, 0);
+      padding-right: env(safe-area-inset-right, 0);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -214,5 +222,88 @@
   }
   .confirm-modal-icon {
     animation: modal-icon-pop 0.4s ease-out forwards, confirm-icon-pulse 2s ease-in-out 0.5s infinite;
+  }
+
+  /* Profile page: entrance and hover */
+  @keyframes profile-fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes profile-avatar-in {
+    from {
+      opacity: 0;
+      transform: scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .profile-animate-in {
+    animation: profile-fade-in-up 0.5s ease-out forwards;
+  }
+  .profile-card-delay {
+    animation-delay: 0.15s;
+    opacity: 0;
+  }
+  .profile-avatar-animate {
+    animation: profile-avatar-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  .profile-stagger-1 { animation-delay: 0.05s; }
+  .profile-stagger-2 { animation-delay: 0.1s; }
+  .profile-stagger-3 { animation-delay: 0.15s; }
+  .profile-stagger-4 { animation-delay: 0.2s; }
+  .profile-stagger-5 { animation-delay: 0.25s; }
+  .profile-stagger-6 { animation-delay: 0.3s; }
+  .profile-stagger-7 { animation-delay: 0.35s; }
+  .profile-stagger-8 { animation-delay: 0.4s; }
+
+  /* Profile edit form: smooth reveal */
+  @keyframes profile-form-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .profile-form-animate {
+    animation: profile-form-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
+  /* Help page: entrance and stagger */
+  @keyframes help-fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .help-animate-in {
+    animation: help-fade-in-up 0.5s ease-out forwards;
+  }
+  .help-stagger-0 { animation-delay: 0s; }
+  .help-stagger-1 { animation-delay: 0.06s; }
+  .help-stagger-2 { animation-delay: 0.12s; }
+  .help-stagger-3 { animation-delay: 0.18s; }
+  .help-stagger-4 { animation-delay: 0.24s; }
+  .help-stagger-5 { animation-delay: 0.3s; }
+  .help-stagger-6 { animation-delay: 0.36s; }
+  .help-stagger-7 { animation-delay: 0.42s; }
+  .help-stagger-8 { animation-delay: 0.48s; }
+  .help-list-item {
+    opacity: 0;
+    animation: help-fade-in-up 0.4s ease-out forwards;
   }
 }

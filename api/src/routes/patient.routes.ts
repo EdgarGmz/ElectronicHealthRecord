@@ -6,7 +6,7 @@ import patientController, {
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { param } from 'express-validator';
-import { ROLES_CAN_MANAGE_PATIENTS, ROLES_CAN_DELETE_PATIENTS } from '../constants/roles';
+import { ROLES_CAN_MANAGE_PATIENTS, ROLES_CAN_CREATE_PATIENT, ROLES_CAN_DELETE_PATIENTS } from '../constants/roles';
 
 const router = Router();
 
@@ -22,7 +22,7 @@ router.get(
 // Admin solo puede ver; crear/editar/eliminar solo el resto del personal
 router.get('/', patientController.getAll.bind(patientController));
 router.get('/:id', validate([param('id').isUUID()]), patientController.getById.bind(patientController));
-router.post('/', validate(createPatientValidation), authorizeRoles(...ROLES_CAN_MANAGE_PATIENTS), patientController.create.bind(patientController));
+router.post('/', validate(createPatientValidation), authorizeRoles(...ROLES_CAN_CREATE_PATIENT), patientController.create.bind(patientController));
 router.put('/:id', validate(updatePatientValidation), authorizeRoles(...ROLES_CAN_MANAGE_PATIENTS), patientController.update.bind(patientController));
 router.delete('/:id', validate([param('id').isUUID()]), authorizeRoles(...ROLES_CAN_DELETE_PATIENTS), patientController.delete.bind(patientController));
 

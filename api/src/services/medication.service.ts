@@ -77,6 +77,48 @@ export class MedicationService {
     return medication;
   }
 
+  /** Historial de consumo: administraciones agrupadas por mes (últimos 12 meses). */
+  async getMedicationConsumption(medicationId: string): Promise<{ period: string; count: number }[]> {
+    const medication = await prisma.medication.findUnique({
+      where: { id: medicationId },
+      select: { id: true },
+    });
+    if (!medication) {
+      throw new AppError('Medication not found', 404);
+    }
+
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 12);
+    startDate.setHours(0, 0, 0, 0);
+
+    const administrations = await prisma.medicationAdministration.findMany({
+      where: {
+        medicationId,
+        administrationDate: { gte: startDate },
+      },
+      select: { administrationDate: true },
+      orderBy: { administrationDate: 'asc' },
+    });
+
+    const byMonth = new Map<string, number>();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - (11 - i));
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      byMonth.set(key, 0);
+    }
+    for (const a of administrations) {
+      const d = new Date(a.administrationDate);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (byMonth.has(key)) {
+        byMonth.set(key, (byMonth.get(key) ?? 0) + 1);
+      }
+    }
+    return Array.from(byMonth.entries())
+      .map(([period, count]) => ({ period, count }))
+      .sort((a, b) => a.period.localeCompare(b.period));
+  }
+
   async createMedication(data: {
     name: string;
     genericName: string;
@@ -86,6 +128,7 @@ export class MedicationService {
     administrationRoutes?: string;
     contraindications?: string;
     sideEffects?: string;
+    stock?: number;
   }) {
     // Check for duplicate medication
     const existing = await prisma.medication.findFirst({
@@ -116,6 +159,7 @@ export class MedicationService {
     contraindications?: string;
     sideEffects?: string;
     isActive?: boolean;
+    stock?: number;
   }) {
     const existing = await prisma.medication.findUnique({
       where: { id },

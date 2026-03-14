@@ -2,6 +2,9 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CalendarPlus, Calendar } from 'lucide-react'
+import { useAuthStore } from '@/store/auth.store'
+import { getDefaultTableLimit } from '@/store/tablePageSize.store'
+import { ROLES_CAN_CREATE_APPOINTMENT } from '@/constants/roles'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
@@ -25,12 +28,15 @@ function formatDateTime(iso: string) {
 
 export function AppointmentListPage() {
   const { t } = useTranslation()
+  const role = useAuthStore((s) => s.user?.role)
+  const canCreateAppointment = role ? ROLES_CAN_CREATE_APPOINTMENT.includes(role) : false
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState('')
   const [department, setDepartment] = useState('')
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(() => getDefaultTableLimit())
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [sortState, setSortState] = useState<{ columnId: string | null; order: 'asc' | 'desc' }>({
     columnId: null,
@@ -42,7 +48,7 @@ export function AppointmentListPage() {
     setError(null)
     getAppointments({
       page,
-      limit: 10,
+      limit,
       status: status || undefined,
       department: department || undefined,
     })
@@ -52,7 +58,7 @@ export function AppointmentListPage() {
       })
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
-  }, [page, status, department, t])
+  }, [page, limit, status, department, t])
 
   const patientName = (a: Appointment) =>
     `${a.patient.user.firstName} ${a.patient.user.lastName}`.trim()
@@ -143,15 +149,16 @@ export function AppointmentListPage() {
     <div className="space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('appointments.title')}</h1>
-        <Link
-          to="/appointments/new"
-          className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium"
-        >
-          <CalendarPlus size={18} />
-          {t('appointments.newAppointment')}
-        </Link>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+        {canCreateAppointment && (
+          <Link
+            to="/appointments/new"
+            className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium"
+          >
+            <CalendarPlus size={18} />
+            {t('appointments.newAppointment')}
+          </Link>
+        )}
       </div>
       <GlassCard>
         <DataTable
@@ -163,6 +170,7 @@ export function AppointmentListPage() {
           emptyMessage={t('appointments.noAppointments')}
           pagination={pagination}
           onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
             {
               key: 'status',
@@ -212,6 +220,7 @@ export function AppointmentListPage() {
             page: t('table.page'),
             of: t('table.of'),
             all: t('table.all'),
+            rowsPerPage: t('table.rowsPerPage'),
           }}
         />
       </GlassCard>

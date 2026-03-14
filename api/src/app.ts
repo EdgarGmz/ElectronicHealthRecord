@@ -19,8 +19,19 @@ const app: Application = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: config.cors.origin,
+    origin: (origin, callback) => {
+      const allowed = config.cors.allowedOrigins;
+      // Development: allow any localhost origin so any port (5173, 5174, etc.) works
+      if (config.env === 'development' && origin && /^https?:\/\/localhost(:\d+)?$/.test(origin)) {
+        return callback(null, true);
+      }
+      // No origin (e.g. same-origin or Postman): allow
+      if (!origin) return callback(null, true);
+      if (allowed.includes(origin)) return callback(null, true);
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 

@@ -1,17 +1,28 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Pill, FileText } from 'lucide-react'
+import { ArrowLeft, Pill, FileText, BarChart3 } from 'lucide-react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
-import { getMedicationById } from '@/services/medication.service'
+import { getMedicationById, getMedicationConsumption, type MedicationConsumptionItem } from '@/services/medication.service'
 import type { MedicationWithPrescriptions } from '@/types/medication'
 
 export function MedicationDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
   const [medication, setMedication] = useState<MedicationWithPrescriptions | null>(null)
+  const [consumption, setConsumption] = useState<MedicationConsumptionItem[]>([])
+  const [consumptionLoading, setConsumptionLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -24,6 +35,44 @@ export function MedicationDetailPage() {
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
   }, [id, t])
+
+  useEffect(() => {
+    if (!id) return
+    setConsumptionLoading(true)
+    getMedicationConsumption(id)
+      .then(setConsumption)
+      .catch(() => setConsumption([]))
+      .finally(() => setConsumptionLoading(false))
+  }, [id])
+
+  const getStockLevel = (stock: number): 'low' | 'medium' | 'high' => {
+    if (stock <= 10) return 'low'
+    if (stock <= 30) return 'medium'
+    return 'high'
+  }
+  const stockLevelClasses: Record<'low' | 'medium' | 'high', string> = {
+    low: 'bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/40',
+    medium: 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40',
+    high: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40',
+  }
+  const stockLevelLabels = {
+    low: t('medications.stockLow'),
+    medium: t('medications.stockMedium'),
+    high: t('medications.stockHigh'),
+  }
+
+  /** Formatea YYYY-MM a "Ene 2025" para el eje X */
+  const formatPeriodLabel = (period: string) => {
+    const [y, m] = period.split('-')
+    const monthIndex = parseInt(m, 10) - 1
+    const date = new Date(parseInt(y, 10), monthIndex, 1)
+    return date.toLocaleDateString(undefined, { month: 'short', year: '2-digit' })
+  }
+  const chartData = consumption.map((item) => ({
+    ...item,
+    label: formatPeriodLabel(item.period),
+  }))
+  const totalAdministrations = consumption.reduce((sum, item) => sum + item.count, 0)
 
   const infoRows: { label: string; value: string | null | undefined }[] = medication
     ? [
@@ -73,6 +122,16 @@ export function MedicationDetailPage() {
       <GlassCard>
         <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">{t('medications.category')}</h2>
         <dl className="space-y-2">
+          <div>
+            <dt className="text-xs text-[var(--text-muted)]">{t('medications.stock')}</dt>
+            <dd className="mt-0.5">
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${stockLevelClasses[getStockLevel(medication.stock ?? 0)]}`}>
+                <span>{medication.stock ?? 0}</span>
+                <span className="opacity-90">·</span>
+                <span>{stockLevelLabels[getStockLevel(medication.stock ?? 0)]}</span>
+              </span>
+            </dd>
+          </div>
           {infoRows.map(({ label, value }) => (
             <div key={label}>
               <dt className="text-xs text-[var(--text-muted)]">{label}</dt>
@@ -96,6 +155,44 @@ export function MedicationDetailPage() {
           <p className="whitespace-pre-wrap text-[var(--text-secondary)]">{medication.sideEffects}</p>
         </GlassCard>
       )}
+      <GlassCard>
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+          <BarChart3 size={18} className="text-[var(--color-primary)]" />
+          {t('medications.consumptionHistory')}
+        </h2>
+        {consumptionLoading ? (
+          <div className="flex h-64 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg)]/30">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-primary)] border-t-transparent" />
+          </div>
+        ) : chartData.length > 0 ? (
+          <>
+            <p className="mb-4 text-sm text-[var(--text-muted)]">
+              {t('medications.totalAdministrations')}: <strong className="text-[var(--text-primary)]">{totalAdministrations}</strong>
+            </p>
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="label" stroke="var(--text-muted)" fontSize={11} />
+                  <YAxis stroke="var(--text-muted)" fontSize={11} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'var(--glass-bg)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                    }}
+                    formatter={(value: number) => [value, t('medications.consumptionByMonth')]}
+                    labelFormatter={(label) => label}
+                  />
+                  <Bar dataKey="count" fill="var(--color-primary)" radius={[4, 4, 0, 0]} name={t('medications.consumptionByMonth')} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </>
+        ) : (
+          <p className="py-8 text-center text-sm text-[var(--text-muted)]">{t('patients.noHistoryData')}</p>
+        )}
+      </GlassCard>
       {medication.prescriptions && medication.prescriptions.length > 0 && (
         <GlassCard>
           <h2 className="mb-2 text-sm font-semibold text-[var(--text-primary)]">{t('medications.recentPrescriptions')}</h2>

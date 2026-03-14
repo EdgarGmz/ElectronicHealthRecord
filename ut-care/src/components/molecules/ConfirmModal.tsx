@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { HelpCircle } from 'lucide-react'
 import { GlassButton } from '@/components/atoms/GlassButton'
@@ -41,7 +42,7 @@ export function ConfirmModal({
   const { t } = useTranslation()
   if (!open) return null
 
-  return (
+  const modal = (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
       role="alertdialog"
@@ -94,4 +95,6 @@ export function ConfirmModal({
       </div>
     </div>
   )
+
+  return createPortal(modal, document.body)
 }

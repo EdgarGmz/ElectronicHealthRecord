@@ -375,7 +375,7 @@ CORS_ORIGIN=http://localhost:5173
 
 # Rate Limiting
 RATE_LIMIT_WINDOW_MS=900000  # 15 minutos
-RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_MAX_REQUESTS=400  # peticiones por IP en la ventana (aumentar si ves 429)
 ```
 
 ### **Frontend (.env)**

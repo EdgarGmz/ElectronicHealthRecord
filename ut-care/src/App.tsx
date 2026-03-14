@@ -35,6 +35,11 @@ import { ProfilePage } from '@/pages/profile/ProfilePage'
 import { HelpPage } from '@/pages/help/HelpPage'
 import { AuditLogsPage } from '@/pages/audit-logs/AuditLogsPage'
 import { UsersPage } from '@/pages/users/UsersPage'
+import { SupervisionLayout } from '@/pages/supervision/SupervisionLayout'
+import { SupervisionPsychologistsPage } from '@/pages/supervision/SupervisionPsychologistsPage'
+import { SupervisionProgressPage } from '@/pages/supervision/SupervisionProgressPage'
+import { SupervisionCalendarPage } from '@/pages/supervision/SupervisionCalendarPage'
+import { SupervisionAnalyticsPage } from '@/pages/supervision/SupervisionAnalyticsPage'
 
 function App() {
   return (
@@ -50,6 +55,13 @@ function App() {
           }
         >
           <Route index element={<DashboardPage />} />
+          <Route path="supervision" element={<RoleGuard><SupervisionLayout /></RoleGuard>}>
+            <Route index element={<Navigate to="/supervision/psychologists" replace />} />
+            <Route path="psychologists" element={<SupervisionPsychologistsPage />} />
+            <Route path="progress" element={<SupervisionProgressPage />} />
+            <Route path="calendar" element={<SupervisionCalendarPage />} />
+            <Route path="analytics" element={<SupervisionAnalyticsPage />} />
+          </Route>
           <Route path="patients" element={<RoleGuard><PatientListPage /></RoleGuard>} />
           <Route path="patients/new" element={<RoleGuard><NewPatientPage /></RoleGuard>} />
           <Route path="patients/:id" element={<RoleGuard><PatientDetailPage /></RoleGuard>} />

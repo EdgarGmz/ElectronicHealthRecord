@@ -623,6 +623,7 @@ async function seedMedications() {
         contraindications: Math.random() > 0.5 ? faker.lorem.sentence() : null,
         sideEffects: Math.random() > 0.5 ? faker.lorem.sentence() : null,
         isActive: true,
+        stock: Math.floor(Math.random() * 80) + 5, // 5-85 units for variety (alto/medio/bajo)
       },
     });
     createdMedications.push(medication);

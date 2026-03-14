@@ -1,7 +1,9 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/auth.store'
 
-const baseURL = import.meta.env.VITE_API_URL || '/api'
+// En desarrollo usar siempre /api para que el proxy de Vite envíe las peticiones al backend (evita CORS y 401).
+const baseURL =
+  import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || '/api')
 
 export const api = axios.create({
   baseURL,
@@ -10,8 +12,10 @@ export const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  if (!config.headers.Authorization) {
+    const token = useAuthStore.getState().token
+    if (token) config.headers.Authorization = `Bearer ${token}`
+  }
   return config
 })
 

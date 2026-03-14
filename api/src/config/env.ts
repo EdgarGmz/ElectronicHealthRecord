@@ -35,12 +35,17 @@ export const config = {
   },
   
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    /** In development: allow any http://localhost:* . In production: use CORS_ORIGIN (comma-separated) or default 5173/5174 */
+    allowedOrigins: process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+      : ['http://localhost:5173', 'http://localhost:5174'],
   },
   
   rateLimit: {
+    /** Ventana en ms (default 15 min). Aumentar para más tolerancia. */
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-    maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+    /** Máximo de peticiones por IP en la ventana (default 400). Ajustar con RATE_LIMIT_MAX_REQUESTS. */
+    maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '400', 10),
   },
   
   upload: {

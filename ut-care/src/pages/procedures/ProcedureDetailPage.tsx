@@ -18,6 +18,15 @@ function patientName(p: NursingProcedure): string {
   return `${patient.user.firstName} ${patient.user.lastName}`.trim()
 }
 
+/** Convierte "Wound Dressing" -> "woundDressing" para la clave i18n procedures.types.* */
+function procedureTypeToKey(type: string): string {
+  return type
+    .trim()
+    .split(/\s+/)
+    .map((w, i) => (i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()))
+    .join('')
+}
+
 export function ProcedureDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
@@ -60,7 +69,9 @@ export function ProcedureDetailPage() {
             <Stethoscope className="text-[var(--color-primary)]" size={28} />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold text-[var(--text-primary)]">{procedure.procedureType}</h1>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+              {t(`procedures.types.${procedureTypeToKey(procedure.procedureType)}`, { defaultValue: procedure.procedureType })}
+            </h1>
             <p className="mt-1 text-[var(--text-secondary)]">{formatDateTime(procedure.procedureDate)}</p>
           </div>
         </div>

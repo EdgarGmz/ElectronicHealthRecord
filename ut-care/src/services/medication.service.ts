@@ -28,6 +28,18 @@ export async function getMedicationById(id: string): Promise<MedicationWithPresc
   return data.data
 }
 
+export interface MedicationConsumptionItem {
+  period: string
+  count: number
+}
+
+export async function getMedicationConsumption(medicationId: string): Promise<MedicationConsumptionItem[]> {
+  const { data } = await api.get<{ success: boolean; data: MedicationConsumptionItem[] }>(
+    `/medications/${medicationId}/consumption`
+  )
+  return data.data
+}
+
 export async function createMedication(body: CreateMedicationInput): Promise<Medication> {
   const { data } = await api.post<{ success: boolean; data: Medication }>('/medications', body)
   return data.data

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, MessageSquare, User, FileText } from 'lucide-react'
+import { EmailLink } from '@/components/atoms/EmailLink'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
@@ -120,7 +121,9 @@ export function InterconsultationDetailPage() {
           </h2>
           <p className="font-medium text-[var(--text-primary)]">{patientName(interconsultation)}</p>
           {interconsultation.patient?.user?.email && (
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">{interconsultation.patient.user.email}</p>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+              <EmailLink email={interconsultation.patient.user.email} />
+            </p>
           )}
         </GlassCard>
         <GlassCard>

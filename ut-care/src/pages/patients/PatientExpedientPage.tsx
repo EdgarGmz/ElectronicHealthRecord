@@ -10,7 +10,9 @@ import {
   Phone,
   Calendar,
 } from 'lucide-react'
+import { EmailLink } from '@/components/atoms/EmailLink'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { PhoneWhatsAppLink } from '@/components/atoms/PhoneWhatsAppLink'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getMedicalRecordByPatientId } from '@/services/medical-record.service'
@@ -91,7 +93,7 @@ export function PatientExpedientPage() {
               <div className="min-w-0 flex-1">
                 <h1 className="text-2xl font-bold text-[var(--text-primary)]">{fullName}</h1>
                 <p className="mt-1 text-[var(--text-secondary)]">
-                  {t('expedient.title')} · {patient.user.email}
+                  {t('expedient.title')} · <EmailLink email={patient.user.email} />
                 </p>
                 {patient.user.enrollmentNumber && (
                   <p className="mt-0.5 text-sm text-[var(--text-muted)]">
@@ -258,8 +260,17 @@ export function PatientExpedientPage() {
                   <li key={ec.id} className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="font-medium text-[var(--text-primary)]">{ec.name}</span>
                     <span className="text-[var(--text-muted)]">{ec.relationship}</span>
-                    <span className="text-[var(--text-secondary)]">{ec.phone}</span>
-                    {ec.phoneSecondary && <span className="text-[var(--text-muted)]">{ec.phoneSecondary}</span>}
+                    {ec.phone ? (
+                      <PhoneWhatsAppLink phone={ec.phone} className="text-[var(--text-secondary)]" />
+                    ) : (
+                      <span className="text-[var(--text-secondary)]">—</span>
+                    )}
+                    {ec.phoneSecondary ? (
+                      <>
+                        {' '}
+                        <PhoneWhatsAppLink phone={ec.phoneSecondary} className="text-[var(--text-muted)]" />
+                      </>
+                    ) : null}
                   </li>
                 ))}
               </ul>

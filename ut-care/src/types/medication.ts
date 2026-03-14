@@ -9,6 +9,7 @@ export interface Medication {
   contraindications: string | null
   sideEffects: string | null
   isActive: boolean
+  stock: number
   createdAt: string
   updatedAt: string
 }

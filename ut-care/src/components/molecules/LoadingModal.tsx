@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Loader2 } from 'lucide-react'
 
@@ -13,7 +14,7 @@ export function LoadingModal({ open, message }: LoadingModalProps) {
 
   if (!open) return null
 
-  return (
+  const modal = (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
       role="dialog"
@@ -36,4 +37,6 @@ export function LoadingModal({ open, message }: LoadingModalProps) {
       </div>
     </div>
   )
+
+  return createPortal(modal, document.body)
 }

@@ -7,6 +7,7 @@ import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { DataTable } from '@/components/organisms/DataTable'
 import type { DataTableColumn } from '@/components/organisms/DataTable'
+import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { getInterconsultations } from '@/services/interconsultation.service'
 import type { Interconsultation } from '@/types/interconsultation'
 import { STATUS_VALUES, URGENCY_VALUES, DEPARTMENT_VALUES } from '@/types/interconsultation'
@@ -42,6 +43,7 @@ export function InterconsultationListPage() {
   const [fromDepartment, setFromDepartment] = useState('')
   const [toDepartment, setToDepartment] = useState('')
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(() => getDefaultTableLimit())
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [sortState, setSortState] = useState<{ columnId: string | null; order: 'asc' | 'desc' }>({
     columnId: null,
@@ -53,7 +55,7 @@ export function InterconsultationListPage() {
     setError(null)
     getInterconsultations({
       page,
-      limit: 10,
+      limit,
       status: status || undefined,
       urgency: urgency || undefined,
       fromDepartment: fromDepartment || undefined,
@@ -65,7 +67,7 @@ export function InterconsultationListPage() {
       })
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
-  }, [page, status, urgency, fromDepartment, toDepartment, t])
+  }, [page, limit, status, urgency, fromDepartment, toDepartment, t])
 
   const statusRespondedLabel = t('interconsultations.statusResponded')
   const statusCancelledLabel = t('interconsultations.statusCancelled')
@@ -134,8 +136,7 @@ export function InterconsultationListPage() {
     <div className="space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('interconsultations.title')}</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
         <Link to="/interconsultations/new" className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium">
           <Plus size={18} />
           {t('interconsultations.newInterconsultation')}
@@ -151,6 +152,7 @@ export function InterconsultationListPage() {
           emptyMessage={t('interconsultations.noInterconsultations')}
           pagination={pagination}
           onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
             { key: 'status', label: t('interconsultations.status'), type: 'select', options: STATUS_VALUES.map((v) => ({ value: v, label: t(`interconsultations.${STATUS_KEY[v] || v}`) })) },
             { key: 'urgency', label: t('interconsultations.urgency'), type: 'select', options: URGENCY_VALUES.map((v) => ({ value: v, label: t(`interconsultations.${URGENCY_KEY[v] || v}`) })) },
@@ -183,6 +185,7 @@ export function InterconsultationListPage() {
             page: t('table.page'),
             of: t('table.of'),
             all: t('table.all'),
+            rowsPerPage: t('table.rowsPerPage'),
           }}
         />
       </GlassCard>

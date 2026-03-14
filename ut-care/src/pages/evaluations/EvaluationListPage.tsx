@@ -7,8 +7,19 @@ import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { DataTable } from '@/components/organisms/DataTable'
 import type { DataTableColumn } from '@/components/organisms/DataTable'
+import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { getPsychometricEvaluations } from '@/services/psychometric-evaluation.service'
 import type { PsychometricEvaluation } from '@/types/psychometric-evaluation'
+
+/** Tipos de evaluación (coinciden con el seed/API). */
+const EVALUATION_TYPES = [
+  'Beck Depression Inventory',
+  'Hamilton Anxiety Scale',
+  'MMPI-2',
+  'Rorschach',
+  'WAIS-IV',
+  'SCL-90-R',
+] as const
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { dateStyle: 'short' })
@@ -34,6 +45,7 @@ export function EvaluationListPage() {
   const [applicationDateFrom, setApplicationDateFrom] = useState('')
   const [applicationDateTo, setApplicationDateTo] = useState('')
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(() => getDefaultTableLimit())
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [sortState, setSortState] = useState<{ columnId: string | null; order: 'asc' | 'desc' }>({
     columnId: null,
@@ -45,7 +57,7 @@ export function EvaluationListPage() {
     setError(null)
     getPsychometricEvaluations({
       page,
-      limit: 10,
+      limit,
       evaluationType: evaluationType || undefined,
       applicationDateFrom: applicationDateFrom || undefined,
       applicationDateTo: applicationDateTo || undefined,
@@ -56,7 +68,7 @@ export function EvaluationListPage() {
       })
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
-  }, [page, evaluationType, applicationDateFrom, applicationDateTo, t])
+  }, [page, limit, evaluationType, applicationDateFrom, applicationDateTo, t])
 
   const columns: DataTableColumn<PsychometricEvaluation>[] = [
     { id: 'evaluationType', label: t('evaluations.evaluationType'), getValue: (row) => row.evaluationType, sortable: true },
@@ -95,8 +107,7 @@ export function EvaluationListPage() {
     <div className="space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('evaluations.title')}</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
         <Link to="/evaluations/new" className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium">
           <Plus size={18} />
           {t('evaluations.newEvaluation')}
@@ -112,8 +123,14 @@ export function EvaluationListPage() {
           emptyMessage={t('evaluations.noEvaluations')}
           pagination={pagination}
           onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
-            { key: 'evaluationType', label: t('evaluations.evaluationType'), type: 'text', placeholder: t('evaluations.evaluationType') },
+            {
+              key: 'evaluationType',
+              label: t('evaluations.evaluationType'),
+              type: 'select',
+              options: EVALUATION_TYPES.map((value) => ({ value, label: value })),
+            },
             { key: 'applicationDateFrom', label: t('reports.periodStart'), type: 'date' },
             { key: 'applicationDateTo', label: t('reports.periodEnd'), type: 'date' },
           ]}
@@ -142,6 +159,7 @@ export function EvaluationListPage() {
             page: t('table.page'),
             of: t('table.of'),
             all: t('table.all'),
+            rowsPerPage: t('table.rowsPerPage'),
           }}
         />
       </GlassCard>
