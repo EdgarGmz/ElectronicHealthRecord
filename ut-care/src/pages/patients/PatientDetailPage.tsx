@@ -3,9 +3,9 @@ import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
-  User,
   Mail,
   Hash,
+  Phone,
   BookOpen,
   Calendar,
   Activity,
@@ -24,18 +24,22 @@ import {
   Cell,
   Legend,
 } from 'recharts'
+import { EmailLink } from '@/components/atoms/EmailLink'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { PhoneWhatsAppLink } from '@/components/atoms/PhoneWhatsAppLink'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getPatientById } from '@/services/patient.service'
 import { getTherapySessions } from '@/services/therapy-session.service'
 import { getAppointments } from '@/services/appointment.service'
+import { getMedicalRecordByPatientId } from '@/services/medical-record.service'
 import { canAccessExpedient } from '@/constants/roles'
 import { useAuthStore } from '@/store/auth.store'
 import type { Patient } from '@/types/patient'
 import type { TherapySession } from '@/types/therapy-session'
 import type { Appointment } from '@/types/appointment'
+import type { MedicalRecord, NursingConsultation } from '@/types/medical-record'
 import { ROLES } from '@/constants/roles'
 
 const CHART_COLORS = ['#8b5cf6', '#06b6d4', '#22c55e', '#eab308', '#ef4444']
@@ -88,6 +92,31 @@ function groupMoodCount(sessions: TherapySession[]): { mood: string; count: numb
     .slice(0, 8)
 }
 
+const RISK_LEVELS_ALERT = ['high', 'medium']
+
+function nursingRecurrencesLast6Months(consultations: NursingConsultation[]): number {
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+  return consultations.filter((c) => new Date(c.consultationDate) >= sixMonthsAgo).length
+}
+
+function nursingAlertCount(record: MedicalRecord | null): number {
+  if (!record) return 0
+  let n = 0
+  if (record.allergies?.trim()) n += 1
+  const pr = record.psychologyRecord
+  if (pr) {
+    if (RISK_LEVELS_ALERT.includes(pr.suicideRiskLevel?.toLowerCase())) n += 1
+    if (RISK_LEVELS_ALERT.includes(pr.violenceRiskLevel?.toLowerCase())) n += 1
+  }
+  return n
+}
+
+function nurseName(c: NursingConsultation): string {
+  const u = c.nurse
+  return u ? `${u.firstName} ${u.lastName}`.trim() : '—'
+}
+
 export function PatientDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
@@ -95,13 +124,15 @@ export function PatientDetailPage() {
   const [patient, setPatient] = useState<Patient | null>(null)
   const [sessions, setSessions] = useState<TherapySession[]>([])
   const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [medicalRecord, setMedicalRecord] = useState<MedicalRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [historyLoading, setHistoryLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const isCoordinator = user?.role === ROLES.COORDINADOR_PSICOLOGIA
+  const isCoordinatorPsychology = user?.role === ROLES.COORDINADOR_PSICOLOGIA
+  const isCoordinatorNursing = user?.role === ROLES.COORDINADOR_ENFERMERIA
   const showExpedient = canAccessExpedient(user?.role)
-  const showHistory = isCoordinator || showExpedient
+  const showHistory = isCoordinatorPsychology || isCoordinatorNursing || showExpedient
 
   useEffect(() => {
     if (!id) return
@@ -116,6 +147,13 @@ export function PatientDetailPage() {
   useEffect(() => {
     if (!id || !showHistory) return
     setHistoryLoading(true)
+    if (isCoordinatorNursing) {
+      getMedicalRecordByPatientId(id)
+        .then(setMedicalRecord)
+        .catch(() => setMedicalRecord(null))
+        .finally(() => setHistoryLoading(false))
+      return
+    }
     Promise.all([
       getTherapySessions({ patientId: id, limit: 200 }),
       getAppointments({ patientId: id, limit: 200 }),
@@ -126,7 +164,7 @@ export function PatientDetailPage() {
       })
       .catch(() => {})
       .finally(() => setHistoryLoading(false))
-  }, [id, showHistory])
+  }, [id, showHistory, isCoordinatorNursing])
 
   const sessionsByMonth = useMemo(() => groupSessionsByMonth(sessions), [sessions])
   const appointmentsByStatus = useMemo(() => groupAppointmentsByStatus(appointments), [appointments])
@@ -195,13 +233,28 @@ export function PatientDetailPage() {
             </div>
           </GlassCard>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <GlassCard className="rounded-2xl transition-shadow hover:shadow-md">
               <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
                 <Mail size={18} className="text-[var(--color-primary)]" />
                 {t('patients.email')}
               </h2>
-              <p className="text-[var(--text-secondary)]">{patient.user.email}</p>
+              <p className="text-[var(--text-secondary)]">
+                <EmailLink email={patient.user.email} />
+              </p>
+            </GlassCard>
+            <GlassCard className="rounded-2xl transition-shadow hover:shadow-md">
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                <Phone size={18} className="text-[var(--color-primary)]" />
+                {t('patients.phone')}
+              </h2>
+              <p className="text-[var(--text-secondary)]">
+                {patient.user.phone ? (
+                  <PhoneWhatsAppLink phone={patient.user.phone} />
+                ) : (
+                  '—'
+                )}
+              </p>
             </GlassCard>
             <GlassCard className="rounded-2xl transition-shadow hover:shadow-md">
               <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
@@ -229,26 +282,87 @@ export function PatientDetailPage() {
             </GlassCard>
           )}
 
-          {/* Historial (coordinador siempre; otros opcional con resumen) */}
+          {/* Historial: coordinador enfermería solo ve datos de enfermería; psicología/otros ven sesiones y citas */}
           {showHistory && (
             <section className="space-y-6">
-              <div className="flex items-center gap-3">
-                <Activity size={24} className="text-[var(--color-primary)]" />
-                <div>
-                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">{t('patients.historyTitle')}</h2>
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    {t('patients.sessionsOverTime')}
-                  </p>
-                </div>
-              </div>
+              {isCoordinatorNursing ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <Activity size={24} className="text-[var(--color-primary)]" />
+                    <div>
+                      <h2 className="text-lg font-semibold text-[var(--text-primary)]">{t('patients.nursingHistoryTitle')}</h2>
+                      <p className="text-sm text-[var(--text-secondary)]">{t('expedient.nursingConsultations')}</p>
+                    </div>
+                  </div>
+                  {historyLoading && (
+                    <div className="flex h-32 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--bg)]/50">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-primary)] border-t-transparent" />
+                    </div>
+                  )}
+                  {!historyLoading && (
+                    <>
+                      <div className="grid gap-4 sm:grid-cols-3">
+                        <GlassCard className="rounded-2xl border-l-4 border-l-[var(--color-primary)] transition-shadow hover:shadow-md">
+                          <p className="text-sm font-medium text-[var(--text-muted)]">{t('patients.nursingVisits')}</p>
+                          <p className="mt-1 text-3xl font-bold text-[var(--text-primary)]">{medicalRecord?.nursingConsultations?.length ?? 0}</p>
+                        </GlassCard>
+                        <GlassCard className="rounded-2xl border-l-4 border-l-[#06b6d4] transition-shadow hover:shadow-md">
+                          <p className="text-sm font-medium text-[var(--text-muted)]">{t('patients.recurrencesLast6Months')}</p>
+                          <p className="mt-1 text-3xl font-bold text-[var(--text-primary)]">{medicalRecord ? nursingRecurrencesLast6Months(medicalRecord.nursingConsultations) : 0}</p>
+                        </GlassCard>
+                        <GlassCard className="rounded-2xl border-l-4 border-l-[#eab308] transition-shadow hover:shadow-md">
+                          <p className="text-sm font-medium text-[var(--text-muted)]">{t('patients.alerts')}</p>
+                          <p className="mt-1 text-3xl font-bold text-[var(--text-primary)]">{nursingAlertCount(medicalRecord)}</p>
+                        </GlassCard>
+                      </div>
+                      <GlassCard className="rounded-2xl p-6 transition-shadow hover:shadow-md">
+                        <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-[var(--text-primary)]">
+                          <Activity size={20} />
+                          {t('patients.lastNursingConsultations')}
+                        </h3>
+                        {(medicalRecord?.nursingConsultations?.length ?? 0) === 0 ? (
+                          <p className="text-sm text-[var(--text-muted)]">{t('expedient.noNursingConsultations')}</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {[...(medicalRecord?.nursingConsultations ?? [])]
+                              .sort((a, b) => new Date(b.consultationDate).getTime() - new Date(a.consultationDate).getTime())
+                              .slice(0, 10)
+                              .map((c) => (
+                                <li
+                                  key={c.id}
+                                  className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--bg)]/30 px-3 py-2 text-sm"
+                                >
+                                  <span className="text-[var(--text-primary)]">{formatDateShort(c.consultationDate)} · {nurseName(c)}</span>
+                                  {c.chiefComplaint && (
+                                    <span className="max-w-[50%] truncate text-[var(--text-muted)]" title={c.chiefComplaint}>{c.chiefComplaint}</span>
+                                  )}
+                                </li>
+                              ))}
+                          </ul>
+                        )}
+                      </GlassCard>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <Activity size={24} className="text-[var(--color-primary)]" />
+                    <div>
+                      <h2 className="text-lg font-semibold text-[var(--text-primary)]">{t('patients.historyTitle')}</h2>
+                      <p className="text-sm text-[var(--text-secondary)]">
+                        {t('patients.sessionsOverTime')}
+                      </p>
+                    </div>
+                  </div>
 
-              {historyLoading && (
-                <div className="flex h-32 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--bg)]/50">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-primary)] border-t-transparent" />
-                </div>
-              )}
+                  {historyLoading && (
+                    <div className="flex h-32 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--bg)]/50">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-primary)] border-t-transparent" />
+                    </div>
+                  )}
 
-              {!historyLoading && (sessions.length > 0 || appointments.length > 0) && (
+                  {!historyLoading && (sessions.length > 0 || appointments.length > 0) && (
                 <>
                   {/* KPI cards */}
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -407,9 +521,11 @@ export function PatientDetailPage() {
               )}
 
               {!historyLoading && sessions.length === 0 && appointments.length === 0 && (
-                <GlassCard className="rounded-2xl p-8 text-center">
-                  <p className="text-[var(--text-muted)]">{t('patients.noHistoryData')}</p>
-                </GlassCard>
+                    <GlassCard className="rounded-2xl p-8 text-center">
+                      <p className="text-[var(--text-muted)]">{t('patients.noHistoryData')}</p>
+                    </GlassCard>
+                  )}
+                </>
               )}
             </section>
           )}

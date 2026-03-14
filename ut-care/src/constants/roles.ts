@@ -20,9 +20,8 @@ export const ROLES_VISIBLE_IN_USERS: readonly string[] = [
   ROLES.ENFERMERO,
 ]
 
-/** Pueden crear pacientes nuevos. Coord. psicología solo ve la lista. */
+/** Pueden crear pacientes nuevos. Coordinadores solo consultan, no crean ni editan. */
 export const ROLES_CAN_CREATE_PATIENT: readonly string[] = [
-  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ]
@@ -88,23 +87,24 @@ const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/supervision': [ROLES.COORDINADOR_PSICOLOGIA],
   // Admin is an auditor; hide operational modules from admin UI
   '/patients': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
-  /** Coord. psicología no tiene acceso al módulo Citas; solo coordinador enfermería, psicólogo y enfermero */
-  '/appointments': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
-  '/sessions': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO],
+  /** Coordinadores no tienen acceso al módulo Citas; solo psicólogo y enfermero operativos */
+  '/appointments': [ROLES.PSICOLOGO, ROLES.ENFERMERO],
+  /** Sesiones de terapia: solo psicólogo (exclusivo de psicología) */
+  '/sessions': [ROLES.PSICOLOGO],
   '/medications': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
   '/procedures': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
   '/interconsultations': [],
   '/reports': [],
-  '/evaluations': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
+  /** Evaluaciones psicométricas: solo psicólogo y enfermero (no coordinador de enfermería). */
+  '/evaluations': [ROLES.PSICOLOGO, ROLES.ENFERMERO],
   '/notifications': [],
   '/users': [ROLES.ADMIN],
   '/audit-logs': [ROLES.ADMIN],
 }
 
-/** Paths that require medical record access (expediente). Coordinator can see patient history but not full expedient. */
+/** Paths that require medical record access (expediente). Coordinators see only patient history, not full expedient. */
 const EXPEDIENT_PATH_PREFIX = '/patients/'
 const EXPEDIENT_ALLOWED_ROLES: readonly string[] = [
-  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ]

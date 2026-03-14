@@ -26,6 +26,25 @@ function performedByName(p: NursingProcedure): string {
   return `${p.performedByUser.firstName} ${p.performedByUser.lastName}`.trim()
 }
 
+/** Valores que usa el API/seed para procedureType (valor enviado al backend). */
+const PROCEDURE_TYPE_VALUES = [
+  { value: 'Wound Dressing', key: 'woundDressing' },
+  { value: 'Blood Draw', key: 'bloodDraw' },
+  { value: 'Injection', key: 'injection' },
+  { value: 'Vital Signs', key: 'vitalSigns' },
+  { value: 'Catheterization', key: 'catheterization' },
+  { value: 'IV Administration', key: 'ivAdministration' },
+] as const
+
+/** Convierte "Wound Dressing" -> "woundDressing" para la clave i18n procedures.types.* */
+function procedureTypeToKey(type: string): string {
+  return type
+    .trim()
+    .split(/\s+/)
+    .map((w, i) => (i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()))
+    .join('')
+}
+
 export function ProcedureListPage() {
   const { t } = useTranslation()
   const [procedures, setProcedures] = useState<NursingProcedure[]>([])
@@ -59,7 +78,17 @@ export function ProcedureListPage() {
   }, [page, limit, search, procedureType, t])
 
   const columns: DataTableColumn<NursingProcedure>[] = [
-    { id: 'procedureType', label: t('procedures.procedureType'), getValue: (row) => row.procedureType, sortable: true },
+    {
+      id: 'procedureType',
+      label: t('procedures.procedureType'),
+      getValue: (row) => row.procedureType,
+      sortable: true,
+      render: (row) => {
+        const key = procedureTypeToKey(row.procedureType)
+        const translated = t(`procedures.types.${key}`, { defaultValue: row.procedureType })
+        return <span>{translated}</span>
+      },
+    },
     { id: 'patient', label: t('procedures.patient'), getValue: (row) => patientName(row), sortable: true },
     { id: 'date', label: t('procedures.procedureDate'), getValue: (row) => formatDate(row.procedureDate), sortable: true },
     { id: 'performedBy', label: t('procedures.performedBy'), getValue: (row) => performedByName(row), sortable: true },
@@ -111,8 +140,16 @@ export function ProcedureListPage() {
           onPageChange={setPage}
           onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
-            { key: 'search', label: t('common.search'), type: 'text', placeholder: t('procedures.searchPlaceholder') },
-            { key: 'procedureType', label: t('procedures.procedureType'), type: 'text', placeholder: t('procedures.procedureType') },
+            { key: 'search', label: t('common.search'), type: 'text', placeholder: t('procedures.searchPlaceholder'), searchIcon: true, debounceMs: 350 },
+            {
+              key: 'procedureType',
+              label: t('procedures.procedureType'),
+              type: 'select',
+              options: PROCEDURE_TYPE_VALUES.map(({ value, key }) => ({
+                value,
+                label: t(`procedures.types.${key}`),
+              })),
+            },
           ]}
           filterValues={filterValues}
           onFilterChange={onFilterChange}

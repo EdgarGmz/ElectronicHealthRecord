@@ -5,7 +5,9 @@ import { UserPlus, FileText } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { ROLES_CAN_CREATE_PATIENT, canAccessExpedient } from '@/constants/roles'
+import { EmailLink } from '@/components/atoms/EmailLink'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { PhoneWhatsAppLink } from '@/components/atoms/PhoneWhatsAppLink'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { DataTable } from '@/components/organisms/DataTable'
@@ -54,7 +56,21 @@ export function PatientListPage() {
 
   const columns: DataTableColumn<Patient>[] = [
     { id: 'name', label: t('nav.patients'), getValue: (row) => fullName(row), sortable: true },
-    { id: 'email', label: t('patients.email'), getValue: (row) => row.user.email, sortable: true },
+    {
+      id: 'email',
+      label: t('patients.email'),
+      getValue: (row) => row.user.email,
+      sortable: true,
+      render: (row) => (row.user.email ? <EmailLink email={row.user.email} /> : '—'),
+    },
+    {
+      id: 'phone',
+      label: t('patients.phone'),
+      getValue: (row) => row.user.phone ?? '—',
+      sortable: true,
+      render: (row) =>
+        row.user.phone ? <PhoneWhatsAppLink phone={row.user.phone} /> : '—',
+    },
     { id: 'enrollment', label: t('patients.enrollment'), getValue: (row) => row.user.enrollmentNumber ?? '—' },
     { id: 'type', label: t('patients.type'), getValue: (row) => t(`patients.${row.patientType}`) || row.patientType, sortable: true },
     { id: 'career', label: t('patients.career'), getValue: (row) => row.career.name, sortable: true },
@@ -112,7 +128,7 @@ export function PatientListPage() {
           onPageChange={setPage}
           onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
-            { key: 'search', label: t('common.search'), type: 'text', placeholder: t('patients.searchPlaceholder') },
+            { key: 'search', label: t('common.search'), type: 'text', placeholder: t('patients.searchPlaceholder'), searchIcon: true, debounceMs: 350 },
             { key: 'patientType', label: t('patients.type'), type: 'select', options: PATIENT_TYPES.map((type) => ({ value: type, label: t(`patients.${type}`) })) },
           ]}
           filterValues={filterValues}

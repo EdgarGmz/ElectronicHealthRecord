@@ -15,6 +15,7 @@ router.use(authenticateToken);
 
 // Inventario de medicamentos (catálogo) — rutas relativas al mount /medications
 router.get('/', authorizeRoles(...ROLES_CAN_ACCESS_MEDICATIONS), medicationController.getMedications);
+router.get('/:id/consumption', authorizeRoles(...ROLES_CAN_ACCESS_MEDICATIONS), medicationController.getMedicationConsumption);
 router.get('/:id', authorizeRoles(...ROLES_CAN_ACCESS_MEDICATIONS), medicationController.getMedicationById);
 
 router.post(

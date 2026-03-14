@@ -1,24 +1,20 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BarChart3, MessageSquare, FileText, Calendar, FileSpreadsheet, FileType } from 'lucide-react'
+import { BarChart3, MessageSquare, Calendar, FileSpreadsheet, FileType } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { ConfirmModal } from '@/components/molecules/ConfirmModal'
 import {
   getStatisticsReport,
   getConsultationsReport,
-  getDiagnosesReport,
 } from '@/services/report.service'
 import {
   exportStatisticsToExcel,
   exportStatisticsToPdf,
   exportConsultationsToExcel,
   exportConsultationsToPdf,
-  exportDiagnosesToExcel,
-  exportDiagnosesToPdf,
   exportStatisticsToCsv,
   exportConsultationsToCsv,
-  exportDiagnosesToCsv,
 } from '@/utils/reportExport'
 import { getTableRowClass } from '@/utils/tableRowColors'
 import { api } from '@/lib/api'
@@ -28,7 +24,6 @@ import { PasswordInput } from '@/components/atoms/PasswordInput'
 import type {
   StatisticsReportData,
   ConsultationsReportData,
-  DiagnosesReportData,
 } from '@/types/report'
 
 const today = new Date()
@@ -59,13 +54,9 @@ export function ReportsPage() {
   const [consultationsLoading, setConsultationsLoading] = useState(false)
   const [consultationsError, setConsultationsError] = useState<string | null>(null)
 
-  const [diagnosesData, setDiagnosesData] = useState<DiagnosesReportData | null>(null)
-  const [diagnosesLoading, setDiagnosesLoading] = useState(false)
-  const [diagnosesError, setDiagnosesError] = useState<string | null>(null)
-
   const [exportModalOpen, setExportModalOpen] = useState(false)
   const [exportFormat, setExportFormat] = useState<'excel' | 'pdf' | 'csv'>('excel')
-  const [exportType, setExportType] = useState<'statistics' | 'consultations' | 'diagnoses'>('statistics')
+  const [exportType, setExportType] = useState<'statistics' | 'consultations'>('statistics')
   const [exportPassword, setExportPassword] = useState('')
   const [exportPasswordError, setExportPasswordError] = useState<string | null>(null)
   const [exportVerifying, setExportVerifying] = useState(false)
@@ -104,20 +95,6 @@ export function ReportsPage() {
     }
   }
 
-  const handleDiagnoses = async () => {
-    setDiagnosesError(null)
-    setDiagnosesLoading(true)
-    try {
-      const res = await getDiagnosesReport(params())
-      setDiagnosesData(res.data)
-    } catch {
-      setDiagnosesError(t('reports.error'))
-      setDiagnosesData(null)
-    } finally {
-      setDiagnosesLoading(false)
-    }
-  }
-
   const departmentLabel = (d: string) => {
     if (!d || d === 'all') return t('reports.departmentAll')
     if (d === 'psychology') return t('reports.departmentPsychology')
@@ -125,7 +102,7 @@ export function ReportsPage() {
     return d
   }
 
-  const openExportModal = (format: 'excel' | 'pdf' | 'csv', type: 'statistics' | 'consultations' | 'diagnoses') => {
+  const openExportModal = (format: 'excel' | 'pdf' | 'csv', type: 'statistics' | 'consultations') => {
     setExportFormat(format)
     setExportType(type)
     setExportPassword('')
@@ -160,10 +137,6 @@ export function ReportsPage() {
       if (exportFormat === 'excel') exportConsultationsToExcel(consultationsData, baseName)
       else if (exportFormat === 'pdf') exportConsultationsToPdf(consultationsData, baseName)
       else exportConsultationsToCsv(consultationsData, baseName)
-    } else if (exportType === 'diagnoses' && diagnosesData) {
-      if (exportFormat === 'excel') exportDiagnosesToExcel(diagnosesData, baseName)
-      else if (exportFormat === 'pdf') exportDiagnosesToPdf(diagnosesData, baseName)
-      else exportDiagnosesToCsv(diagnosesData, baseName)
     }
     setExportModalOpen(false)
     setExportPassword('')
@@ -445,102 +418,6 @@ export function ReportsPage() {
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{formatDate(c.createdAt)}</td>
                       </tr>
                     )})
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </GlassCard>
-
-      {/* Diagnoses */}
-      <GlassCard>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--text-primary)]">
-            <FileText size={22} />
-            {t('reports.diagnoses')}
-          </h2>
-          <div className="flex items-center gap-2">
-            {!diagnosesData ? (
-              <GlassButton onClick={handleDiagnoses} disabled={diagnosesLoading}>
-                {diagnosesLoading ? t('common.loading') : t('reports.generate')}
-              </GlassButton>
-            ) : (
-              <>
-                <GlassButton
-                  type="button"
-                  variant="glass"
-                  title={t('reports.exportExcel')}
-                  onClick={() => openExportModal('excel', 'diagnoses')}
-                  className="p-2 bg-emerald-500 text-white hover:bg-emerald-600"
-                >
-                  <FileSpreadsheet size={20} aria-hidden />
-                </GlassButton>
-                <GlassButton
-                  type="button"
-                  variant="glass"
-                  title="CSV"
-                  onClick={() => openExportModal('csv', 'diagnoses')}
-                  className="p-2 bg-black text-white hover:bg-neutral-800"
-                >
-                  CSV
-                </GlassButton>
-                <GlassButton
-                  type="button"
-                  variant="glass"
-                  title={t('reports.exportPdf')}
-                  onClick={() => openExportModal('pdf', 'diagnoses')}
-                  className="p-2 bg-rose-500 text-white hover:bg-rose-600"
-                >
-                  <FileType size={20} aria-hidden />
-                </GlassButton>
-              </>
-            )}
-          </div>
-        </div>
-        {diagnosesError && <p className="mt-2 text-sm text-[var(--color-error)]">{diagnosesError}</p>}
-        {diagnosesData && (
-          <div className="mt-4 space-y-4">
-            <p className="text-sm text-[var(--text-muted)]">
-              {formatDate(diagnosesData.period.start)} – {formatDate(diagnosesData.period.end)} · Psicología
-            </p>
-            <p className="text-lg font-medium text-[var(--text-primary)]">
-              {t('reports.summary')}: {diagnosesData.summary.totalRecords} {t('reports.totalRecords')} · {t('reports.dsm5')}: {diagnosesData.summary.totalDiagnosesDsm5} · {t('reports.cie10')}: {diagnosesData.summary.totalDiagnosesCie10}
-            </p>
-            {diagnosesData.summary.mostCommonDsm5.length > 0 && (
-              <div>
-                <p className="text-sm font-medium text-[var(--text-primary)]">{t('reports.mostCommon')} DSM-5</p>
-                <ul className="mt-1 flex flex-wrap gap-2">
-                  {diagnosesData.summary.mostCommonDsm5.map((item, i) => (
-                    <li key={i} className="rounded-lg bg-black/5 px-2 py-1 text-sm dark:bg-white/5">{item.diagnosis}: {item.count}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <div className="overflow-x-auto rounded-xl border border-[var(--glass-border)]">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--border)] bg-black/5 dark:bg-white/5">
-                    <th className="px-4 py-3 font-medium text-[var(--text-primary)]">Paciente</th>
-                    <th className="px-4 py-3 font-medium text-[var(--text-primary)]">DSM-5</th>
-                    <th className="px-4 py-3 font-medium text-[var(--text-primary)]">CIE-10</th>
-                    <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.sessionCount')}</th>
-                    <th className="px-4 py-3 font-medium text-[var(--text-primary)]">Fecha</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {diagnosesData.records.length === 0 ? (
-                    <tr><td colSpan={5} className="px-4 py-6 text-center text-[var(--text-muted)]">{t('reports.noData')}</td></tr>
-                  ) : (
-                    diagnosesData.records.map((r, i) => (
-                      <tr key={i} className="border-b border-[var(--border)] last:border-0">
-                        <td className="px-4 py-3 text-[var(--text-secondary)]">{r.patient}</td>
-                        <td className="px-4 py-3 text-[var(--text-secondary)]">{r.diagnosisDsm5 ?? '—'}</td>
-                        <td className="px-4 py-3 text-[var(--text-secondary)]">{r.diagnosisCie10 ?? '—'}</td>
-                        <td className="px-4 py-3 text-[var(--text-secondary)]">{r.sessionCount}</td>
-                        <td className="px-4 py-3 text-[var(--text-secondary)]">{formatDate(r.createdAt)}</td>
-                      </tr>
-                    ))
                   )}
                 </tbody>
               </table>

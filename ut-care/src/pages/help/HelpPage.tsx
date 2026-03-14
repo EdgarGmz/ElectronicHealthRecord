@@ -1,7 +1,8 @@
-import { useTranslation } from 'react-i18next'
+import { useTranslation, Trans } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
-import { LayoutDashboard, Users, Calendar, User, ArrowRight, Mail, Send, ClipboardList, FileText, Stethoscope, UserCog, HelpCircle } from 'lucide-react'
+import { LayoutDashboard, Users, Calendar, User, ArrowRight, Mail, Send, ClipboardList, FileText, Stethoscope, UserCog, HelpCircle, Pill } from 'lucide-react'
+import { EmailLink } from '@/components/atoms/EmailLink'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { useAuthStore } from '@/store/auth.store'
 import { ROLES, canSeeNavItem } from '@/constants/roles'
@@ -30,6 +31,7 @@ export function HelpPage() {
   const role = useAuthStore((s) => s.user?.role)
   const isAdmin = role === ROLES.ADMIN
   const isCoordinatorPsychology = role === ROLES.COORDINADOR_PSICOLOGIA
+  const isCoordinatorNursing = role === ROLES.COORDINADOR_ENFERMERIA
 
   const visibleModules = useMemo(
     () => MODULES_WITH_HELP.filter((m) => canSeeNavItem(m.to, role)),
@@ -124,6 +126,39 @@ export function HelpPage() {
         </GlassCard>
       )}
 
+      {isCoordinatorNursing && (
+        <GlassCard className="opacity-0 help-animate-in help-stagger-1 rounded-2xl border-l-4 border-l-[#059669] transition-all duration-300 hover:shadow-xl">
+          <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold text-[var(--text-primary)]">
+            <Stethoscope size={20} className="text-[#059669]" />
+            {t('help.coordinatorNursing.title')}
+          </h2>
+          <p className="mb-4 text-sm text-[var(--text-secondary)]">{t('help.coordinatorNursing.intro')}</p>
+          <ul className="space-y-2.5 text-sm text-[var(--text-secondary)]">
+            {[
+              { key: 'nav.dashboard', help: 'help.coordinatorNursing.dashboard' },
+              { key: 'nav.patients', help: 'help.coordinatorNursing.patients' },
+              { key: 'nav.sessions', help: 'help.coordinatorNursing.sessions' },
+              { key: 'nav.medications', help: 'help.coordinatorNursing.medications' },
+              { key: 'nav.procedures', help: 'help.coordinatorNursing.procedures' },
+              { key: 'nav.evaluations', help: 'help.coordinatorNursing.evaluations' },
+              { key: 'nav.interconsultations', help: 'help.coordinatorNursing.interconsultations' },
+              { key: 'nav.reports', help: 'help.coordinatorNursing.reports' },
+              { key: 'nav.notifications', help: 'help.coordinatorNursing.notifications' },
+              { key: 'nav.profile', help: 'help.coordinatorNursing.profile' },
+              { key: 'nav.help', help: 'help.coordinatorNursing.help' },
+            ].map((item, i) => (
+              <li
+                key={item.key}
+                className="help-list-item rounded-lg border border-transparent bg-[var(--bg)]/30 px-3 py-2 transition-colors hover:border-[var(--border)] hover:bg-[var(--bg)]/50"
+                style={listItemStyle(i)}
+              >
+                <strong className="text-[var(--text-primary)]">{t(item.key)}:</strong> {t(item.help)}
+              </li>
+            ))}
+          </ul>
+        </GlassCard>
+      )}
+
       <GlassCard className="opacity-0 help-animate-in help-stagger-2 rounded-2xl transition-all duration-300 hover:shadow-xl">
         <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold text-[var(--text-primary)]">
           <LayoutDashboard size={20} className="text-[var(--color-primary)]" />
@@ -204,6 +239,24 @@ export function HelpPage() {
                     <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 </>
+              ) : isCoordinatorNursing ? (
+                <>
+                  <Link to="/patients" className={linkButtonClass}>
+                    <Users size={18} className="transition-transform group-hover:scale-110" />
+                    {t('help.goToPatients')}
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link to="/medications" className={linkButtonClass}>
+                    <Pill size={18} className="transition-transform group-hover:scale-110" />
+                    {t('nav.medications')}
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link to="/procedures" className={linkButtonClass}>
+                    <Stethoscope size={18} className="transition-transform group-hover:scale-110" />
+                    {t('nav.procedures')}
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                </>
               ) : (
                 <>
                   <Link to="/patients" className={linkButtonClass}>
@@ -235,7 +288,13 @@ export function HelpPage() {
           <Mail size={20} className="text-[var(--color-primary)]" />
           {t('help.feedback.title')}
         </h2>
-        <p className="mb-4 text-sm text-[var(--text-secondary)]">{t('help.feedback.intro', { email: supportEmail })}</p>
+        <p className="mb-4 text-sm text-[var(--text-secondary)]">
+          <Trans
+            i18nKey="help.feedback.intro"
+            values={{ email: supportEmail }}
+            components={[<EmailLink key="0" email={supportEmail} />]}
+          />
+        </p>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">

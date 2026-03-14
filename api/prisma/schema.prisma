@@ -285,6 +285,7 @@ model Medication {
   contraindications  String?
   sideEffects        String?  @map("side_effects")
   isActive           Boolean  @map("is_active") @default(true)
+  stock              Int      @default(0)
   createdAt          DateTime @map("created_at") @default(now())
   updatedAt          DateTime @map("updated_at") @default(now())
 

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { EmailLink } from '@/components/atoms/EmailLink'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { PhoneWhatsAppLink } from '@/components/atoms/PhoneWhatsAppLink'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
@@ -150,7 +152,7 @@ export function ProfilePage() {
 
           <GlassCard className="profile-animate-in profile-card-delay transition-shadow duration-300 hover:shadow-xl rounded-2xl overflow-hidden">
             {editing ? (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4 opacity-0 profile-form-animate">
                 <div className="space-y-1">
                   <label className="block text-sm font-medium text-[var(--text-primary)]">
                     {t('profilePage.firstName')} *
@@ -248,7 +250,15 @@ export function ProfilePage() {
                       <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
                         {item.label}
                       </p>
-                      <p className="mt-1 text-[var(--text-primary)]">{item.value}</p>
+                      <p className="mt-1 text-[var(--text-primary)]">
+                        {item.key === 'email' && item.value !== '—' ? (
+                          <EmailLink email={item.value} />
+                        ) : item.key === 'phone' && item.value !== '—' ? (
+                          <PhoneWhatsAppLink phone={item.value} />
+                        ) : (
+                          item.value
+                        )}
+                      </p>
                     </div>
                   ))}
                 </div>

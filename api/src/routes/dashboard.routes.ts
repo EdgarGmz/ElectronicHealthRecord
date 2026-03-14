@@ -8,7 +8,7 @@ const router = Router();
 router.use(authenticateToken);
 router.get(
   '/chart-data',
-  authorizeRoles(ROLES.ADMIN),
+  authorizeRoles(ROLES.ADMIN, ROLES.COORDINADOR_ENFERMERIA),
   dashboardController.dashboardChartValidation,
   dashboardController.getChartData
 );

@@ -264,6 +264,21 @@
   .profile-stagger-7 { animation-delay: 0.35s; }
   .profile-stagger-8 { animation-delay: 0.4s; }
 
+  /* Profile edit form: smooth reveal */
+  @keyframes profile-form-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .profile-form-animate {
+    animation: profile-form-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
   /* Help page: entrance and stagger */
   @keyframes help-fade-in-up {
     from {

@@ -11,6 +11,16 @@ import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { getPsychometricEvaluations } from '@/services/psychometric-evaluation.service'
 import type { PsychometricEvaluation } from '@/types/psychometric-evaluation'
 
+/** Tipos de evaluación (coinciden con el seed/API). */
+const EVALUATION_TYPES = [
+  'Beck Depression Inventory',
+  'Hamilton Anxiety Scale',
+  'MMPI-2',
+  'Rorschach',
+  'WAIS-IV',
+  'SCL-90-R',
+] as const
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { dateStyle: 'short' })
 }
@@ -115,7 +125,12 @@ export function EvaluationListPage() {
           onPageChange={setPage}
           onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
-            { key: 'evaluationType', label: t('evaluations.evaluationType'), type: 'text', placeholder: t('evaluations.evaluationType') },
+            {
+              key: 'evaluationType',
+              label: t('evaluations.evaluationType'),
+              type: 'select',
+              options: EVALUATION_TYPES.map((value) => ({ value, label: value })),
+            },
             { key: 'applicationDateFrom', label: t('reports.periodStart'), type: 'date' },
             { key: 'applicationDateTo', label: t('reports.periodEnd'), type: 'date' },
           ]}

@@ -102,9 +102,9 @@ export function Sidebar({ open = true, onClose, isDrawer = false }: SidebarProps
       >
         <div className="flex h-14 min-h-14 shrink-0 items-center justify-between gap-2 border-b border-[var(--border)] px-3 lg:h-16">
           {effectiveCollapsed ? (
-            <span className="text-lg font-bold text-[var(--text-primary)]" title="EHR">E</span>
+            <span className="text-lg font-bold text-[var(--text-primary)]" title="UT-Care">U</span>
           ) : (
-            <span className="text-lg font-bold text-[var(--text-primary)]">EHR</span>
+            <span className="text-lg font-bold text-[var(--text-primary)]">UT-Care</span>
           )}
           <div className="flex items-center gap-0.5">
             {isDrawer && onClose && (

@@ -14,6 +14,7 @@ export const createMedicationValidation = [
   body('administrationRoutes').optional().trim(),
   body('contraindications').optional().trim(),
   body('sideEffects').optional().trim(),
+  body('stock').optional().isInt({ min: 0 }).withMessage('Stock must be a non-negative integer'),
 ];
 
 export const updateMedicationValidation = [
@@ -27,6 +28,7 @@ export const updateMedicationValidation = [
   body('contraindications').optional().trim(),
   body('sideEffects').optional().trim(),
   body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
+  body('stock').optional().isInt({ min: 0 }).withMessage('Stock must be a non-negative integer'),
 ];
 
 export const createPrescriptionValidation = [
@@ -105,6 +107,21 @@ export const getMedicationById = async (req: Request, res: Response, next: NextF
       success: true,
       message: 'Medication retrieved successfully',
       data: medication,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMedicationConsumption = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const consumption = await medicationService.getMedicationConsumption(id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Medication consumption retrieved successfully',
+      data: consumption,
     });
   } catch (error) {
     next(error);

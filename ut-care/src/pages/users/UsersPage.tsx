@@ -12,6 +12,7 @@ import type { User, CreateUserInput, UpdateUserInput } from '@/types/user'
 import { createUser, deactivateUser, getUsers, updateUser } from '@/services/user.service'
 import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { ROLES, ROLES_VISIBLE_IN_USERS } from '@/constants/roles'
+import { EmailLink } from '@/components/atoms/EmailLink'
 import { PasswordInput } from '@/components/atoms/PasswordInput'
 
 function formatDate(iso: string): string {
@@ -77,7 +78,13 @@ export function UsersPage() {
 
   const columns: DataTableColumn<User>[] = [
     { id: 'name', label: t('auditLogs.tableUser'), getValue: (row) => fullName(row), sortable: true },
-    { id: 'email', label: t('auth.email'), getValue: (row) => row.email, sortable: true },
+    {
+      id: 'email',
+      label: t('auth.email'),
+      getValue: (row) => row.email,
+      sortable: true,
+      render: (row) => (row.email ? <EmailLink email={row.email} /> : '—'),
+    },
     { id: 'role', label: t('auditLogs.tableRole'), getValue: (row) => t(`roles.${row.role}`) || row.role, sortable: true },
     {
       id: 'status',
@@ -264,7 +271,7 @@ export function UsersPage() {
           onPageChange={setPage}
           onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
-            { key: 'search', label: t('common.search'), type: 'text', placeholder: 'Buscar por email o nombre' },
+            { key: 'search', label: t('common.search'), type: 'text', placeholder: 'Buscar por email o nombre', searchIcon: true, debounceMs: 350 },
             {
               key: 'role',
               label: t('auditLogs.filterRole'),

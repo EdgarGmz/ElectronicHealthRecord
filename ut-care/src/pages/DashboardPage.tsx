@@ -11,6 +11,7 @@ import { getAppointments } from '@/services/appointment.service'
 import { getUnreadCount } from '@/services/notification.service'
 import { DashboardChartsSection } from '@/components/dashboard/DashboardChartsSection'
 import { DashboardCoordinatorPsychology } from '@/components/dashboard/DashboardCoordinatorPsychology'
+import { DashboardCoordinatorNursing } from '@/components/dashboard/DashboardCoordinatorNursing'
 
 const CARD_CONFIG: Record<
   DashboardCardId,
@@ -129,6 +130,10 @@ export function DashboardPage() {
 
       {user?.role === ROLES.COORDINADOR_PSICOLOGIA && token && (
         <DashboardCoordinatorPsychology />
+      )}
+
+      {user?.role === ROLES.COORDINADOR_ENFERMERIA && (
+        <DashboardCoordinatorNursing />
       )}
     </div>
   )

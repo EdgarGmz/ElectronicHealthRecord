@@ -494,6 +494,8 @@ export function SupervisionPsychologistsPage() {
               label: t('common.search'),
               type: 'text',
               placeholder: t('supervision.psychologists.searchPlaceholder'),
+              searchIcon: true,
+              debounceMs: 350,
             },
             {
               key: 'status',

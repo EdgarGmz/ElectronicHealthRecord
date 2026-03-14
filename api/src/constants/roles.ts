@@ -31,9 +31,8 @@ export const ROLES_CAN_MANAGE_PATIENTS = [
   ROLES.ENFERMERO,
 ] as const;
 
-/** Pueden crear pacientes nuevos. Coord. psicología solo ve la lista, no crea. */
+/** Pueden crear pacientes nuevos. Coordinadores solo consultan, no crean. */
 export const ROLES_CAN_CREATE_PATIENT = [
-  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ] as const;
@@ -41,10 +40,8 @@ export const ROLES_CAN_CREATE_PATIENT = [
 /** Pueden eliminar (desactivar) pacientes. Enfermero solo crea/edita, no elimina. */
 export const ROLES_CAN_DELETE_PATIENTS = [ROLES.COORDINADOR_PSICOLOGIA, ROLES.PSICOLOGO] as const;
 
-/** Pueden acceder (ver) expedientes médicos. Coordinador enfermería solo expedientes de pacientes con consultas de enfermería. */
+/** Pueden acceder (ver) expedientes médicos. Coordinadores solo ven historial en ficha de paciente, no el expediente completo. */
 export const ROLES_CAN_ACCESS_MEDICAL_RECORDS = [
-  ROLES.COORDINADOR_PSICOLOGIA,
-  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ] as const;

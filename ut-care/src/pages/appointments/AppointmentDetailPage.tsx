@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Calendar, User } from 'lucide-react'
+import { EmailLink } from '@/components/atoms/EmailLink'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
@@ -73,7 +74,9 @@ export function AppointmentDetailPage() {
             {t('appointments.patient')}
           </h2>
           <p className="font-medium text-[var(--text-primary)]">{patientName}</p>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">{appointment.patient.user.email}</p>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+          <EmailLink email={appointment.patient.user.email} />
+        </p>
         </GlassCard>
         <GlassCard>
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">

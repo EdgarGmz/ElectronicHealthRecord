@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useState, useEffect, useCallback, useRef } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,6 +8,8 @@ import {
   FileText,
   FileSpreadsheet,
   FileDown,
+  Search,
+  X,
 } from 'lucide-react'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { ConfirmModal } from '@/components/molecules/ConfirmModal'
@@ -28,6 +30,10 @@ export interface DataTableFilterConfig {
   type: 'select' | 'text' | 'date'
   options?: { value: string; label: string }[]
   placeholder?: string
+  /** Para type 'text': mostrar icono de búsqueda. */
+  searchIcon?: boolean
+  /** Para type 'text': retraso en ms antes de aplicar (evita solicitudes por cada tecla). Ej. 350. */
+  debounceMs?: number
 }
 
 export interface DataTableColumn<T> {
@@ -87,6 +93,7 @@ export interface DataTableProps<T> {
 }
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20] as const
+const DEFAULT_SEARCH_DEBOUNCE_MS = 350
 
 function hasActiveFilters(filterValues: Record<string, string>): boolean {
   return Object.values(filterValues).some((v) => v !== '' && v != null)
@@ -122,6 +129,42 @@ export function DataTable<T>({
   const [exportPassword, setExportPassword] = useState('')
   const [exportPasswordError, setExportPasswordError] = useState<string | null>(null)
   const [exportVerifying, setExportVerifying] = useState(false)
+  const [localTextValues, setLocalTextValues] = useState<Record<string, string>>({})
+  const debounceTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+  const prevFilterValuesRef = useRef<string>('')
+
+  useEffect(() => {
+    const str = JSON.stringify(filterValues)
+    if (prevFilterValuesRef.current !== str) {
+      prevFilterValuesRef.current = str
+      setLocalTextValues((prev) => ({ ...prev, ...filterValues }))
+    }
+  }, [filterValues])
+
+  useEffect(() => {
+    return () => {
+      Object.values(debounceTimersRef.current).forEach(clearTimeout)
+    }
+  }, [])
+
+  const handleTextFilterChange = useCallback(
+    (key: string, value: string, debounceMs?: number) => {
+      setLocalTextValues((prev) => ({ ...prev, [key]: value }))
+      if (debounceTimersRef.current[key]) {
+        clearTimeout(debounceTimersRef.current[key])
+        delete debounceTimersRef.current[key]
+      }
+      if (value === '' || debounceMs == null || debounceMs <= 0) {
+        onFilterChange(key, value)
+      } else {
+        debounceTimersRef.current[key] = setTimeout(() => {
+          onFilterChange(key, value)
+          delete debounceTimersRef.current[key]
+        }, debounceMs)
+      }
+    },
+    [onFilterChange]
+  )
 
   const t = i18n
   const activeFilters = hasActiveFilters(filterValues)
@@ -253,13 +296,40 @@ export function DataTable<T>({
                   className="glass-input w-full min-w-[140px] px-3 py-2 text-sm sm:w-auto"
                 />
               ) : (
-                <input
-                  type="text"
-                  value={filterValues[f.key] ?? ''}
-                  onChange={(e) => onFilterChange(f.key, e.target.value)}
-                  placeholder={f.placeholder}
-                  className="glass-input w-full min-w-[160px] px-3 py-2 text-sm sm:w-auto"
-                />
+                <div className="relative flex min-w-[200px] items-center sm:w-auto">
+                  {f.searchIcon && (
+                    <Search
+                      size={16}
+                      className="absolute left-3 pointer-events-none text-[var(--text-muted)]"
+                      aria-hidden
+                    />
+                  )}
+                  <input
+                    type="search"
+                    value={localTextValues[f.key] ?? filterValues[f.key] ?? ''}
+                    onChange={(e) =>
+                      handleTextFilterChange(
+                        f.key,
+                        e.target.value,
+                        f.debounceMs ?? (f.searchIcon ? DEFAULT_SEARCH_DEBOUNCE_MS : undefined)
+                      )
+                    }
+                    placeholder={f.placeholder}
+                    className={`glass-input w-full py-2 text-sm pr-9 ${f.searchIcon ? 'pl-9' : 'pl-3'}`}
+                    aria-label={f.label}
+                  />
+                  {((localTextValues[f.key] ?? filterValues[f.key] ?? '') as string).trim() !== '' && (
+                    <button
+                      type="button"
+                      onClick={() => handleTextFilterChange(f.key, '', f.debounceMs)}
+                      className="absolute right-2 flex h-6 w-6 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--border)] hover:text-[var(--text-primary)]"
+                      title={t.clearFilters ?? 'Limpiar'}
+                      aria-label={t.clearFilters ?? 'Limpiar'}
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           ))}

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Settings as SettingsIcon, ArrowLeft, Sun, Moon, Monitor, Clock, Languages, Type, List, PanelTop } from 'lucide-react'
+import { ArrowLeft, Sun, Moon, Monitor, Clock, Languages, Type, List, PanelTop } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { useThemeStore, type ThemeMode } from '@/store/theme.store'
 import { useFontSizeStore, type FontSizeMode } from '@/store/fontSize.store'
@@ -31,29 +31,16 @@ export function SettingsPage() {
   const currentLang = i18n.language.startsWith('es') ? 'es' : 'en'
 
   return (
-    <div className="mx-auto flex min-h-0 max-w-4xl flex-col items-center px-2 py-4 sm:px-4">
+    <div className="mx-auto flex min-h-0 w-[90%] max-w-4xl flex-col items-center px-2 py-4 sm:px-4">
       <div className="w-full space-y-8">
-        <header className="flex flex-col items-center text-center">
+        <header className="flex justify-start">
           <Link
             to="/"
-            className="mb-4 inline-flex items-center gap-2 self-center text-[var(--color-primary)] transition-colors hover:underline"
+            className="inline-flex items-center gap-2 text-[var(--color-primary)] transition-colors hover:underline"
           >
             <ArrowLeft size={18} />
             {t('nav.dashboard')}
           </Link>
-          <div className="flex items-center justify-center gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-primary)]/15 text-[var(--color-primary)] shadow-sm">
-              <SettingsIcon size={26} />
-            </span>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">
-                {t('nav.settings')}
-              </h1>
-              <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                {t('help.settings')}
-              </p>
-            </div>
-          </div>
         </header>
 
         <div className="grid w-full gap-6 md:grid-cols-2">
