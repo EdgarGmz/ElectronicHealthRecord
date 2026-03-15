@@ -5,6 +5,8 @@ module.exports = {
   roots: ['<rootDir>/src'],
   testMatch: ['<rootDir>/src/**/*.test.ts'],
   transform: {
-    '^.+\.ts$': 'ts-jest',
+    '^.+\.ts$': ['ts-jest', {
+      diagnostics: false,
+    }],
   },
 };

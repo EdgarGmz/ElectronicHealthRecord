@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { body } from 'express-validator';
 import nursingProcedureService from '../services/nursing-procedure.service';
 import { AuthRequest } from '../middleware/auth';

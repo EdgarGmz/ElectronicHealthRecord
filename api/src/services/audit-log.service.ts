@@ -70,7 +70,7 @@ export class AuditLogService {
     }
 
     if (filters?.role && userRole === 'admin') {
-      where.user = { ...where.user, role: filters.role };
+      where.user = { role: filters.role };
     }
 
     if (filters?.startDate || filters?.endDate) {

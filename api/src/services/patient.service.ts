@@ -58,7 +58,7 @@ export class PatientService {
             : []),
         ],
       };
-      where.AND = [...(where.AND || []), scopeWhere];
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), scopeWhere];
     }
 
     const [patients, total] = await Promise.all([
@@ -342,11 +342,11 @@ export class PatientService {
     const updatedPatient = await prisma.patient.update({
       where: { id },
       data: {
-        ...patientData,
+        ...(patientData as any),
         user: {
           update: userUpdateData,
         },
-      },
+      } as any,
       include: {
         user: {
           select: {
