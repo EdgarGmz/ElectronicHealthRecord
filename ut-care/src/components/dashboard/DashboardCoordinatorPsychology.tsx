@@ -36,6 +36,8 @@ import { GlassCard } from '@/components/atoms/GlassCard'
 import { getCoordinatorPsychologyDashboard } from '@/services/coordinator-psychology-dashboard.service'
 import { getInterconsultations } from '@/services/interconsultation.service'
 import type { CoordinatorPsychologyDashboardData } from '@/types/coordinator-psychology-dashboard'
+import { getMoods } from '@/services/mood.service'
+import type { Mood } from '@/types/mood'
 import type { Interconsultation } from '@/types/interconsultation'
 
 function formatTime(iso: string): string {
@@ -67,6 +69,18 @@ const URGENCY_COLORS: Record<string, string> = {
 
 const DIAGNOSIS_PALETTE = ['#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', '#14b8a6', '#10b981']
 
+const MOOD_CATEGORY_COLORS: Record<string, string> = {
+  very_common: '#64748b', // slate
+  positive: '#10b981', // emerald
+  common: '#0ea5e9', // cyan
+  social_load: '#f97316', // orange
+  disorientation: '#6366f1', // indigo
+  less_common: '#a855f7', // purple
+  high_intensity: '#ef4444', // red
+  rare: '#e11d48', // rose
+  others: '#6b7280', // gray
+}
+
 interface KpiCardProps {
   label: string
   value: number | string
@@ -97,6 +111,7 @@ export function DashboardCoordinatorPsychology() {
   const [interconsultations, setInterconsultations] = useState<Interconsultation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [moods, setMoods] = useState<Mood[]>([])
 
   const token = useAuthStore((s) => s.token)
   const user = useAuthStore((s) => s.user)
@@ -115,10 +130,12 @@ export function DashboardCoordinatorPsychology() {
     Promise.all([
       getCoordinatorPsychologyDashboard(token),
       getInterconsultations({ status: 'Pendiente', toDepartment: 'Psicología', limit: 5 }),
+      getMoods().catch(() => []),
     ])
-      .then(([dashData, icData]) => {
+      .then(([dashData, icData, moodsData]) => {
         setData(dashData)
         setInterconsultations(icData.interconsultations)
+        setMoods(moodsData)
       })
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
@@ -164,6 +181,30 @@ export function DashboardCoordinatorPsychology() {
     cambio: s.averageChange,
     n: s.sampleSize,
   }))
+
+  // Chart data: mood distribution (top 10 + others), resolved to names + emojis
+  const moodByCode = new Map(moods.map((m) => [m.code, m]))
+  const moodData = data.clinicalMetrics.moodDistribution.map((m) => {
+    if (m.mood === 'others') {
+      return {
+        code: m.mood,
+        name: t('dashboard.coordinator.moodOthers'),
+        emoji: '⋯',
+        color: MOOD_CATEGORY_COLORS.others,
+        value: m.count,
+        percent: m.percent,
+      }
+    }
+    const mood = moodByCode.get(m.mood)
+    return {
+      code: m.mood,
+      name: mood?.name ?? m.mood,
+      emoji: mood?.emoji ?? '•',
+      color: MOOD_CATEGORY_COLORS[mood?.category ?? ''] ?? DIAGNOSIS_PALETTE[0],
+      value: m.count,
+      percent: m.percent,
+    }
+  })
 
   const completedToday = data.agendaToday.filter((a) => a.status === 'Completada').length
   const completionPct = data.agendaToday.length > 0
@@ -405,7 +446,7 @@ export function DashboardCoordinatorPsychology() {
       <section>
         <h2 className="text-base font-semibold text-[var(--text-primary)] mb-3 flex items-center gap-2">
           <Activity size={20} className="text-[var(--color-primary)]" />
-          Visualizaciones clínicas
+          {t('dashboard.coordinator.clinicalVisualizations')}
         </h2>
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Diagnósticos prevalentes — Donut */}
@@ -447,6 +488,66 @@ export function DashboardCoordinatorPsychology() {
                       iconType="circle"
                       iconSize={10}
                       formatter={(value) => <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{value}</span>}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </GlassCard>
+
+          {/* Estado de ánimo en sesiones — Donut */}
+          <GlassCard>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-1 flex items-center gap-1.5">
+              <Heart size={16} className="text-[var(--color-primary)]" />
+              {t('dashboard.coordinator.moodDistribution')}
+            </h3>
+            {moodData.length === 0 ? (
+              <p className="text-sm text-[var(--text-muted)] mt-4">
+                {t('dashboard.coordinator.noMoodData')}
+              </p>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={moodData}
+                      cx="40%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={95}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {moodData.map((item, i) => (
+                        <Cell key={i} fill={item.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px' }}
+                      formatter={(value: number, _n: unknown, props: { payload?: { name?: string; percent?: number; emoji?: string } }) => {
+                        const label = props?.payload?.name ?? ''
+                        const emoji = props?.payload?.emoji ?? ''
+                        return [
+                          `${value} sesiones (${props?.payload?.percent ?? 0}%)`,
+                          `${emoji ? `${emoji} ` : ''}${label}`,
+                        ]
+                      }}
+                    />
+                    <Legend
+                      layout="vertical"
+                      align="right"
+                      verticalAlign="middle"
+                      iconType="circle"
+                      iconSize={10}
+                      formatter={(value, _entry, index) => {
+                        const item = moodData[index]
+                        const emoji = item?.emoji ?? ''
+                        return (
+                          <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            {emoji ? `${emoji} ${value}` : value}
+                          </span>
+                        )
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>

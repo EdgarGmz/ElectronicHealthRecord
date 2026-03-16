@@ -10,7 +10,17 @@ export const createPatientValidation = [
   body('lastName').notEmpty().withMessage('Last name is required'),
   body('dateOfBirth').isISO8601().withMessage('Valid date of birth is required'),
   body('patientType').notEmpty().withMessage('Patient type is required'),
-  body('careerId').isUUID().withMessage('Valid career ID is required'),
+  body('careerId')
+    .optional({ values: 'null' })
+    .isUUID()
+    .withMessage('Valid career ID is required when patient type is student')
+    .bail()
+    .custom((value, { req }) => {
+      if (req.body?.patientType === 'student' && !value) {
+        throw new Error('Career is required for students');
+      }
+      return true;
+    }),
 ];
 
 export const updatePatientValidation = [
@@ -27,6 +37,7 @@ export const updatePatientValidation = [
   body('group').optional().notEmpty().withMessage('Group cannot be empty'),
   body('occupation').optional().notEmpty().withMessage('Occupation cannot be empty'),
   body('trimester').optional().isInt({ min: 1, max: 12 }).withMessage('Invalid trimester'),
+  body('careerId').optional({ values: 'null' }).isUUID().withMessage('Career ID must be a valid UUID'),
 ];
 
 export class PatientController {
@@ -36,10 +47,11 @@ export class PatientController {
       const limit = parseInt(req.query.limit as string) || 10;
       const search = (req.query.search as string) || (req.query.filter as string);
       const patientType = req.query.patientType as string;
-      const userRole = req.user?.role;
-      const userId = req.user?.userId;
+      const careerId = req.query.careerId as string | undefined;
+      const userRole = req.user?.role != null ? String(req.user.role) : undefined;
+      const userId = req.user?.userId != null ? String(req.user.userId) : undefined;
 
-      const result = await patientService.getAll(page, limit, search, patientType, userRole, userId);
+      const result = await patientService.getAll(page, limit, search, patientType, userRole, userId, careerId);
 
       res.status(200).json({
         success: true,
@@ -88,14 +100,19 @@ export class PatientController {
     }
   }
 
-  async create(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async create(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const data = {
         ...req.body,
         dateOfBirth: new Date(req.body.dateOfBirth),
       };
 
-      const patient = await patientService.create(data);
+      const options =
+        req.user?.userId && req.user?.role
+          ? { createdBy: req.user.userId, creatorRole: req.user.role }
+          : undefined;
+
+      const patient = await patientService.create(data, options);
 
       res.status(201).json({
         success: true,

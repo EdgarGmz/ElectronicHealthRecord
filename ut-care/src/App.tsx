@@ -40,6 +40,7 @@ import { SupervisionPsychologistsPage } from '@/pages/supervision/SupervisionPsy
 import { SupervisionProgressPage } from '@/pages/supervision/SupervisionProgressPage'
 import { SupervisionCalendarPage } from '@/pages/supervision/SupervisionCalendarPage'
 import { SupervisionAnalyticsPage } from '@/pages/supervision/SupervisionAnalyticsPage'
+import { CalendarPage } from '@/pages/calendar/CalendarPage'
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
           }
         >
           <Route index element={<DashboardPage />} />
+          <Route path="calendar" element={<RoleGuard><CalendarPage /></RoleGuard>} />
           <Route path="supervision" element={<RoleGuard><SupervisionLayout /></RoleGuard>}>
             <Route index element={<Navigate to="/supervision/psychologists" replace />} />
             <Route path="psychologists" element={<SupervisionPsychologistsPage />} />

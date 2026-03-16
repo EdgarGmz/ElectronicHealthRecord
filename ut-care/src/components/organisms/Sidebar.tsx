@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Users,
   Calendar,
+  CalendarDays,
   FileText,
   Pill,
   Stethoscope,
@@ -40,15 +41,16 @@ export interface SidebarProps {
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, key: 'nav.dashboard' },
+  { to: '/calendar', icon: CalendarDays, key: 'nav.calendar' },
   { to: '/supervision', icon: UserCog, key: 'nav.supervision' },
   { to: '/patients', icon: Users, key: 'nav.patients' },
   { to: '/appointments', icon: Calendar, key: 'nav.appointments' },
   { to: '/sessions', icon: FileText, key: 'nav.sessions' },
+  { to: '/evaluations', icon: ClipboardList, key: 'nav.evaluations' },
   { to: '/medications', icon: Pill, key: 'nav.medications' },
   { to: '/procedures', icon: Stethoscope, key: 'nav.procedures' },
   { to: '/interconsultations', icon: MessageSquare, key: 'nav.interconsultations' },
   { to: '/reports', icon: BarChart3, key: 'nav.reports' },
-  { to: '/evaluations', icon: ClipboardList, key: 'nav.evaluations' },
   { to: '/notifications', icon: Bell, key: 'nav.notifications' },
   { to: '/users', icon: Settings2, key: 'nav.users' },
   { to: '/audit-logs', icon: ClipboardCheck, key: 'nav.auditLogs' },
@@ -196,12 +198,7 @@ export function Sidebar({ open = true, onClose, isDrawer = false }: SidebarProps
           {!collapsed && <span>{t('nav.help')}</span>}
         </NavLink>
       </nav>
-      <div className={`space-y-2 border-t border-[var(--border)] p-3 ${effectiveCollapsed ? 'flex flex-col items-center' : ''}`}>
-        {!effectiveCollapsed && (
-          <div className="text-xs text-[var(--text-muted)]">
-            {user?.firstName} {user?.lastName}
-          </div>
-        )}
+      <div className={`border-t border-[var(--border)] p-3 ${effectiveCollapsed ? 'flex flex-col items-center' : ''}`}>
         <button
           type="button"
           onClick={handleLogoutClick}

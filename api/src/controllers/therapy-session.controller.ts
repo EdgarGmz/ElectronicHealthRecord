@@ -8,9 +8,17 @@ export const createTherapySessionValidation = [
   body('sessionNumber').isInt({ min: 1 }).withMessage('Session number must be a positive integer'),
   body('sessionDate').isISO8601().withMessage('Valid session date is required'),
   body('sessionDuration').optional().isInt({ min: 1 }).withMessage('Session duration must be a positive integer'),
-  body('mood')
-    .notEmpty().withMessage('Mood is required')
-    .isLength({ max: 30 }).withMessage('Mood must be at most 30 characters'),
+  body('mood').custom((value) => {
+    if (value == null || (Array.isArray(value) && value.length === 0)) {
+      return Promise.reject(new Error('Mood is required'));
+    }
+    const str = Array.isArray(value)
+      ? value.map((v) => String(v).trim()).filter(Boolean).join(',')
+      : String(value).trim();
+    if (!str) return Promise.reject(new Error('Mood is required'));
+    if (str.length > 255) return Promise.reject(new Error('Mood must be at most 255 characters'));
+    return true;
+  }),
   body('evolutionNotes').optional().isString(),
   body('patientProgress').optional().isString(),
   body('assignedTasks').optional().isString(),
@@ -22,8 +30,13 @@ export const updateTherapySessionValidation = [
   param('id').isUUID().withMessage('Invalid therapy session ID'),
   body('sessionDate').optional().isISO8601().withMessage('Valid session date is required'),
   body('sessionDuration').optional().isInt({ min: 1 }).withMessage('Session duration must be a positive integer'),
-  body('mood').optional()
-    .isLength({ min: 1, max: 30 }).withMessage('Mood must be between 1 and 30 characters'),
+  body('mood').optional().custom((value) => {
+    if (value == null || value === '') return true;
+    const str = Array.isArray(value)
+      ? value.map((v) => String(v).trim()).filter(Boolean).join(',')
+      : String(value).trim();
+    return str.length <= 255 || Promise.reject(new Error('Mood must be at most 255 characters'));
+  }),
   body('evolutionNotes').optional().isString(),
   body('patientProgress').optional().isString(),
   body('assignedTasks').optional().isString(),
@@ -46,12 +59,15 @@ export const getTherapySessions = async (req: AuthRequest, res: Response, next: 
     const patientId = req.query.patientId as string | undefined;
     const therapistId = req.query.therapistId as string | undefined;
     const psychologyRecordId = req.query.psychologyRecordId as string | undefined;
+    const dateFrom = req.query.dateFrom as string | undefined;
+    const dateTo = req.query.dateTo as string | undefined;
+    const search = req.query.search as string | undefined;
     const result = await therapySessionService.getAll(
       req.user.userId,
       req.user.role,
       page,
       limit,
-      { patientId, therapistId, psychologyRecordId }
+      { patientId, therapistId, psychologyRecordId, dateFrom, dateTo, search }
     );
     res.status(200).json({
       success: true,
@@ -69,13 +85,16 @@ export const createTherapySession = async (req: AuthRequest, res: Response, next
       res.status(401).json({ success: false, message: 'Authentication required' });
       return;
     }
+    const moodValue = Array.isArray(req.body.mood)
+      ? req.body.mood.map((v: string) => String(v).trim()).filter(Boolean).join(',')
+      : String(req.body.mood ?? '').trim();
     const session = await therapySessionService.create(
       {
         psychologyRecordId: req.body.psychologyRecordId,
         sessionNumber: req.body.sessionNumber,
         sessionDate: new Date(req.body.sessionDate),
         sessionDuration: req.body.sessionDuration,
-        mood: req.body.mood,
+        mood: moodValue,
         evolutionNotes: req.body.evolutionNotes,
         patientProgress: req.body.patientProgress,
         assignedTasks: req.body.assignedTasks,
@@ -120,12 +139,17 @@ export const updateTherapySession = async (req: AuthRequest, res: Response, next
       return;
     }
     const { id } = req.params;
+    const moodValue = req.body.mood != null
+      ? (Array.isArray(req.body.mood)
+          ? req.body.mood.map((v: string) => String(v).trim()).filter(Boolean).join(',')
+          : String(req.body.mood).trim())
+      : undefined;
     const session = await therapySessionService.update(
       id,
       {
         sessionDate: req.body.sessionDate ? new Date(req.body.sessionDate) : undefined,
         sessionDuration: req.body.sessionDuration,
-        mood: req.body.mood,
+        mood: moodValue,
         evolutionNotes: req.body.evolutionNotes,
         patientProgress: req.body.patientProgress,
         assignedTasks: req.body.assignedTasks,

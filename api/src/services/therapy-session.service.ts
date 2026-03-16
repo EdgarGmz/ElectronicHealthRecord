@@ -44,12 +44,20 @@ export class TherapySessionService {
     userRole: string,
     page: number = 1,
     limit: number = 10,
-    filters?: { patientId?: string; therapistId?: string; psychologyRecordId?: string }
+    filters?: {
+      patientId?: string;
+      therapistId?: string;
+      psychologyRecordId?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      search?: string;
+    }
   ) {
     const skip = (page - 1) * limit;
     const where: Prisma.TherapySessionWhereInput = {};
 
     if (userRole === ROLES.PSICOLOGO) {
+      where.therapistId = userId;
       const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
       const patientScope: Prisma.PatientWhereInput = {
         OR: [
@@ -61,10 +69,9 @@ export class TherapySessionService {
         medicalRecord: { patient: patientScope },
       };
     } else if (userRole === ROLES.COORDINADOR_PSICOLOGIA) {
-      if (!filters?.patientId) {
-        return { sessions: [], pagination: { page, limit, total: 0, totalPages: 0 } };
+      if (filters?.patientId) {
+        where.psychologyRecord = { medicalRecord: { patientId: filters.patientId } };
       }
-      where.psychologyRecord = { medicalRecord: { patientId: filters.patientId } };
     } else if (userRole === 'coordinador_enfermeria') {
       where.psychologyRecord = {
         medicalRecord: { nursingConsultations: { some: {} } },
@@ -85,15 +92,37 @@ export class TherapySessionService {
       where.psychologyRecordId = filters.psychologyRecordId;
     }
 
+    const extraConditions: Prisma.TherapySessionWhereInput[] = [];
+    if (filters?.dateFrom || filters?.dateTo) {
+      const gte = filters.dateFrom ? new Date(`${filters.dateFrom}T00:00:00.000Z`) : undefined;
+      const lte = filters.dateTo ? new Date(`${filters.dateTo}T23:59:59.999Z`) : undefined;
+      extraConditions.push({
+        sessionDate: { ...(gte && { gte }), ...(lte && { lte }) },
+      });
+    }
+    const searchTrim = filters?.search?.trim();
+    if (searchTrim) {
+      extraConditions.push({
+        OR: [
+          { psychologyRecord: { medicalRecord: { patient: { user: { firstName: { contains: searchTrim, mode: 'insensitive' } } } } } },
+          { psychologyRecord: { medicalRecord: { patient: { user: { lastName: { contains: searchTrim, mode: 'insensitive' } } } } } },
+          { psychologyRecord: { medicalRecord: { patient: { user: { enrollmentNumber: { contains: searchTrim, mode: 'insensitive' } } } } } },
+          { mood: { contains: searchTrim, mode: 'insensitive' } },
+        ],
+      });
+    }
+    const finalWhere =
+      extraConditions.length > 0 ? ({ AND: [where, ...extraConditions] } as Prisma.TherapySessionWhereInput) : where;
+
     const [sessions, total] = await Promise.all([
       prisma.therapySession.findMany({
-        where,
+        where: finalWhere,
         skip,
         take: limit,
         include: sessionInclude,
         orderBy: { sessionDate: 'desc' },
       }),
-      prisma.therapySession.count({ where }),
+      prisma.therapySession.count({ where: finalWhere }),
     ]);
 
     return {

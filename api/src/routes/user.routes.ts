@@ -12,6 +12,7 @@ router.use(authenticateToken);
 // Current user profile — any authenticated user
 router.get('/me', userController.getMe.bind(userController));
 router.put('/me', validate(updateMeValidation), userController.updateMe.bind(userController));
+router.get('/me/careers', authorizeRoles(ROLES.PSICOLOGO), userController.getMeCareers.bind(userController));
 
 // Solo admin: listar, ver, editar y eliminar usuarios. Coordinador de psicología solo puede crear usuarios (rol psicólogo).
 router.get('/', authorizeRoles(...ROLES_USER_CRUD), userController.getAll.bind(userController));

@@ -72,10 +72,9 @@ export const ROLES_THERAPY_SESSIONS_READ = [
   ROLES.COORDINADOR_ENFERMERIA,
 ] as const;
 
-/** Pueden ver listado y detalle de medicamentos. Coord. psicología no tiene acceso al módulo. */
+/** Pueden ver listado y detalle de medicamentos. Solo enfermería (coordinador y enfermero). */
 export const ROLES_CAN_ACCESS_MEDICATIONS = [
   ROLES.COORDINADOR_ENFERMERIA,
-  ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ] as const;
 
@@ -136,10 +135,9 @@ export const ROLES_VISIBLE_IN_USERS = [
 /** Solo admin tiene CRUD completo de carreras */
 export const ROLES_CAREER_CRUD = [ROLES.ADMIN] as const;
 
-/** Pueden ver listado y detalle de procedimientos de enfermería. Coord. psicología no tiene acceso al módulo. */
+/** Pueden ver listado y detalle de procedimientos de enfermería. Solo enfermería (coordinador y enfermero). */
 export const ROLES_CAN_ACCESS_NURSING_PROCEDURES = [
   ROLES.COORDINADOR_ENFERMERIA,
-  ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ] as const;
 

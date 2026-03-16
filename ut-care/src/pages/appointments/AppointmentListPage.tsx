@@ -12,7 +12,7 @@ import { DataTable } from '@/components/organisms/DataTable'
 import type { DataTableColumn } from '@/components/organisms/DataTable'
 import { getAppointments } from '@/services/appointment.service'
 import type { Appointment } from '@/types/appointment'
-import { APPOINTMENT_STATUS, DEPARTMENT_KEYS } from '@/types/appointment'
+import { APPOINTMENT_STATUS } from '@/types/appointment'
 
 const STATUS_KEYS: Record<string, string> = {
   [APPOINTMENT_STATUS.SCHEDULED]: 'statusScheduled',
@@ -34,7 +34,7 @@ export function AppointmentListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState('')
-  const [department, setDepartment] = useState('')
+  const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(() => getDefaultTableLimit())
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
@@ -50,7 +50,7 @@ export function AppointmentListPage() {
       page,
       limit,
       status: status || undefined,
-      department: department || undefined,
+      search: search || undefined,
     })
       .then((r) => {
         setAppointments(r.appointments)
@@ -58,24 +58,16 @@ export function AppointmentListPage() {
       })
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
-  }, [page, limit, status, department, t])
+  }, [page, limit, status, search, t])
 
   const patientName = (a: Appointment) =>
     `${a.patient.user.firstName} ${a.patient.user.lastName}`.trim()
-  const professionalName = (a: Appointment) =>
-    `${a.professional.firstName} ${a.professional.lastName}`.trim()
 
   const columns: DataTableColumn<Appointment>[] = [
     {
       id: 'patient',
       label: t('appointments.patient'),
       getValue: (row) => patientName(row),
-      sortable: true,
-    },
-    {
-      id: 'professional',
-      label: t('appointments.professional'),
-      getValue: (row) => professionalName(row),
       sortable: true,
     },
     {
@@ -88,14 +80,6 @@ export function AppointmentListPage() {
       id: 'duration',
       label: t('appointments.duration'),
       getValue: (row) => `${row.durationMinutes} ${t('appointments.minutes')}`,
-    },
-    {
-      id: 'department',
-      label: t('appointments.department'),
-      getValue: (row) =>
-        DEPARTMENT_KEYS[row.department]
-          ? t(`appointments.${DEPARTMENT_KEYS[row.department]}`)
-          : row.department,
     },
     {
       id: 'status',
@@ -126,15 +110,15 @@ export function AppointmentListPage() {
     })
   }, [appointments, sortState, columns])
 
-  const filterValues = { status, department }
+  const filterValues = { search, status }
   const onFilterChange = (key: string, value: string) => {
-    if (key === 'status') setStatus(value)
-    else if (key === 'department') setDepartment(value)
+    if (key === 'search') setSearch(value)
+    else if (key === 'status') setStatus(value)
     setPage(1)
   }
   const onClearFilters = () => {
+    setSearch('')
     setStatus('')
-    setDepartment('')
     setPage(1)
   }
 
@@ -173,19 +157,18 @@ export function AppointmentListPage() {
           onLimitChange={(l) => { setLimit(l); setPage(1) }}
           filters={[
             {
+              key: 'search',
+              label: t('common.search'),
+              type: 'text',
+              placeholder: t('appointments.searchByName'),
+              searchIcon: true,
+              debounceMs: 350,
+            },
+            {
               key: 'status',
               label: t('appointments.status'),
               type: 'select',
               options: Object.entries(STATUS_KEYS).map(([value, key]) => ({
-                value,
-                label: t(`appointments.${key}`),
-              })),
-            },
-            {
-              key: 'department',
-              label: t('appointments.department'),
-              type: 'select',
-              options: Object.entries(DEPARTMENT_KEYS).map(([value, key]) => ({
                 value,
                 label: t(`appointments.${key}`),
               })),

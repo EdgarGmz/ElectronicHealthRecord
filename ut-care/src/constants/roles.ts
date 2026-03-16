@@ -83,6 +83,8 @@ export function getVisibleDashboardCards(role: string | undefined): DashboardCar
 /** Nav path -> roles that can see it (empty = all staff). Sesiones solo psicología/coords, no admin. Audit logs solo admin. */
 const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/': [], // dashboard: all
+  /** Módulo Calendario independiente: solo psicólogo (su semana). Coordinador usa /supervision/calendar */
+  '/calendar': [ROLES.PSICOLOGO],
   /** Módulo Supervisión y Gestión de Personal: solo coordinador psicología */
   '/supervision': [ROLES.COORDINADOR_PSICOLOGIA],
   // Admin is an auditor; hide operational modules from admin UI
@@ -91,8 +93,8 @@ const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/appointments': [ROLES.PSICOLOGO, ROLES.ENFERMERO],
   /** Sesiones de terapia: solo psicólogo (exclusivo de psicología) */
   '/sessions': [ROLES.PSICOLOGO],
-  '/medications': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
-  '/procedures': [ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
+  '/medications': [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO],
+  '/procedures': [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO],
   '/interconsultations': [],
   '/reports': [],
   /** Evaluaciones psicométricas: solo psicólogo y enfermero (no coordinador de enfermería). */

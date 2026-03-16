@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { UserPlus, FileText } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { getDefaultTableLimit } from '@/store/tablePageSize.store'
-import { ROLES_CAN_CREATE_PATIENT, canAccessExpedient } from '@/constants/roles'
+import { ROLES, ROLES_CAN_CREATE_PATIENT, canAccessExpedient } from '@/constants/roles'
 import { EmailLink } from '@/components/atoms/EmailLink'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { PhoneWhatsAppLink } from '@/components/atoms/PhoneWhatsAppLink'
@@ -13,7 +13,10 @@ import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { DataTable } from '@/components/organisms/DataTable'
 import type { DataTableColumn } from '@/components/organisms/DataTable'
 import { getPatients } from '@/services/patient.service'
+import { getCareers } from '@/services/career.service'
+import { getMyCareers } from '@/services/profile.service'
 import type { Patient } from '@/types/patient'
+import type { Career } from '@/types/career'
 
 const PATIENT_TYPES = ['student', 'faculty', 'administrative'] as const
 
@@ -22,11 +25,15 @@ export function PatientListPage() {
   const role = useAuthStore((s) => s.user?.role)
   const canCreatePatient = role ? ROLES_CAN_CREATE_PATIENT.includes(role) : false
   const showExpedientLabel = canAccessExpedient(role)
+  const isPsychologist = role === ROLES.PSICOLOGO
+
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [patientType, setPatientType] = useState('')
+  const [careerId, setCareerId] = useState('')
+  const [psychologistCareers, setPsychologistCareers] = useState<Career[]>([])
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(() => getDefaultTableLimit())
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
@@ -34,6 +41,20 @@ export function PatientListPage() {
     columnId: null,
     order: 'asc',
   })
+
+  // Cargar carreras del psicólogo (las que tiene a cargo) solo para rol psicólogo
+  useEffect(() => {
+    if (!isPsychologist) {
+      setPsychologistCareers([])
+      return
+    }
+    Promise.all([getMyCareers(), getCareers()])
+      .then(([ids, allCareers]) => {
+        const byId = new Set(ids)
+        setPsychologistCareers(allCareers.filter((c) => byId.has(c.id)))
+      })
+      .catch(() => setPsychologistCareers([]))
+  }, [isPsychologist])
 
   useEffect(() => {
     setLoading(true)
@@ -43,6 +64,7 @@ export function PatientListPage() {
       limit,
       search: search || undefined,
       patientType: patientType || undefined,
+      careerId: careerId || undefined,
     })
       .then((r) => {
         setPatients(r.patients)
@@ -50,7 +72,7 @@ export function PatientListPage() {
       })
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
-  }, [page, limit, search, patientType, t])
+  }, [page, limit, search, patientType, careerId, t])
 
   const fullName = (p: Patient) => `${p.user.firstName} ${p.user.lastName}`.trim()
 
@@ -73,7 +95,7 @@ export function PatientListPage() {
     },
     { id: 'enrollment', label: t('patients.enrollment'), getValue: (row) => row.user.enrollmentNumber ?? '—' },
     { id: 'type', label: t('patients.type'), getValue: (row) => t(`patients.${row.patientType}`) || row.patientType, sortable: true },
-    { id: 'career', label: t('patients.career'), getValue: (row) => row.career.name, sortable: true },
+    { id: 'career', label: t('patients.career'), getValue: (row) => row.career?.name ?? '—', sortable: true },
   ]
 
   const sortedData = useMemo(() => {
@@ -88,22 +110,44 @@ export function PatientListPage() {
     })
   }, [patients, sortState, columns])
 
-  const filterValues = { search, patientType }
+  const filterValues = { search, patientType, careerId }
   const onFilterChange = (key: string, value: string) => {
     if (key === 'search') setSearch(value)
-    else if (key === 'patientType') setPatientType(value)
+    else if (key === 'patientType') {
+      setPatientType(value)
+      if (value === 'faculty' || value === 'administrative') setCareerId('')
+    } else if (key === 'careerId') setCareerId(value)
     setPage(1)
   }
   const onClearFilters = () => {
     setSearch('')
     setPatientType('')
+    setCareerId('')
     setPage(1)
   }
+
+  const baseFilters = [
+    { key: 'search', label: t('common.search'), type: 'text' as const, placeholder: t('patients.searchPlaceholder'), searchIcon: true, debounceMs: 350 },
+    { key: 'patientType', label: t('patients.type'), type: 'select' as const, options: PATIENT_TYPES.map((type) => ({ value: type, label: t(`patients.${type}`) })) },
+  ]
+  const showCareerFilter =
+    isPsychologist &&
+    psychologistCareers.length > 0 &&
+    (patientType === '' || patientType === 'student')
+  const careerFilter = showCareerFilter
+    ? [{ key: 'careerId', label: t('patients.career'), type: 'select' as const, options: psychologistCareers.map((c) => ({ value: c.id, label: c.name })) }]
+    : []
+  const filters = [...baseFilters, ...careerFilter]
 
   return (
     <div className="space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
+      {isPsychologist && (
+        <p className="rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-4 py-3 text-sm text-[var(--text-secondary)]">
+          {t('patients.psychologistScopeHint')}
+        </p>
+      )}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-bold text-[var(--text-primary)]">{t('nav.patients')}</h1>
         {canCreatePatient && (
@@ -127,10 +171,7 @@ export function PatientListPage() {
           pagination={pagination}
           onPageChange={setPage}
           onLimitChange={(l) => { setLimit(l); setPage(1) }}
-          filters={[
-            { key: 'search', label: t('common.search'), type: 'text', placeholder: t('patients.searchPlaceholder'), searchIcon: true, debounceMs: 350 },
-            { key: 'patientType', label: t('patients.type'), type: 'select', options: PATIENT_TYPES.map((type) => ({ value: type, label: t(`patients.${type}`) })) },
-          ]}
+          filters={filters}
           filterValues={filterValues}
           onFilterChange={onFilterChange}
           onClearFilters={onClearFilters}
