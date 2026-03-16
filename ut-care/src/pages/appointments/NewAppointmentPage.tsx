@@ -1,70 +1,71 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   User,
-  UserCircle,
   Calendar,
   Clock,
-  Building2,
   FileText,
   Stethoscope,
   Save,
   X,
+  UserPlus,
 } from 'lucide-react'
+import { useAuthStore } from '@/store/auth.store'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { SuccessModal } from '@/components/molecules/SuccessModal'
 import { getPatients } from '@/services/patient.service'
-import {
-  getAppointmentProfessionals,
-  createAppointment,
-  type CreateAppointmentInput,
-  type AppointmentProfessional,
-} from '@/services/appointment.service'
+import { createAppointment, type CreateAppointmentInput } from '@/services/appointment.service'
 import type { Patient } from '@/types/patient'
-import { DEPARTMENT_KEYS } from '@/types/appointment'
 
-const DEPARTMENT_VALUES = ['psychology', 'nursing'] as const
+/** Fecha/hora mínima para datetime-local (hoy, hora actual redondeada) */
+function getMinDateTimeLocal(): string {
+  const d = new Date()
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+  d.setSeconds(0, 0)
+  return d.toISOString().slice(0, 16)
+}
+
 const DURATION_OPTIONS = [30, 45, 50, 60, 90]
 
 export function NewAppointmentPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
+  const userId = user?.id
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [createdId, setCreatedId] = useState<string | null>(null)
   const [patients, setPatients] = useState<Patient[]>([])
-  const [professionals, setProfessionals] = useState<AppointmentProfessional[]>([])
   const [patientsLoading, setPatientsLoading] = useState(true)
-  const [professionalsLoading, setProfessionalsLoading] = useState(true)
+  const [patientSearch, setPatientSearch] = useState('')
+  const [showPatientSuggestions, setShowPatientSuggestions] = useState(false)
+  const patientInputRef = useRef<HTMLDivElement>(null)
   const [form, setForm] = useState<CreateAppointmentInput>({
     patientId: '',
     professionalId: '',
     appointmentType: '',
-    department: 'psychology',
+    department: 'psychology', // Solo psicología genera citas
     scheduledDate: '',
     durationMinutes: 50,
     notes: '',
   })
 
   useEffect(() => {
-    getPatients({ limit: 200 })
+    getPatients({ limit: 500 })
       .then((r) => setPatients(r.patients))
       .catch(() => setPatients([]))
       .finally(() => setPatientsLoading(false))
   }, [])
 
   useEffect(() => {
-    getAppointmentProfessionals()
-      .then(setProfessionals)
-      .catch(() => setProfessionals([]))
-      .finally(() => setProfessionalsLoading(false))
-  }, [])
+    if (userId) setForm((prev) => ({ ...prev, professionalId: userId }))
+  }, [userId])
 
   const update = (field: keyof CreateAppointmentInput, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -76,9 +77,8 @@ export function NewAppointmentPage() {
     setError('')
     if (
       !form.patientId.trim() ||
-      !form.professionalId.trim() ||
+      !userId ||
       !form.appointmentType.trim() ||
-      !form.department ||
       !form.scheduledDate.trim() ||
       !form.durationMinutes
     ) {
@@ -89,9 +89,9 @@ export function NewAppointmentPage() {
     try {
       const payload: CreateAppointmentInput = {
         patientId: form.patientId.trim(),
-        professionalId: form.professionalId.trim(),
+        professionalId: userId,
         appointmentType: form.appointmentType.trim(),
-        department: form.department,
+        department: 'psychology',
         scheduledDate: form.scheduledDate.trim(),
         durationMinutes: Number(form.durationMinutes),
       }
@@ -111,11 +111,45 @@ export function NewAppointmentPage() {
   }
 
   const patientName = (p: Patient) => `${p.user.firstName} ${p.user.lastName}`.trim()
-  const professionalName = (p: AppointmentProfessional) => `${p.firstName} ${p.lastName}`.trim()
+  const professionalLabel = user ? `${user.firstName} ${user.lastName}`.trim() : ''
+
+  const filteredPatients = useMemo(() => {
+    const q = patientSearch.trim().toLowerCase()
+    if (!q) return patients.slice(0, 15)
+    return patients.filter(
+      (p) =>
+        p.user.firstName?.toLowerCase().includes(q) ||
+        p.user.lastName?.toLowerCase().includes(q) ||
+        patientName(p).toLowerCase().includes(q)
+    ).slice(0, 15)
+  }, [patients, patientSearch])
+
+  useEffect(() => {
+    if (!showPatientSuggestions) return
+    const onDocClick = (e: MouseEvent) => {
+      if (patientInputRef.current?.contains(e.target as Node)) return
+      setShowPatientSuggestions(false)
+    }
+    document.addEventListener('mousedown', onDocClick)
+    return () => document.removeEventListener('mousedown', onDocClick)
+  }, [showPatientSuggestions])
+
+  const handleSelectPatient = (p: Patient) => {
+    update('patientId', p.id)
+    setPatientSearch(patientName(p))
+    setShowPatientSuggestions(false)
+  }
+
+  const handlePatientSearchFocus = () => setShowPatientSuggestions(true)
+  const handlePatientSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPatientSearch(e.target.value)
+    if (!e.target.value.trim()) update('patientId', '')
+    setShowPatientSuggestions(true)
+  }
 
   return (
     <div className="space-y-6">
-      <LoadingModal open={submitting || patientsLoading || professionalsLoading} message={t('common.loading')} />
+      <LoadingModal open={submitting || patientsLoading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error || undefined} onClose={() => setError('')} />
       <SuccessModal open={showSuccess} onClose={() => { setShowSuccess(false); if (createdId) navigate(`/appointments/${createdId}`, { replace: true }); setCreatedId(null) }} message={t('common.successSaved')} />
       <Link to="/appointments" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
@@ -123,125 +157,153 @@ export function NewAppointmentPage() {
         {t('appointments.list')}
       </Link>
       <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('appointments.newAppointment')}</h1>
-      <GlassCard>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
+      <GlassCard className="overflow-hidden rounded-2xl">
+        <form onSubmit={handleSubmit} className="space-y-6 opacity-0 profile-form-animate">
+          <section className="space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+              {t('appointments.patient')}
+            </h2>
+            <div ref={patientInputRef} className="relative">
               <label className="mb-1 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
                 <User size={18} className="shrink-0 text-[var(--color-primary)]" />
                 {t('appointments.patient')} *
               </label>
-              <select
-                value={form.patientId}
-                onChange={(e) => update('patientId', e.target.value)}
-                className="glass-input w-full px-4 py-2.5"
-                required
-                disabled={patientsLoading}
-              >
-                <option value="">
-                  {patientsLoading ? t('common.loading') : t('appointments.selectPatient')}
-                </option>
-                {patients.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {patientName(p)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
-                <UserCircle size={18} className="shrink-0 text-[var(--color-primary)]" />
-                {t('appointments.professional')} *
-              </label>
-              <select
-                value={form.professionalId}
-                onChange={(e) => update('professionalId', e.target.value)}
-                className="glass-input w-full px-4 py-2.5"
-                required
-                disabled={professionalsLoading}
-              >
-                <option value="">
-                  {professionalsLoading ? t('common.loading') : t('appointments.selectProfessional')}
-                </option>
-                {professionals.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {professionalName(p)} ({t(`roles.${p.role}`) || p.role})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
-                <Calendar size={18} className="shrink-0 text-[var(--color-primary)]" />
-                {t('appointments.date')} *
-              </label>
-              <input
-                type="datetime-local"
-                value={form.scheduledDate}
-                onChange={(e) => update('scheduledDate', e.target.value)}
-                className="glass-input w-full px-4 py-2.5"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
-                <Clock size={18} className="shrink-0 text-[var(--color-primary)]" />
-                {t('appointments.duration')} *
-              </label>
-              <select
-                value={form.durationMinutes}
-                onChange={(e) => update('durationMinutes', Number(e.target.value))}
-                className="glass-input w-full px-4 py-2.5"
-                required
-              >
-                {DURATION_OPTIONS.map((m) => (
-                  <option key={m} value={m}>
-                    {m} {t('appointments.minutes')}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
-                <FileText size={18} className="shrink-0 text-[var(--color-primary)]" />
-                {t('appointments.type')} *
-              </label>
               <input
                 type="text"
-                value={form.appointmentType}
-                onChange={(e) => update('appointmentType', e.target.value)}
-                className="glass-input w-full px-4 py-2.5"
-                placeholder={t('appointments.typePlaceholder')}
-                required
+                value={patientSearch}
+                onChange={handlePatientSearchChange}
+                onFocus={handlePatientSearchFocus}
+                placeholder={patientsLoading ? t('common.loading') : t('appointments.searchPatientPlaceholder')}
+                className="glass-input w-full px-4 py-2.5 rounded-lg transition focus:ring-2 focus:ring-[var(--color-primary)]"
+                disabled={patientsLoading}
+                autoComplete="off"
+                aria-autocomplete="list"
+                aria-expanded={showPatientSuggestions}
+                aria-controls="patient-suggestions-list"
+                id="patient-search-input"
               />
+              <input type="hidden" name="patientId" value={form.patientId} />
+              {showPatientSuggestions && (
+                <ul
+                  id="patient-suggestions-list"
+                  role="listbox"
+                  className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] shadow-lg backdrop-blur-xl"
+                >
+                  {filteredPatients.length > 0 ? (
+                    filteredPatients.map((p) => (
+                      <li
+                        key={p.id}
+                        role="option"
+                        aria-selected={form.patientId === p.id}
+                        onClick={() => handleSelectPatient(p)}
+                        className="cursor-pointer px-4 py-2.5 text-sm text-[var(--text-primary)] transition-colors hover:bg-[var(--color-primary)]/10"
+                      >
+                        {patientName(p)}
+                        {p.user.enrollmentNumber && (
+                          <span className="ml-2 text-[var(--text-muted)]">
+                            ({p.user.enrollmentNumber})
+                          </span>
+                        )}
+                      </li>
+                    ))
+                  ) : null}
+                  {patientSearch.trim() && (
+                    <li
+                      role="option"
+                      className="border-t border-[var(--border)] bg-[var(--bg)]/50"
+                    >
+                      <Link
+                        to="/patients/new?from=appointments/new"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/10"
+                        onClick={() => setShowPatientSuggestions(false)}
+                      >
+                        <UserPlus size={16} className="shrink-0" />
+                        {filteredPatients.length === 0
+                          ? t('appointments.noResultsCreateNew')
+                          : t('appointments.createNewPatient')}
+                      </Link>
+                    </li>
+                  )}
+                </ul>
+              )}
             </div>
-            <div>
-              <label className="mb-1 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
-                <Building2 size={18} className="shrink-0 text-[var(--color-primary)]" />
-                {t('appointments.department')} *
-              </label>
-              <select
-                value={form.department}
-                onChange={(e) => update('department', e.target.value)}
-                className="glass-input w-full px-4 py-2.5"
-                required
-              >
-                {DEPARTMENT_VALUES.map((d) => (
-                  <option key={d} value={d}>
-                    {DEPARTMENT_KEYS[d] ? t(`appointments.${DEPARTMENT_KEYS[d]}`) : d}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          </section>
 
-          <div>
+          <section className="space-y-4 border-t border-[var(--border)] pt-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+              {t('appointments.dateAndDuration')}
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
+                  <Calendar size={18} className="shrink-0 text-[var(--color-primary)]" />
+                  {t('appointments.date')} *
+                </label>
+                <div className="relative flex items-center rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] shadow-sm focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:ring-offset-0 focus-within:border-[var(--color-primary)]/50">
+                  <span className="flex shrink-0 items-center justify-center pl-3 text-[var(--color-primary)]" aria-hidden>
+                    <Calendar size={20} strokeWidth={2} />
+                  </span>
+                  <input
+                    type="datetime-local"
+                    value={form.scheduledDate}
+                    onChange={(e) => update('scheduledDate', e.target.value)}
+                    min={getMinDateTimeLocal()}
+                    className="min-h-[42px] flex-1 rounded-r-lg border-0 bg-transparent py-2.5 pr-3 pl-2 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] [color-scheme:inherit]"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
+                  <Clock size={18} className="shrink-0 text-[var(--color-primary)]" />
+                  {t('appointments.duration')} *
+                </label>
+                <select
+                  value={form.durationMinutes}
+                  onChange={(e) => update('durationMinutes', Number(e.target.value))}
+                  className="glass-input w-full px-4 py-2.5 rounded-lg transition focus:ring-2 focus:ring-[var(--color-primary)]"
+                  required
+                >
+                  {DURATION_OPTIONS.map((m) => (
+                    <option key={m} value={m}>
+                      {m} {t('appointments.minutes')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-4 border-t border-[var(--border)] pt-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+              {t('appointments.typeOfAppointment')}
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
+                  <FileText size={18} className="shrink-0 text-[var(--color-primary)]" />
+                  {t('appointments.type')} *
+                </label>
+                <input
+                  type="text"
+                  value={form.appointmentType}
+                  onChange={(e) => update('appointmentType', e.target.value)}
+                  className="glass-input w-full px-4 py-2.5 rounded-lg transition focus:ring-2 focus:ring-[var(--color-primary)]"
+                  placeholder={t('appointments.typePlaceholder')}
+                  list="appointment-types"
+                  required
+                />
+                <datalist id="appointment-types">
+                  <option value={t('appointments.typeFirstVisit')} />
+                  <option value={t('appointments.typeFollowUp')} />
+                  <option value={t('appointments.typeEvaluation')} />
+                  <option value={t('appointments.typeCrisis')} />
+                </datalist>
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-4 border-t border-[var(--border)] pt-4">
             <label className="mb-1 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
               <Stethoscope size={18} className="shrink-0 text-[var(--color-primary)]" />
               {t('appointments.notes')}
@@ -249,16 +311,17 @@ export function NewAppointmentPage() {
             <textarea
               value={form.notes}
               onChange={(e) => update('notes', e.target.value)}
-              className="glass-input w-full px-4 py-2.5 min-h-[80px]"
+              className="glass-input w-full px-4 py-2.5 min-h-[88px] rounded-lg transition focus:ring-2 focus:ring-[var(--color-primary)]"
               rows={3}
+              placeholder={t('appointments.notesPlaceholder')}
             />
-          </div>
+          </section>
 
-          <div className="flex flex-wrap gap-3 pt-4">
+          <div className="flex flex-wrap gap-3 border-t border-[var(--border)] pt-4">
             <GlassButton
               type="submit"
               variant="primary"
-              disabled={submitting || patientsLoading || professionalsLoading}
+              disabled={submitting || patientsLoading || !userId}
               className="inline-flex items-center gap-2"
             >
               <Save size={18} />

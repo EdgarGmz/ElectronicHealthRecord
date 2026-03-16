@@ -21,3 +21,15 @@ export async function getMedicalRecordById(id: string): Promise<MedicalRecord> {
   )
   return data.data
 }
+
+/**
+ * Ensure the patient has a medical record (and psychology record if current user is psychologist).
+ * Creates whatever is missing so a session can be registered. Returns the full medical record.
+ */
+export async function ensureExpedientForPatient(patientId: string): Promise<MedicalRecord> {
+  const { data } = await api.post<{ success: boolean; data: MedicalRecord }>(
+    '/medical-records/ensure-for-patient',
+    { patientId }
+  )
+  return data.data
+}

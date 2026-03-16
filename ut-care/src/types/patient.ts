@@ -21,14 +21,14 @@ export interface Patient {
   maritalStatus: string | null
   guardianName: string | null
   guardianPhone: string | null
-  careerId: string
+  careerId: string | null
   group: string | null
   occupation: string | null
   trimester: number | null
   createdAt: string
   updatedAt: string
   user: PatientUser
-  career: Career
+  career: Career | null
 }
 
 export interface PatientsResponse {

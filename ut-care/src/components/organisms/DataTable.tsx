@@ -233,9 +233,8 @@ export function DataTable<T>({
     return <span className="text-[var(--text-secondary)]">{str || '—'}</span>
   }
 
-  if (loading) return null
-  if (error) return null
-
+  /* No devolver null con loading/error: así los filtros (input de búsqueda) siguen montados
+   * y no se pierde el foco al actualizar los datos. */
   return (
     <div className="space-y-4">
       <ConfirmModal
@@ -384,7 +383,11 @@ export function DataTable<T>({
       </div>
 
       {/* Tabla */}
-      {data.length === 0 ? (
+      {loading && data.length === 0 ? (
+        <p className="py-8 text-center text-[var(--text-secondary)]">
+          Cargando…
+        </p>
+      ) : data.length === 0 ? (
         <p className="py-8 text-center text-[var(--text-secondary)]">
           {emptyMessage}
         </p>

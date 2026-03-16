@@ -32,6 +32,7 @@ export function HelpPage() {
   const isAdmin = role === ROLES.ADMIN
   const isCoordinatorPsychology = role === ROLES.COORDINADOR_PSICOLOGIA
   const isCoordinatorNursing = role === ROLES.COORDINADOR_ENFERMERIA
+  const isPsychologist = role === ROLES.PSICOLOGO
 
   const visibleModules = useMemo(
     () => MODULES_WITH_HELP.filter((m) => canSeeNavItem(m.to, role)),
@@ -159,6 +160,35 @@ export function HelpPage() {
         </GlassCard>
       )}
 
+      {isPsychologist && (
+        <GlassCard className="opacity-0 help-animate-in help-stagger-1 rounded-2xl border-l-4 border-l-[#0ea5e9] transition-all duration-300 hover:shadow-xl">
+          <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold text-[var(--text-primary)]">
+            <FileText size={20} className="text-[#0ea5e9]" />
+            {t('help.psychologist.title')}
+          </h2>
+          <p className="mb-4 text-sm text-[var(--text-secondary)]">{t('help.psychologist.intro')}</p>
+          <ul className="space-y-2.5 text-sm text-[var(--text-secondary)]">
+            {[
+              { key: 'nav.dashboard', help: 'help.psychologist.dashboard' },
+              { key: 'nav.patients', help: 'help.psychologist.patients' },
+              { key: 'nav.appointments', help: 'help.psychologist.appointments' },
+              { key: 'nav.sessions', help: 'help.psychologist.sessions' },
+              { key: 'nav.evaluations', help: 'help.psychologist.evaluations' },
+              { key: 'nav.profile', help: 'help.psychologist.profile' },
+              { key: 'nav.help', help: 'help.psychologist.help' },
+            ].map((item, i) => (
+              <li
+                key={item.key}
+                className="help-list-item rounded-lg border border-transparent bg-[var(--bg)]/30 px-3 py-2 transition-colors hover:border-[var(--border)] hover:bg-[var(--bg)]/50"
+                style={listItemStyle(i)}
+              >
+                <strong className="text-[var(--text-primary)]">{t(item.key)}:</strong> {t(item.help)}
+              </li>
+            ))}
+          </ul>
+        </GlassCard>
+      )}
+
       <GlassCard className="opacity-0 help-animate-in help-stagger-2 rounded-2xl transition-all duration-300 hover:shadow-xl">
         <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold text-[var(--text-primary)]">
           <LayoutDashboard size={20} className="text-[var(--color-primary)]" />
@@ -268,6 +298,20 @@ export function HelpPage() {
                     <Link to="/appointments" className={linkButtonClass}>
                       <Calendar size={18} className="transition-transform group-hover:scale-110" />
                       {t('help.goToAppointments')}
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  )}
+                  {canSeeNavItem('/sessions', role) && (
+                    <Link to="/sessions" className={linkButtonClass}>
+                      <FileText size={18} className="transition-transform group-hover:scale-110" />
+                      {t('nav.sessions')}
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  )}
+                  {canSeeNavItem('/evaluations', role) && (
+                    <Link to="/evaluations" className={linkButtonClass}>
+                      <ClipboardList size={18} className="transition-transform group-hover:scale-110" />
+                      {t('nav.evaluations')}
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
                     </Link>
                   )}

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import userService from '../services/user.service';
+import psychologistCareerService from '../services/psychologist-career.service';
 import { AuthRequest } from '../middleware/auth';
 import { ROLES, ROLES_VISIBLE_IN_USERS } from '../constants/roles';
 
@@ -109,6 +110,30 @@ export class UserController {
         success: true,
         message: 'Profile updated successfully',
         data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /** Carreras asignadas al psicólogo actual (solo rol psicólogo). */
+  async getMeCareers(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user?.userId;
+      const role = req.user?.role;
+      if (!userId) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
+      if (role !== ROLES.PSICOLOGO) {
+        res.status(403).json({ success: false, message: 'Solo disponible para rol psicólogo' });
+        return;
+      }
+      const careerIds = await psychologistCareerService.getAssignedCareerIds(userId);
+      res.status(200).json({
+        success: true,
+        message: 'Carreras asignadas',
+        data: { careerIds },
       });
     } catch (error) {
       next(error);

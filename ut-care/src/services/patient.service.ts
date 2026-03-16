@@ -7,7 +7,8 @@ export interface CreatePatientInput {
   lastName: string
   dateOfBirth: string
   patientType: string
-  careerId: string
+  /** Required when patientType is 'student'. Omit for faculty/administrative. */
+  careerId?: string
   phone?: string
   enrollmentNumber?: string
   maritalStatus?: string
@@ -31,11 +32,13 @@ export async function getPatients(params: {
   limit?: number
   search?: string
   patientType?: string
+  careerId?: string
 } = {}): Promise<PatientsResponse> {
-  const { page = 1, limit = 10, search, patientType } = params
+  const { page = 1, limit = 10, search, patientType, careerId } = params
   const sp = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (search?.trim()) sp.set('search', search.trim())
   if (patientType) sp.set('patientType', patientType)
+  if (careerId?.trim()) sp.set('careerId', careerId.trim())
   const { data } = await api.get<{ success: boolean; data: PatientsResponse }>(`/patients?${sp}`)
   return data.data
 }

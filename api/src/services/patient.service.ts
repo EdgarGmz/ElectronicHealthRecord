@@ -23,7 +23,8 @@ export class PatientService {
     search?: string,
     patientType?: string,
     userRole?: string,
-    userId?: string
+    userId?: string,
+    careerId?: string
   ) {
     const skip = (page - 1) * limit;
 
@@ -44,21 +45,36 @@ export class PatientService {
       where.patientType = patientType;
     }
 
-    if (userRole === 'coordinador_enfermeria') {
+    const normalizedRole = userRole?.toLowerCase().trim();
+
+    if (normalizedRole === 'coordinador_enfermeria') {
       where.AND = [NURSING_PATIENT_WHERE];
     }
 
-    if (userRole === ROLES.PSICOLOGO && userId) {
-      const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
-      const scopeWhere: Prisma.PatientWhereInput = {
-        OR: [
-          { patientType: { in: [...PATIENT_TYPES_GENERAL] } },
-          ...(assignedCareerIds.length
-            ? [{ patientType: 'student', careerId: { in: assignedCareerIds } }]
-            : []),
-        ],
-      };
-      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), scopeWhere];
+    // Psicólogo: solo estudiantes de sus carreras asignadas + docente/administrativo
+    if (normalizedRole === ROLES.PSICOLOGO) {
+      if (!userId) {
+        // Sin userId no aplicar filtro podría filtrar datos; devolver vacío
+        where.id = '00000000-0000-0000-0000-000000000000';
+        where.AND = [];
+      } else {
+        const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
+        const scopeWhere: Prisma.PatientWhereInput = {
+          OR: [
+            { patientType: { in: [...PATIENT_TYPES_GENERAL] } },
+            ...(assignedCareerIds.length > 0
+              ? [{ patientType: 'student', careerId: { in: assignedCareerIds } }]
+              : []),
+          ],
+        };
+        const existingAnd = Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : [];
+        where.AND = [...existingAnd, scopeWhere];
+
+        // Filtro opcional por carrera: solo si la carrera está asignada al psicólogo
+        if (careerId?.trim() && assignedCareerIds.includes(careerId.trim())) {
+          where.careerId = careerId.trim();
+        }
+      }
     }
 
     const [patients, total] = await Promise.all([
@@ -214,30 +230,36 @@ export class PatientService {
     return patient;
   }
 
-  async create(data: {
-    email: string;
-    password?: string;
-    firstName: string;
-    lastName: string;
-    dateOfBirth: Date;
-    phone?: string;
-    enrollmentNumber?: string;
-    patientType: string;
-    maritalStatus?: string;
-    guardianName?: string;
-    guardianPhone?: string;
-    careerId: string;
-    group?: string;
-    occupation?: string;
-    trimester?: number;
-  }) {
-    // Check if career exists
-    const career = await prisma.career.findUnique({
-      where: { id: data.careerId },
-    });
-
-    if (!career) {
-      throw new AppError('Career not found', 404);
+  async create(
+    data: {
+      email: string;
+      password?: string;
+      firstName: string;
+      lastName: string;
+      dateOfBirth: Date;
+      phone?: string;
+      enrollmentNumber?: string;
+      patientType: string;
+      maritalStatus?: string;
+      guardianName?: string;
+      guardianPhone?: string;
+      careerId?: string | null;
+      group?: string;
+      occupation?: string;
+      trimester?: number;
+    },
+    options?: { createdBy: string; creatorRole: string }
+  ) {
+    if (data.patientType === 'student') {
+      if (!data.careerId?.trim()) {
+        throw new AppError('Career is required for students', 400);
+      }
+      const career = await prisma.career.findUnique({
+        where: { id: data.careerId },
+      });
+      if (!career) {
+        throw new AppError('Career not found', 404);
+      }
     }
 
     // Check if email already exists
@@ -275,7 +297,7 @@ export class PatientService {
           maritalStatus: data.maritalStatus,
           guardianName: data.guardianName,
           guardianPhone: data.guardianPhone,
-          careerId: data.careerId,
+          careerId: data.patientType === 'student' && data.careerId ? data.careerId : null,
           group: data.group,
           occupation: data.occupation,
           trimester: data.trimester,
@@ -299,6 +321,35 @@ export class PatientService {
       return newPatient;
     });
 
+    // Si quien crea puede crear expedientes (psicólogo o enfermero), crear expediente médico y, si es psicólogo, expediente de psicología
+    if (options?.createdBy && options?.creatorRole) {
+      const role = options.creatorRole.toLowerCase().trim();
+      if (role === ROLES.PSICOLOGO || role === ROLES.ENFERMERO) {
+        const existingMr = await prisma.medicalRecord.findUnique({
+          where: { patientId: patient.id },
+        });
+        if (!existingMr) {
+          const medicalRecord = await prisma.medicalRecord.create({
+            data: {
+              patientId: patient.id,
+              createdBy: options.createdBy,
+              updatedBy: options.createdBy,
+            },
+          });
+          if (role === ROLES.PSICOLOGO) {
+            await prisma.psychologyRecord.create({
+              data: {
+                medicalRecordId: medicalRecord.id,
+                suicideRiskLevel: 'none',
+                violenceRiskLevel: 'none',
+                assignedPsychologistId: options.createdBy,
+              },
+            });
+          }
+        }
+      }
+    }
+
     return patient;
   }
 
@@ -319,7 +370,7 @@ export class PatientService {
     if (data.maritalStatus !== undefined) patientData.maritalStatus = data.maritalStatus as string;
     if (data.guardianName !== undefined) patientData.guardianName = data.guardianName as string;
     if (data.guardianPhone !== undefined) patientData.guardianPhone = data.guardianPhone as string;
-    if (data.careerId !== undefined) patientData.careerId = data.careerId as string;
+    if (data.careerId !== undefined) patientData.careerId = (data.careerId as string | null) || null;
     if (data.group !== undefined) patientData.group = data.group as string;
     if (data.occupation !== undefined) patientData.occupation = data.occupation as string;
     if (data.patientType !== undefined) patientData.patientType = data.patientType as string;

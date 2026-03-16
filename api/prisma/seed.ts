@@ -1,22 +1,22 @@
 import { PrismaClient } from '@prisma/client';
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/es_MX';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 // Constants for data generation
 const SALT_ROUNDS = 10;
-const MIN_PATIENTS = 50;
+const STUDENTS_PER_CAREER = 50;
 
-// Role distribution (percentages)
+// Role distribution for staff (percentages of a base count; students are 50 per career)
 const ROLE_DISTRIBUTION = {
-  PATIENT: 0.80,          // 80%
-  PSYCHOLOGIST: 0.10,     // 10%
-  NURSE: 0.05,            // 5%
+  PSYCHOLOGIST: 0.10,     // 10% of base
+  NURSE: 0.05,            // 5% of base
   PSYCHOLOGY_COORDINATOR: 1,
   NURSING_COORDINATOR: 1,
   SYSTEM_ADMIN: 1,
 };
+const STAFF_BASE_COUNT = 62; // used only for psychologist/nurse counts
 
 // Helper function to hash passwords
 async function hashPassword(password: string): Promise<string> {
@@ -73,17 +73,16 @@ async function seedCareers() {
 }
 
 // Seed Users with role distribution
-async function seedUsers(_careers: any[]) {
+async function seedUsers(careers: any[]) {
   console.log('👥 Seeding Users...');
 
   const users = [];
   const defaultPassword = await hashPassword('Password123!');
 
-  // Calculate role counts
-  const totalUsers = Math.max(MIN_PATIENTS, 62); // Ensure we have enough users
-  const numPatients = Math.floor(totalUsers * ROLE_DISTRIBUTION.PATIENT);
-  const numPsychologists = Math.floor(totalUsers * ROLE_DISTRIBUTION.PSYCHOLOGIST);
-  const numNurses = Math.floor(totalUsers * ROLE_DISTRIBUTION.NURSE);
+  // 50 students per career; staff from base count
+  const numPatients = careers.length * STUDENTS_PER_CAREER;
+  const numPsychologists = Math.floor(STAFF_BASE_COUNT * ROLE_DISTRIBUTION.PSYCHOLOGIST);
+  const numNurses = Math.floor(STAFF_BASE_COUNT * ROLE_DISTRIBUTION.NURSE);
 
   // Create System Admin
   const admin = await prisma.user.upsert({
@@ -203,41 +202,40 @@ async function seedUsers(_careers: any[]) {
     users.push(user);
   }
 
-  console.log(`✅ Created ${users.length} users (${numPatients} patients, ${numPsychologists} psychologists, ${numNurses} nurses, 3 coordinators/admins)`);
+  console.log(`✅ Created ${users.length} users (${numPatients} students, ${numPsychologists} psychologists, ${numNurses} nurses, 3 coordinators/admins)`);
   return { users, patients, psychologists, nurses, admin, psychCoordinator, nurseCoordinator };
 }
 
-// Seed Patients
+// Seed Patients (50 students per career; each user is assigned to career by index)
 async function seedPatients(patientUsers: any[], careers: any[]) {
   console.log('🏥 Seeding Patient records...');
 
   const patients = [];
-  const patientTypes = ['student', 'faculty', 'administrative'];
   const maritalStatuses = ['single', 'married', 'divorced', 'widowed'];
 
-  for (const user of patientUsers) {
-    const career = randomElement(careers);
-    const patientType = patientTypes[Math.floor(Math.random() * 10) < 8 ? 0 : Math.floor(Math.random() * 3)];
+  for (let i = 0; i < patientUsers.length; i++) {
+    const user = patientUsers[i];
+    const careerIndex = Math.floor(i / STUDENTS_PER_CAREER);
+    const career = careers[careerIndex];
 
     const patient = await prisma.patient.upsert({
       where: { userId: user.id },
       update: {},
       create: {
         userId: user.id,
-        patientType,
+        patientType: 'student',
         maritalStatus: randomElement(maritalStatuses),
-        guardianName: patientType === 'student' && Math.random() > 0.5 ? faker.person.fullName() : undefined,
-        guardianPhone: patientType === 'student' && Math.random() > 0.5 ? faker.string.numeric(10) : undefined,
+        guardianName: Math.random() > 0.5 ? faker.person.fullName() : undefined,
+        guardianPhone: Math.random() > 0.5 ? faker.string.numeric(10) : undefined,
         careerId: career.id,
-        group: patientType === 'student' ? faker.string.alphanumeric(3).toUpperCase() : undefined,
-        occupation: patientType !== 'student' ? faker.person.jobTitle() : undefined,
-        trimester: patientType === 'student' ? Math.floor(Math.random() * 12) + 1 : undefined,
+        group: faker.string.alphanumeric(3).toUpperCase(),
+        trimester: Math.floor(Math.random() * 12) + 1,
       },
     });
     patients.push(patient);
   }
 
-  console.log(`✅ Created ${patients.length} patient records`);
+  console.log(`✅ Created ${patients.length} patient records (${STUDENTS_PER_CAREER} students × ${careers.length} careers)`);
   return patients;
 }
 
@@ -253,7 +251,12 @@ async function seedPsychologistCareers(psychologists: any[], careers: any[]) {
     const career = availableCareers[i];
 
     const assignment = await prisma.psychologistCareer.upsert({
-      where: { careerId: career.id },
+      where: {
+        psychologistId_careerId: {
+          psychologistId: psychologist.id,
+          careerId: career.id,
+        },
+      },
       update: {},
       create: {
         psychologistId: psychologist.id,
@@ -360,11 +363,72 @@ async function seedPsychologyRecords(medicalRecords: any[], psychologists: any[]
   return psychologyRecords;
 }
 
+// Seed Moods — clasificación clínica: frecuencia en consulta (ánimo vs emoción)
+const DEFAULT_MOODS = [
+  // 1. Muy comunes (día a día)
+  { code: 'anxious_apprehensive', name: 'Ansioso / Aprehensivo', emoji: '😰', category: 'very_common', displayOrder: 1 },
+  { code: 'down_dysthymic', name: 'Decaído / Distímico', emoji: '😔', category: 'very_common', displayOrder: 2 },
+  { code: 'stressed_overwhelmed', name: 'Estresado / Abrumado', emoji: '😫', category: 'very_common', displayOrder: 3 },
+  { code: 'irritable', name: 'Irritable', emoji: '😤', category: 'very_common', displayOrder: 4 },
+  { code: 'sad', name: 'Triste', emoji: '😢', category: 'very_common', displayOrder: 5 },
+  { code: 'tired', name: 'Cansado', emoji: '😴', category: 'very_common', displayOrder: 6 },
+  { code: 'depressive', name: 'Depresivo', emoji: '🫠', category: 'very_common', displayOrder: 7 },
+  { code: 'stressed', name: 'Estresado', emoji: '😓', category: 'very_common', displayOrder: 8 },
+  // 2. Estados positivos (buenos estados de ánimo)
+  { code: 'calm', name: 'Calmado', emoji: '😌', category: 'positive', displayOrder: 9 },
+  { code: 'happy', name: 'Feliz', emoji: '😊', category: 'positive', displayOrder: 10 },
+  { code: 'hopeful', name: 'Esperanzado', emoji: '🌟', category: 'positive', displayOrder: 11 },
+  { code: 'content', name: 'Contento', emoji: '🙂', category: 'positive', displayOrder: 12 },
+  { code: 'motivated', name: 'Motivado', emoji: '💪', category: 'positive', displayOrder: 13 },
+  { code: 'at_ease', name: 'Tranquilo', emoji: '🧘', category: 'positive', displayOrder: 14 },
+  { code: 'optimistic', name: 'Optimista', emoji: '☀️', category: 'positive', displayOrder: 15 },
+  { code: 'relieved', name: 'Aliviado', emoji: '😮‍💨', category: 'positive', displayOrder: 16 },
+  { code: 'serene', name: 'Sereno', emoji: '🌿', category: 'positive', displayOrder: 17 },
+  // 3. Comunes (procesos de adaptación)
+  { code: 'melancholic_nostalgic', name: 'Melancólico / Nostálgico', emoji: '🥹', category: 'common', displayOrder: 18 },
+  { code: 'insecure_hesitant', name: 'Inseguro / Dubitativo', emoji: '😕', category: 'common', displayOrder: 19 },
+  { code: 'ambivalent', name: 'Ambivalente', emoji: '⚖️', category: 'common', displayOrder: 20 },
+  // 4. Menos comunes (específicos o complejos)
+  { code: 'euthymic', name: 'Eutímico', emoji: '🙂', category: 'less_common', displayOrder: 21 },
+  { code: 'anhedonic', name: 'Anhedónico', emoji: '🫥', category: 'less_common', displayOrder: 22 },
+  { code: 'expansive_hypomanic', name: 'Expansivo / Hipomaníaco', emoji: '😄', category: 'less_common', displayOrder: 23 },
+  { code: 'dissociative', name: 'Disociativo', emoji: '🌫️', category: 'less_common', displayOrder: 24 },
+  // 5. Raros o atípicos
+  { code: 'alexithymic', name: 'Alexitímico', emoji: '😐', category: 'rare', displayOrder: 25 },
+  { code: 'abulic', name: 'Abúlico', emoji: '😴', category: 'rare', displayOrder: 26 },
+  { code: 'ecstatic', name: 'Extático', emoji: '🤩', category: 'rare', displayOrder: 27 },
+  // 6. Carga social (pareja, familia, trabajo)
+  { code: 'guilty', name: 'Culpable', emoji: '😣', category: 'social_load', displayOrder: 28 },
+  { code: 'ashamed', name: 'Avergonzado', emoji: '😳', category: 'social_load', displayOrder: 29 },
+  { code: 'resentful', name: 'Resentido', emoji: '😒', category: 'social_load', displayOrder: 30 },
+  { code: 'lonely', name: 'Solitario', emoji: '🏝️', category: 'social_load', displayOrder: 31 },
+  // 7. Desorientación (crisis de vida)
+  { code: 'lost_disoriented', name: 'Perdido / Desorientado', emoji: '🌀', category: 'disorientation', displayOrder: 32 },
+  { code: 'frustrated', name: 'Frustrado', emoji: '😩', category: 'disorientation', displayOrder: 33 },
+  { code: 'indifferent', name: 'Indiferente', emoji: '😑', category: 'disorientation', displayOrder: 34 },
+  // 8. Alta intensidad (picos emocionales)
+  { code: 'euphoric', name: 'Eufórico', emoji: '🎉', category: 'high_intensity', displayOrder: 35 },
+  { code: 'terrified_panicky', name: 'Aterrado / Pánico', emoji: '😱', category: 'high_intensity', displayOrder: 36 },
+  { code: 'hostile', name: 'Hostil', emoji: '😠', category: 'high_intensity', displayOrder: 37 },
+];
+
+async function seedMoods() {
+  console.log('😊 Seeding Moods (clasificación clínica)...');
+  for (const m of DEFAULT_MOODS) {
+    await prisma.mood.upsert({
+      where: { code: m.code },
+      update: { name: m.name, emoji: m.emoji, category: m.category, displayOrder: m.displayOrder },
+      create: m,
+    });
+  }
+  console.log(`✅ Created/updated ${DEFAULT_MOODS.length} moods`);
+  return DEFAULT_MOODS.map((x) => x.code);
+}
+
 // Seed Therapy Sessions
-async function seedTherapySessions(psychologyRecords: any[], _psychologists: any[]) {
+async function seedTherapySessions(psychologyRecords: any[], _psychologists: any[], moodCodes: string[]) {
   console.log('💬 Seeding Therapy Sessions...');
 
-  const moods = ['calm', 'anxious', 'depressed', 'angry', 'happy', 'neutral', 'irritable'];
   let totalSessions = 0;
 
   for (const psychologyRecord of psychologyRecords) {
@@ -377,13 +441,16 @@ async function seedTherapySessions(psychologyRecords: any[], _psychologists: any
       const sessionDate = new Date(startDate);
       sessionDate.setDate(sessionDate.getDate() + (i * 7)); // Weekly sessions
 
+      const selectedMoods = randomElements(moodCodes, 1, 2);
+      const moodValue = selectedMoods.join(',');
+
       await prisma.therapySession.create({
         data: {
           psychologyRecordId: psychologyRecord.id,
           sessionNumber: i + 1,
           sessionDate,
           sessionDuration: 50,
-          mood: randomElement(moods),
+          mood: moodValue,
           evolutionNotes: faker.lorem.paragraph(),
           patientProgress: faker.lorem.sentence(),
           assignedTasks: Math.random() > 0.3 ? faker.lorem.sentence() : null,
@@ -397,6 +464,29 @@ async function seedTherapySessions(psychologyRecords: any[], _psychologists: any
   }
 
   console.log(`✅ Created ${totalSessions} therapy sessions`);
+}
+
+// Asignar moods a sesiones existentes (vacías o con códigos antiguos)
+async function updateExistingSessionsMoods(moodCodes: string[]) {
+  if (moodCodes.length === 0) return;
+  console.log('🔄 Asignando estados de ánimo a sesiones existentes...');
+  const sessions = await prisma.therapySession.findMany({ select: { id: true, mood: true } });
+  const validCodes = new Set(moodCodes);
+  let updated = 0;
+  for (const session of sessions) {
+    const current = session.mood?.trim() || '';
+    const currentCodes = current ? current.split(',').map((c) => c.trim()).filter(Boolean) : [];
+    const needsUpdate = currentCodes.length === 0 || currentCodes.some((c) => !validCodes.has(c));
+    if (!needsUpdate) continue;
+    const selectedMoods = randomElements(moodCodes, 1, 2);
+    const moodValue = selectedMoods.join(',');
+    await prisma.therapySession.update({
+      where: { id: session.id },
+      data: { mood: moodValue },
+    });
+    updated++;
+  }
+  console.log(`✅ Actualizadas ${updated} sesiones con estados de ánimo`);
 }
 
 // Seed Treatment Plans
@@ -897,12 +987,14 @@ async function main() {
   console.log('🌱 Starting database seeding...\n');
 
   try {
-    // Check if data already exists
+    // Si ya hay datos, solo actualizar moods y asignar a sesiones existentes
     const existingUsers = await prisma.user.count();
     if (existingUsers > 0) {
       console.log(`⚠️  Database already contains ${existingUsers} users.`);
-      console.log('   To re-seed, first reset the database with: npx prisma migrate reset');
-      console.log('   Or manually delete existing data.\n');
+      console.log('   Updating moods and assigning to existing sessions...\n');
+      const moodCodes = await seedMoods();
+      await updateExistingSessionsMoods(moodCodes);
+      console.log('\n✅ Moods and existing sessions updated. To full re-seed, run: npx prisma migrate reset\n');
       return;
     }
 
@@ -920,8 +1012,9 @@ async function main() {
     const medicalRecords = await seedMedicalRecords(patients, admin);
     
     const psychologyRecords = await seedPsychologyRecords(medicalRecords, psychologists);
-    
-    await seedTherapySessions(psychologyRecords, psychologists);
+
+    const moodCodes = await seedMoods();
+    await seedTherapySessions(psychologyRecords, psychologists, moodCodes);
     
     await seedTreatmentPlans(psychologyRecords);
     
@@ -957,7 +1050,7 @@ async function main() {
     console.log('   - Nursing Coordinator: coord.enfermeria@ehr-system.com');
     console.log('   - Psychologist: psicologo1@ehr-system.com');
     console.log('   - Nurse: enfermera1@ehr-system.com');
-    console.log('   - Patient: estudiante1@ehr-system.com');
+    console.log('   - Student (50 per career): estudiante1@ehr-system.com … estudiante600@ehr-system.com');
 
   } catch (error) {
     console.error('❌ Error seeding database:', error);

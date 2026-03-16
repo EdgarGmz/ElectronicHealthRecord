@@ -37,14 +37,16 @@ export async function getAppointments(params: {
   limit?: number
   patientId?: string
   status?: string
+  search?: string
   department?: string
   startDate?: string
   endDate?: string
 } = {}): Promise<AppointmentsResponse> {
-  const { page = 1, limit = 10, patientId, status, department, startDate, endDate } = params
+  const { page = 1, limit = 10, patientId, status, search, department, startDate, endDate } = params
   const sp = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (patientId) sp.set('patientId', patientId)
   if (status) sp.set('status', status)
+  if (search?.trim()) sp.set('search', search.trim())
   if (department) sp.set('department', department)
   if (startDate) sp.set('startDate', startDate)
   if (endDate) sp.set('endDate', endDate)

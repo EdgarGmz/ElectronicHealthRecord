@@ -21,6 +21,7 @@ export class AppointmentService {
       professionalId?: string;
       status?: string;
       department?: string;
+      search?: string;
       startDate?: Date;
       endDate?: Date;
     }
@@ -72,6 +73,21 @@ export class AppointmentService {
       if (filters.endDate) {
         where.scheduledDate.lte = filters.endDate;
       }
+    }
+    if (filters?.search) {
+      const term = filters.search.trim();
+      const searchCondition: Prisma.AppointmentWhereInput = {
+        patient: {
+          user: {
+            OR: [
+              { firstName: { contains: term, mode: 'insensitive' } },
+              { lastName: { contains: term, mode: 'insensitive' } },
+              { email: { contains: term, mode: 'insensitive' } },
+            ],
+          },
+        },
+      };
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), searchCondition];
     }
 
     const [appointments, total] = await Promise.all([

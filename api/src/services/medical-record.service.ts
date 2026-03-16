@@ -341,6 +341,71 @@ export class MedicalRecordService {
     return medicalRecord;
   }
 
+  /**
+   * Asegura que el paciente tenga expediente médico y, si el usuario es psicólogo, expediente de psicología.
+   * Crea lo que falte para que pueda registrarse una sesión. Devuelve el expediente completo.
+   */
+  async ensureExpedientForPatient(patientId: string, userId: string, userRole: string) {
+    const patient = await prisma.patient.findUnique({
+      where: { id: patientId },
+      include: { career: true },
+    });
+    if (!patient) {
+      throw new AppError('Patient not found', 404);
+    }
+
+    const creator = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    const role = creator?.role?.toLowerCase().trim();
+    if (!role || ![ROLES.PSICOLOGO, ROLES.ENFERMERO, ROLES.COORDINADOR_PSICOLOGIA].includes(role)) {
+      throw new AppError('No tiene permiso para crear expedientes', 403);
+    }
+
+    if (role === ROLES.PSICOLOGO) {
+      const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
+      const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
+      const isStudentInScope =
+        patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+      if (!isGeneral && !isStudentInScope) {
+        throw new AppError(
+          'Solo puede crear expedientes para estudiantes de sus carreras asignadas o personal docente/administrativo',
+          403
+        );
+      }
+    }
+
+    let medicalRecord = await prisma.medicalRecord.findUnique({
+      where: { patientId },
+      include: { psychologyRecord: true },
+    });
+
+    if (!medicalRecord) {
+      medicalRecord = await prisma.medicalRecord.create({
+        data: {
+          patientId,
+          createdBy: userId,
+          updatedBy: userId,
+        },
+        include: { psychologyRecord: true },
+      });
+    }
+
+    if (role === ROLES.PSICOLOGO && !medicalRecord.psychologyRecord) {
+      await prisma.psychologyRecord.create({
+        data: {
+          medicalRecordId: medicalRecord.id,
+          suicideRiskLevel: 'none',
+          violenceRiskLevel: 'none',
+          assignedPsychologistId: userId,
+        },
+      });
+    }
+
+    return this.getByPatientId(patientId, userRole, userId);
+  }
+
   async update(
     id: string,
     data: {

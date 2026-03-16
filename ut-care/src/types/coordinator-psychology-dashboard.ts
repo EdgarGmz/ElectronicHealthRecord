@@ -23,6 +23,7 @@ export interface ClinicalMetrics {
   churnNumerator: number
   averageProgressScales: { scale: string; averageChange: number; sampleSize: number }[]
   topDiagnoses: { diagnosis: string; count: number; percent: number }[]
+  moodDistribution: { mood: string; count: number; percent: number }[]
 }
 
 export interface WorkloadItem {

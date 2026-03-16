@@ -9,6 +9,7 @@ import {
   Stethoscope,
   Phone,
   Calendar,
+  Plus,
 } from 'lucide-react'
 import { EmailLink } from '@/components/atoms/EmailLink'
 import { GlassCard } from '@/components/atoms/GlassCard'
@@ -86,21 +87,34 @@ export function PatientExpedientPage() {
       {record && patient && (
         <>
           <GlassCard className="border-[var(--color-primary)]/20">
-            <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15">
-                <User className="text-[var(--color-primary)]" size={28} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-bold text-[var(--text-primary)]">{fullName}</h1>
-                <p className="mt-1 text-[var(--text-secondary)]">
-                  {t('expedient.title')} · <EmailLink email={patient.user.email} />
-                </p>
-                {patient.user.enrollmentNumber && (
-                  <p className="mt-0.5 text-sm text-[var(--text-muted)]">
-                    {t('patients.enrollment')}: {patient.user.enrollmentNumber}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15">
+                  <User className="text-[var(--color-primary)]" size={28} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)]">{fullName}</h1>
+                  <p className="mt-1 text-[var(--text-secondary)]">
+                    {t('expedient.title')} · <EmailLink email={patient.user.email} />
                   </p>
-                )}
+                  {patient.user.enrollmentNumber && (
+                    <p className="mt-0.5 text-sm text-[var(--text-muted)]">
+                      {t('patients.enrollment')}: {patient.user.enrollmentNumber}
+                    </p>
+                  )}
+                </div>
               </div>
+              <Link
+                to={
+                  record.psychologyRecord
+                    ? `/sessions/new?psychologyRecordId=${encodeURIComponent(record.psychologyRecord.id)}`
+                    : '/sessions/new'
+                }
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+              >
+                <Plus size={18} aria-hidden />
+                {t('expedient.newSession')}
+              </Link>
             </div>
           </GlassCard>
 

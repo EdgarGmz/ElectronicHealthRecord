@@ -11,7 +11,7 @@ export const createPsychometricTestValidation = [
   body('standardScore').optional().isDecimal().withMessage('Standard score must be a decimal number'),
   body('percentile').optional().isInt({ min: 0, max: 100 }).withMessage('Percentile must be between 0 and 100'),
   body('interpretation').optional().isString(),
-  body('fileUrl').optional().isURL().withMessage('File URL must be a valid URL'),
+  body('fileUrl').optional().isString().isLength({ max: 500 }).withMessage('File URL must be a string up to 500 characters'),
 ];
 
 export const updatePsychometricTestValidation = [
@@ -22,7 +22,7 @@ export const updatePsychometricTestValidation = [
   body('standardScore').optional().isDecimal().withMessage('Standard score must be a decimal number'),
   body('percentile').optional().isInt({ min: 0, max: 100 }).withMessage('Percentile must be between 0 and 100'),
   body('interpretation').optional().isString(),
-  body('fileUrl').optional().isURL().withMessage('File URL must be a valid URL'),
+  body('fileUrl').optional().isString().isLength({ max: 500 }).withMessage('File URL must be a string up to 500 characters'),
 ];
 
 export const getPsychometricTests = async (

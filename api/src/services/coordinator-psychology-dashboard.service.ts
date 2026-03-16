@@ -44,6 +44,7 @@ export interface ClinicalMetrics {
   churnNumerator: number;
   averageProgressScales: { scale: string; averageChange: number; sampleSize: number }[];
   topDiagnoses: { diagnosis: string; count: number; percent: number }[];
+  moodDistribution: { mood: string; count: number; percent: number }[];
 }
 
 export interface WorkloadItem {
@@ -127,7 +128,7 @@ export async function getCoordinatorPsychologyDashboardData(
     },
   });
 
-  const [appointmentsToday, sessionCountsPerRecord, churnData, scaleProgress, diagnoses, therapistHours, lastSessions] =
+  const [appointmentsToday, sessionCountsPerRecord, churnData, scaleProgress, diagnoses, therapistHours, lastSessions, sessionMoods] =
     await Promise.all([
       prisma.appointment.findMany({
         where: {
@@ -182,6 +183,9 @@ export async function getCoordinatorPsychologyDashboardData(
         },
         select: { psychologyRecordId: true, sessionDate: true },
         orderBy: { sessionDate: 'desc' },
+      }),
+      prisma.therapySession.findMany({
+        select: { mood: true },
       }),
     ]);
 
@@ -278,6 +282,33 @@ export async function getCoordinatorPsychologyDashboardData(
       percent: totalD > 0 ? Math.round((count / totalD) * 100) : 0,
     }));
 
+  const moodCount: Record<string, number> = {};
+  for (const s of sessionMoods) {
+    const raw = (s.mood || '').trim();
+    if (!raw) continue;
+    const codes = raw.split(',').map((c) => c.trim()).filter(Boolean);
+    for (const code of codes) {
+      moodCount[code] = (moodCount[code] || 0) + 1;
+    }
+  }
+  const totalMoods = Object.values(moodCount).reduce((a, b) => a + b, 0);
+  const sortedMoods = Object.entries(moodCount).sort((a, b) => b[1] - a[1]);
+  const topMoodEntries = sortedMoods.slice(0, 10);
+  const topMoodDistribution = topMoodEntries.map(([mood, count]) => ({
+    mood,
+    count,
+    percent: totalMoods > 0 ? Math.round((count / totalMoods) * 100) : 0,
+  }));
+  const othersEntries = sortedMoods.slice(10);
+  const othersCount = othersEntries.reduce((sum, [, count]) => sum + count, 0);
+  if (othersCount > 0) {
+    topMoodDistribution.push({
+      mood: 'others',
+      count: othersCount,
+      percent: totalMoods > 0 ? Math.round((othersCount / totalMoods) * 100) : 0,
+    });
+  }
+
   const therapistIds = [...new Set(therapistHours.map((t) => t.therapistId))];
   const therapists = await prisma.user.findMany({
     where: { id: { in: therapistIds }, role: ROLES.PSICOLOGO },
@@ -308,6 +339,7 @@ export async function getCoordinatorPsychologyDashboardData(
       churnNumerator,
       averageProgressScales,
       topDiagnoses,
+      moodDistribution: topMoodDistribution,
     },
     workload,
     groundingPhrase,

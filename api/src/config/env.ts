@@ -44,8 +44,11 @@ export const config = {
   rateLimit: {
     /** Ventana en ms (default 15 min). Aumentar para más tolerancia. */
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-    /** Máximo de peticiones por IP en la ventana (default 400). Ajustar con RATE_LIMIT_MAX_REQUESTS. */
-    maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '400', 10),
+    /** Máximo de peticiones por IP en la ventana. Desarrollo: 2000 para evitar 429 con calendario/dashboard; producción: 400. */
+    maxRequests: parseInt(
+      process.env.RATE_LIMIT_MAX_REQUESTS || (isProduction ? '400' : '2000'),
+      10
+    ),
   },
   
   upload: {

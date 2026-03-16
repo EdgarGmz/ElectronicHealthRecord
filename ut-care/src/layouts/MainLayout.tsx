@@ -16,6 +16,7 @@ function getModuleKey(pathname: string): string {
   const segment = pathname.split('/').filter(Boolean)[0] ?? ''
   if (!segment) return 'nav.dashboard'
   const map: Record<string, string> = {
+    calendar: 'nav.calendar',
     supervision: 'nav.supervision',
     patients: 'nav.patients',
     appointments: 'nav.appointments',

@@ -52,11 +52,13 @@ export const getAppointments = async (
       return uuidRegex.test(value) ? value : undefined;
     };
 
+    const search = (req.query.search as string)?.trim();
     const filters: {
       patientId?: string;
       professionalId?: string;
       status?: string;
       department?: string;
+      search?: string;
       startDate?: Date;
       endDate?: Date;
     } = {
@@ -64,6 +66,7 @@ export const getAppointments = async (
       professionalId: validateUUID(req.query.professionalId as string),
       status: req.query.status as string,
       department: req.query.department as string,
+      search: search || undefined,
       startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
       endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
     };
