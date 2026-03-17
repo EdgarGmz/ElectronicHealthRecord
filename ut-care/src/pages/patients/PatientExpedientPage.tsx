@@ -17,6 +17,8 @@ import { PhoneWhatsAppLink } from '@/components/atoms/PhoneWhatsAppLink'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { getMedicalRecordByPatientId } from '@/services/medical-record.service'
+import { useAuthStore } from '@/store/auth.store'
+import { ROLES } from '@/constants/roles'
 import type { MedicalRecord, NursingConsultation } from '@/types/medical-record'
 
 function formatDate(iso: string | null | undefined): string {
@@ -41,6 +43,8 @@ function nurseName(n: NursingConsultation): string {
 export function PatientExpedientPage() {
   const { id: patientId } = useParams<{ id: string }>()
   const { t } = useTranslation()
+  const user = useAuthStore((s) => s.user)
+  const canStartSession = user?.role === ROLES.PSICOLOGO
   const [record, setRecord] = useState<MedicalRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -104,17 +108,19 @@ export function PatientExpedientPage() {
                   )}
                 </div>
               </div>
-              <Link
-                to={
-                  record.psychologyRecord
-                    ? `/sessions/new?psychologyRecordId=${encodeURIComponent(record.psychologyRecord.id)}`
-                    : '/sessions/new'
-                }
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
-              >
-                <Plus size={18} aria-hidden />
-                {t('expedient.newSession')}
-              </Link>
+              {canStartSession && (
+                <Link
+                  to={
+                    record.psychologyRecord
+                      ? `/sessions/new?psychologyRecordId=${encodeURIComponent(record.psychologyRecord.id)}`
+                      : '/sessions/new'
+                  }
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+                >
+                  <Plus size={18} aria-hidden />
+                  {t('expedient.newSession')}
+                </Link>
+              )}
             </div>
           </GlassCard>
 

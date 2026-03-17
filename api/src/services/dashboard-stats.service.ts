@@ -3,6 +3,60 @@ import prisma from '../config/database';
 
 export type PeriodType = 'day' | 'month' | 'year';
 
+export interface NursingKpis {
+  patientsAttended: number;
+  suppliesConsumed: number;
+}
+
+function getTodayRange(): { start: Date; end: Date } {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  return { start, end };
+}
+
+function getLastNDaysRange(days: number): { start: Date; end: Date } {
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
+  start.setHours(0, 0, 0, 0);
+  return { start, end };
+}
+
+function getYearToDateRange(): { start: Date; end: Date } {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  return { start, end };
+}
+
+export async function getNursingKpisForRange(startDate: Date, endDate: Date): Promise<NursingKpis> {
+  const [patientsAttended, suppliesConsumed] = await Promise.all([
+    prisma.nursingConsultation.findMany({
+      where: { consultationDate: { gte: startDate, lte: endDate } },
+      select: { medicalRecordId: true },
+    }).then((rows) => new Set(rows.map((r) => r.medicalRecordId)).size),
+    prisma.medicationAdministration.count({
+      where: { administrationDate: { gte: startDate, lte: endDate } },
+    }),
+  ]);
+  return { patientsAttended, suppliesConsumed };
+}
+
+export async function getNursingKpis(): Promise<{ day: NursingKpis; week: NursingKpis; year: NursingKpis }> {
+  const { start: dayStart, end: dayEnd } = getTodayRange();
+  const { start: weekStart, end: weekEnd } = getLastNDaysRange(7);
+  const { start: yearStart, end: yearEnd } = getYearToDateRange();
+
+  const [day, week, year] = await Promise.all([
+    getNursingKpisForRange(dayStart, dayEnd),
+    getNursingKpisForRange(weekStart, weekEnd),
+    getNursingKpisForRange(yearStart, yearEnd),
+  ]);
+  return { day, week, year };
+}
+
 export interface DashboardChartParams {
   periodType: PeriodType;
   startDate: Date;
@@ -297,4 +351,54 @@ export async function getDashboardChartData(params: DashboardChartParams): Promi
     heatmap,
     timeline,
   };
+}
+
+export async function getNursingPatientsSeriesFiltered(params: {
+  periodType: PeriodType;
+  startDate: Date;
+  endDate: Date;
+  careerId?: string;
+  includeGeneral?: boolean;
+  sex?: 'male' | 'female';
+}): Promise<{ period: string; count: number }[]> {
+  const { periodType, startDate, endDate, careerId, includeGeneral, sex } = params;
+  const trunc = periodType === 'day' ? 'day' : periodType === 'month' ? 'month' : 'year';
+  const format = periodType === 'day' ? 'YYYY-MM-DD' : periodType === 'month' ? 'YYYY-MM' : 'YYYY';
+  const truncRaw = Prisma.raw(`'${trunc}'`);
+
+  const whereParts: Prisma.Sql[] = [
+    Prisma.sql`nc.consultation_date >= ${startDate} AND nc.consultation_date <= ${endDate}`,
+  ];
+
+  if (sex) {
+    whereParts.push(Prisma.sql`u.sex = ${sex}`);
+  }
+
+  if (careerId?.trim()) {
+    whereParts.push(Prisma.sql`p.patient_type = 'student' AND p.career_id = ${careerId.trim()}::uuid`);
+  } else if (includeGeneral) {
+    whereParts.push(Prisma.sql`p.patient_type IN ('faculty', 'administrative')`);
+  }
+
+  const whereSql =
+    whereParts.length > 0
+      ? Prisma.sql`WHERE ${Prisma.join(whereParts, ' AND ')}`
+      : Prisma.empty;
+
+  const result = await prisma.$queryRaw<{ period: Date; count: bigint }[]>`
+    SELECT date_trunc(${truncRaw}, nc.consultation_date::date)::date AS period,
+           count(DISTINCT p.id)::bigint AS count
+    FROM nursing_consultations nc
+    INNER JOIN medical_records mr ON mr.id = nc.medical_record_id
+    INNER JOIN patients p ON p.id = mr.patient_id
+    INNER JOIN users u ON u.id = p.user_id
+    ${whereSql}
+    GROUP BY date_trunc(${truncRaw}, nc.consultation_date::date)::date
+    ORDER BY period
+  `;
+
+  return result.map((row) => ({
+    period: formatPeriod(row.period, format),
+    count: Number(row.count),
+  }));
 }

@@ -41,3 +41,22 @@ export async function createNursingProcedure(
   )
   return data.data
 }
+
+export interface CreateNursingProcedureFromPatientInput {
+  procedureType: string
+  procedureDate: string
+  description: string
+  materialsUsed?: string
+  observations?: string
+}
+
+export async function createNursingProcedureFromPatient(
+  patientId: string,
+  body: CreateNursingProcedureFromPatientInput
+): Promise<NursingProcedure> {
+  const { data } = await api.post<{ success: boolean; data: NursingProcedure }>(
+    '/nursing-procedures/from-patient',
+    { patientId, ...body }
+  )
+  return data.data
+}

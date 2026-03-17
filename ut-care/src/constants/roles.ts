@@ -20,8 +20,22 @@ export const ROLES_VISIBLE_IN_USERS: readonly string[] = [
   ROLES.ENFERMERO,
 ]
 
-/** Pueden crear pacientes nuevos. Coordinadores solo consultan, no crean ni editan. */
+/** Solo coordinadores pueden crear pacientes. Psicólogo y enfermero solo consultan y editan. */
 export const ROLES_CAN_CREATE_PATIENT: readonly string[] = [
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
+]
+
+/** Solo coordinadores pueden eliminar (desactivar) pacientes. */
+export const ROLES_CAN_DELETE_PATIENTS: readonly string[] = [
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
+]
+
+/** Pueden editar pacientes (coordinadores + psicólogo + enfermero). */
+export const ROLES_CAN_EDIT_PATIENT: readonly string[] = [
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ]
@@ -89,16 +103,17 @@ const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/supervision': [ROLES.COORDINADOR_PSICOLOGIA],
   // Admin is an auditor; hide operational modules from admin UI
   '/patients': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
-  /** Coordinadores no tienen acceso al módulo Citas; solo psicólogo y enfermero operativos */
-  '/appointments': [ROLES.PSICOLOGO, ROLES.ENFERMERO],
+  /** Coordinadores y enfermero no tienen acceso al módulo Citas; solo psicólogo operativo */
+  '/appointments': [ROLES.PSICOLOGO],
   /** Sesiones de terapia: solo psicólogo (exclusivo de psicología) */
   '/sessions': [ROLES.PSICOLOGO],
   '/medications': [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO],
   '/procedures': [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO],
+  '/nursing-attention': [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO],
   '/interconsultations': [],
   '/reports': [],
-  /** Evaluaciones psicométricas: solo psicólogo y enfermero (no coordinador de enfermería). */
-  '/evaluations': [ROLES.PSICOLOGO, ROLES.ENFERMERO],
+  /** Evaluaciones psicométricas: solo psicólogo. */
+  '/evaluations': [ROLES.PSICOLOGO],
   '/notifications': [],
   '/users': [ROLES.ADMIN],
   '/audit-logs': [ROLES.ADMIN],
@@ -140,10 +155,15 @@ export function canAccessPath(pathname: string, role: string | undefined): boole
   if (normalized.startsWith(EXPEDIENT_PATH_PREFIX) && normalized.includes('/expedient')) {
     return canAccessExpedient(role)
   }
-  // Solo roles que pueden crear pacientes acceden a /patients/new
+  // Solo coordinadores acceden a /patients/new
   if (normalized === '/patients/new') {
     const r = normalizeRole(role)
     return r ? ROLES_CAN_CREATE_PATIENT.includes(r) : false
+  }
+  // Editar paciente: coordinadores, psicólogo y enfermero
+  if (normalized.match(/^\/patients\/[^/]+\/edit$/)) {
+    const r = normalizeRole(role)
+    return r ? ROLES_CAN_EDIT_PATIENT.includes(r) : false
   }
   // Solo roles que pueden crear citas acceden a /appointments/new; list y detalle los ve quien tenga nav
   if (normalized === '/appointments/new') {

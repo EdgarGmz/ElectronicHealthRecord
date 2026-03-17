@@ -24,26 +24,34 @@ export const STAFF_ROLES = [
   ROLES.ENFERMERO,
 ] as const;
 
-/** Pueden crear/editar pacientes (admin solo puede ver). Enfermero no puede eliminar. */
+/** Pueden editar pacientes (coordinadores + psicólogo + enfermero). */
 export const ROLES_CAN_MANAGE_PATIENTS = [
   ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ] as const;
 
-/** Pueden crear pacientes nuevos. Coordinadores solo consultan, no crean. */
+/** Solo coordinadores pueden crear pacientes nuevos. Psicólogo y enfermero solo consultan/editan. */
 export const ROLES_CAN_CREATE_PATIENT = [
-  ROLES.PSICOLOGO,
-  ROLES.ENFERMERO,
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
 ] as const;
 
-/** Pueden eliminar (desactivar) pacientes. Enfermero solo crea/edita, no elimina. */
-export const ROLES_CAN_DELETE_PATIENTS = [ROLES.COORDINADOR_PSICOLOGIA, ROLES.PSICOLOGO] as const;
+/** Solo coordinadores pueden eliminar (desactivar) pacientes. */
+export const ROLES_CAN_DELETE_PATIENTS = [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA] as const;
 
 /** Pueden acceder (ver) expedientes médicos. Coordinadores solo ven historial en ficha de paciente, no el expediente completo. */
 export const ROLES_CAN_ACCESS_MEDICAL_RECORDS = [
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
+] as const;
+
+/** Pueden consultar expediente por patientId (incl. coordinador psicología para historial médico en ficha de paciente). */
+export const ROLES_CAN_READ_MEDICAL_RECORD_BY_PATIENT = [
+  ROLES.PSICOLOGO,
+  ROLES.ENFERMERO,
+  ROLES.COORDINADOR_PSICOLOGIA,
 ] as const;
 
 /** Pueden crear expedientes médicos (coordinador enfermería no crea; solo ve los de pacientes ya registrados en enfermería). */
@@ -135,10 +143,18 @@ export const ROLES_VISIBLE_IN_USERS = [
 /** Solo admin tiene CRUD completo de carreras */
 export const ROLES_CAREER_CRUD = [ROLES.ADMIN] as const;
 
-/** Pueden ver listado y detalle de procedimientos de enfermería. Solo enfermería (coordinador y enfermero). */
+/** Pueden ver listado y detalle de procedimientos de enfermería. Psicología solo lectura para historial médico en ficha. */
 export const ROLES_CAN_ACCESS_NURSING_PROCEDURES = [
   ROLES.COORDINADOR_ENFERMERIA,
   ROLES.ENFERMERO,
+] as const;
+
+/** Pueden leer atenciones/procedimientos de enfermería (listado y detalle), p. ej. para pestaña Historial Médico. */
+export const ROLES_CAN_READ_NURSING_HISTORY = [
+  ROLES.COORDINADOR_ENFERMERIA,
+  ROLES.ENFERMERO,
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.PSICOLOGO,
 ] as const;
 
 /** Pueden crear procedimientos de enfermería (en el contexto de una consulta de enfermería). */

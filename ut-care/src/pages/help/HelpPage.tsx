@@ -18,6 +18,7 @@ const MODULES_WITH_HELP: { to: string; key: string; helpKey: string }[] = [
   { to: '/patients', key: 'nav.patients', helpKey: 'help.patients' },
   { to: '/appointments', key: 'nav.appointments', helpKey: 'help.appointments' },
   { to: '/sessions', key: 'nav.sessions', helpKey: 'help.sessions' },
+  { to: '/nursing-attention', key: 'nav.nursingAttention', helpKey: 'help.nursingAttention' },
   { to: '/medications', key: 'nav.medications', helpKey: 'help.medications' },
   { to: '/procedures', key: 'nav.procedures', helpKey: 'help.procedures' },
   { to: '/interconsultations', key: 'nav.interconsultations', helpKey: 'help.interconsultations' },
@@ -33,6 +34,7 @@ export function HelpPage() {
   const isCoordinatorPsychology = role === ROLES.COORDINADOR_PSICOLOGIA
   const isCoordinatorNursing = role === ROLES.COORDINADOR_ENFERMERIA
   const isPsychologist = role === ROLES.PSICOLOGO
+  const isNurse = role === ROLES.ENFERMERO
 
   const visibleModules = useMemo(
     () => MODULES_WITH_HELP.filter((m) => canSeeNavItem(m.to, role)),
@@ -147,6 +149,38 @@ export function HelpPage() {
               { key: 'nav.notifications', help: 'help.coordinatorNursing.notifications' },
               { key: 'nav.profile', help: 'help.coordinatorNursing.profile' },
               { key: 'nav.help', help: 'help.coordinatorNursing.help' },
+            ].map((item, i) => (
+              <li
+                key={item.key}
+                className="help-list-item rounded-lg border border-transparent bg-[var(--bg)]/30 px-3 py-2 transition-colors hover:border-[var(--border)] hover:bg-[var(--bg)]/50"
+                style={listItemStyle(i)}
+              >
+                <strong className="text-[var(--text-primary)]">{t(item.key)}:</strong> {t(item.help)}
+              </li>
+            ))}
+          </ul>
+        </GlassCard>
+      )}
+
+      {isNurse && (
+        <GlassCard className="opacity-0 help-animate-in help-stagger-1 rounded-2xl border-l-4 border-l-[#0d9488] transition-all duration-300 hover:shadow-xl">
+          <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold text-[var(--text-primary)]">
+            <Stethoscope size={20} className="text-[#0d9488]" />
+            {t('help.nurse.title')}
+          </h2>
+          <p className="mb-4 text-sm text-[var(--text-secondary)]">{t('help.nurse.intro')}</p>
+          <ul className="space-y-2.5 text-sm text-[var(--text-secondary)]">
+            {[
+              { key: 'nav.dashboard', help: 'help.nurse.dashboard' },
+              { key: 'nav.patients', help: 'help.nurse.patients' },
+              { key: 'nav.nursingAttention', help: 'help.nurse.nursingAttention' },
+              { key: 'nav.medications', help: 'help.nurse.medications' },
+              { key: 'nav.procedures', help: 'help.nurse.procedures' },
+              { key: 'nav.interconsultations', help: 'help.nurse.interconsultations' },
+              { key: 'nav.reports', help: 'help.nurse.reports' },
+              { key: 'nav.notifications', help: 'help.nurse.notifications' },
+              { key: 'nav.profile', help: 'help.nurse.profile' },
+              { key: 'nav.help', help: 'help.nurse.help' },
             ].map((item, i) => (
               <li
                 key={item.key}
@@ -284,6 +318,34 @@ export function HelpPage() {
                   <Link to="/procedures" className={linkButtonClass}>
                     <Stethoscope size={18} className="transition-transform group-hover:scale-110" />
                     {t('nav.procedures')}
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                </>
+              ) : isNurse ? (
+                <>
+                  <Link to="/patients" className={linkButtonClass}>
+                    <Users size={18} className="transition-transform group-hover:scale-110" />
+                    {t('help.goToPatients')}
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link to="/nursing-attention" className={linkButtonClass}>
+                    <Stethoscope size={18} className="transition-transform group-hover:scale-110" />
+                    {t('nav.nursingAttention')}
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link to="/medications" className={linkButtonClass}>
+                    <Pill size={18} className="transition-transform group-hover:scale-110" />
+                    {t('nav.medications')}
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link to="/procedures" className={linkButtonClass}>
+                    <Stethoscope size={18} className="transition-transform group-hover:scale-110" />
+                    {t('nav.procedures')}
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link to="/reports" className={linkButtonClass}>
+                    <FileText size={18} className="transition-transform group-hover:scale-110" />
+                    {t('nav.reports')}
                     <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 </>

@@ -8,15 +8,10 @@ const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
 const STUDENTS_PER_CAREER = 50;
 
-// Role distribution for staff (percentages of a base count; students are 50 per career)
-const ROLE_DISTRIBUTION = {
-  PSYCHOLOGIST: 0.10,     // 10% of base
-  NURSE: 0.05,            // 5% of base
-  PSYCHOLOGY_COORDINATOR: 1,
-  NURSING_COORDINATOR: 1,
-  SYSTEM_ADMIN: 1,
-};
-const STAFF_BASE_COUNT = 62; // used only for psychologist/nurse counts
+// (ROLE_DISTRIBUTION / STAFF_BASE_COUNT unused after seedDev/seedProd; kept for reference)
+
+// Default password for all seeded users (dev and prod). Documented in README.
+const DEFAULT_SEED_PASSWORD = 'Password123!';
 
 // Helper function to hash passwords
 async function hashPassword(password: string): Promise<string> {
@@ -72,139 +67,7 @@ async function seedCareers() {
   return createdCareers;
 }
 
-// Seed Users with role distribution
-async function seedUsers(careers: any[]) {
-  console.log('👥 Seeding Users...');
-
-  const users = [];
-  const defaultPassword = await hashPassword('Password123!');
-
-  // 50 students per career; staff from base count
-  const numPatients = careers.length * STUDENTS_PER_CAREER;
-  const numPsychologists = Math.floor(STAFF_BASE_COUNT * ROLE_DISTRIBUTION.PSYCHOLOGIST);
-  const numNurses = Math.floor(STAFF_BASE_COUNT * ROLE_DISTRIBUTION.NURSE);
-
-  // Create System Admin
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@ehr-system.com' },
-    update: {},
-    create: {
-      email: 'admin@ehr-system.com',
-      passwordHash: defaultPassword,
-      firstName: 'Sistema',
-      lastName: 'Administrador',
-      dateOfBirth: faker.date.past({ years: 40 }),
-      phone: faker.string.numeric(10),
-      role: 'admin',
-      isActive: true,
-    },
-  });
-  users.push(admin);
-
-  // Create Psychology Coordinator
-  const psychCoordinator = await prisma.user.upsert({
-    where: { email: 'coord.psicologia@ehr-system.com' },
-    update: {},
-    create: {
-      email: 'coord.psicologia@ehr-system.com',
-      passwordHash: defaultPassword,
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
-      dateOfBirth: faker.date.past({ years: 40 }),
-      phone: faker.string.numeric(10),
-      role: 'coordinador_psicologia',
-      isActive: true,
-    },
-  });
-  users.push(psychCoordinator);
-
-  // Create Nursing Coordinator
-  const nurseCoordinator = await prisma.user.upsert({
-    where: { email: 'coord.enfermeria@ehr-system.com' },
-    update: {},
-    create: {
-      email: 'coord.enfermeria@ehr-system.com',
-      passwordHash: defaultPassword,
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
-      dateOfBirth: faker.date.past({ years: 40 }),
-      phone: faker.string.numeric(10),
-      role: 'coordinador_enfermeria',
-      isActive: true,
-    },
-  });
-  users.push(nurseCoordinator);
-
-  // Create Psychologists
-  const psychologists = [];
-  for (let i = 0; i < numPsychologists; i++) {
-    const email = `psicologo${i + 1}@ehr-system.com`;
-    const psychologist = await prisma.user.upsert({
-      where: { email },
-      update: {},
-      create: {
-        email,
-        passwordHash: defaultPassword,
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        dateOfBirth: faker.date.past({ years: 35 }),
-        phone: faker.string.numeric(10),
-        role: 'psicologo',
-        isActive: true,
-      },
-    });
-    psychologists.push(psychologist);
-    users.push(psychologist);
-  }
-
-  // Create Nurses
-  const nurses = [];
-  for (let i = 0; i < numNurses; i++) {
-    const email = `enfermera${i + 1}@ehr-system.com`;
-    const nurse = await prisma.user.upsert({
-      where: { email },
-      update: {},
-      create: {
-        email,
-        passwordHash: defaultPassword,
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        dateOfBirth: faker.date.past({ years: 35 }),
-        phone: faker.string.numeric(10),
-        role: 'enfermero',
-        isActive: true,
-      },
-    });
-    nurses.push(nurse);
-    users.push(nurse);
-  }
-
-  // Create Patients
-  const patients = [];
-  for (let i = 0; i < numPatients; i++) {
-    const email = `estudiante${i + 1}@ehr-system.com`;
-    const user = await prisma.user.upsert({
-      where: { email },
-      update: {},
-      create: {
-        email,
-        passwordHash: defaultPassword,
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        dateOfBirth: faker.date.past({ years: 25, refDate: new Date('2005-01-01') }),
-        phone: faker.string.numeric(10),
-        enrollmentNumber: faker.string.alphanumeric(10).toUpperCase(),
-        role: 'patient',
-        isActive: true,
-      },
-    });
-    patients.push(user);
-    users.push(user);
-  }
-
-  console.log(`✅ Created ${users.length} users (${numPatients} students, ${numPsychologists} psychologists, ${numNurses} nurses, 3 coordinators/admins)`);
-  return { users, patients, psychologists, nurses, admin, psychCoordinator, nurseCoordinator };
-}
+// (seedUsers original ya no se usa; la lógica se movió a seedDev con datos específicos)
 
 // Seed Patients (50 students per career; each user is assigned to career by index)
 async function seedPatients(patientUsers: any[], careers: any[]) {
@@ -226,7 +89,7 @@ async function seedPatients(patientUsers: any[], careers: any[]) {
         patientType: 'student',
         maritalStatus: randomElement(maritalStatuses),
         guardianName: Math.random() > 0.5 ? faker.person.fullName() : undefined,
-        guardianPhone: Math.random() > 0.5 ? faker.string.numeric(10) : undefined,
+        guardianPhone: faker.string.numeric(10),
         careerId: career.id,
         group: faker.string.alphanumeric(3).toUpperCase(),
         trimester: Math.floor(Math.random() * 12) + 1,
@@ -982,76 +845,137 @@ async function seedNotifications(users: any[]) {
   console.log(`✅ Created ${totalNotifications} notifications`);
 }
 
+// ---------- Seed DEV: datos de prueba (usuarios fijos + 500 alumnos + datos relacionados) ----------
+async function seedDev() {
+  const careers = await seedCareers();
+  const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
+
+  const staffDev = [
+    { firstName: 'Xochilt Clara', lastName: 'Villar Diego', email: 'admin@ehr-system.com', role: 'admin' as const, enrollmentNumber: 'ADM001' },
+    { firstName: 'Edgar Tiburcio', lastName: 'Gomez Moran', email: 'edgar.tiburcio@ehr-system.com', role: 'coordinador_enfermeria' as const, enrollmentNumber: 'COE001' },
+    { firstName: 'Orlando de Jesus', lastName: 'Casas Davila', email: 'orlando.casas@ehr-system.com', role: 'coordinador_psicologia' as const, enrollmentNumber: 'COP001' },
+    { firstName: 'Carlos Alexis', lastName: 'Rodriguez Garcia', email: 'carlos.rodriguez@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI001' },
+    { firstName: 'Daniela Mayte', lastName: 'Guevara Castillo', email: 'daniela.guevara@ehr-system.com', role: 'enfermero' as const, enrollmentNumber: 'ENF001' },
+  ];
+
+  console.log('👤 Seeding DEV staff users (with password)...');
+  const staffUsers: any[] = [];
+  for (const s of staffDev) {
+    const user = await prisma.user.upsert({
+      where: { email: s.email },
+      update: { passwordHash: defaultPasswordHash },
+      create: {
+        email: s.email,
+        passwordHash: defaultPasswordHash,
+        firstName: s.firstName,
+        lastName: s.lastName,
+        dateOfBirth: new Date('1990-01-15'),
+        role: s.role,
+        enrollmentNumber: s.enrollmentNumber,
+        sex: Math.random() < 0.5 ? 'male' : 'female',
+        phone: faker.string.numeric(10),
+      },
+    });
+    staffUsers.push(user);
+  }
+  console.log(`✅ Created/updated ${staffUsers.length} staff users`);
+
+  console.log('👥 Seeding DEV student users (500, with password)...');
+  const patientUsers: any[] = [];
+  for (let i = 0; i < 500; i++) {
+    const enrollment = String(1000 + i);
+    const user = await prisma.user.create({
+      data: {
+        email: `alumno.${enrollment}@utcare.local`,
+        passwordHash: defaultPasswordHash,
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        dateOfBirth: faker.date.birthdate({ min: 18, max: 45, mode: 'age' }),
+        role: 'patient',
+        enrollmentNumber: enrollment,
+        sex: Math.random() < 0.5 ? 'male' : 'female',
+        phone: faker.string.numeric(10),
+      },
+    });
+    patientUsers.push(user);
+  }
+  console.log(`✅ Created ${patientUsers.length} student users`);
+
+  const patients = await seedPatients(patientUsers, careers);
+  const admin = staffUsers.find((u) => u.role === 'admin')!;
+  const psychologists = staffUsers.filter((u) => u.role === 'psicologo');
+  const nurses = staffUsers.filter((u) => u.role === 'enfermero');
+
+  await seedPsychologistCareers(psychologists, careers);
+  await seedEmergencyContacts(patients);
+  const medicalRecords = await seedMedicalRecords(patients, admin);
+  const psychologyRecords = await seedPsychologyRecords(medicalRecords, psychologists);
+  const moodCodes = await seedMoods();
+  await seedTherapySessions(psychologyRecords, psychologists, moodCodes);
+  await updateExistingSessionsMoods(moodCodes);
+  await seedTreatmentPlans(psychologyRecords);
+  await seedPsychometricEvaluations(psychologyRecords, psychologists);
+  const consultations = await seedNursingConsultations(medicalRecords, nurses);
+  await seedNursingProcedures(consultations, nurses);
+  const medications = await seedMedications();
+  await seedPrescriptions(patients, medications, nurses, psychologists);
+  await seedMedicationAdministration(consultations, medications, nurses);
+  await seedAppointments(patients, [...psychologists, ...nurses], nurses);
+  await seedProfessionalSchedules(psychologists, nurses);
+  await seedInterconsultations(patients, psychologists, nurses);
+  await seedNotifications([...staffUsers, ...patientUsers]);
+
+  console.log('✅ Seed DEV completed. All users have password: ' + DEFAULT_SEED_PASSWORD);
+}
+
+// ---------- Seed PROD: solo carreras + usuarios de staff (todos con contraseña) ----------
+async function seedProd() {
+  await seedCareers();
+  const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
+
+  const staffProd = [
+    { firstName: 'Sergio David', lastName: 'Elizondo Saldivar', email: 'sergio.elizondo@ehr-system.com', role: 'coordinador_psicologia' as const },
+    { firstName: 'Aida Nohemi', lastName: 'Quintero Sanchez', email: 'aida.quintero@ehr-system.com', role: 'psicologo' as const },
+    { firstName: 'Maria Teresa Guadalupe', lastName: 'del Angel Monte Mayor', email: 'maria.delangel@ehr-system.com', role: 'psicologo' as const },
+    { firstName: 'Carlos Osiel', lastName: 'Dominguez Fuentes', email: 'carlos.dominguez@ehr-system.com', role: 'psicologo' as const },
+    { firstName: 'Silvia', lastName: 'Treviño', email: 'silvia.trevino@ehr-system.com', role: 'psicologo' as const },
+    { firstName: 'Daniela', lastName: 'Tellez Lozano', email: 'daniela.tellez@ehr-system.com', role: 'psicologo' as const },
+    { firstName: 'Alma Patricia', lastName: 'Montoya Valdez', email: 'alma.montoya@ehr-system.com', role: 'enfermero' as const },
+    { firstName: 'Jazmin Alejandra', lastName: 'Parroquin Luna', email: 'jazmin.parroquin@ehr-system.com', role: 'enfermero' as const },
+    { firstName: 'Ivan Javier', lastName: 'Treviño Hernandez', email: 'ivan.trevino@ehr-system.com', role: 'coordinador_enfermeria' as const },
+  ];
+
+  console.log('👤 Seeding PROD staff users (with password)...');
+  for (const s of staffProd) {
+    await prisma.user.upsert({
+      where: { email: s.email },
+      update: { passwordHash: defaultPasswordHash },
+      create: {
+        email: s.email,
+        passwordHash: defaultPasswordHash,
+        firstName: s.firstName,
+        lastName: s.lastName,
+        dateOfBirth: new Date('1985-06-01'),
+        role: s.role,
+        sex: Math.random() < 0.5 ? 'male' : 'female',
+      },
+    });
+  }
+  console.log(`✅ Created/updated ${staffProd.length} PROD staff users`);
+  console.log('✅ Seed PROD completed. All users have password: ' + DEFAULT_SEED_PASSWORD);
+}
+
 // Main seed function
 async function main() {
   console.log('🌱 Starting database seeding...\n');
 
   try {
-    // Si ya hay datos, solo actualizar moods y asignar a sesiones existentes
-    const existingUsers = await prisma.user.count();
-    if (existingUsers > 0) {
-      console.log(`⚠️  Database already contains ${existingUsers} users.`);
-      console.log('   Updating moods and assigning to existing sessions...\n');
-      const moodCodes = await seedMoods();
-      await updateExistingSessionsMoods(moodCodes);
-      console.log('\n✅ Moods and existing sessions updated. To full re-seed, run: npx prisma migrate reset\n');
-      return;
+    const target = process.env.SEED_TARGET || 'dev';
+    if (target === 'prod') {
+      await seedProd();
+    } else {
+      await seedDev();
     }
-
-    // Seed in order of dependencies
-    const careers = await seedCareers();
-    
-    const { users, patients: patientUsers, psychologists, nurses, admin } = await seedUsers(careers);
-    
-    const patients = await seedPatients(patientUsers, careers);
-    
-    await seedPsychologistCareers(psychologists, careers);
-    
-    await seedEmergencyContacts(patients);
-    
-    const medicalRecords = await seedMedicalRecords(patients, admin);
-    
-    const psychologyRecords = await seedPsychologyRecords(medicalRecords, psychologists);
-
-    const moodCodes = await seedMoods();
-    await seedTherapySessions(psychologyRecords, psychologists, moodCodes);
-    
-    await seedTreatmentPlans(psychologyRecords);
-    
-    await seedPsychometricEvaluations(psychologyRecords, psychologists);
-    
-    const nursingConsultations = await seedNursingConsultations(medicalRecords, nurses);
-    
-    await seedNursingProcedures(nursingConsultations, nurses);
-    
-    const medications = await seedMedications();
-    
-    await seedPrescriptions(patients, medications, nurses, psychologists);
-    
-    await seedMedicationAdministration(nursingConsultations, medications, nurses);
-    
-    await seedAppointments(patients, psychologists, nurses);
-    
-    await seedProfessionalSchedules(psychologists, nurses);
-    
-    await seedInterconsultations(patients, psychologists, nurses);
-    
-    await seedNotifications(users);
-
-    console.log('\n✅ Database seeding completed successfully!');
-    console.log('\n📊 Summary:');
-    console.log(`   - Careers: ${careers.length}`);
-    console.log(`   - Users: ${users.length}`);
-    console.log(`   - Patients: ${patients.length}`);
-    console.log(`   - Default password for all users: Password123!`);
-    console.log('\n🔐 Test accounts:');
-    console.log('   - Admin: admin@ehr-system.com');
-    console.log('   - Psychology Coordinator: coord.psicologia@ehr-system.com');
-    console.log('   - Nursing Coordinator: coord.enfermeria@ehr-system.com');
-    console.log('   - Psychologist: psicologo1@ehr-system.com');
-    console.log('   - Nurse: enfermera1@ehr-system.com');
-    console.log('   - Student (50 per career): estudiante1@ehr-system.com … estudiante600@ehr-system.com');
-
   } catch (error) {
     console.error('❌ Error seeding database:', error);
     throw error;

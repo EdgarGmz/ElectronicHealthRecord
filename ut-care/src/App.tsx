@@ -8,6 +8,7 @@ import { PatientListPage } from '@/pages/patients/PatientListPage'
 import { PatientDetailPage } from '@/pages/patients/PatientDetailPage'
 import { PatientExpedientPage } from '@/pages/patients/PatientExpedientPage'
 import { NewPatientPage } from '@/pages/patients/NewPatientPage'
+import { EditPatientPage } from '@/pages/patients/EditPatientPage'
 import { AppointmentListPage } from '@/pages/appointments/AppointmentListPage'
 import { AppointmentDetailPage } from '@/pages/appointments/AppointmentDetailPage'
 import { NewAppointmentPage } from '@/pages/appointments/NewAppointmentPage'
@@ -41,6 +42,7 @@ import { SupervisionProgressPage } from '@/pages/supervision/SupervisionProgress
 import { SupervisionCalendarPage } from '@/pages/supervision/SupervisionCalendarPage'
 import { SupervisionAnalyticsPage } from '@/pages/supervision/SupervisionAnalyticsPage'
 import { CalendarPage } from '@/pages/calendar/CalendarPage'
+import { NursingAttentionPage } from '@/pages/nursing/NursingAttentionPage'
 
 function App() {
   return (
@@ -66,6 +68,7 @@ function App() {
           </Route>
           <Route path="patients" element={<RoleGuard><PatientListPage /></RoleGuard>} />
           <Route path="patients/new" element={<RoleGuard><NewPatientPage /></RoleGuard>} />
+          <Route path="patients/:id/edit" element={<RoleGuard><EditPatientPage /></RoleGuard>} />
           <Route path="patients/:id" element={<RoleGuard><PatientDetailPage /></RoleGuard>} />
           <Route path="patients/:id/expedient" element={<RoleGuard><PatientExpedientPage /></RoleGuard>} />
           <Route path="appointments" element={<RoleGuard><AppointmentListPage /></RoleGuard>} />
@@ -87,6 +90,7 @@ function App() {
           <Route path="evaluations" element={<RoleGuard><EvaluationListPage /></RoleGuard>} />
           <Route path="evaluations/new" element={<RoleGuard><NewEvaluationPage /></RoleGuard>} />
           <Route path="evaluations/:id" element={<RoleGuard><EvaluationDetailPage /></RoleGuard>} />
+          <Route path="nursing-attention" element={<RoleGuard><NursingAttentionPage /></RoleGuard>} />
           <Route path="notifications" element={<NotificationListPage />} />
           <Route path="notifications/new" element={<NewNotificationPage />} />
           <Route path="notifications/:id" element={<NotificationDetailPage />} />

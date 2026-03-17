@@ -6,6 +6,7 @@ export interface NursingProcedureUser {
 }
 
 export interface NursingProcedurePatient {
+  id: string
   user: NursingProcedureUser
 }
 

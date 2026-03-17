@@ -8,9 +8,22 @@ const router = Router();
 router.use(authenticateToken);
 router.get(
   '/chart-data',
-  authorizeRoles(ROLES.ADMIN, ROLES.COORDINADOR_ENFERMERIA),
+  authorizeRoles(ROLES.ADMIN, ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO),
   dashboardController.dashboardChartValidation,
   dashboardController.getChartData
+);
+
+router.get(
+  '/nursing-kpis',
+  authorizeRoles(ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO),
+  dashboardController.getNursingKpis
+);
+
+router.get(
+  '/nursing-patients-series',
+  authorizeRoles(ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO),
+  dashboardController.nursingPatientsSeriesValidation,
+  dashboardController.getNursingPatientsSeries
 );
 router.get(
   '/coordinator-psychology',

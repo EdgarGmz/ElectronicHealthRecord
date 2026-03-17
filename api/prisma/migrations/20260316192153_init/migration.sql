@@ -8,6 +8,7 @@ CREATE TABLE "users" (
     "last_name" VARCHAR(100) NOT NULL,
     "date_of_birth" DATE NOT NULL,
     "phone" VARCHAR(20),
+    "sex" VARCHAR(10),
     "role" VARCHAR(50) NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -36,7 +37,7 @@ CREATE TABLE "patients" (
     "marital_status" VARCHAR(50),
     "guardian_name" VARCHAR(200),
     "guardian_phone" VARCHAR(20),
-    "career_id" UUID NOT NULL,
+    "career_id" UUID,
     "group" VARCHAR(20),
     "occupation" VARCHAR(100),
     "trimester" INTEGER,
@@ -129,13 +130,27 @@ CREATE TABLE "psychometric_evaluations" (
 );
 
 -- CreateTable
+CREATE TABLE "moods" (
+    "id" UUID NOT NULL,
+    "code" VARCHAR(50) NOT NULL,
+    "name" VARCHAR(150) NOT NULL,
+    "emoji" VARCHAR(10) NOT NULL,
+    "category" VARCHAR(30) NOT NULL,
+    "display_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "moods_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "therapy_sessions" (
     "id" UUID NOT NULL,
     "psychology_record_id" UUID NOT NULL,
     "session_number" INTEGER NOT NULL,
     "session_date" TIMESTAMP(3) NOT NULL,
     "session_duration" INTEGER NOT NULL DEFAULT 50,
-    "mood" VARCHAR(30) NOT NULL,
+    "mood" VARCHAR(255) NOT NULL,
     "evolution_notes" TEXT,
     "patient_progress" TEXT,
     "assigned_tasks" TEXT,
@@ -191,6 +206,22 @@ CREATE TABLE "nursing_consultations" (
 );
 
 -- CreateTable
+CREATE TABLE "nursing_attentions" (
+    "id" UUID NOT NULL,
+    "patient_id" UUID NOT NULL,
+    "nurse_id" UUID NOT NULL,
+    "motive" TEXT NOT NULL,
+    "vital_signs" JSONB,
+    "lightning_diagnosis" TEXT,
+    "treatment_applied" TEXT,
+    "observations" TEXT,
+    "disposition" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "nursing_attentions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "nursing_procedures" (
     "id" UUID NOT NULL,
     "nursing_consultation_id" UUID NOT NULL,
@@ -217,6 +248,7 @@ CREATE TABLE "medications" (
     "contraindications" TEXT,
     "side_effects" TEXT,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "stock" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -431,9 +463,6 @@ CREATE UNIQUE INDEX "careers_code_key" ON "careers"("code");
 CREATE UNIQUE INDEX "patients_user_id_key" ON "patients"("user_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "psychologist_careers_career_id_key" ON "psychologist_careers"("career_id");
-
--- CreateIndex
 CREATE UNIQUE INDEX "psychologist_careers_psychologist_id_career_id_key" ON "psychologist_careers"("psychologist_id", "career_id");
 
 -- CreateIndex
@@ -441,6 +470,9 @@ CREATE UNIQUE INDEX "medical_records_patient_id_key" ON "medical_records"("patie
 
 -- CreateIndex
 CREATE UNIQUE INDEX "psychology_records_medical_record_id_key" ON "psychology_records"("medical_record_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "moods_code_key" ON "moods"("code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "therapy_sessions_psychology_record_id_session_number_key" ON "therapy_sessions"("psychology_record_id", "session_number");
@@ -461,7 +493,7 @@ CREATE INDEX "notifications_user_id_created_at_idx" ON "notifications"("user_id"
 ALTER TABLE "patients" ADD CONSTRAINT "patients_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "patients" ADD CONSTRAINT "patients_career_id_fkey" FOREIGN KEY ("career_id") REFERENCES "careers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "patients" ADD CONSTRAINT "patients_career_id_fkey" FOREIGN KEY ("career_id") REFERENCES "careers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "psychologist_careers" ADD CONSTRAINT "psychologist_careers_psychologist_id_fkey" FOREIGN KEY ("psychologist_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -585,4 +617,3 @@ ALTER TABLE "system_settings" ADD CONSTRAINT "system_settings_updated_by_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
