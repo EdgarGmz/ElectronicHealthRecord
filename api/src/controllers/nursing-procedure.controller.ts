@@ -12,6 +12,15 @@ export const createProcedureValidation = [
   body('observations').optional().trim(),
 ];
 
+export const createFromPatientValidation = [
+  body('patientId').isUUID().withMessage('Valid patient ID is required'),
+  body('procedureType').notEmpty().trim().withMessage('Procedure type is required'),
+  body('procedureDate').isISO8601().withMessage('Valid procedure date is required'),
+  body('description').notEmpty().trim().withMessage('Description is required'),
+  body('materialsUsed').optional().trim(),
+  body('observations').optional().trim(),
+];
+
 export const getProcedures = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const page = parseInt(req.query.page as string) || 1;
@@ -74,6 +83,36 @@ export const createProcedure = async (req: AuthRequest, res: Response, next: Nex
       observations: req.body.observations,
       performedBy,
     });
+
+    res.status(201).json({
+      success: true,
+      message: 'Procedure created successfully',
+      data: procedure,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createProcedureFromPatient = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const performedBy = req.user?.userId;
+    if (!performedBy) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+
+    const procedure = await nursingProcedureService.createFromPatient(
+      req.body.patientId,
+      performedBy,
+      {
+        procedureType: req.body.procedureType,
+        procedureDate: new Date(req.body.procedureDate),
+        description: req.body.description,
+        materialsUsed: req.body.materialsUsed,
+        observations: req.body.observations,
+      }
+    );
 
     res.status(201).json({
       success: true,

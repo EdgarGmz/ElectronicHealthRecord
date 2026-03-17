@@ -16,6 +16,8 @@
     "db:up": "docker compose -f ../docker-compose.yml up -d db",
     "db:down": "docker compose -f ../docker-compose.yml down",
     "db:status": "docker compose -f ../docker-compose.yml ps",
+    "prisma:reset": "prisma migrate reset --force --skip-generate",
+    "prisma:reset:seed": "prisma migrate reset --force --skip-generate && npm run prisma:seed",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",

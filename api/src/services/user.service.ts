@@ -11,6 +11,7 @@ export class UserService {
     lastName: string;
     dateOfBirth: Date;
     phone?: string;
+    sex?: string;
     role: string;
     enrollmentNumber?: string;
   }) {
@@ -27,6 +28,7 @@ export class UserService {
         lastName: data.lastName,
         dateOfBirth: data.dateOfBirth,
         phone: data.phone,
+        sex: data.sex ?? null,
         role: data.role,
         enrollmentNumber: data.enrollmentNumber,
       },
@@ -37,6 +39,7 @@ export class UserService {
         lastName: true,
         dateOfBirth: true,
         phone: true,
+        sex: true,
         role: true,
         isActive: true,
         enrollmentNumber: true,
@@ -80,6 +83,7 @@ export class UserService {
           lastName: true,
           dateOfBirth: true,
           phone: true,
+          sex: true,
           role: true,
           isActive: true,
           enrollmentNumber: true,
@@ -112,6 +116,7 @@ export class UserService {
         lastName: true,
         dateOfBirth: true,
         phone: true,
+        sex: true,
         role: true,
         isActive: true,
         enrollmentNumber: true,

@@ -14,6 +14,7 @@ import { DashboardChartsSection } from '@/components/dashboard/DashboardChartsSe
 import { DashboardCoordinatorPsychology } from '@/components/dashboard/DashboardCoordinatorPsychology'
 import { DashboardCoordinatorNursing } from '@/components/dashboard/DashboardCoordinatorNursing'
 import { DashboardPsychologist } from '@/components/dashboard/DashboardPsychologist'
+import { DashboardNurse } from '@/components/dashboard/DashboardNurse'
 
 const CARD_CONFIG: Record<
   DashboardCardId,
@@ -66,29 +67,6 @@ export function DashboardPage() {
           })
       )
     }
-    if (visibleCards.includes('appointmentsToday')) {
-      const { startDate, endDate } = getTodayRange()
-      promises.push(
-        getAppointments({ page: 1, limit: 1, startDate, endDate })
-          .then((res) => {
-            if (!cancelled) setStats((s) => ({ ...s, appointmentsToday: res.pagination.total }))
-          })
-          .catch(() => {
-            if (!cancelled) setStats((s) => ({ ...s, appointmentsToday: undefined }))
-          })
-      )
-    }
-    if (visibleCards.includes('pending')) {
-      promises.push(
-        getUnreadCount()
-          .then((res) => {
-            if (!cancelled) setStats((s) => ({ ...s, pending: res.count }))
-          })
-          .catch(() => {
-            if (!cancelled) setStats((s) => ({ ...s, pending: undefined }))
-          })
-      )
-    }
 
     Promise.all(promises).finally(() => {
       if (!cancelled) setLoading(false)
@@ -103,46 +81,12 @@ export function DashboardPage() {
   }
 
   const showCalendarShortcut = canSeeNavItem('/calendar', user?.role)
-  const hasCitasOPendientes = (visibleCards.includes('appointmentsToday') || visibleCards.includes('pending')) && user?.role !== ROLES.PSICOLOGO
   const restOfCards = visibleCards.filter((id) => id !== 'appointmentsToday' && id !== 'pending')
 
   return (
     <div className="space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
-      {hasCitasOPendientes && (
-        <GlassCard>
-          <div className="flex flex-col gap-4">
-            {visibleCards.includes('appointmentsToday') && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[var(--text-secondary)]">{t('dashboard.appointmentsToday')}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-[var(--text-primary)]">{formatValue('appointmentsToday')}</span>
-                  <Calendar className="text-[var(--color-primary)]" size={24} />
-                </div>
-              </div>
-            )}
-            {visibleCards.includes('pending') && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[var(--text-secondary)]">{t('dashboard.pending')}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-[var(--text-primary)]">{formatValue('pending')}</span>
-                  <Clock className="text-[var(--color-primary)]" size={24} />
-                </div>
-              </div>
-            )}
-            {showCalendarShortcut && (
-              <Link
-                to="/calendar"
-                className="mt-1 flex items-center gap-2 border-t border-[var(--border)] pt-4 text-[var(--color-primary)] hover:underline"
-              >
-                <CalendarDays size={18} />
-                <span>{t('calendar.shortcutTitle')}</span>
-                <ArrowRight size={16} />
-              </Link>
-            )}
-          </div>
-        </GlassCard>
-      )}
+      {/* Tarjetas KPI principales */}
       {restOfCards.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {restOfCards.map((id) => {
@@ -174,6 +118,10 @@ export function DashboardPage() {
 
       {user?.role === ROLES.PSICOLOGO && (
         <DashboardPsychologist />
+      )}
+
+      {user?.role === ROLES.ENFERMERO && (
+        <DashboardNurse />
       )}
     </div>
   )

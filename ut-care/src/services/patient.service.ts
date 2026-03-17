@@ -47,3 +47,31 @@ export async function getPatientById(id: string): Promise<Patient> {
   const { data } = await api.get<{ success: boolean; data: Patient }>(`/patients/${id}`)
   return data.data
 }
+
+export interface UpdatePatientInput {
+  email?: string
+  firstName?: string
+  lastName?: string
+  dateOfBirth?: string
+  patientType?: string
+  careerId?: string | null
+  phone?: string
+  enrollmentNumber?: string
+  maritalStatus?: string
+  guardianName?: string
+  guardianPhone?: string
+  group?: string
+  occupation?: string
+  trimester?: number
+}
+
+export async function updatePatient(id: string, data: UpdatePatientInput): Promise<Patient> {
+  const payload = { ...data }
+  if (payload.dateOfBirth) payload.dateOfBirth = new Date(payload.dateOfBirth).toISOString()
+  const { data: res } = await api.put<{ success: boolean; data: Patient }>(`/patients/${id}`, payload)
+  return res.data
+}
+
+export async function deletePatient(id: string): Promise<void> {
+  await api.delete(`/patients/${id}`)
+}

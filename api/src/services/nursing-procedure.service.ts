@@ -158,6 +158,63 @@ export class NursingProcedureService {
 
     return procedure;
   }
+
+  /**
+   * Create a procedure for a patient. If the patient's medical record has no nursing consultation,
+   * creates a minimal one (consultationDate = now, nurseId = performedBy), then creates the procedure.
+   */
+  async createFromPatient(
+    patientId: string,
+    performedBy: string,
+    data: {
+      procedureType: string;
+      procedureDate: Date;
+      description: string;
+      materialsUsed?: string;
+      observations?: string;
+    }
+  ) {
+    const medicalRecord = await prisma.medicalRecord.findUnique({
+      where: { patientId },
+      include: {
+        nursingConsultations: {
+          orderBy: { consultationDate: 'desc' },
+          take: 1,
+          select: { id: true },
+        },
+      },
+    });
+
+    if (!medicalRecord) {
+      throw new AppError('Medical record not found for this patient', 404);
+    }
+
+    let consultationId: string | undefined =
+      medicalRecord.nursingConsultations?.[0]?.id;
+
+    if (!consultationId) {
+      const newConsultation = await prisma.nursingConsultation.create({
+        data: {
+          medicalRecordId: medicalRecord.id,
+          consultationDate: new Date(),
+          nurseId: performedBy,
+          chiefComplaint: null,
+        },
+        select: { id: true },
+      });
+      consultationId = newConsultation.id;
+    }
+
+    return this.create({
+      nursingConsultationId: consultationId,
+      procedureType: data.procedureType,
+      procedureDate: data.procedureDate,
+      description: data.description,
+      materialsUsed: data.materialsUsed,
+      observations: data.observations,
+      performedBy,
+    });
+  }
 }
 
 export default new NursingProcedureService();

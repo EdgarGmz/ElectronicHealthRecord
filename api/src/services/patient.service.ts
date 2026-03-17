@@ -28,10 +28,13 @@ export class PatientService {
   ) {
     const skip = (page - 1) * limit;
 
-    const where: Prisma.PatientWhereInput = {};
+    const where: Prisma.PatientWhereInput = {
+      user: { isActive: true },
+    };
 
     if (search) {
       where.user = {
+        ...(where.user as object),
         OR: [
           { email: { contains: search, mode: 'insensitive' } },
           { firstName: { contains: search, mode: 'insensitive' } },
@@ -286,6 +289,7 @@ export class PatientService {
           dateOfBirth: data.dateOfBirth,
           phone: data.phone,
           enrollmentNumber: data.enrollmentNumber,
+          sex: (data as any).sex ?? null,
           role: ROLES.PATIENT,
         },
       });
@@ -363,20 +367,25 @@ export class PatientService {
       throw new AppError('Patient not found', 404);
     }
 
-    // Build Patient update data with correct types (Prisma expects number for trimester)
-    const patientData: Prisma.PatientUncheckedUpdateInput = {
+    // Build Patient update data (Prisma PatientUpdateInput uses relations, not careerId)
+    const patientUpdateData: Prisma.PatientUpdateInput = {
       updatedAt: new Date(),
     };
-    if (data.maritalStatus !== undefined) patientData.maritalStatus = data.maritalStatus as string;
-    if (data.guardianName !== undefined) patientData.guardianName = data.guardianName as string;
-    if (data.guardianPhone !== undefined) patientData.guardianPhone = data.guardianPhone as string;
-    if (data.careerId !== undefined) patientData.careerId = (data.careerId as string | null) || null;
-    if (data.group !== undefined) patientData.group = data.group as string;
-    if (data.occupation !== undefined) patientData.occupation = data.occupation as string;
-    if (data.patientType !== undefined) patientData.patientType = data.patientType as string;
+    if (data.maritalStatus !== undefined) patientUpdateData.maritalStatus = data.maritalStatus as string;
+    if (data.guardianName !== undefined) patientUpdateData.guardianName = data.guardianName as string;
+    if (data.guardianPhone !== undefined) patientUpdateData.guardianPhone = data.guardianPhone as string;
+    if (data.careerId !== undefined) {
+      const careerId = (data.careerId as string | null) || null;
+      patientUpdateData.career = careerId
+        ? { connect: { id: careerId } }
+        : { disconnect: true };
+    }
+    if (data.group !== undefined) patientUpdateData.group = data.group as string;
+    if (data.occupation !== undefined) patientUpdateData.occupation = data.occupation as string;
+    if (data.patientType !== undefined) patientUpdateData.patientType = data.patientType as string;
     if (data.trimester !== undefined) {
       const t = data.trimester;
-      patientData.trimester = typeof t === 'string' ? (t === '' ? null : parseInt(t, 10)) : (t as number);
+      patientUpdateData.trimester = typeof t === 'string' ? (t === '' ? null : parseInt(t, 10)) : (t as number);
     }
 
     // Build User update data with correct types
@@ -393,11 +402,11 @@ export class PatientService {
     const updatedPatient = await prisma.patient.update({
       where: { id },
       data: {
-        ...(patientData as any),
+        ...patientUpdateData,
         user: {
           update: userUpdateData,
         },
-      } as any,
+      },
       include: {
         user: {
           select: {

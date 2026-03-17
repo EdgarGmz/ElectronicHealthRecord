@@ -89,7 +89,7 @@ cd ..
 docker compose up -d
 ```
 
-### ⬆️ 5. Ejecutar Migraciones y Seed
+### ⬆️ 5. Ejecutar Migraciones
 
 Una vez que el contenedor `ehr-postgres` esté corriendo:
 
@@ -98,37 +98,76 @@ cd api
 
 # Ejecutar migraciones de Prisma
 npm run prisma:migrate
-
-# Poblar con datos de prueba
-npx prisma db seed
 ```
 *   Cuando se te solicite, ingresa un nombre para la migración (ej., `initial_setup`).
 
-### 🌱 5.1. Poblar la Base de Datos con Datos de Prueba (Opcional pero Recomendado)
+### 🌱 5.1. Seeds: datos de prueba vs. datos mínimos de producción
 
-Para facilitar el desarrollo y pruebas, puedes poblar la base de datos con datos realistas de prueba utilizando el script de seed:
+El proyecto ahora soporta **dos modos de seed** usando el mismo `prisma/seed.ts`:
+
+- **Seed de desarrollo/pruebas (`SEED_TARGET=dev`)**
+- **Seed de producción mínima (`SEED_TARGET=prod`)**
+
+Ambos seeds **comparten las mismas carreras**, generadas por `seedCareers()`:
+
+- TSU y Licenciaturas / Ingenierías configuradas en `prisma/seed.ts`.
+
+#### 5.1.1. Seed de desarrollo (datos de prueba realistas)
+
+Para poblar la BD con datos de prueba (recomendado en local):
 
 ```bash
-npx prisma db seed
+SEED_TARGET=dev npx prisma db seed
 ```
 
-Este comando ejecutará el script `prisma/seed.ts` que creará:
-- **10 carreras** universitarias
-- **50+ usuarios** con diferentes roles:
-  - ~80% pacientes/estudiantes
-  - ~10% psicólogos
-  - ~5% enfermeras
-  - 1 coordinador de psicología
-  - 1 coordinador de enfermería
-  - 1 administrador del sistema
-- **Datos relacionados** para cada entidad del sistema:
-  - Registros médicos y psicológicos
-  - Sesiones de terapia
-  - Consultas de enfermería
-  - Medicamentos y prescripciones
-  - Citas médicas
-  - Notificaciones
-  - Y mucho más...
+Esto ejecuta `seedDev` en `prisma/seed.ts` y crea:
+
+- **Carreras** (todas las definidas en `seedCareers`).
+- **Usuarios fijos de prueba**:
+  - Xochilt Clara Villar Diego – `admin`
+  - Edgar Tiburcio Gomez Moran – `coordinador_enfermeria`
+  - Orlando de Jesus Casas Davila – `coordinador_psicologia`
+  - Carlos Alexis Rodriguez Garcia – `psicologo`
+  - Daniela Mayte Guevara Castillo – `enfermero`
+- **500 pacientes (alumnos)**:
+  - Nombres y apellidos latinos (`faker` ES_MX).
+  - `patientType = 'student'`.
+  - Matrícula numérica consecutiva empezando en **1000** (`1000`, `1001`, …).
+- **Datos relacionados** (igual que el seed original):
+  - Registros médicos y psicológicos.
+  - Sesiones de terapia con estados de ánimo.
+  - Consultas y procedimientos de enfermería.
+  - Medicamentos e inventario.
+  - Prescripciones y administraciones.
+  - Citas médicas, horarios de profesionales.
+  - Interconsultas, notificaciones, etc.
+
+> **Nota:** Si ya existen usuarios en la BD, `seedDev` no recrea todo; en ese caso sólo actualiza los **moods** y estados de ánimo de sesiones existentes.
+
+#### 5.1.2. Seed de producción (mínimo, sólo personal clave)
+
+Para un entorno de **deploy** donde solo quieres **carreras + usuarios de staff** sin datos de pacientes ni historiales:
+
+```bash
+SEED_TARGET=prod npx prisma db seed
+```
+
+Esto ejecuta `seedProd` y crea:
+
+- **Carreras** (mismas que en desarrollo).
+- **Usuarios de psicología**:
+  - Sergio David Elizondo Saldivar – `coordinador_psicologia`
+  - Aida Nohemi Quintero Sanchez – `psicologo`
+  - Maria Teresa Guadalupe del Angel Monte Mayor – `psicologo`
+  - Carlos Osiel Dominguez Fuentes – `psicologo`
+  - Silvia Treviño – `psicologo`
+  - Daniela Tellez Lozano – `psicologo`
+- **Usuarios de enfermería**:
+  - Alma Patricia Montoya Valdez – `enfermero`
+  - Jazmin Alejandra Parroquin Luna – `enfermero`
+  - Ivan Javier Treviño Hernandez – `coordinador_enfermeria`
+
+No se crean pacientes ni datos clínicos en este modo; está pensado para entornos controlados donde los datos reales se capturan manualmente.
 
 **Roles del sistema (5):** Solo el personal tiene acceso. El **admin** actúa como **auditor**: usuario único, no se puede borrar; solo lectura en pacientes, citas e inventario de medicamentos; sin acceso a expedientes, terapia ni evaluaciones psicométricas; acceso total a interconsultas, notificaciones, reportes, audit logs, usuarios y carreras. Definidos en `api/src/constants/roles.ts`. El paciente no es usuario del sistema.
 
@@ -177,14 +216,19 @@ Hay **un solo expediente médico por persona** (estudiante, docente o personal a
 
 **Leyenda:** ✅ Permitido | ❌ No permitido | 👁️ Solo lectura
 
-**Cuentas de prueba (solo personal; el paciente no inicia sesión):**
-| Email | Rol | Password |
-|-------|-----|----------|
-| `admin@ehr-system.com` | admin | `Password123!` |
-| `coord.psicologia@ehr-system.com` | coordinador_psicologia | `Password123!` |
-| `coord.enfermeria@ehr-system.com` | coordinador_enfermeria | `Password123!` |
-| `psicologo1@ehr-system.com` | psicologo | `Password123!` |
-| `enfermera1@ehr-system.com` | enfermero | `Password123!` |
+**Cuentas de prueba (seed DEV; el paciente no inicia sesión):**
+
+Todas las cuentas (staff y alumnos en DEV; solo staff en PROD) se crean **con contraseña**: el seed asigna `Password123!` a cada usuario para poder iniciar sesión.
+
+| Nombre completo | Email sugerido | Rol | Copiar |
+|-----------------|----------------|-----|--------|
+| Xochilt Clara Villar Diego | `admin@ehr-system.com` | admin | 📋 |
+| Orlando de Jesus Casas Davila | `orlando.casas@ehr-system.com` | coordinador_psicologia | 📋 |
+| Edgar Tiburcio Gomez Moran | `edgar.tiburcio@ehr-system.com` | coordinador_enfermeria | 📋 |
+| Carlos Alexis Rodriguez Garcia | `carlos.rodriguez@ehr-system.com` | psicologo | 📋 |
+| Daniela Mayte Guevara Castillo | `daniela.guevara@ehr-system.com` | enfermero | 📋 |
+
+> **Nota:** Haz clic en el icono 📋 junto a cada email para copiarlo al portapapeles.
 
 **Nota:** El script de seed es **idempotente**. Si ya existen datos en la base de datos, el script detectará esto y no creará registros duplicados. Para volver a poblar la base de datos desde cero, primero ejecuta:
 
@@ -192,7 +236,7 @@ Hay **un solo expediente médico por persona** (estudiante, docente o personal a
 npx prisma migrate reset
 ```
 
-Este comando eliminará todos los datos, aplicará todas las migraciones y ejecutará automáticamente el script de seed.
+Este comando eliminará todos los datos, aplicará todas las migraciones y ejecutará automáticamente el script de seed con `SEED_TARGET` según la variable de entorno que tengas definida (por defecto `dev`).
 
 ### 🚀 6. Iniciar el Servidor de la API
 
@@ -214,12 +258,14 @@ La API estará disponible en `http://localhost:5000/api`.
 
 He añadido varios scripts para facilitar el desarrollo:
 
-*   `npm run setup`: Realiza la instalación completa (npm install, levanta DB, corre migraciones y seeds).
+*   `npm run setup`: Realiza la instalación completa (npm install, levanta DB, corre migraciones y **seed DEV**).
 *   `npm run db:up`: Levanta solo el contenedor de la base de datos.
 *   `npm run db:down`: Detiene el contenedor de la base de datos.
 *   `npm run db:status`: Muestra el estado del contenedor de la DB.
 *   `npm run prisma:migrate`: Ejecuta las migraciones de Prisma.
-*   `npm run prisma:seed`: Puebla la base de datos con datos iniciales.
+*   `npm run prisma:seed`: Puebla la base de datos con datos iniciales (por defecto seed DEV).
+*   `npm run prisma:seed:dev`: Ejecuta el seed de desarrollo (`SEED_TARGET=dev`).
+*   `npm run prisma:seed:prod`: Ejecuta el seed mínimo de producción (`SEED_TARGET=prod`).
 
 ### 📚 7. Acceder a la Documentación de la API
 

@@ -41,6 +41,9 @@ export interface SidebarProps {
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, key: 'nav.dashboard' },
+  // Procedimientos y atención de enfermería como prioridad alta
+  { to: '/procedures', icon: Stethoscope, key: 'nav.procedures' },
+  { to: '/nursing-attention', icon: Stethoscope, key: 'nav.nursingAttention' },
   { to: '/calendar', icon: CalendarDays, key: 'nav.calendar' },
   { to: '/supervision', icon: UserCog, key: 'nav.supervision' },
   { to: '/patients', icon: Users, key: 'nav.patients' },
@@ -48,7 +51,6 @@ const navItems = [
   { to: '/sessions', icon: FileText, key: 'nav.sessions' },
   { to: '/evaluations', icon: ClipboardList, key: 'nav.evaluations' },
   { to: '/medications', icon: Pill, key: 'nav.medications' },
-  { to: '/procedures', icon: Stethoscope, key: 'nav.procedures' },
   { to: '/interconsultations', icon: MessageSquare, key: 'nav.interconsultations' },
   { to: '/reports', icon: BarChart3, key: 'nav.reports' },
   { to: '/notifications', icon: Bell, key: 'nav.notifications' },
