@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import authService from '../services/auth.service';
 import logger from '../utils/logger';
 import { createAuditLog, AUDIT_ACTIONS, AUDIT_TABLES } from '../utils/audit';
+import type { AuthRequest } from '../middleware/auth';
 
 export const loginValidation = [
   body('email').isEmail().withMessage('Valid email is required'),
@@ -48,8 +49,8 @@ export class AuthController {
     } catch (error) {
       const email = req.body?.email;
       if (typeof email === 'string' && email) {
-        // Best-effort logging (no userId available on failed login)
         logger.warn(`Login failed: ${email}`);
+        // LOGIN_FAILED no se guarda en AuditLog porque userId es obligatorio (FK); el logger queda como registro.
       }
       next(error);
     }
@@ -91,11 +92,20 @@ export class AuthController {
     }
   }
 
-  async logout(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  async logout(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.LOGOUT,
+          tableName: AUDIT_TABLES.USER,
+          recordId: req.user.userId,
+          newValues: { email: req.user.email },
+          req: req as Request,
+        });
+      }
       // Note: In a production app, implement token blacklisting using Redis or a database
       // to track revoked tokens. Without this, JWTs remain valid until expiration.
-      // For now, logout is handled client-side by removing tokens.
       res.status(200).json({
         success: true,
         message: 'Logout successful',

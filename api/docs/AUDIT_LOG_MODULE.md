@@ -51,6 +51,32 @@ El modelo `AuditLog` en Prisma contiene:
 | `userAgent` | String | Información del cliente |
 | `createdAt` | DateTime | Timestamp de la acción |
 
+## ✅ Registro automático por acción
+
+Cada mutación (create/update/delete) que pase por Prisma se registra en audit log si la petición está autenticada:
+
+1. **Contexto por request** (`app.ts`): Todas las peticiones ejecutan `runWithAuditContext(req, next)`, que guarda IP y User-Agent en AsyncLocalStorage.
+2. **Usuario autenticado** (`middleware/auth.ts`): Las rutas que usan `authenticateToken` llaman a `setAuditUserId(payload.userId)` y dejan el `userId` en el mismo contexto.
+3. **Middleware de Prisma** (`config/database.ts`): En cada `create`, `update`, `delete`, `upsert`, `createMany`, `updateMany`, `deleteMany`:
+   - Si existe `userId` en el contexto, se crea una entrada en `AuditLog` con acción CREATE/UPDATE/DELETE, `tableName` = modelo de Prisma, `recordId`, `oldValues` (en update/delete) y `newValues` (resultado).
+   - Las escrituras en la tabla `AuditLog` se excluyen para evitar recursión.
+
+**Rutas que ya registran acciones** (usan `authenticateToken` y por tanto contexto de auditoría):
+
+- **Pacientes**: crear, editar, desactivar (delete) → CREATE/UPDATE en Patient y User.
+- **Expedientes médicos**: crear, actualizar, diagnósticos.
+- **Citas, sesiones de terapia, evaluaciones psicométricas**: CRUD.
+- **Atenciones y procedimientos de enfermería**: CRUD.
+- **Usuarios, medicamentos, notificaciones, interconsultas**: CRUD.
+
+**Auth (registro explícito en controlador):**
+
+- **LOGIN**: se registra en `auth.controller` con `createAuditLog` (acción LOGIN, tabla users).
+- **LOGOUT**: si el cliente envía el token, se usa `optionalAuthenticateToken` y se registra LOGOUT en el controlador.
+- **LOGIN_FAILED**: no se guarda en AuditLog (userId es obligatorio por FK); solo queda en logger.
+
+Para acciones que no sean un create/update/delete de Prisma (por ejemplo VIEW_RECORD o EXPORT), usar `createAuditLog` manualmente en el servicio o controlador (ver `AUDIT_LOG_INTEGRATION.md`).
+
 ## 🔌 API Endpoints
 
 ### GET /api/audit-logs

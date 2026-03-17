@@ -37,6 +37,28 @@ export const authenticateToken = (
   }
 };
 
+/** Same as authenticateToken but does not fail if token is missing or invalid; sets req.user only when token is valid. */
+export const optionalAuthenticateToken = (
+  req: AuthRequest,
+  _res: Response,
+  next: NextFunction
+): void => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) {
+      next();
+      return;
+    }
+    const payload = verifyAccessToken(token);
+    req.user = payload;
+    setAuditUserId(payload.userId);
+    next();
+  } catch {
+    next();
+  }
+};
+
 export const authorizeRoles = (...roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
