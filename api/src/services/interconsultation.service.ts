@@ -199,6 +199,63 @@ export class InterconsultationService {
     return interconsultation;
   }
 
+  async getPendingCount(userId: string, userRole: string): Promise<number> {
+    const where: Prisma.InterconsultationWhereInput = {
+      status: INTERCONSULTATION_STATUS.PENDING,
+    }
+
+    if (userRole === ROLES.PATIENT) {
+      const patient = await prisma.patient.findUnique({
+        where: { userId },
+      })
+
+      if (!patient) return 0
+      where.patientId = patient.id
+    } else if (userRole === ROLES.PSICOLOGO || userRole === ROLES.ENFERMERO) {
+      // Mismo criterio de acceso que getAll(): quién participa en la interconsulta.
+      where.OR = [
+        { fromProfessionalId: userId },
+        { toProfessionalId: userId },
+        { respondedBy: userId },
+      ]
+    }
+
+    // Para coordinadores/admin, se mantiene el mismo comportamiento de getAll():
+    // no restringimos por OR para no “ocultar” interconsultas.
+    return prisma.interconsultation.count({ where })
+  }
+
+  /**
+   * List professionals that can be assigned to an interconsultation,
+   * filtered by the destination department.
+   */
+  async getProfessionalsByToDepartment(toDepartment: string) {
+    const departmentToRoles: Record<string, readonly string[]> = {
+      'Enfermería': [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO],
+      'Psicología': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.PSICOLOGO],
+    }
+
+    const roles = departmentToRoles[toDepartment] ?? []
+    if (roles.length === 0) return []
+
+    const users = await prisma.user.findMany({
+      where: {
+        role: { in: roles as any },
+        isActive: true,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+      },
+      orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+    })
+
+    return users
+  }
+
   async create(data: {
     patientId: string;
     fromDepartment: string;

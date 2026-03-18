@@ -26,6 +26,17 @@ router.get(
   dashboardController.getNursingPatientsSeries
 );
 router.get(
+  '/nursing-staff-progress',
+  authorizeRoles(ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO),
+  dashboardController.nursingStaffProgressValidation,
+  dashboardController.getNursingStaffProgressHandler
+);
+router.get(
+  '/medication-stock-summary',
+  authorizeRoles(ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO),
+  dashboardController.getMedicationStockSummaryHandler
+);
+router.get(
   '/coordinator-psychology',
   authorizeRoles(ROLES.COORDINADOR_PSICOLOGIA),
   dashboardController.getCoordinatorPsychology

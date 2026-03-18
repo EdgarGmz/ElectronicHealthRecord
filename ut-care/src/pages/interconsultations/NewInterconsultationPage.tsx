@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, User } from 'lucide-react'
@@ -7,13 +7,10 @@ import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { SuccessModal } from '@/components/molecules/SuccessModal'
-import { createInterconsultation } from '@/services/interconsultation.service'
+import { createInterconsultation, getInterconsultationProfessionals, type InterconsultationProfessional } from '@/services/interconsultation.service'
 import { getPatients } from '@/services/patient.service'
-import { getUsers } from '@/services/user.service'
-import { ROLES } from '@/constants/roles'
 import type { CreateInterconsultationInput } from '@/types/interconsultation'
 import type { Patient } from '@/types/patient'
-import type { User as StaffUser } from '@/types/user'
 import { DEPARTMENT_VALUES, URGENCY_VALUES } from '@/types/interconsultation'
 
 export function NewInterconsultationPage() {
@@ -25,11 +22,8 @@ export function NewInterconsultationPage() {
   const [createdId, setCreatedId] = useState<string | null>(null)
   const [patients, setPatients] = useState<Patient[]>([])
   const [patientsLoading, setPatientsLoading] = useState(true)
-  const [professionals, setProfessionals] = useState<StaffUser[]>([])
+  const [professionals, setProfessionals] = useState<InterconsultationProfessional[]>([])
   const [professionalsLoading, setProfessionalsLoading] = useState(true)
-  const [professionalSearch, setProfessionalSearch] = useState('')
-  const [showProfessionalSuggestions, setShowProfessionalSuggestions] = useState(false)
-  const professionalInputRef = useRef<HTMLDivElement>(null)
   const [form, setForm] = useState<CreateInterconsultationInput & { toProfessionalId: string }>({
     patientId: '',
     fromDepartment: DEPARTMENT_VALUES[0],
@@ -47,13 +41,16 @@ export function NewInterconsultationPage() {
       .finally(() => setPatientsLoading(false))
   }, [])
 
-  // Cargar profesionales destino (psicología y enfermería; lista + filtro local)
+  // Cargar profesionales destino filtrados por el departamento destino.
   useEffect(() => {
-    getUsers({ page: 1, limit: 500 })
-      .then((r) => setProfessionals(r.users))
+    setProfessionalsLoading(true)
+    setProfessionals([])
+
+    void getInterconsultationProfessionals({ toDepartment: form.toDepartment })
+      .then((list) => setProfessionals(list))
       .catch(() => setProfessionals([]))
       .finally(() => setProfessionalsLoading(false))
-  }, [])
+  }, [form.toDepartment])
 
   const update = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -95,46 +92,17 @@ export function NewInterconsultationPage() {
   const patientFullName = (p: Patient) =>
     `${p.user.firstName} ${p.user.lastName}`.trim()
 
-  const professionalFullName = (u: StaffUser) =>
+  const professionalFullName = (u: InterconsultationProfessional) =>
     `${u.firstName} ${u.lastName}`.trim()
 
-  const filteredProfessionals = useMemo(() => {
-    const allowedRoles = [
-      ROLES.COORDINADOR_PSICOLOGIA,
-      ROLES.COORDINADOR_ENFERMERIA,
-      ROLES.PSICOLOGO,
-      ROLES.ENFERMERO,
-    ]
-    const base = professionals.filter((u) => allowedRoles.includes(u.role as (typeof allowedRoles)[number]))
-    const q = professionalSearch.trim().toLowerCase()
-    if (!q) return base.slice(0, 50)
-    return base.filter((u) =>
-      professionalFullName(u).toLowerCase().includes(q) ||
-      u.email?.toLowerCase().includes(q)
-    ).slice(0, 50)
-  }, [professionals, professionalSearch])
-
+  // Al cambiar el departamento destino, limpiar el profesional seleccionado (si existía)
   useEffect(() => {
-    if (!showProfessionalSuggestions) return
-    const onDocClick = (e: MouseEvent) => {
-      if (professionalInputRef.current?.contains(e.target as Node)) return
-      setShowProfessionalSuggestions(false)
-    }
-    document.addEventListener('mousedown', onDocClick)
-    return () => document.removeEventListener('mousedown', onDocClick)
-  }, [showProfessionalSuggestions])
+    update('toProfessionalId', '')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.toDepartment])
 
-  const handleSelectProfessional = (u: StaffUser) => {
-    update('toProfessionalId', u.id)
-    setProfessionalSearch(professionalFullName(u))
-    setShowProfessionalSuggestions(false)
-  }
-
-  const handleProfessionalSearchFocus = () => setShowProfessionalSuggestions(true)
-  const handleProfessionalSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfessionalSearch(e.target.value)
-    if (!e.target.value.trim()) update('toProfessionalId', '')
-    setShowProfessionalSuggestions(true)
+  const handleSelectProfessionalId = (id: string) => {
+    update('toProfessionalId', id)
   }
 
   return (
@@ -225,54 +193,25 @@ export function NewInterconsultationPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1 flex items-center gap-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-1">
               <User size={16} className="text-[var(--color-primary)]" />
               {t('interconsultations.toProfessionalOptional')}
             </label>
-            <div ref={professionalInputRef} className="relative">
-              <input
-                type="text"
-                value={professionalSearch}
-                onChange={handleProfessionalSearchChange}
-                onFocus={handleProfessionalSearchFocus}
-                placeholder={professionalsLoading ? t('common.loading') : t('common.search')}
-                className="glass-input w-full px-4 py-2.5"
-                disabled={professionalsLoading}
-                autoComplete="off"
-                aria-autocomplete="list"
-                aria-expanded={showProfessionalSuggestions}
-                aria-controls="to-professional-suggestions"
-              />
-              <input type="hidden" name="toProfessionalId" value={form.toProfessionalId} />
-              {showProfessionalSuggestions && (
-                <ul
-                  id="to-professional-suggestions"
-                  role="listbox"
-                  className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] shadow-lg backdrop-blur-xl"
-                >
-                  {filteredProfessionals.length > 0 ? (
-                    filteredProfessionals.map((u) => (
-                      <li
-                        key={u.id}
-                        role="option"
-                        aria-selected={form.toProfessionalId === u.id}
-                        onClick={() => handleSelectProfessional(u)}
-                        className="cursor-pointer px-4 py-2.5 text-sm text-[var(--text-primary)] transition-colors hover:bg-[var(--color-primary)]/10"
-                      >
-                        {professionalFullName(u)}
-                        <span className="ml-2 text-[var(--text-muted)]">
-                          {u.email}
-                        </span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="px-4 py-2.5 text-sm text-[var(--text-muted)]">
-                      {professionalSearch.trim() ? t('common.noData') : t('common.search')}
-                    </li>
-                  )}
-                </ul>
-              )}
-            </div>
+            <select
+              value={form.toProfessionalId}
+              onChange={(e) => handleSelectProfessionalId(e.target.value)}
+              className="glass-input w-full px-4 py-2.5"
+              disabled={professionalsLoading}
+            >
+              <option value="">
+                {t('common.optional', 'Opcional')}
+              </option>
+              {professionals.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {professionalFullName(u)}{u.email ? ` (${u.email})` : ''}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="flex gap-3 pt-2">
             <GlassButton type="submit" variant="primary" disabled={submitting}>

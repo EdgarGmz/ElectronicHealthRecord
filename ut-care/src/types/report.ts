@@ -16,11 +16,48 @@ export interface StatisticsReportData {
     total: number
     newPatients: number
   }
+  /** Lista (limitada) de pacientes atendidos en el periodo. */
+  patientsList?: Array<{
+    patient: string
+    enrollmentNumber: string | null
+    consultationsCount: number
+    firstConsultationAt: string
+    lastConsultationAt: string
+  }>
+  /** Lista (limitada) de citas del periodo. */
+  appointmentsList?: Array<{
+    id: string
+    patient: string
+    enrollmentNumber: string | null
+    department: string
+    appointmentType: string
+    professional: string
+    status: string
+    scheduledDate: string
+    cancellationReason: string | null
+  }>
   therapySessions?: number
   nursingConsultations?: {
     totalConsultations: number
     medicationsAdministered: number
     proceduresPerformed: number
+    /** Top por medicamento administrado (limitado). */
+    medicationsByMedication?: Array<{ medication: string; count: number }>
+    /** Listado (limitado) de administraciones de medicamentos. */
+    medicationAdministrations?: Array<{
+      id: string
+      patient: string
+      enrollmentNumber: string | null
+      medication: string
+      dosage: string
+      route: string
+      administrationDate: string
+      medicationVerified: boolean
+      patientVerified: boolean
+      dosageVerified: boolean
+      routeVerified: boolean
+      timeVerified: boolean
+    }>
   }
 }
 

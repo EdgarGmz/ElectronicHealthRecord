@@ -232,7 +232,10 @@ export class TherapySessionService {
     userId: string,
     userRole: string
   ) {
-    await this.getById(id, userId, userRole);
+    const current = await this.getById(id, userId, userRole);
+    if (current.status === 'cancelled') {
+      throw new AppError('Cannot update a cancelled therapy session', 400);
+    }
     return prisma.therapySession.update({
       where: { id },
       data: {
@@ -244,6 +247,58 @@ export class TherapySessionService {
         ...(data.assignedTasks !== undefined && { assignedTasks: data.assignedTasks?.trim() || null }),
         ...(data.observations !== undefined && { observations: data.observations?.trim() || null }),
         ...(data.nextSessionPlan !== undefined && { nextSessionPlan: data.nextSessionPlan?.trim() || null }),
+      },
+      include: sessionInclude,
+    });
+  }
+
+  async cancel(
+    id: string,
+    cancellationReason: string,
+    userId: string,
+    userRole: string
+  ) {
+    const current = await this.getById(id, userId, userRole);
+    const reason = cancellationReason?.trim();
+    if (!reason) throw new AppError('Cancellation reason is required', 400);
+
+    if (current.status === 'cancelled') {
+      // If already cancelled, just update the reason.
+    }
+
+    return prisma.therapySession.update({
+      where: { id },
+      data: {
+        status: 'cancelled',
+        cancellationReason: reason,
+        rescheduleReason: null,
+      },
+      include: sessionInclude,
+    });
+  }
+
+  async reschedule(
+    id: string,
+    sessionDate: Date,
+    rescheduleReason: string,
+    userId: string,
+    userRole: string
+  ) {
+    const current = await this.getById(id, userId, userRole);
+    const reason = rescheduleReason?.trim();
+    if (!reason) throw new AppError('Reschedule reason is required', 400);
+
+    if (current.status === 'cancelled') {
+      throw new AppError('Cannot reschedule a cancelled therapy session', 400);
+    }
+
+    return prisma.therapySession.update({
+      where: { id },
+      data: {
+        status: 'rescheduled',
+        sessionDate,
+        rescheduleReason: reason,
+        cancellationReason: null,
       },
       include: sessionInclude,
     });

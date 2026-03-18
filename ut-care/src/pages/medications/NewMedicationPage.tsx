@@ -26,9 +26,10 @@ export function NewMedicationPage() {
     administrationRoutes: '',
     contraindications: '',
     sideEffects: '',
+    stock: undefined,
   })
 
-  const update = (field: keyof CreateMedicationInput, value: string) => {
+  const update = (field: keyof CreateMedicationInput, value: string | number | undefined) => {
     setForm((prev) => ({ ...prev, [field]: value }))
     setError('')
   }
@@ -52,6 +53,7 @@ export function NewMedicationPage() {
       if (form.administrationRoutes?.trim()) payload.administrationRoutes = form.administrationRoutes.trim()
       if (form.contraindications?.trim()) payload.contraindications = form.contraindications.trim()
       if (form.sideEffects?.trim()) payload.sideEffects = form.sideEffects.trim()
+      if (typeof form.stock === 'number' && !Number.isNaN(form.stock)) payload.stock = form.stock
       const created = await createMedication(payload)
       setCreatedId(created.id)
       setShowSuccess(true)
@@ -131,6 +133,16 @@ export function NewMedicationPage() {
               type="text"
               value={form.administrationRoutes}
               onChange={(e) => update('administrationRoutes', e.target.value)}
+              className="glass-input w-full px-4 py-2.5"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('medications.stock', 'Stock')}</label>
+            <input
+              type="number"
+              min={0}
+              value={typeof form.stock === 'number' ? form.stock : ''}
+              onChange={(e) => update('stock', e.target.value === '' ? undefined : Number(e.target.value))}
               className="glass-input w-full px-4 py-2.5"
             />
           </div>

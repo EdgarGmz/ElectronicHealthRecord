@@ -34,8 +34,7 @@ export const ROLES_CAN_MANAGE_PATIENTS = [
 
 /** Solo coordinadores pueden crear pacientes nuevos. Psicólogo y enfermero solo consultan/editan. */
 export const ROLES_CAN_CREATE_PATIENT = [
-  ROLES.COORDINADOR_PSICOLOGIA,
-  ROLES.COORDINADOR_ENFERMERIA,
+  ROLES.ENFERMERO,
 ] as const;
 
 /** Solo coordinadores pueden eliminar (desactivar) pacientes. */
@@ -116,6 +115,8 @@ export const ROLES_CAN_CREATE_NURSING_USER = [ROLES.ADMIN, ROLES.COORDINADOR_ENF
 /** Roles que pueden crear notificaciones */
 export const ROLES_CAN_CREATE_NOTIFICATIONS = [
   ROLES.ADMIN,
+  ROLES.COORDINADOR_ENFERMERIA,
+  ROLES.COORDINADOR_PSICOLOGIA,
   ROLES.ENFERMERO,
   ROLES.PSICOLOGO,
 ] as const;
@@ -151,11 +152,10 @@ export const ROLES_CAN_ACCESS_NURSING_PROCEDURES = [
 
 /** Pueden leer atenciones/procedimientos de enfermería (listado y detalle), p. ej. para pestaña Historial Médico. */
 export const ROLES_CAN_READ_NURSING_HISTORY = [
-  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.ENFERMERO,
   ROLES.COORDINADOR_PSICOLOGIA,
   ROLES.PSICOLOGO,
 ] as const;
 
 /** Pueden crear procedimientos de enfermería (en el contexto de una consulta de enfermería). */
-export const ROLES_CAN_CREATE_NURSING_PROCEDURE = [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO] as const;
+export const ROLES_CAN_CREATE_NURSING_PROCEDURE = [ROLES.ENFERMERO] as const;

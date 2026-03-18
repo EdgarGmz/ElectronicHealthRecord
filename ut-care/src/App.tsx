@@ -19,6 +19,7 @@ import { SettingsPage } from '@/pages/SettingsPage'
 import { MedicationListPage } from '@/pages/medications/MedicationListPage'
 import { MedicationDetailPage } from '@/pages/medications/MedicationDetailPage'
 import { NewMedicationPage } from '@/pages/medications/NewMedicationPage'
+import { EditMedicationPage } from '@/pages/medications/EditMedicationPage'
 import { ProcedureListPage } from '@/pages/procedures/ProcedureListPage'
 import { ProcedureDetailPage } from '@/pages/procedures/ProcedureDetailPage'
 import { NewProcedurePage } from '@/pages/procedures/NewProcedurePage'
@@ -79,6 +80,7 @@ function App() {
           <Route path="sessions/:id" element={<RoleGuard><SessionDetailPage /></RoleGuard>} />
           <Route path="medications" element={<RoleGuard><MedicationListPage /></RoleGuard>} />
           <Route path="medications/new" element={<RoleGuard><NewMedicationPage /></RoleGuard>} />
+          <Route path="medications/:id/edit" element={<RoleGuard><EditMedicationPage /></RoleGuard>} />
           <Route path="medications/:id" element={<RoleGuard><MedicationDetailPage /></RoleGuard>} />
           <Route path="procedures" element={<RoleGuard><ProcedureListPage /></RoleGuard>} />
           <Route path="procedures/new" element={<RoleGuard><NewProcedurePage /></RoleGuard>} />

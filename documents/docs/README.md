@@ -38,6 +38,9 @@ Documentos del proyecto **Electronic Health Record (EHR) System** organizados po
 - Flujo de navegación completo
 - Esquema de Web Services y autenticación
 
+### Manual de usuario
+- **[MANUAL-USUARIO.md](./MANUAL-USUARIO.md)** — Manual de UT-Care (EHR) para la **Universidad Tecnológica Santa Catarina**: introducción, requisitos, guías por rol, capturas y soporte.
+
 ---
 
 *El diseño visual (wireframes, mockups, guía de estilos) está en [../design/](../design/).*

@@ -307,8 +307,25 @@ async function seedTherapySessions(psychologyRecords: any[], _psychologists: any
       const selectedMoods = randomElements(moodCodes, 1, 2);
       const moodValue = selectedMoods.join(',');
 
-      await prisma.therapySession.create({
-        data: {
+      const therapySession = await prisma.therapySession.upsert({
+        where: {
+          psychologyRecordId_sessionNumber: {
+            psychologyRecordId: psychologyRecord.id,
+            sessionNumber: i + 1,
+          },
+        },
+        update: {
+          sessionDate,
+          sessionDuration: 50,
+          mood: moodValue,
+          evolutionNotes: faker.lorem.paragraph(),
+          patientProgress: faker.lorem.sentence(),
+          assignedTasks: Math.random() > 0.3 ? faker.lorem.sentence() : null,
+          observations: Math.random() > 0.5 ? faker.lorem.sentence() : null,
+          nextSessionPlan: Math.random() > 0.4 ? faker.lorem.sentence() : null,
+          therapistId: psychologyRecord.assignedPsychologistId,
+        },
+        create: {
           psychologyRecordId: psychologyRecord.id,
           sessionNumber: i + 1,
           sessionDate,
@@ -322,7 +339,8 @@ async function seedTherapySessions(psychologyRecords: any[], _psychologists: any
           therapistId: psychologyRecord.assignedPsychologistId,
         },
       });
-      totalSessions++;
+
+      if (therapySession) totalSessions++;
     }
   }
 
@@ -689,6 +707,50 @@ async function seedAppointments(patients: any[], psychologists: any[], nurses: a
   const appointmentTypes = ['initial_consultation', 'follow_up', 'emergency', 'routine'];
   let totalAppointments = 0;
 
+  // Seed: crear algunas citas "completed" alineadas con therapy sessions
+  // para que en UI se oculten Cancelar/Reagendar cuando la cita asociada ya terminó.
+  const therapySessionsForCompletion = await prisma.therapySession.findMany({
+    select: {
+      sessionDate: true,
+      therapistId: true,
+      psychologyRecord: {
+        select: {
+          medicalRecord: {
+            select: {
+              patientId: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const sessionsToMarkCompleted = therapySessionsForCompletion
+    .filter(() => Math.random() > 0.85) // ~15%
+    .slice(0, Math.min(40, therapySessionsForCompletion.length));
+
+  for (const s of sessionsToMarkCompleted) {
+    const patientId = s.psychologyRecord?.medicalRecord?.patientId;
+    if (!patientId || !s.therapistId || !s.sessionDate) continue;
+
+    await prisma.appointment.create({
+      data: {
+        patientId,
+        professionalId: s.therapistId,
+        appointmentType: randomElement(appointmentTypes),
+        department: 'psychology',
+        scheduledDate: s.sessionDate,
+        // Mantener dentro de la nueva regla (max 90).
+        durationMinutes: [45, 50, 60][Math.floor(Math.random() * 3)],
+        status: 'completed',
+        cancellationReason: null,
+        notes: Math.random() > 0.5 ? faker.lorem.sentence() : null,
+        createdBy: s.therapistId,
+      },
+    });
+    totalAppointments++;
+  }
+
   for (const patient of patients) {
     const numAppointments = Math.floor(Math.random() * 16) + 5; // 5-20 appointments
 
@@ -884,8 +946,12 @@ async function seedDev() {
   const patientUsers: any[] = [];
   for (let i = 0; i < 500; i++) {
     const enrollment = String(1000 + i);
-    const user = await prisma.user.create({
-      data: {
+    const user = await prisma.user.upsert({
+      where: { email: `alumno.${enrollment}@utcare.local` },
+      update: {
+        passwordHash: defaultPasswordHash,
+      },
+      create: {
         email: `alumno.${enrollment}@utcare.local`,
         passwordHash: defaultPasswordHash,
         firstName: faker.person.firstName(),

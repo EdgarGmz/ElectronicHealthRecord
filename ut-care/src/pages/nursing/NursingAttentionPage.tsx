@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Search, FileText } from 'lucide-react'
+import { Search, FileText, Eye } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { getPatients, createPatient } from '@/services/patient.service'
 import type { Patient } from '@/types/patient'
@@ -30,6 +30,11 @@ export function NursingAttentionPage() {
   const [quickEnrollment, setQuickEnrollment] = useState('')
   const [quickCareerId, setQuickCareerId] = useState('')
   const [quickGroup, setQuickGroup] = useState('')
+  const [quickBloodType, setQuickBloodType] = useState('')
+  const [quickAllergies, setQuickAllergies] = useState('')
+  const [quickChronicConditions, setQuickChronicConditions] = useState('')
+  const [quickCurrentMedications, setQuickCurrentMedications] = useState('')
+  const [quickFamilyHistory, setQuickFamilyHistory] = useState('')
   const [creatingPatient, setCreatingPatient] = useState(false)
   const [showQuickCreateModal, setShowQuickCreateModal] = useState(false)
   const [chiefComplaint, setChiefComplaint] = useState('')
@@ -55,6 +60,8 @@ export function NursingAttentionPage() {
   const [listDisposition, setListDisposition] = useState('')
   const [detailAttention, setDetailAttention] = useState<NursingAttentionDetail | null>(null)
   const [detailAttentionLoading, setDetailAttentionLoading] = useState(false)
+  const [showQuickCreateSuccess, setShowQuickCreateSuccess] = useState(false)
+  const [quickCreateSuccessMessage, setQuickCreateSuccessMessage] = useState('')
 
   const openQuickCreateFromSearch = () => {
     const raw = patientSearch.trim()
@@ -68,6 +75,12 @@ export function NursingAttentionPage() {
         setQuickFirstName(parts.slice(0, -1).join(' '))
       }
     }
+    // Reset de campos médicos opcionales para no reutilizar valores de una creación previa
+    setQuickBloodType('')
+    setQuickAllergies('')
+    setQuickChronicConditions('')
+    setQuickCurrentMedications('')
+    setQuickFamilyHistory('')
     setShowQuickCreateModal(true)
   }
 
@@ -173,8 +186,7 @@ export function NursingAttentionPage() {
     setShowCancelConfirm(false)
   }
 
-  const handleQuickCreate = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const quickCreateAndFocus = async () => {
     setFastError(null)
     if (!quickFirstName.trim() || !quickLastName.trim() || !quickEnrollment.trim() || !quickCareerId) {
       setFastError(t('common.missingRequiredFields'))
@@ -196,7 +208,18 @@ export function NursingAttentionPage() {
         careerId: quickCareerId,
         enrollmentNumber: quickEnrollment.trim(),
         group: quickGroup.trim() || undefined,
+        bloodType: quickBloodType.trim() || undefined,
+        allergies: quickAllergies.trim() || undefined,
+        chronicConditions: quickChronicConditions.trim() || undefined,
+        currentMedications: quickCurrentMedications.trim() || undefined,
+        familyHistory: quickFamilyHistory.trim() || undefined,
       })
+
+      const fullName = `${newPatient.user.firstName} ${newPatient.user.lastName}`.trim()
+      const dateTime = new Date().toLocaleString()
+      setQuickCreateSuccessMessage(`Nuevo Paciente creado: ${fullName} · ${dateTime}.`)
+      setShowQuickCreateSuccess(true)
+
       setSelectedPatient(newPatient)
       setPatientSearch(`${newPatient.user.firstName} ${newPatient.user.lastName}`.trim())
       setPatientResults([newPatient])
@@ -206,6 +229,11 @@ export function NursingAttentionPage() {
     } finally {
       setCreatingPatient(false)
     }
+  }
+
+  const handleQuickCreate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await quickCreateAndFocus()
   }
 
   return (
@@ -552,7 +580,7 @@ export function NursingAttentionPage() {
                       <th className="px-3 py-2">{t('procedures.motive', 'Motivo')}</th>
                       <th className="px-3 py-2">{t('procedures.disposition', 'Derivación')}</th>
                       <th className="px-3 py-2">{t('common.date', 'Fecha')}</th>
-                      <th className="w-0 px-3 py-2 text-right">{t('procedures.goToExpedient', 'Ir al expediente')}</th>
+                      <th className="w-0 px-3 py-2 text-right">{t('procedures.viewDetail', 'Ver detalle')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -589,13 +617,21 @@ export function NursingAttentionPage() {
                           {new Date(a.createdAt).toLocaleString()}
                         </td>
                         <td className="px-3 py-2 text-right" onClick={(e) => e.stopPropagation()}>
-                          <Link
-                            to={`/patients/${a.patientId}/expedient`}
-                            title={t('procedures.goToExpedient', 'Ir al expediente')}
+                          <button
+                            type="button"
+                            title={t('procedures.viewDetail', 'Ver detalle')}
                             className="inline-flex items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] p-1.5 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10"
+                            onClick={() => {
+                              setDetailAttentionLoading(true)
+                              setDetailAttention(null)
+                              getNursingAttentionById(a.id)
+                                .then(setDetailAttention)
+                                .catch(() => setDetailAttention(null))
+                                .finally(() => setDetailAttentionLoading(false))
+                            }}
                           >
-                            <FileText size={18} />
-                          </Link>
+                            <Eye size={18} />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -753,7 +789,6 @@ export function NursingAttentionPage() {
       <ConfirmModal
         open={showQuickCreateModal}
         onClose={() => !creatingPatient && setShowQuickCreateModal(false)}
-        onConfirm={() => {}}
         confirming={creatingPatient}
         title={t('procedures.fastTrackQuickCreate', 'Crear paciente rápido')}
         message=""
@@ -813,22 +848,70 @@ export function NursingAttentionPage() {
               placeholder={t('patients.group', 'Grupo (opcional)')}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-1.5 text-xs"
             />
-            <div className="mt-2 flex justify-end">
-              <GlassButton
-                type="submit"
-                variant="primary"
-                disabled={creatingPatient}
-                className="inline-flex items-center gap-2"
+            <div className="pt-1">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                {t('expedient.generalData', 'Datos médicos (opcionales)')}
+              </p>
+              <select
+                value={quickBloodType}
+                onChange={(e) => setQuickBloodType(e.target.value)}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-1.5 text-xs"
               >
-                {creatingPatient
-                  ? t('common.loading')
-                  : t('procedures.fastTrackCreateAndFocus', 'Crear y comenzar atención')}
-              </GlassButton>
+                <option value="">{t('common.selectOptional', 'Selecciona (opcional)')}</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+
+              <textarea
+                rows={2}
+                value={quickAllergies}
+                onChange={(e) => setQuickAllergies(e.target.value)}
+                placeholder={t('expedient.allergies', 'Alergias (opcional)')}
+                className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-1.5 text-xs resize-none"
+              />
+              <textarea
+                rows={2}
+                value={quickChronicConditions}
+                onChange={(e) => setQuickChronicConditions(e.target.value)}
+                placeholder={t('expedient.chronicConditions', 'Enfermedades crónicas (opcional)')}
+                className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-1.5 text-xs resize-none"
+              />
+              <textarea
+                rows={2}
+                value={quickCurrentMedications}
+                onChange={(e) => setQuickCurrentMedications(e.target.value)}
+                placeholder={t('expedient.currentMedications', 'Medicación actual (opcional)')}
+                className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-1.5 text-xs resize-none"
+              />
+              <textarea
+                rows={2}
+                value={quickFamilyHistory}
+                onChange={(e) => setQuickFamilyHistory(e.target.value)}
+                placeholder={t('expedient.familyHistory', 'Antecedentes familiares (opcional)')}
+                className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-1.5 text-xs resize-none"
+              />
             </div>
           </form>
         }
-        confirmLabel=""
+        onConfirm={() => {
+          void quickCreateAndFocus()
+        }}
+        confirmLabel={t('procedures.fastTrackCreateAndFocus', 'Crear y comenzar atención')}
         cancelLabel={t('common.close')}
+      />
+
+      <SuccessModal
+        open={showQuickCreateSuccess}
+        onClose={() => {
+          setShowQuickCreateSuccess(false)
+        }}
+        message={quickCreateSuccessMessage}
       />
 
       {/* Confirmar cancelar atención */}

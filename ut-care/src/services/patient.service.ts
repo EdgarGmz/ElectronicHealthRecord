@@ -7,6 +7,12 @@ export interface CreatePatientInput {
   lastName: string
   dateOfBirth: string
   patientType: string
+  // Optional medical record fields
+  bloodType?: string | null
+  allergies?: string | null
+  chronicConditions?: string | null
+  currentMedications?: string | null
+  familyHistory?: string | null
   /** Required when patientType is 'student'. Omit for faculty/administrative. */
   careerId?: string
   phone?: string

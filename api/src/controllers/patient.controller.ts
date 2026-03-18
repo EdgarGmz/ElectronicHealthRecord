@@ -21,6 +21,18 @@ export const createPatientValidation = [
       }
       return true;
     }),
+  // Optional medical record fields (blood type, allergies, etc.)
+  body('bloodType')
+    .optional()
+    .isIn(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
+    .withMessage('Invalid blood type'),
+  body('allergies').optional().isString().withMessage('Allergies must be a string'),
+  body('chronicConditions').optional().isString().withMessage('Chronic conditions must be a string'),
+  body('currentMedications')
+    .optional()
+    .isString()
+    .withMessage('Current medications must be a string'),
+  body('familyHistory').optional().isString().withMessage('Family history must be a string'),
 ];
 
 export const updatePatientValidation = [

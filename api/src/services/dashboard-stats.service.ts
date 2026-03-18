@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import prisma from '../config/database';
+import { ROLES } from '../constants/roles';
 
 export type PeriodType = 'day' | 'month' | 'year';
 
@@ -274,7 +275,7 @@ async function getTimelineData(
   startDate: Date,
   endDate: Date
 ): Promise<{ name: string; start: string; end: string; type: 'psychology' | 'nursing' }[]> {
-  const [sessions, consultations] = await Promise.all([
+  const [sessions, consultations, nursingProcedures, medicationAdministrations] = await Promise.all([
     prisma.therapySession.findMany({
       where: { sessionDate: { gte: startDate, lte: endDate } },
       select: { sessionDate: true, sessionDuration: true, id: true },
@@ -285,6 +286,18 @@ async function getTimelineData(
       where: { consultationDate: { gte: startDate, lte: endDate } },
       select: { consultationDate: true, id: true },
       orderBy: { consultationDate: 'asc' },
+      take: 100,
+    }),
+    prisma.nursingProcedure.findMany({
+      where: { procedureDate: { gte: startDate, lte: endDate } },
+      select: { procedureDate: true, id: true },
+      orderBy: { procedureDate: 'asc' },
+      take: 100,
+    }),
+    prisma.medicationAdministration.findMany({
+      where: { administrationDate: { gte: startDate, lte: endDate } },
+      select: { administrationDate: true, id: true },
+      orderBy: { administrationDate: 'asc' },
       take: 100,
     }),
   ]);
@@ -304,6 +317,26 @@ async function getTimelineData(
     const end = new Date(start.getTime() + 30 * 60 * 1000);
     items.push({
       name: `Consulta ${c.id.slice(0, 8)}`,
+      start: start.toISOString(),
+      end: end.toISOString(),
+      type: 'nursing',
+    });
+  }
+  for (const p of nursingProcedures) {
+    const start = new Date(p.procedureDate);
+    const end = new Date(start.getTime() + 40 * 60 * 1000);
+    items.push({
+      name: `Procedimiento ${p.id.slice(0, 8)}`,
+      start: start.toISOString(),
+      end: end.toISOString(),
+      type: 'nursing',
+    });
+  }
+  for (const m of medicationAdministrations) {
+    const start = new Date(m.administrationDate);
+    const end = new Date(start.getTime() + 20 * 60 * 1000);
+    items.push({
+      name: `Administración ${m.id.slice(0, 8)}`,
       start: start.toISOString(),
       end: end.toISOString(),
       type: 'nursing',
@@ -401,4 +434,152 @@ export async function getNursingPatientsSeriesFiltered(params: {
     period: formatPeriod(row.period, format),
     count: Number(row.count),
   }));
+}
+
+export type NursingStaffProgressPeriod = 'week' | 'month' | 'year';
+
+export interface NursingStaffProgressItem {
+  nurseId: string;
+  firstName: string;
+  lastName: string;
+  isActive: boolean;
+  patientsAttended: number;
+  consultationsCount: number;
+  proceduresCount: number;
+  medicationAdministrationsCount: number;
+}
+
+function getStaffProgressDateRange(period: NursingStaffProgressPeriod): { start: Date; end: Date } {
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+
+  const start = new Date(end);
+  if (period === 'week') start.setDate(start.getDate() - 7);
+  else if (period === 'month') start.setMonth(start.getMonth() - 1);
+  else start.setFullYear(start.getFullYear() - 1);
+
+  start.setHours(0, 0, 0, 0);
+  return { start, end };
+}
+
+export async function getNursingStaffProgress(
+  period: NursingStaffProgressPeriod = 'month',
+): Promise<NursingStaffProgressItem[]> {
+  const { start, end } = getStaffProgressDateRange(period);
+
+  const nurses = await prisma.user.findMany({
+    where: { role: { in: [ROLES.ENFERMERO, ROLES.COORDINADOR_ENFERMERIA] } },
+    select: { id: true, firstName: true, lastName: true, isActive: true },
+    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+  });
+
+  if (nurses.length === 0) return [];
+
+  const ids = nurses.map((u) => u.id);
+
+  const consultations = await prisma.nursingConsultation.findMany({
+    where: {
+      nurseId: { in: ids },
+      consultationDate: { gte: start, lte: end },
+    },
+    select: {
+      nurseId: true,
+      medicalRecord: { select: { patientId: true } },
+    },
+  });
+
+  const patientsByNurse = new Map<string, Set<string>>();
+  const consultationsCountByNurse = new Map<string, number>();
+  for (const c of consultations) {
+    consultationsCountByNurse.set(c.nurseId, (consultationsCountByNurse.get(c.nurseId) ?? 0) + 1);
+    const patientId = c.medicalRecord?.patientId;
+    if (!patientId) continue;
+    if (!patientsByNurse.has(c.nurseId)) patientsByNurse.set(c.nurseId, new Set());
+    patientsByNurse.get(c.nurseId)!.add(patientId);
+  }
+
+  const [proceduresByNurse, medicationAdminsByNurse] = await Promise.all([
+    prisma.nursingProcedure.groupBy({
+      by: ['performedBy'],
+      where: {
+        performedBy: { in: ids },
+        procedureDate: { gte: start, lte: end },
+      },
+      _count: { _all: true },
+    }),
+    prisma.medicationAdministration.groupBy({
+      by: ['administeredBy'],
+      where: {
+        administeredBy: { in: ids },
+        administrationDate: { gte: start, lte: end },
+      },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const proceduresCountByNurse = new Map<string, number>();
+  for (const p of proceduresByNurse) {
+    proceduresCountByNurse.set(p.performedBy, p._count._all);
+  }
+
+  const medicationAdminsCountByNurse = new Map<string, number>();
+  for (const m of medicationAdminsByNurse) {
+    medicationAdminsCountByNurse.set(m.administeredBy, m._count._all);
+  }
+
+  return nurses.map((n) => ({
+    nurseId: n.id,
+    firstName: n.firstName,
+    lastName: n.lastName,
+    isActive: n.isActive,
+    patientsAttended: patientsByNurse.get(n.id)?.size ?? 0,
+    consultationsCount: consultationsCountByNurse.get(n.id) ?? 0,
+    proceduresCount: proceduresCountByNurse.get(n.id) ?? 0,
+    medicationAdministrationsCount: medicationAdminsCountByNurse.get(n.id) ?? 0,
+  }));
+}
+
+export type MedicationStockLevel = 'low' | 'medium' | 'high';
+
+export interface MedicationLowStockItem {
+  id: string;
+  name: string;
+  stock: number;
+}
+
+export interface MedicationStockSummary {
+  distribution: Record<MedicationStockLevel, number>;
+  lowStock: MedicationLowStockItem[];
+}
+
+export async function getMedicationStockSummary(): Promise<MedicationStockSummary> {
+  // Umbrales consistentes con la UI de medicamentos.
+  const LOW_MAX = 10;
+  const MEDIUM_MAX = 30;
+
+  const meds = await prisma.medication.findMany({
+    where: { isActive: true },
+    select: { id: true, name: true, stock: true },
+  });
+
+  const distribution: Record<MedicationStockLevel, number> = { low: 0, medium: 0, high: 0 };
+  const lowStock: MedicationLowStockItem[] = [];
+
+  for (const m of meds) {
+    if (m.stock <= LOW_MAX) {
+      distribution.low += 1;
+      lowStock.push({ id: m.id, name: m.name, stock: m.stock });
+    } else if (m.stock <= MEDIUM_MAX) {
+      distribution.medium += 1;
+    } else {
+      distribution.high += 1;
+    }
+  }
+
+  lowStock.sort((a, b) => a.stock - b.stock);
+
+  return {
+    distribution,
+    lowStock: lowStock.slice(0, 12),
+  };
 }

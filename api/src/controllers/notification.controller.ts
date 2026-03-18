@@ -13,6 +13,92 @@ export const createNotificationValidation = [
   body('priority').optional().isIn(['normal', 'high', 'urgent']).withMessage('Invalid priority'),
 ];
 
+export const getRecipientsValidation = [
+  // Validation is handled at route-level (query validators), but we keep the controller export
+  // to document expected query params.
+];
+
+export const getRecipients = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const relatedEntityType = String(req.query.relatedEntityType || '')
+    const relatedEntityId = String(req.query.relatedEntityId || '')
+
+    if (!relatedEntityType || !relatedEntityId) {
+      res.status(400).json({ success: false, message: 'relatedEntityType and relatedEntityId are required' })
+      return
+    }
+
+    const user = req.user
+    if (!user) {
+      res.status(401).json({ success: false, message: 'Authentication required' })
+      return
+    }
+
+    const recipients = await notificationService.getRecipientsByRelatedEntity({
+      userId: user.userId,
+      userRole: user.role,
+      relatedEntityType,
+      relatedEntityId,
+    })
+
+    res.status(200).json({
+      success: true,
+      message: 'Recipients retrieved successfully',
+      data: { recipients },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Todos los usuarios activos del sistema (sin filtrar por entidad relacionada)
+export const getAllRecipients = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const limitRaw = req.query.limit as string | undefined
+    const limit = limitRaw ? Math.min(Math.max(parseInt(limitRaw, 10), 1), 500) : 200
+
+    const searchRaw = req.query.search as string | undefined
+    const search = searchRaw?.trim() ? searchRaw.trim() : undefined
+
+    const user = req.user
+    if (!user) {
+      res.status(401).json({ success: false, message: 'Authentication required' })
+      return
+    }
+
+    const recipients = await notificationService.getAllActiveRecipients({
+      viewerRole: user.role,
+      limit,
+      search,
+    })
+
+    res.status(200).json({
+      success: true,
+      message: 'All recipients retrieved successfully',
+      data: { recipients },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getRecentPrescriptions = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const limitRaw = req.query.limit as string | undefined
+    const limit = limitRaw ? Math.min(Math.max(parseInt(limitRaw, 10), 1), 100) : 20
+
+    const prescriptions = await notificationService.getRecentPrescriptions(limit)
+
+    res.status(200).json({
+      success: true,
+      message: 'Recent prescriptions retrieved successfully',
+      data: { prescriptions },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const getNotifications = async (
   req: AuthRequest,
   res: Response,
@@ -100,7 +186,10 @@ export const createNotification = async (
       return;
     }
 
-    const notification = await notificationService.create(req.body);
+    const notification = await notificationService.create({
+      ...(req.body as any),
+      fromUserId: req.user.userId,
+    });
 
     res.status(201).json({
       success: true,

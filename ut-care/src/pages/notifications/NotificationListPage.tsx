@@ -27,6 +27,36 @@ const PRIORITY_KEY: Record<string, string> = {
   urgent: 'priorityUrgent',
 }
 
+const PRIORITY_THEME: Record<
+  string,
+  { border: string; bg: string; text: string; badgeBg: string; badgeBorder: string; badgeText: string }
+> = {
+  normal: {
+    border: 'border-[var(--border)]',
+    bg: 'bg-transparent',
+    text: 'text-[var(--text-primary)]',
+    badgeBg: 'bg-[var(--text-muted)]/10',
+    badgeBorder: 'border-[var(--text-muted)]/20',
+    badgeText: 'text-[var(--text-muted)]',
+  },
+  high: {
+    border: 'border-red-400/40',
+    bg: 'bg-red-500/10',
+    text: 'text-red-800 dark:text-red-200',
+    badgeBg: 'bg-red-500/15',
+    badgeBorder: 'border-red-400/30',
+    badgeText: 'text-red-700 dark:text-red-200',
+  },
+  urgent: {
+    border: 'border-red-400/40',
+    bg: 'bg-red-500/10',
+    text: 'text-red-800 dark:text-red-200',
+    badgeBg: 'bg-red-500/15',
+    badgeBorder: 'border-red-400/30',
+    badgeText: 'text-red-700 dark:text-red-200',
+  },
+}
+
 export function NotificationListPage() {
   const { t } = useTranslation()
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -173,24 +203,40 @@ export function NotificationListPage() {
           <>
             <div className="space-y-2">
               {notifications.map((n) => (
+                (() => {
+                  const theme = PRIORITY_THEME[n.priority || 'normal'] ?? PRIORITY_THEME.normal
+                  return (
                 <div
                   key={n.id}
-                  className="flex items-start gap-3 rounded-xl border border-[var(--border)] bg-transparent px-4 py-3"
+                  className={`flex items-start gap-3 rounded-xl border px-4 py-3 transition-colors ${
+                    !n.isRead
+                      ? (n.priority === 'high' || n.priority === 'urgent'
+                          ? 'border-red-400/60 bg-red-500/10 animate-pulse'
+                          : 'border-yellow-400/60 bg-yellow-500/10 animate-pulse')
+                      : `${theme.border} bg-transparent`
+                  }`}
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-black/5 dark:bg-white/5">
-                    <Bell size={20} className="text-[var(--text-secondary)]" />
+                  <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                      !n.isRead ? theme.badgeBg : 'bg-black/5 dark:bg-white/5'
+                    }`}
+                  >
+                    <Bell size={20} className={`${!n.isRead ? theme.badgeText : 'text-[var(--text-secondary)]'}`} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Link to={`/notifications/${n.id}`} className="font-medium text-[var(--text-primary)] hover:underline">
+                      <Link
+                        to={`/notifications/${n.id}`}
+                        className={`font-medium hover:underline ${!n.isRead ? theme.text : 'text-[var(--text-primary)]'}`}
+                      >
                         {n.title}
                       </Link>
                       <span className="text-xs text-[var(--text-muted)]">{n.type}</span>
-                      {n.priority !== 'normal' && (
-                        <span className="text-xs text-[var(--text-muted)]">
-                          {t(`notifications.${PRIORITY_KEY[n.priority] || n.priority}`)}
-                        </span>
-                      )}
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-full border px-2 py-0.5 text-xs font-medium ${theme.badgeBg} ${theme.badgeBorder} ${theme.badgeText}`}
+                      >
+                        {t(`notifications.${PRIORITY_KEY[n.priority] || n.priority}`)}
+                      </span>
                     </div>
                     <p className="mt-0.5 line-clamp-2 text-sm text-[var(--text-secondary)]">{n.message}</p>
                     <p className="mt-1 text-xs text-[var(--text-muted)]">{formatDateTime(n.createdAt)}</p>
@@ -216,6 +262,8 @@ export function NotificationListPage() {
                     </button>
                   </div>
                 </div>
+                  )
+                })()
               ))}
             </div>
             {(pagination.totalPages > 1 || limit !== 10) && (

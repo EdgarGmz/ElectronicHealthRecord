@@ -99,8 +99,9 @@ export function WeeklyActivitiesCalendar({
               initialDate={initialDate.toISOString().slice(0, 10)}
               locale="es"
               firstDay={1}
-              slotMinTime="07:00:00"
-              slotMaxTime="21:00:00"
+              // Mostrar el día completo para que se vean citas fuera de horario "típico".
+              slotMinTime="00:00:00"
+              slotMaxTime="23:59:00"
               slotDuration="00:30:00"
               allDaySlot={true}
               height={500}

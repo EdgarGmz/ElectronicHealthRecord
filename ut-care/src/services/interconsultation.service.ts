@@ -5,6 +5,14 @@ import type {
   CreateInterconsultationInput,
 } from '@/types/interconsultation'
 
+export interface InterconsultationProfessional {
+  id: string
+  firstName: string
+  lastName: string
+  email?: string
+  role?: string
+}
+
 export async function getInterconsultations(params: {
   page?: number
   limit?: number
@@ -48,6 +56,13 @@ export async function getInterconsultationById(id: string): Promise<Interconsult
   return data.data
 }
 
+export async function getPendingInterconsultationsCount(): Promise<{ count: number }> {
+  const { data } = await api.get<{ success: boolean; data: { count: number } }>(
+    '/interconsultations/pending-count'
+  )
+  return data.data
+}
+
 export async function createInterconsultation(
   body: CreateInterconsultationInput
 ): Promise<Interconsultation> {
@@ -65,6 +80,14 @@ export async function respondToInterconsultation(
   const { data } = await api.post<{ success: boolean; data: Interconsultation }>(
     `/interconsultations/${id}/response`,
     { response }
+  )
+  return data.data
+}
+
+export async function getInterconsultationProfessionals(params: { toDepartment: string }): Promise<InterconsultationProfessional[]> {
+  const sp = new URLSearchParams({ toDepartment: params.toDepartment })
+  const { data } = await api.get<{ success: boolean; data: InterconsultationProfessional[] }>(
+    `/interconsultations/professionals?${sp}`
   )
   return data.data
 }

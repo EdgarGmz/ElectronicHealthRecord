@@ -250,6 +250,12 @@ export class PatientService {
       group?: string;
       occupation?: string;
       trimester?: number;
+      // Optional medical record fields (created together with medicalRecord for staff roles).
+      bloodType?: string | null;
+      allergies?: string | null;
+      chronicConditions?: string | null;
+      currentMedications?: string | null;
+      familyHistory?: string | null;
     },
     options?: { createdBy: string; creatorRole: string }
   ) {
@@ -328,7 +334,13 @@ export class PatientService {
     // Si quien crea puede crear expedientes (psicólogo o enfermero), crear expediente médico y, si es psicólogo, expediente de psicología
     if (options?.createdBy && options?.creatorRole) {
       const role = options.creatorRole.toLowerCase().trim();
-      if (role === ROLES.PSICOLOGO || role === ROLES.ENFERMERO) {
+      const canCreateMedicalRecord =
+        role === ROLES.PSICOLOGO ||
+        role === ROLES.COORDINADOR_PSICOLOGIA ||
+        role === ROLES.ENFERMERO ||
+        role === ROLES.COORDINADOR_ENFERMERIA;
+
+      if (canCreateMedicalRecord) {
         const existingMr = await prisma.medicalRecord.findUnique({
           where: { patientId: patient.id },
         });
@@ -338,9 +350,14 @@ export class PatientService {
               patientId: patient.id,
               createdBy: options.createdBy,
               updatedBy: options.createdBy,
+              bloodType: data.bloodType ?? undefined,
+              allergies: data.allergies ?? undefined,
+              chronicConditions: data.chronicConditions ?? undefined,
+              currentMedications: data.currentMedications ?? undefined,
+              familyHistory: data.familyHistory ?? undefined,
             },
           });
-          if (role === ROLES.PSICOLOGO) {
+          if (role === ROLES.PSICOLOGO || role === ROLES.COORDINADOR_PSICOLOGIA) {
             await prisma.psychologyRecord.create({
               data: {
                 medicalRecordId: medicalRecord.id,
