@@ -40,6 +40,10 @@ export const ROLES_CAN_EDIT_PATIENT: readonly string[] = [
   ROLES.ENFERMERO,
 ]
 
+/** Medicamentos: CRUD completo solo coordinador de enfermería. */
+export const ROLES_CAN_CREATE_MEDICATION: readonly string[] = [ROLES.COORDINADOR_ENFERMERIA]
+export const ROLES_CAN_MANAGE_MEDICATIONS: readonly string[] = [ROLES.COORDINADOR_ENFERMERIA]
+
 /** Pueden crear citas nuevas. Coord. psicología solo ve la lista. */
 export const ROLES_CAN_CREATE_APPOINTMENT: readonly string[] = [ROLES.PSICOLOGO]
 
@@ -108,8 +112,9 @@ const NAV_VISIBILITY: Record<string, readonly string[]> = {
   /** Sesiones de terapia: solo psicólogo (exclusivo de psicología) */
   '/sessions': [ROLES.PSICOLOGO],
   '/medications': [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO],
-  '/procedures': [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO],
-  '/nursing-attention': [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO],
+  // Procedimientos y Atención Rápida: exclusivo de enfermería operativa (solo enfermero)
+  '/procedures': [ROLES.ENFERMERO],
+  '/nursing-attention': [ROLES.ENFERMERO],
   '/interconsultations': [],
   '/reports': [],
   /** Evaluaciones psicométricas: solo psicólogo. */

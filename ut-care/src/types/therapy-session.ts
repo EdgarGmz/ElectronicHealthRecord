@@ -30,6 +30,9 @@ export interface TherapySession {
   assignedTasks: string | null
   observations: string | null
   nextSessionPlan: string | null
+  status: string
+  cancellationReason: string | null
+  rescheduleReason: string | null
   therapistId: string
   createdAt: string
   updatedAt: string

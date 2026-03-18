@@ -44,6 +44,17 @@ export const updateTherapySessionValidation = [
   body('nextSessionPlan').optional().isString(),
 ];
 
+export const cancelTherapySessionValidation = [
+  param('id').isUUID().withMessage('Invalid therapy session ID'),
+  body('cancellationReason').notEmpty().withMessage('Cancellation reason is required').isString(),
+];
+
+export const rescheduleTherapySessionValidation = [
+  param('id').isUUID().withMessage('Invalid therapy session ID'),
+  body('sessionDate').notEmpty().isISO8601().withMessage('Valid new session date is required'),
+  body('rescheduleReason').notEmpty().withMessage('Reschedule reason is required').isString(),
+];
+
 export const getTherapySessionByIdValidation = [
   param('id').isUUID().withMessage('Invalid therapy session ID'),
 ];
@@ -162,6 +173,61 @@ export const updateTherapySession = async (req: AuthRequest, res: Response, next
     res.status(200).json({
       success: true,
       message: 'Therapy session updated successfully',
+      data: session,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const cancelTherapySession = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+    const { id } = req.params;
+    const { cancellationReason } = req.body as { cancellationReason: string };
+    const session = await therapySessionService.cancel(
+      id,
+      cancellationReason,
+      req.user.userId,
+      req.user.role
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Therapy session cancelled successfully',
+      data: session,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const rescheduleTherapySession = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+    const { id } = req.params;
+    const { sessionDate, rescheduleReason } = req.body as { sessionDate: string; rescheduleReason: string };
+    const session = await therapySessionService.reschedule(
+      id,
+      new Date(sessionDate),
+      rescheduleReason,
+      req.user.userId,
+      req.user.role
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Therapy session rescheduled successfully',
       data: session,
     });
   } catch (error) {

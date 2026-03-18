@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, Pill } from 'lucide-react'
+import { Plus, Pill, Pencil } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
@@ -10,6 +10,8 @@ import type { DataTableColumn } from '@/components/organisms/DataTable'
 import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { getMedications } from '@/services/medication.service'
 import type { Medication } from '@/types/medication'
+import { useAuthStore } from '@/store/auth.store'
+import { ROLES, ROLES_CAN_CREATE_MEDICATION } from '@/constants/roles'
 
 /** Categorías de medicamentos (coinciden con el seed/API). */
 const MEDICATION_CATEGORIES = [
@@ -38,6 +40,10 @@ const MEDICATION_CATEGORIES = [
 
 export function MedicationListPage() {
   const { t } = useTranslation()
+  const user = useAuthStore((s) => s.user)
+  const role = user?.role?.toLowerCase()?.trim() ?? ''
+  const canCreate = role ? ROLES_CAN_CREATE_MEDICATION.includes(role) : false
+  const isCoordinatorNursing = role === ROLES.COORDINADOR_ENFERMERIA
   const [medications, setMedications] = useState<Medication[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -171,13 +177,15 @@ export function MedicationListPage() {
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
-        <Link
-          to="/medications/new"
-          className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium"
-        >
-          <Plus size={18} />
-          {t('medications.newMedication')}
-        </Link>
+        {canCreate && (
+          <Link
+            to="/medications/new"
+            className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium"
+          >
+            <Plus size={18} />
+            {t('medications.newMedication')}
+          </Link>
+        )}
       </div>
       <GlassCard>
         <DataTable
@@ -221,13 +229,26 @@ export function MedicationListPage() {
           sortState={sortState}
           onSort={(columnId, order) => setSortState({ columnId, order })}
           renderActions={(row) => (
-            <Link
-              to={`/medications/${row.id}`}
-              className="inline-flex items-center gap-1 text-[var(--color-primary)] hover:underline"
-            >
-              <Pill size={16} />
-              {t('medications.viewDetail')}
-            </Link>
+            <div className="flex items-center justify-end gap-2">
+              <Link
+                to={`/medications/${row.id}`}
+                className="inline-flex items-center justify-center rounded-lg p-1.5 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10"
+                title={t('medications.viewDetail')}
+                aria-label={t('medications.viewDetail')}
+              >
+                <Pill size={16} />
+              </Link>
+              {isCoordinatorNursing && (
+                <Link
+                  to={`/medications/${row.id}/edit`}
+                  className="inline-flex items-center justify-center rounded-lg p-1.5 text-[var(--text-secondary)] hover:bg-black/5 hover:text-[var(--text-primary)] dark:hover:bg-white/5"
+                  title={t('common.edit', 'Editar')}
+                  aria-label={t('common.edit', 'Editar')}
+                >
+                  <Pencil size={16} />
+                </Link>
+              )}
+            </div>
           )}
           exportFormats={['pdf', 'csv', 'xlsx']}
           exportFilename="medicamentos"

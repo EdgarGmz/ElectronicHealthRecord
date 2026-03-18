@@ -75,6 +75,35 @@ export const getInterconsultations = async (
   }
 };
 
+export const getInterconsultationProfessionals = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Authentication required' })
+      return
+    }
+
+    const toDepartment = req.query.toDepartment as string
+    if (!toDepartment || !DEPARTMENT_VALUES.includes(toDepartment as any)) {
+      res.status(400).json({ success: false, message: 'Valid toDepartment is required' })
+      return
+    }
+
+    const professionals = await interconsultationService.getProfessionalsByToDepartment(toDepartment)
+
+    res.status(200).json({
+      success: true,
+      message: 'Professionals retrieved successfully',
+      data: professionals,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const getInterconsultationById = async (
   req: AuthRequest,
   res: Response,
@@ -102,6 +131,29 @@ export const getInterconsultationById = async (
     next(error);
   }
 };
+
+export const getPendingInterconsultationsCount = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Authentication required' })
+      return
+    }
+
+    const count = await interconsultationService.getPendingCount(req.user.userId, req.user.role)
+
+    res.status(200).json({
+      success: true,
+      message: 'Pending interconsultations count retrieved successfully',
+      data: { count },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
 
 export const createInterconsultation = async (
   req: AuthRequest,

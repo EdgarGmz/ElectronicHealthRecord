@@ -1,6 +1,7 @@
 export interface Notification {
   id: string
   userId: string
+  fromUserId?: string | null
   type: string
   title: string
   message: string
@@ -12,6 +13,13 @@ export interface Notification {
   createdAt: string
   updatedAt: string
   user?: {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+    role?: string
+  }
+  fromUser?: {
     id: string
     firstName: string
     lastName: string

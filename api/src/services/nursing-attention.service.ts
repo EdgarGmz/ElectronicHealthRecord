@@ -106,6 +106,7 @@ class NursingAttentionService {
 
     return attentions.map((a) => {
       const patient = patientMap.get(a.patientId);
+      const enrollmentNumber = patient?.user?.enrollmentNumber ?? null;
       return {
         id: a.id,
         patientId: a.patientId,
@@ -115,9 +116,9 @@ class NursingAttentionService {
         patient: patient
           ? {
               user: {
-                firstName: patient.user.firstName,
-                lastName: patient.user.lastName,
-                enrollmentNumber: patient.user.enrollmentNumber,
+                firstName: patient.user.firstName ?? '',
+                lastName: patient.user.lastName ?? '',
+                enrollmentNumber,
               },
             }
           : { user: { firstName: '', lastName: '', enrollmentNumber: null } },
@@ -128,19 +129,17 @@ class NursingAttentionService {
   async getById(id: string, nurseId: string, canBypassNurseCheck = false) {
     const attention = await prisma.nursingAttention.findUnique({
       where: { id },
-      include: {
-        patient: {
-          include: {
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
-                enrollmentNumber: true,
-                email: true,
-              },
-            },
-          },
-        },
+      select: {
+        id: true,
+        patientId: true,
+        nurseId: true,
+        motive: true,
+        vitalSigns: true,
+        lightningDiagnosis: true,
+        treatment: true,
+        observations: true,
+        disposition: true,
+        createdAt: true,
       },
     });
 
@@ -151,6 +150,20 @@ class NursingAttentionService {
     if (!canBypassNurseCheck && attention.nurseId !== nurseId) {
       throw new AppError('Access denied to this attention', 403);
     }
+
+    const patient = await prisma.patient.findUnique({
+      where: { id: attention.patientId },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            enrollmentNumber: true,
+            email: true,
+          },
+        },
+      },
+    })
 
     return {
       id: attention.id,
@@ -163,14 +176,16 @@ class NursingAttentionService {
       observations: attention.observations,
       createdAt: attention.createdAt,
       patient: attention.patient
-        ? {
-            user: {
-              firstName: attention.patient.user.firstName,
-              lastName: attention.patient.user.lastName,
-              enrollmentNumber: attention.patient.user.enrollmentNumber,
-              email: attention.patient.user.email,
-            },
-          }
+        ? patient
+          ? {
+              user: {
+                firstName: patient.user.firstName ?? '',
+                lastName: patient.user.lastName ?? '',
+                enrollmentNumber: patient.user.enrollmentNumber ?? null,
+                email: patient.user.email ?? '',
+              },
+            }
+          : undefined
         : undefined,
     };
   }

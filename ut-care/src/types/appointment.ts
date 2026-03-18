@@ -36,6 +36,7 @@ export interface Appointment {
   durationMinutes: number
   status: string
   cancellationReason: string | null
+  rescheduleReason?: string | null
   notes: string | null
   createdBy: string
   createdAt: string

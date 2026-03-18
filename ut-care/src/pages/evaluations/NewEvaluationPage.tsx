@@ -173,9 +173,13 @@ export function NewEvaluationPage() {
         }
       }
       if (!record.psychologyRecord?.id) {
-        setError(t('sessions.noPsychologyRecord'))
-        setLoadingRecord(false)
-        return
+        await ensureExpedientForPatient(p.id)
+        record = await getMedicalRecordByPatientId(p.id)
+        if (!record.psychologyRecord?.id) {
+          setError(t('sessions.noPsychologyRecord'))
+          setLoadingRecord(false)
+          return
+        }
       }
       update('psychologyRecordId', record.psychologyRecord.id)
       const label = [

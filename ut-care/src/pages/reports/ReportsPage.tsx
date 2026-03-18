@@ -322,6 +322,98 @@ export function ReportsPage() {
                 </div>
               )}
             </div>
+
+            {/* Medicamentos (detalle) */}
+            {statisticsData.nursingConsultations?.medicationsByMedication?.length ? (
+              <div className="mt-2">
+                <p className="text-sm font-medium text-[var(--text-primary)]">
+                  {t('reports.medicationsAdministeredDetail', 'Medicamentos administrados (detalle)')}
+                </p>
+                <div className="mt-2 overflow-x-auto rounded-xl border border-[var(--glass-border)]">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-[var(--border)] bg-black/5 dark:bg-white/5">
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.medication', 'Medicamento')}</th>
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.count', 'Cantidad')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {statisticsData.nursingConsultations.medicationsByMedication!.map((m) => (
+                        <tr key={m.medication} className="border-b border-[var(--border)] last:border-b-0">
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{m.medication}</td>
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{m.count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
+
+            {/* Pacientes (detalle) */}
+            {statisticsData.patientsList?.length ? (
+              <div className="mt-2">
+                <p className="text-sm font-medium text-[var(--text-primary)]">
+                  {t('reports.patientsDetail', 'Pacientes atendidos (detalle)')}
+                </p>
+                <div className="mt-2 overflow-x-auto rounded-xl border border-[var(--glass-border)]">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-[var(--border)] bg-black/5 dark:bg-white/5">
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.patient', 'Paciente')}</th>
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.enrollment', 'Matrícula')}</th>
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.consultationsCount', 'Consultas')}</th>
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.firstSeen', 'Primera')}</th>
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.lastSeen', 'Última')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {statisticsData.patientsList.map((p) => (
+                        <tr key={`${p.patient}-${p.lastConsultationAt}`} className="border-b border-[var(--border)] last:border-b-0">
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{p.patient}</td>
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{p.enrollmentNumber ?? '—'}</td>
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{p.consultationsCount}</td>
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{formatDate(p.firstConsultationAt)}</td>
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{formatDate(p.lastConsultationAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
+
+            {/* Citas (detalle) */}
+            {statisticsData.appointmentsList?.length ? (
+              <div className="mt-2">
+                <p className="text-sm font-medium text-[var(--text-primary)]">{t('reports.appointmentsDetail', 'Citas (detalle)')}</p>
+                <div className="mt-2 overflow-x-auto rounded-xl border border-[var(--glass-border)]">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-[var(--border)] bg-black/5 dark:bg-white/5">
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.patient', 'Paciente')}</th>
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.type', 'Tipo')}</th>
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.professional', 'Profesional')}</th>
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.status', 'Estado')}</th>
+                        <th className="px-4 py-3 font-medium text-[var(--text-primary)]">{t('reports.date', 'Fecha')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {statisticsData.appointmentsList.map((a) => (
+                        <tr key={a.id} className="border-b border-[var(--border)] last:border-b-0">
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{a.patient}</td>
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{a.appointmentType}</td>
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{a.professional}</td>
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{a.status}</td>
+                          <td className="px-4 py-3 text-[var(--text-secondary)]">{formatDate(a.scheduledDate)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
+
             {statisticsData.appointments.byType.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-[var(--text-primary)]">{t('reports.byType')}</p>

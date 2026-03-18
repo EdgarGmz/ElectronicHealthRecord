@@ -58,3 +58,22 @@ export async function getAppointmentById(id: string): Promise<Appointment> {
   const { data } = await api.get<{ success: boolean; data: Appointment }>(`/appointments/${id}`)
   return data.data
 }
+
+export async function cancelAppointment(id: string, cancellationReason: string): Promise<Appointment> {
+  const { data } = await api.delete<{ success: boolean; data: Appointment }>(`/appointments/${id}`, {
+    data: { cancellationReason },
+  })
+  return data.data
+}
+
+export async function rescheduleAppointment(
+  id: string,
+  scheduledDate: string,
+  rescheduleReason: string
+): Promise<Appointment> {
+  const { data } = await api.put<{ success: boolean; data: Appointment }>(`/appointments/${id}`, {
+    scheduledDate: scheduledDate,
+    rescheduleReason,
+  })
+  return data.data
+}

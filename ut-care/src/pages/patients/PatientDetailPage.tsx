@@ -845,10 +845,31 @@ export function PatientDetailPage() {
                 <DetailRow label={t('sessions.sessionNumber')} value={String(detailSession.sessionNumber)} />
                 <DetailRow label={t('common.date')} value={new Date(detailSession.sessionDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })} />
                 <DetailRow label={t('sessions.duration')} value={`${detailSession.sessionDuration} min`} />
+                {detailSession.status && detailSession.status !== 'scheduled' && (
+                  <DetailRow
+                    label={t('appointments.status', 'Estado')}
+                    value={
+                      detailSession.status === 'cancelled'
+                        ? t('sessions.statusCancelled', 'Cancelada')
+                        : detailSession.status === 'rescheduled'
+                          ? t('sessions.statusRescheduled', 'Reagendada')
+                          : detailSession.status
+                    }
+                  />
+                )}
                 {detailSession.mood && <DetailRow label={t('sessions.mood')} value={detailSession.mood} />}
                 {detailSession.evolutionNotes && <DetailRow label={t('sessions.evolutionNotes')} value={detailSession.evolutionNotes} />}
                 {detailSession.patientProgress && <DetailRow label={t('sessions.patientProgress')} value={detailSession.patientProgress} />}
                 {detailSession.assignedTasks && <DetailRow label={t('sessions.assignedTasks')} value={detailSession.assignedTasks} />}
+                {detailSession.status === 'cancelled' && detailSession.cancellationReason && (
+                  <DetailRow
+                    label={t('appointments.cancellationReason', 'Motivo de cancelación')}
+                    value={detailSession.cancellationReason}
+                  />
+                )}
+                {detailSession.status === 'rescheduled' && detailSession.rescheduleReason && (
+                  <DetailRow label={t('sessions.rescheduleReason', 'Motivo de reagendar')} value={detailSession.rescheduleReason} />
+                )}
                 {detailSession.observations && <DetailRow label={t('procedures.observations')} value={detailSession.observations} />}
                 {detailSession.nextSessionPlan && <DetailRow label={t('sessions.nextSessionPlan')} value={detailSession.nextSessionPlan} />}
                 {detailSession.therapist && (

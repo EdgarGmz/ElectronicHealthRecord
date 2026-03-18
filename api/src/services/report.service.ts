@@ -4,6 +4,7 @@ import { AppError } from '../middleware/errorHandler';
 
 // Constants
 const MAX_CONSULTATION_RECORDS = 100; // Maximum number of consultation records to return in a report
+const MAX_REPORT_LIST_RECORDS = 100; // Maximum list rows for report detail
 
 const PATIENT_TYPES_GENERAL = ['faculty', 'administrative'] as const;
 
@@ -92,32 +93,223 @@ export class ReportService {
     // Get nursing consultation statistics (for nursing department)
     let nursingStats = null;
     if (!department || department === 'nursing') {
+      const nursingConsultationWhere: Prisma.NursingConsultationWhereInput = {
+        consultationDate: {
+          gte: periodStart,
+          lte: periodEnd,
+        },
+      };
+      const medicationAdministrationWhere: Prisma.MedicationAdministrationWhereInput = {
+        administrationDate: {
+          gte: periodStart,
+          lte: periodEnd,
+        },
+      };
+      const nursingProcedureWhere: Prisma.NursingProcedureWhereInput = {
+        procedureDate: {
+          gte: periodStart,
+          lte: periodEnd,
+        },
+      };
+
+      const [
+        totalConsultations,
+        medicationsAdministered,
+        proceduresPerformed,
+        medicationsByMedication,
+        medicationAdministrations,
+      ] = await Promise.all([
+        prisma.nursingConsultation.count({ where: nursingConsultationWhere }),
+        prisma.medicationAdministration.count({ where: medicationAdministrationWhere }),
+        prisma.nursingProcedure.count({ where: nursingProcedureWhere }),
+        prisma.medicationAdministration.groupBy({
+          by: ['medicationId'],
+          where: medicationAdministrationWhere,
+          _count: { _all: true },
+        }),
+        prisma.medicationAdministration.findMany({
+          where: medicationAdministrationWhere,
+          include: {
+            medication: { select: { name: true, genericName: true } },
+            consultation: {
+              include: {
+                medicalRecord: {
+                  include: {
+                    patient: {
+                      include: {
+                        user: {
+                          select: {
+                            firstName: true,
+                            lastName: true,
+                            enrollmentNumber: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { administrationDate: 'desc' },
+          take: MAX_REPORT_LIST_RECORDS,
+        }),
+      ]);
+
       nursingStats = {
-        totalConsultations: await prisma.nursingConsultation.count({
-          where: {
-            consultationDate: {
-              gte: periodStart,
-              lte: periodEnd,
-            },
-          },
-        }),
-        medicationsAdministered: await prisma.medicationAdministration.count({
-          where: {
-            administrationDate: {
-              gte: periodStart,
-              lte: periodEnd,
-            },
-          },
-        }),
-        proceduresPerformed: await prisma.nursingProcedure.count({
-          where: {
-            procedureDate: {
-              gte: periodStart,
-              lte: periodEnd,
-            },
-          },
+        totalConsultations,
+        medicationsAdministered,
+        proceduresPerformed,
+        medicationsByMedication: [],
+        medicationAdministrations: medicationAdministrations.map((ma) => {
+          const patientUser = ma.consultation?.medicalRecord?.patient?.user;
+          const patientName = patientUser
+            ? `${patientUser.firstName} ${patientUser.lastName}`.trim()
+            : '—';
+          const enrollmentNumber = patientUser?.enrollmentNumber ?? null;
+          const medicationName =
+            ma.medication?.name ?? ma.medication?.genericName ?? '—';
+
+          return {
+            id: ma.id,
+            patient: patientName,
+            enrollmentNumber,
+            medication: medicationName,
+            dosage: ma.dosage,
+            route: ma.route,
+            administrationDate: ma.administrationDate.toISOString(),
+            medicationVerified: ma.medicationVerified,
+            patientVerified: ma.patientVerified,
+            dosageVerified: ma.dosageVerified,
+            routeVerified: ma.routeVerified,
+            timeVerified: ma.timeVerified,
+          };
         }),
       };
+
+      // medicationsByMedication: resolve medication names for nicer UX
+      const medicationIds = medicationsByMedication.map((r) => r.medicationId).filter(Boolean);
+      const meds = await prisma.medication.findMany({
+        where: { id: { in: medicationIds as string[] } },
+        select: { id: true, name: true, genericName: true },
+      });
+      const medsById = new Map(meds.map((m) => [m.id, m]));
+      nursingStats.medicationsByMedication = medicationsByMedication.map((row) => {
+        const med = medsById.get(row.medicationId);
+        const medicationName = med?.name ?? med?.genericName ?? row.medicationId;
+        return {
+          medication: medicationName,
+          count: row._count._all,
+        };
+      }).sort((a, b) => b.count - a.count).slice(0, MAX_REPORT_LIST_RECORDS);
+    }
+
+    // Lists detail (only for department nursing/psychology to keep payload bounded)
+    let patientsList = undefined;
+    let appointmentsList = undefined;
+    if (department === 'nursing') {
+      const nursingConsultationsForList = await prisma.nursingConsultation.findMany({
+        where: {
+          consultationDate: {
+            gte: periodStart,
+            lte: periodEnd,
+          },
+        },
+        include: {
+          medicalRecord: {
+            include: {
+              patient: {
+                include: {
+                  user: {
+                    select: {
+                      firstName: true,
+                      lastName: true,
+                      enrollmentNumber: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: { consultationDate: 'desc' },
+        take: MAX_REPORT_LIST_RECORDS,
+      });
+
+      const map = new Map<
+        string,
+        { patient: string; enrollmentNumber: string | null; count: number; first: Date; last: Date }
+      >();
+
+      for (const c of nursingConsultationsForList) {
+        const user = c.medicalRecord?.patient?.user;
+        const key = user ? `${user.firstName}_${user.lastName}_${user.enrollmentNumber ?? ''}` : c.medicalRecordId;
+        const patient = user ? `${user.firstName} ${user.lastName}`.trim() : '—';
+        const enrollmentNumber = user?.enrollmentNumber ?? null;
+        const dt = c.consultationDate;
+
+        const existing = map.get(key);
+        if (!existing) {
+          map.set(key, { patient, enrollmentNumber, count: 1, first: dt, last: dt });
+        } else {
+          existing.count += 1;
+          if (dt < existing.first) existing.first = dt;
+          if (dt > existing.last) existing.last = dt;
+        }
+      }
+
+      patientsList = Array.from(map.values())
+        .sort((a, b) => b.last.getTime() - a.last.getTime())
+        .slice(0, MAX_REPORT_LIST_RECORDS)
+        .map((p) => ({
+          patient: p.patient,
+          enrollmentNumber: p.enrollmentNumber,
+          consultationsCount: p.count,
+          firstConsultationAt: p.first.toISOString(),
+          lastConsultationAt: p.last.toISOString(),
+        }));
+    }
+
+    if (department === 'nursing' || department === 'psychology') {
+      appointmentsList = await prisma.appointment.findMany({
+        where: {
+          ...appointmentWhere,
+        },
+        include: {
+          patient: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  enrollmentNumber: true,
+                },
+              },
+            },
+          },
+          professional: { select: { firstName: true, lastName: true } },
+        },
+        orderBy: { scheduledDate: 'desc' },
+        take: MAX_REPORT_LIST_RECORDS,
+      }).then((rows) =>
+        rows.map((a) => {
+          const patientUser = a.patient?.user;
+          const patientName = patientUser ? `${patientUser.firstName} ${patientUser.lastName}`.trim() : '—';
+          return {
+            id: a.id,
+            patient: patientName,
+            enrollmentNumber: patientUser?.enrollmentNumber ?? null,
+            department: a.department,
+            appointmentType: a.appointmentType,
+            professional: a.professional
+              ? `${a.professional.firstName} ${a.professional.lastName}`.trim()
+              : '—',
+            status: a.status,
+            scheduledDate: a.scheduledDate.toISOString(),
+            cancellationReason: a.cancellationReason ?? null,
+          };
+        }),
+      );
     }
 
     const reportData = {
@@ -139,6 +331,8 @@ export class ReportService {
         total: totalPatients,
         newPatients: newPatients,
       },
+      ...(patientsList ? { patientsList } : {}),
+      ...(appointmentsList ? { appointmentsList } : {}),
       ...(therapySessionStats !== null && { therapySessions: therapySessionStats }),
       ...(nursingStats && { nursingConsultations: nursingStats }),
     };

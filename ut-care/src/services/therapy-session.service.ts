@@ -32,3 +32,22 @@ export async function getTherapySessionById(id: string): Promise<TherapySession>
   const { data } = await api.get<{ success: boolean; data: TherapySession }>(`/therapy-sessions/${id}`)
   return data.data
 }
+
+export async function cancelTherapySession(id: string, cancellationReason: string): Promise<TherapySession> {
+  const { data } = await api.post<{ success: boolean; data: TherapySession }>(`/therapy-sessions/${id}/cancel`, {
+    cancellationReason,
+  })
+  return data.data
+}
+
+export async function rescheduleTherapySession(
+  id: string,
+  sessionDate: string,
+  rescheduleReason: string
+): Promise<TherapySession> {
+  const { data } = await api.post<{ success: boolean; data: TherapySession }>(`/therapy-sessions/${id}/reschedule`, {
+    sessionDate,
+    rescheduleReason,
+  })
+  return data.data
+}

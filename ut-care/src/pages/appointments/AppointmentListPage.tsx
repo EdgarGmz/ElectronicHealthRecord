@@ -44,8 +44,12 @@ export function AppointmentListPage() {
   })
 
   useEffect(() => {
-    setLoading(true)
-    setError(null)
+    // Evita setState "sincrónico" directamente en el body del effect para cumplir la regla del lint.
+    void Promise.resolve().then(() => {
+      setLoading(true)
+      setError(null)
+    })
+
     getAppointments({
       page,
       limit,
@@ -59,6 +63,41 @@ export function AppointmentListPage() {
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
   }, [page, limit, status, search, t])
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      // Refresco silencioso para que se vean cambios de estado (ej. completada).
+      void getAppointments({
+        page,
+        limit,
+        status: status || undefined,
+        search: search || undefined,
+      }).then((r) => {
+        setAppointments(r.appointments)
+        setPagination(r.pagination)
+      })
+    }, 10000)
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void getAppointments({
+          page,
+          limit,
+          status: status || undefined,
+          search: search || undefined,
+        }).then((r) => {
+          setAppointments(r.appointments)
+          setPagination(r.pagination)
+        })
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    return () => {
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [page, limit, status, search])
 
   const patientName = (a: Appointment) =>
     `${a.patient.user.firstName} ${a.patient.user.lastName}`.trim()

@@ -10,7 +10,7 @@ export const createAppointmentValidation = [
   body('appointmentType').notEmpty().withMessage('Appointment type is required'),
   body('department').notEmpty().withMessage('Department is required'),
   body('scheduledDate').isISO8601().withMessage('Valid scheduled date is required'),
-  body('durationMinutes').isInt({ min: 1 }).withMessage('Valid duration in minutes is required'),
+  body('durationMinutes').isInt({ min: 1, max: 90 }).withMessage('Valid duration in minutes is required (max 90)'),
   body('notes').optional().isString(),
 ];
 
@@ -19,6 +19,7 @@ export const updateAppointmentValidation = [
   body('scheduledDate').optional().isISO8601().withMessage('Valid scheduled date is required'),
   body('durationMinutes').optional().isInt({ min: 1 }).withMessage('Valid duration in minutes is required'),
   body('status').optional().isIn(APPOINTMENT_STATUS_VALUES).withMessage('Invalid status'),
+  body('rescheduleReason').optional().isString().withMessage('Reschedule reason must be a string'),
   body('notes').optional().isString(),
 ];
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import {
@@ -12,6 +12,8 @@ import {
   ClipboardList,
   BarChart3,
   PlayCircle,
+  CalendarPlus,
+  X,
 } from 'lucide-react'
 import { canSeeNavItem } from '@/constants/roles'
 import {
@@ -25,12 +27,16 @@ import {
 } from 'recharts'
 import { useAuthStore } from '@/store/auth.store'
 import { GlassCard } from '@/components/atoms/GlassCard'
-import { getAppointments } from '@/services/appointment.service'
+import { GlassButton } from '@/components/atoms/GlassButton'
+import { ConfirmModal } from '@/components/molecules/ConfirmModal'
+import { cancelAppointment, getAppointments, rescheduleAppointment } from '@/services/appointment.service'
 import { getTherapySessions } from '@/services/therapy-session.service'
 import { getNotifications, getUnreadCount } from '@/services/notification.service'
 import type { Appointment } from '@/types/appointment'
 import type { TherapySession } from '@/types/therapy-session'
 import type { Notification } from '@/types/notification'
+import { APPOINTMENT_STATUS, DEPARTMENT_KEYS } from '@/types/appointment'
+import { getStatusBadgeClass, getTableRowClass } from '@/utils/tableRowColors'
 
 const PSY_COLOR = '#8b5cf6'
 
@@ -58,6 +64,16 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 }
 
+function toDateTimeLocalValue(iso: string): string {
+  const d = new Date(iso)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${y}-${m}-${day}T${hh}:${mm}`
+}
+
 function getWeekKey(iso: string): string {
   const d = new Date(iso)
   const start = new Date(d)
@@ -83,6 +99,20 @@ export function DashboardPsychologist() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null)
+
+  const [cancelModalOpen, setCancelModalOpen] = useState(false)
+  const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [rescheduleReason, setRescheduleReason] = useState('')
+  const [rescheduleDateTime, setRescheduleDateTime] = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
+  const [cancelModalError, setCancelModalError] = useState<string | null>(null)
+  const [rescheduleModalError, setRescheduleModalError] = useState<string | null>(null)
+
+  const [appointmentDetailModalOpen, setAppointmentDetailModalOpen] = useState(false)
+  const [appointmentDetail, setAppointmentDetail] = useState<Appointment | null>(null)
+  const appointmentDetailRef = useRef<Appointment | null>(null)
 
   const todayRange = useMemo(() => getTodayRange(), [])
   const next7Range = useMemo(() => getNextDaysRange(7), [])
@@ -153,6 +183,166 @@ export function DashboardPsychologist() {
     return () => { cancelled = true }
   }, [user?.id, t, todayRange.startDate, todayRange.endDate, next7Range.startDate, next7Range.endDate])
 
+  const refreshAppointmentsToday = async () => {
+    const r = await getAppointments({
+      page: 1,
+      limit: 20,
+      startDate: todayRange.startDate,
+      endDate: todayRange.endDate,
+    })
+    setAppointmentsToday(r.appointments)
+
+    // Mantener la modal sincronizada con el estatus más reciente.
+    const currentDetail = appointmentDetailRef.current
+    if (currentDetail) {
+      const updated = r.appointments.find((x) => x.id === currentDetail.id)
+      if (updated) setAppointmentDetail(updated)
+    }
+  }
+
+  useEffect(() => {
+    appointmentDetailRef.current = appointmentDetail
+  }, [appointmentDetail])
+
+  // Si la cita cambia de estado (ej. "completada") desde otras pantallas,
+  // necesitamos refrescar la tabla para reflejarlo.
+  useEffect(() => {
+    if (!user?.id) return
+
+    let cancelled = false
+    const tick = async () => {
+      if (cancelled) return
+      try {
+        await refreshAppointmentsToday()
+      } catch {
+        // Silenciar; el siguiente tick reintenta.
+      }
+    }
+
+    void tick()
+    const intervalId = window.setInterval(() => {
+      void tick()
+    }, 10000)
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') void tick()
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [user?.id, todayRange.startDate, todayRange.endDate])
+
+  type EffectiveAppointmentStatus = 'cancelled' | 'rescheduled' | 'completed' | 'scheduled'
+
+  const getEffectiveAppointmentStatus = (a: Appointment): EffectiveAppointmentStatus => {
+    if (a.status === APPOINTMENT_STATUS.CANCELLED) return 'cancelled'
+    if (a.status === APPOINTMENT_STATUS.COMPLETED) return 'completed'
+    if ((a.status === APPOINTMENT_STATUS.SCHEDULED || a.status === APPOINTMENT_STATUS.CONFIRMED) && a.rescheduleReason) {
+      return 'rescheduled'
+    }
+    return 'scheduled'
+  }
+
+  const getEffectiveStatusVariant = (effectiveStatus: EffectiveAppointmentStatus): 'success' | 'warning' | 'error' => {
+    switch (effectiveStatus) {
+      case 'completed':
+        return 'success'
+      case 'rescheduled':
+        return 'warning'
+      case 'cancelled':
+        return 'error'
+      case 'scheduled':
+      default:
+        return 'warning'
+    }
+  }
+
+  const getEffectiveStatusLabel = (effectiveStatus: EffectiveAppointmentStatus) => {
+    switch (effectiveStatus) {
+      case 'cancelled':
+        return t('appointments.statusCancelled', 'Cancelada')
+      case 'rescheduled':
+        return t('sessions.statusRescheduled', 'Reagendada')
+      case 'completed':
+        return t('appointments.statusCompleted', 'Completada')
+      case 'scheduled':
+      default:
+        return t('appointments.statusScheduled', 'Programada')
+    }
+  }
+
+  const openAppointmentDetailModal = (a: Appointment) => {
+    setAppointmentDetail(a)
+    setAppointmentDetailModalOpen(true)
+  }
+
+  const closeAppointmentDetailModal = () => {
+    setAppointmentDetailModalOpen(false)
+    setAppointmentDetail(null)
+  }
+
+  const openCancelModal = (a: Appointment) => {
+    setSelectedAppointment(a)
+    setCancelReason('')
+    setCancelModalError(null)
+    setCancelModalOpen(true)
+  }
+
+  const openRescheduleModal = (a: Appointment) => {
+    setSelectedAppointment(a)
+    setRescheduleReason('')
+    setRescheduleModalError(null)
+    setRescheduleDateTime(toDateTimeLocalValue(a.scheduledDate))
+    setRescheduleModalOpen(true)
+  }
+
+  const confirmCancel = async () => {
+    if (!selectedAppointment) return
+    const reason = cancelReason.trim()
+    if (!reason) {
+      setCancelModalError(t('appointments.cancellationReason', 'Motivo de cancelación') + ' es requerido')
+      return
+    }
+    setActionLoading(true)
+    try {
+      await cancelAppointment(selectedAppointment.id, reason)
+      setCancelModalOpen(false)
+      await refreshAppointmentsToday()
+    } catch {
+      setCancelModalError(t('common.error', 'Error'))
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const confirmReschedule = async () => {
+    if (!selectedAppointment) return
+    const reason = rescheduleReason.trim()
+    if (!rescheduleDateTime) {
+      setRescheduleModalError(t('sessions.newSessionDate', 'Nueva fecha es requerida'))
+      return
+    }
+    if (!reason) {
+      setRescheduleModalError(t('sessions.rescheduleReason', 'Motivo de reagendar') + ' es requerido')
+      return
+    }
+    const iso = new Date(rescheduleDateTime).toISOString()
+    setActionLoading(true)
+    try {
+      await rescheduleAppointment(selectedAppointment.id, iso, reason)
+      setRescheduleModalOpen(false)
+      await refreshAppointmentsToday()
+    } catch {
+      setRescheduleModalError(t('common.error', 'Error'))
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const firstName = user?.firstName ?? t('dashboard.psychologist.therapist')
   const todayLabel = new Date().toLocaleDateString(undefined, {
     weekday: 'long',
@@ -215,35 +405,301 @@ export function DashboardPsychologist() {
                   <th className="pb-2 pr-2 font-medium">{t('dashboard.psychologist.dateTime')}</th>
                   <th className="pb-2 pr-2 font-medium">{t('dashboard.psychologist.patient')}</th>
                   <th className="pb-2 pr-2 font-medium">{t('dashboard.psychologist.type')}</th>
-                  <th className="pb-2 w-24 font-medium text-right">{t('dashboard.psychologist.start')}</th>
+                    <th className="pb-2 w-64 font-medium text-right">{t('dashboard.psychologist.status', 'Estatus')}</th>
                 </tr>
               </thead>
               <tbody>
-                {appointmentsToday.map((a) => (
-                  <tr key={a.id} className="border-b border-[var(--border)]/60">
+                {appointmentsToday.map((a) => {
+                  const effectiveStatus = getEffectiveAppointmentStatus(a)
+                  const effectiveVariant = getEffectiveStatusVariant(effectiveStatus)
+                  const rowClass = effectiveStatus === 'scheduled' ? getTableRowClass() : getTableRowClass(effectiveVariant)
+                  return (
+                    <tr
+                      key={a.id}
+                      className={`${rowClass} cursor-pointer`}
+                      onClick={() => openAppointmentDetailModal(a)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && openAppointmentDetailModal(a)}
+                    >
                     <td className="py-2.5 pr-2 text-[var(--text-primary)] whitespace-nowrap">
                       {formatDate(a.scheduledDate)} {formatTime(a.scheduledDate)}
                     </td>
                     <td className="py-2.5 pr-2 text-[var(--text-primary)]">
                       {a.patient?.user ? `${a.patient.user.firstName} ${a.patient.user.lastName}` : '—'}
                     </td>
-                    <td className="py-2.5 pr-2 text-[var(--text-secondary)]">{a.appointmentType || '—'}</td>
-                    <td className="py-2.5 text-right">
-                      <Link
-                        to={`/sessions/new?patientId=${encodeURIComponent(a.patient.id)}`}
-                        className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
-                      >
-                        <PlayCircle size={14} aria-hidden />
-                        {t('dashboard.psychologist.start')}
-                      </Link>
+                    <td className="py-2.5 pr-2 text-[var(--text-secondary)]">
+                      <span>{a.appointmentType || '—'}</span>
                     </td>
-                  </tr>
-                ))}
+                    <td className="py-2.5 text-right">
+                      <div className="flex flex-col items-end gap-1">
+                        <span className={getStatusBadgeClass(effectiveVariant)}>{getEffectiveStatusLabel(effectiveStatus)}</span>
+
+                        {effectiveStatus === 'cancelled' && a.cancellationReason && (
+                          <p className="text-xs text-[var(--text-secondary)] max-w-[18rem] whitespace-pre-wrap text-right">
+                            <span className="font-medium text-[var(--text-primary)]">
+                              {t('appointments.cancellationReason', 'Motivo de cancelación')}:
+                            </span>{' '}
+                            {a.cancellationReason}
+                          </p>
+                        )}
+
+                        {effectiveStatus === 'rescheduled' && a.rescheduleReason && (
+                          <p className="text-xs text-[var(--text-secondary)] max-w-[18rem] whitespace-pre-wrap text-right">
+                            <span className="font-medium text-[var(--text-primary)]">
+                              {t('sessions.rescheduleReason', 'Motivo de reagendar')}:
+                            </span>{' '}
+                            {a.rescheduleReason}
+                          </p>
+                        )}
+                      </div>
+                    </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
         )}
       </GlassCard>
+
+      <ConfirmModal
+        open={cancelModalOpen}
+        onClose={() => {
+          if (!actionLoading) {
+            setCancelModalOpen(false)
+            setCancelModalError(null)
+          }
+        }}
+        onConfirm={() => void confirmCancel()}
+        confirming={actionLoading}
+        title={t('sessions.cancel', 'Cancelar cita')}
+        message={t('sessions.cancelConfirm', 'Ingresa el motivo de cancelación')}
+        confirmLabel={t('sessions.confirmCancel', 'Confirmar')}
+        cancelLabel={t('common.close')}
+        variant="danger"
+        detail={
+          <div className="space-y-2">
+            <textarea
+              value={cancelReason}
+              onChange={(e) => {
+                setCancelReason(e.target.value)
+                setCancelModalError(null)
+              }}
+              className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-2 text-sm"
+              rows={4}
+              placeholder={t('appointments.cancellationReason', 'Motivo de cancelación')}
+            />
+            {cancelModalError && <p className="text-xs text-[var(--color-error)]">{cancelModalError}</p>}
+          </div>
+        }
+      />
+
+      <ConfirmModal
+        open={rescheduleModalOpen}
+        onClose={() => {
+          if (!actionLoading) {
+            setRescheduleModalOpen(false)
+            setRescheduleModalError(null)
+          }
+        }}
+        onConfirm={() => void confirmReschedule()}
+        confirming={actionLoading}
+        title={t('sessions.reschedule', 'Reagendar cita')}
+        message={t('sessions.rescheduleConfirm', 'Ingresa la nueva fecha/hora y el motivo')}
+        confirmLabel={t('sessions.confirmReschedule', 'Confirmar')}
+        cancelLabel={t('common.close')}
+        detail={
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
+                {t('sessions.newSessionDate', 'Nueva fecha y hora')}
+              </label>
+              <input
+                type="datetime-local"
+                value={rescheduleDateTime}
+                onChange={(e) => {
+                  setRescheduleDateTime(e.target.value)
+                  setRescheduleModalError(null)
+                }}
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
+                {t('sessions.rescheduleReason', 'Motivo de reagendar')}
+              </label>
+              <textarea
+                value={rescheduleReason}
+                onChange={(e) => {
+                  setRescheduleReason(e.target.value)
+                  setRescheduleModalError(null)
+                }}
+                className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-2 text-sm"
+                rows={4}
+              />
+            </div>
+            {rescheduleModalError && <p className="text-xs text-[var(--color-error)]">{rescheduleModalError}</p>}
+          </div>
+        }
+      />
+
+      {appointmentDetailModalOpen && appointmentDetail && (
+        <div
+          className="calendar-event-detail-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeAppointmentDetailModal()
+          }}
+        >
+          <div className="calendar-event-detail-modal-content">
+            <div className="calendar-event-detail-modal-header">
+              <div
+                className="calendar-event-detail-modal-icon-badge"
+                style={{
+                  background:
+                    getEffectiveStatusVariant(getEffectiveAppointmentStatus(appointmentDetail)) === 'success'
+                      ? 'rgba(16, 185, 129, 0.15)'
+                      : getEffectiveStatusVariant(getEffectiveAppointmentStatus(appointmentDetail)) === 'error'
+                        ? 'rgba(239, 68, 68, 0.15)'
+                        : 'rgba(245, 158, 11, 0.15)',
+                }}
+              >
+                <Calendar className="h-5 w-5 text-[var(--text-primary)]" />
+              </div>
+
+              <div className="flex-1">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h4 className="text-base font-semibold text-[var(--text-primary)]">
+                      {appointmentDetail.appointmentType || t('appointments.list')}
+                    </h4>
+                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                      {appointmentDetail.patient?.user
+                        ? `${appointmentDetail.patient.user.firstName} ${appointmentDetail.patient.user.lastName}`
+                        : '—'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="calendar-event-detail-modal-close"
+                    onClick={closeAppointmentDetailModal}
+                    aria-label={t('common.close')}
+                  >
+                    <X size={18} aria-hidden />
+                  </button>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {(() => {
+                    const effectiveStatus = getEffectiveAppointmentStatus(appointmentDetail)
+                    const effectiveVariant = getEffectiveStatusVariant(effectiveStatus)
+                    return (
+                      <>
+                        <span className={getStatusBadgeClass(effectiveVariant)}>{getEffectiveStatusLabel(effectiveStatus)}</span>
+                        <span className="text-xs text-[var(--text-muted)]">
+                          {formatDate(appointmentDetail.scheduledDate)} {formatTime(appointmentDetail.scheduledDate)}
+                        </span>
+                      </>
+                    )
+                  })()}
+                </div>
+              </div>
+            </div>
+
+            <div className="calendar-event-detail-modal-body">
+              <div className="calendar-event-detail-modal-item space-y-1 text-sm">
+                <p className="text-[var(--text-secondary)]">
+                  <span className="font-medium text-[var(--text-primary)]">{t('appointments.department', 'Departamento')}:</span>{' '}
+                  {DEPARTMENT_KEYS[appointmentDetail.department]
+                    ? t(`appointments.${DEPARTMENT_KEYS[appointmentDetail.department]}`)
+                    : appointmentDetail.department}
+                </p>
+                <p className="text-[var(--text-secondary)]">
+                  <span className="font-medium text-[var(--text-primary)]">{t('appointments.professional', 'Profesional')}:</span>{' '}
+                  {appointmentDetail.professional
+                    ? `${appointmentDetail.professional.firstName} ${appointmentDetail.professional.lastName}`.trim()
+                    : '—'}
+                </p>
+                {appointmentDetail.notes && (
+                  <p className="whitespace-pre-wrap text-[var(--text-secondary)]">
+                    <span className="font-medium text-[var(--text-primary)]">{t('appointments.notes', 'Notas')}:</span>{' '}
+                    {appointmentDetail.notes}
+                  </p>
+                )}
+                {getEffectiveAppointmentStatus(appointmentDetail) === 'cancelled' && appointmentDetail.cancellationReason && (
+                  <p className="whitespace-pre-wrap text-[var(--text-secondary)]">
+                    <span className="font-medium text-[var(--text-primary)]">
+                      {t('appointments.cancellationReason', 'Motivo de cancelación')}:
+                    </span>{' '}
+                    {appointmentDetail.cancellationReason}
+                  </p>
+                )}
+                {getEffectiveAppointmentStatus(appointmentDetail) === 'rescheduled' && appointmentDetail.rescheduleReason && (
+                  <p className="whitespace-pre-wrap text-[var(--text-secondary)]">
+                    <span className="font-medium text-[var(--text-primary)]">{t('sessions.rescheduleReason', 'Motivo de reagendar')}:</span>{' '}
+                    {appointmentDetail.rescheduleReason}
+                  </p>
+                )}
+                <div className="pt-2">
+                  <Link
+                    to={`/appointments/${appointmentDetail.id}`}
+                    className="text-sm text-[var(--color-primary)] hover:underline"
+                  >
+                    {t('patients.viewRecord', 'Ver detalle')} →
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {getEffectiveAppointmentStatus(appointmentDetail) === 'scheduled' && (
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <Link
+                        to={`/sessions/new?patientId=${encodeURIComponent(appointmentDetail.patient.id)}&appointmentId=${encodeURIComponent(appointmentDetail.id)}`}
+                    onClick={() => closeAppointmentDetailModal()}
+                    className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
+                  >
+                    <PlayCircle size={14} aria-hidden />
+                    {t('dashboard.psychologist.start')}
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeAppointmentDetailModal()
+                      openCancelModal(appointmentDetail)
+                    }}
+                    className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
+                  >
+                    <X size={14} aria-hidden />
+                    {t('sessions.cancel', 'Cancelar')}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeAppointmentDetailModal()
+                      openRescheduleModal(appointmentDetail)
+                    }}
+                    className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
+                  >
+                    <CalendarPlus size={14} aria-hidden />
+                    {t('sessions.reschedule', 'Reagendar')}
+                  </button>
+                </div>
+              )}
+
+              <div className="flex justify-end">
+                <GlassButton type="button" onClick={closeAppointmentDetailModal}>
+                  {t('common.close')}
+                </GlassButton>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Un solo bloque: Citas de hoy, Pendientes, Sesiones esta semana, Últimas sesiones + link calendario */}
       <GlassCard>
@@ -339,17 +795,31 @@ export function DashboardPsychologist() {
                   </tr>
                 </thead>
                 <tbody>
-                  {appointmentsToday.map((a) => (
-                    <tr key={a.id} className="border-b border-[var(--border)]/60">
+                  {appointmentsToday.map((a) => {
+                    const effectiveStatus = getEffectiveAppointmentStatus(a)
+                    const effectiveVariant = getEffectiveStatusVariant(effectiveStatus)
+                    const rowClass = effectiveStatus === 'scheduled' ? getTableRowClass() : getTableRowClass(effectiveVariant)
+                    return (
+                      <tr
+                        key={a.id}
+                        className={`${rowClass} cursor-pointer`}
+                        onClick={() => openAppointmentDetailModal(a)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && openAppointmentDetailModal(a)}
+                      >
                       <td className="py-2.5 pr-2 text-[var(--text-primary)] whitespace-nowrap">
                         {formatDate(a.scheduledDate)} {formatTime(a.scheduledDate)}
                       </td>
                       <td className="py-2.5 pr-2 text-[var(--text-primary)]">
                         {a.patient?.user ? `${a.patient.user.firstName} ${a.patient.user.lastName}` : '—'}
                       </td>
-                      <td className="py-2.5 text-[var(--text-secondary)]">{a.appointmentType || '—'}</td>
+                      <td className="py-2.5 text-[var(--text-secondary)]">
+                        <span>{a.appointmentType || '—'}</span>
+                      </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

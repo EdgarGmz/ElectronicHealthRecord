@@ -22,22 +22,31 @@ import { getPatients } from '@/services/patient.service'
 import { createAppointment, type CreateAppointmentInput } from '@/services/appointment.service'
 import type { Patient } from '@/types/patient'
 
-/** Fecha/hora mínima para datetime-local (hoy, hora actual redondeada) */
+/** Fecha/hora mínima para `datetime-local` (hoy; hora actual redondeada al siguiente minuto). */
 function getMinDateTimeLocal(): string {
   const d = new Date()
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
   d.setSeconds(0, 0)
+  d.setMinutes(d.getMinutes() + 1)
+  // Ajuste para que el string sea compatible con datetime-local (local-time representation)
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
   return d.toISOString().slice(0, 16)
 }
 
 const DURATION_OPTIONS = [30, 45, 50, 60, 90]
+
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+}
 
 export function NewAppointmentPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const userId = user?.id
+  const minDateTimeLocal = useMemo(() => getMinDateTimeLocal(), [])
   const [error, setError] = useState('')
+  const [showSlotConflictModal, setShowSlotConflictModal] = useState(false)
+  const [conflictRange, setConflictRange] = useState<{ start?: string; end?: string } | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [createdId, setCreatedId] = useState<string | null>(null)
@@ -51,7 +60,7 @@ export function NewAppointmentPage() {
     professionalId: '',
     appointmentType: '',
     department: 'psychology', // Solo psicología genera citas
-    scheduledDate: '',
+    scheduledDate: minDateTimeLocal,
     durationMinutes: 50,
     notes: '',
   })
@@ -100,6 +109,20 @@ export function NewAppointmentPage() {
       setCreatedId(appointment.id)
       setShowSuccess(true)
     } catch (err: unknown) {
+      const status =
+        err && typeof err === 'object' && 'response' in err ? (err as { response?: { status?: number } }).response?.status : null
+
+      if (status === 409) {
+        setError('')
+        const conflictDetails =
+          err && typeof err === 'object' && 'response' in err
+            ? (err as { response?: { data?: { details?: { conflict?: { start?: string; end?: string } } } } }).response?.data?.details
+            : null
+        setConflictRange(conflictDetails?.conflict ? conflictDetails.conflict : null)
+        setShowSlotConflictModal(true)
+        return
+      }
+
       const msg =
         err && typeof err === 'object' && 'response' in err
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
@@ -151,6 +174,20 @@ export function NewAppointmentPage() {
     <div className="space-y-6">
       <LoadingModal open={submitting || patientsLoading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error || undefined} onClose={() => setError('')} />
+      <ErrorModal
+        open={showSlotConflictModal}
+        onClose={() => {
+          setShowSlotConflictModal(false)
+          setConflictRange(null)
+        }}
+        title={t('appointments.conflictTitle', 'Conflicto de horario')}
+        message={
+          conflictRange?.start && conflictRange?.end
+            ? `${t('appointments.conflictMessage', 'Ya existe una cita agendada en esa hora.')} Horario ocupado: ${formatTime(conflictRange.start)} - ${formatTime(conflictRange.end)}`
+            : t('appointments.conflictMessage', 'Ya existe una cita agendada en esa hora.')
+        }
+        closeLabel={t('common.close')}
+      />
       <SuccessModal open={showSuccess} onClose={() => { setShowSuccess(false); if (createdId) navigate(`/appointments/${createdId}`, { replace: true }); setCreatedId(null) }} message={t('common.successSaved')} />
       <Link to="/appointments" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
         <ArrowLeft size={18} />
@@ -174,7 +211,7 @@ export function NewAppointmentPage() {
                 onChange={handlePatientSearchChange}
                 onFocus={handlePatientSearchFocus}
                 placeholder={patientsLoading ? t('common.loading') : t('appointments.searchPatientPlaceholder')}
-                className="glass-input w-full px-4 py-2.5 rounded-lg transition focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="glass-input w-full px-4 py-2.5 rounded-lg transition focus:ring-2 focus:ring-[var(--color-primary)] pr-10"
                 disabled={patientsLoading}
                 autoComplete="off"
                 aria-autocomplete="list"
@@ -182,6 +219,22 @@ export function NewAppointmentPage() {
                 aria-controls="patient-suggestions-list"
                 id="patient-search-input"
               />
+              {form.patientId && (
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  aria-label={t('common.cancel', 'Cancelar')}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    update('patientId', '')
+                    setPatientSearch('')
+                    setShowPatientSuggestions(false)
+                  }}
+                >
+                  <X size={16} aria-hidden />
+                </button>
+              )}
               <input type="hidden" name="patientId" value={form.patientId} />
               {showPatientSuggestions && (
                 <ul
@@ -248,7 +301,7 @@ export function NewAppointmentPage() {
                     value={form.scheduledDate}
                     onChange={(e) => update('scheduledDate', e.target.value)}
                     min={getMinDateTimeLocal()}
-                    className="min-h-[42px] flex-1 rounded-r-lg border-0 bg-transparent py-2.5 pr-3 pl-2 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] [color-scheme:inherit]"
+                    className="calendar-picker-icon-white min-h-[42px] flex-1 rounded-r-lg border-0 bg-transparent py-2.5 pr-3 pl-2 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] [color-scheme:inherit]"
                     required
                   />
                 </div>

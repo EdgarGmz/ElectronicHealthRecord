@@ -11,6 +11,7 @@ import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { getInterconsultations } from '@/services/interconsultation.service'
 import type { Interconsultation } from '@/types/interconsultation'
 import { STATUS_VALUES, URGENCY_VALUES, DEPARTMENT_VALUES } from '@/types/interconsultation'
+import { getStatusBadgeClass } from '@/utils/tableRowColors'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { dateStyle: 'short' })
@@ -73,6 +74,38 @@ export function InterconsultationListPage() {
   const statusCancelledLabel = t('interconsultations.statusCancelled')
   const statusPendingLabel = t('interconsultations.statusPending')
 
+  const normalizeStatus = (value: string) => {
+    const v = value?.toString().trim().toLowerCase()
+    // Soporta valores en español (DB/enum), en inglés (seed anterior) y estilos tipo snake_case.
+    if (!v) return ''
+    if (v === 'cancelada' || v === 'cancelled' || v.startsWith('cancel')) return 'Cancelada'
+    if (
+      v === 'respondida' ||
+      v === 'responded' ||
+      v.startsWith('respond') ||
+      v === 'completed' ||
+      v === 'complete' ||
+      v === 'done' ||
+      v.startsWith('complete')
+    )
+      return 'Respondida'
+    if (v === 'pendiente' || v === 'pending' || v.startsWith('pend') || v === 'in_progress' || v.includes('inprogress'))
+      return 'Pendiente'
+    return value
+  }
+
+  const getStatusTranslationKey = (value: string) => {
+    const normalized = normalizeStatus(value)
+    return STATUS_KEY[normalized] ?? undefined
+  }
+
+  const getStatusVariant = (value: string): 'success' | 'warning' | 'error' => {
+    const normalized = normalizeStatus(value)
+    if (normalized === 'Respondida') return 'success'
+    if (normalized === 'Cancelada') return 'error'
+    return 'warning'
+  }
+
   const columns: DataTableColumn<Interconsultation>[] = [
     { id: 'patient', label: t('interconsultations.patient'), getValue: (row) => patientName(row), sortable: true },
     { id: 'fromDepartment', label: t('interconsultations.fromDepartment'), getValue: (row) => row.fromDepartment, sortable: true },
@@ -86,12 +119,18 @@ export function InterconsultationListPage() {
     {
       id: 'status',
       label: t('interconsultations.status'),
-      getValue: (row) => t(`interconsultations.${STATUS_KEY[row.status] || row.status}`),
-      type: 'status',
-      statusMap: {
-        [statusRespondedLabel]: 'success',
-        [statusCancelledLabel]: 'error',
-        [statusPendingLabel]: 'warning',
+      getValue: (row) => {
+        const key = getStatusTranslationKey(row.status)
+        return key ? t(`interconsultations.${key}`) : row.status
+      },
+      render: (row) => {
+        const variant = getStatusVariant(row.status)
+        const badgeClass = getStatusBadgeClass(variant)
+        const label = (() => {
+          const key = getStatusTranslationKey(row.status)
+          return key ? t(`interconsultations.${key}`) : row.status
+        })()
+        return <span className={badgeClass}>{label || '—'}</span>
       },
       sortable: true,
     },
@@ -127,9 +166,7 @@ export function InterconsultationListPage() {
   }
 
   const rowVariant = (row: Interconsultation): 'success' | 'warning' | 'error' | 'default' => {
-    if (row.status === 'Respondida') return 'success'
-    if (row.status === 'Cancelada') return 'error'
-    return 'warning'
+    return getStatusVariant(row.status)
   }
 
   return (

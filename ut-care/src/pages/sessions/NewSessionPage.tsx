@@ -21,9 +21,11 @@ import { createTherapySession, getTherapySessions } from '@/services/therapy-ses
 import { getMoods } from '@/services/mood.service'
 import { getPatients } from '@/services/patient.service'
 import { getMedicalRecordByPatientId, ensureExpedientForPatient } from '@/services/medical-record.service'
+import { api } from '@/lib/api'
 import type { CreateTherapySessionInput } from '@/types/therapy-session'
 import type { Mood, MoodCategory } from '@/types/mood'
 import type { Patient } from '@/types/patient'
+import { APPOINTMENT_STATUS } from '@/types/appointment'
 
 const DEFAULT_DURATION = 50
 
@@ -82,6 +84,7 @@ export function NewSessionPage() {
   const [searchParams] = useSearchParams()
   const psychologyRecordIdFromUrl = searchParams.get('psychologyRecordId') ?? ''
   const patientIdFromUrl = searchParams.get('patientId') ?? ''
+  const appointmentIdFromUrl = searchParams.get('appointmentId') ?? ''
 
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -125,17 +128,34 @@ export function NewSessionPage() {
     if (!patientIdFromUrl.trim()) return
     setLoadingRecord(true)
     setError('')
-    getMedicalRecordByPatientId(patientIdFromUrl)
+    const loadRecord = async () => {
+      try {
+        const record = await getMedicalRecordByPatientId(patientIdFromUrl)
+        if (record?.psychologyRecord?.id) return record
+
+        // Si ya existe el expediente médico pero aún no el de psicología, asegúralo y recarga.
+        await ensureExpedientForPatient(patientIdFromUrl)
+        return await getMedicalRecordByPatientId(patientIdFromUrl)
+      } catch (firstErr: unknown) {
+        const status =
+          firstErr && typeof firstErr === 'object' && 'response' in firstErr
+            ? (firstErr as { response?: { status?: number } }).response?.status
+            : undefined
+
+        if (status === 404) {
+          await ensureExpedientForPatient(patientIdFromUrl)
+          return await getMedicalRecordByPatientId(patientIdFromUrl)
+        }
+        throw firstErr
+      }
+    }
+
+    loadRecord()
       .catch((firstErr: unknown) => {
         const status =
           firstErr && typeof firstErr === 'object' && 'response' in firstErr
             ? (firstErr as { response?: { status?: number } }).response?.status
             : undefined
-        if (status === 404) {
-          return ensureExpedientForPatient(patientIdFromUrl).then(() =>
-            getMedicalRecordByPatientId(patientIdFromUrl)
-          )
-        }
         throw firstErr
       })
       .then((record) => {
@@ -222,9 +242,13 @@ export function NewSessionPage() {
         }
       }
       if (!record.psychologyRecord?.id) {
-        setError(t('sessions.noPsychologyRecord'))
-        setLoadingRecord(false)
-        return
+        await ensureExpedientForPatient(p.id)
+        record = await getMedicalRecordByPatientId(p.id)
+        if (!record.psychologyRecord?.id) {
+          setError(t('sessions.noPsychologyRecord'))
+          setLoadingRecord(false)
+          return
+        }
       }
       update('psychologyRecordId', record.psychologyRecord.id)
       const label = [
@@ -305,6 +329,19 @@ export function NewSessionPage() {
     if (form.observations?.trim()) payload.observations = form.observations.trim()
     if (form.nextSessionPlan?.trim()) payload.nextSessionPlan = form.nextSessionPlan.trim()
     const created = await createTherapySession(payload)
+
+    // Si la sesión se inició desde una cita, marcamos la cita como "completada"
+    // para que aparezca inmediatamente en la vista de "Citas".
+    const appointmentId = appointmentIdFromUrl.trim()
+    if (appointmentId) {
+      try {
+        await api.put(`/appointments/${appointmentId}`, { status: APPOINTMENT_STATUS.COMPLETED })
+      } catch {
+        // No bloqueamos la creación de la sesión: solo dejamos el error para que el usuario
+        // sepa que la tabla de citas puede requerir actualización manual.
+        setError(t('common.error'))
+      }
+    }
     setCompletedAt(new Date())
     setCreatedId(created.id)
     setShowSuccess(true)

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Pill, FileText, BarChart3 } from 'lucide-react'
+import { ArrowLeft, Pill, FileText, BarChart3, Pencil, Power, PowerOff } from 'lucide-react'
 import {
   BarChart,
   Bar,
@@ -12,19 +12,27 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
-import { getMedicationById, getMedicationConsumption, type MedicationConsumptionItem } from '@/services/medication.service'
+import { getMedicationById, getMedicationConsumption, updateMedication, type MedicationConsumptionItem } from '@/services/medication.service'
 import type { MedicationWithPrescriptions } from '@/types/medication'
+import { useAuthStore } from '@/store/auth.store'
+import { ROLES_CAN_MANAGE_MEDICATIONS } from '@/constants/roles'
 
 export function MedicationDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
+  const role = user?.role?.toLowerCase()?.trim() ?? ''
+  const canManage = role ? ROLES_CAN_MANAGE_MEDICATIONS.includes(role) : false
   const [medication, setMedication] = useState<MedicationWithPrescriptions | null>(null)
   const [consumption, setConsumption] = useState<MedicationConsumptionItem[]>([])
   const [consumptionLoading, setConsumptionLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -35,6 +43,25 @@ export function MedicationDetailPage() {
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
   }, [id, t])
+
+  const refresh = async () => {
+    if (!id) return
+    const m = await getMedicationById(id)
+    setMedication(m)
+  }
+
+  const toggleActive = async () => {
+    if (!id || !medication) return
+    setUpdating(true)
+    try {
+      await updateMedication(id, { isActive: !medication.isActive })
+      await refresh()
+    } catch {
+      setError(t('common.error'))
+    } finally {
+      setUpdating(false)
+    }
+  }
 
   useEffect(() => {
     if (!id) return
@@ -117,6 +144,28 @@ export function MedicationDetailPage() {
               {medication.isActive ? t('medications.active') : t('medications.inactive')}
             </span>
           </div>
+          {canManage && (
+            <div className="flex shrink-0 flex-row items-center justify-end gap-2">
+              <GlassButton
+                type="button"
+                variant="glass"
+                onClick={() => navigate(`/medications/${medication.id}/edit`)}
+                disabled={updating}
+                title={t('common.edit', 'Editar')}
+              >
+                <Pencil size={18} />
+              </GlassButton>
+              <GlassButton
+                type="button"
+                variant={medication.isActive ? 'glass' : 'primary'}
+                onClick={() => void toggleActive()}
+                disabled={updating}
+                title={medication.isActive ? t('common.deactivate', 'Desactivar') : t('common.activate', 'Activar')}
+              >
+                {medication.isActive ? <PowerOff size={18} /> : <Power size={18} />}
+              </GlassButton>
+            </div>
+          )}
         </div>
       </GlassCard>
       <GlassCard>

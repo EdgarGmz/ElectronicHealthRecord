@@ -358,12 +358,14 @@
     font-size: 0.8125rem;
   }
   .weekly-activities-calendar .fc-event {
-    border-radius: 6px;
-    padding: 2px 6px;
-    font-size: 0.8125rem;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    white-space: normal;
   }
   .weekly-activities-calendar .fc-event-title {
-    font-weight: 500;
+    font-weight: 600;
   }
   .weekly-activities-calendar .fc-toolbar-title {
     font-size: 1rem;
@@ -448,6 +450,36 @@
   }
   .mood-chip:hover .mood-emoji {
     animation: mood-emoji-bounce 0.5s ease-in-out;
+  }
+
+  /* Make native <input type="datetime-local"> calendar picker icon visible */
+  .calendar-picker-icon-white::-webkit-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
+    opacity: 1;
+    cursor: pointer;
+  }
+  .calendar-picker-icon-white::-webkit-clear-button {
+    cursor: pointer;
+  }
+  .calendar-picker-icon-white::-moz-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
+    opacity: 1;
+    cursor: pointer;
+  }
+
+  /* Dark mode: make native date/datetime picker icons visible */
+  .dark input[type='date']::-webkit-calendar-picker-indicator,
+  .dark input[type='datetime-local']::-webkit-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
+    opacity: 1;
+    cursor: pointer;
+  }
+
+  .dark input[type='date']::-moz-calendar-picker-indicator,
+  .dark input[type='datetime-local']::-moz-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
+    opacity: 1;
+    cursor: pointer;
   }
 }
 

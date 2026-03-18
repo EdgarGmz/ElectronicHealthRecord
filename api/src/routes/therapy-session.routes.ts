@@ -31,4 +31,18 @@ router.put(
   therapySessionController.updateTherapySession
 );
 
+// Cancelar / reagendar: solo psicólogo
+router.post(
+  '/:id/cancel',
+  authorizeRoles(...ROLES_THERAPY_SESSIONS),
+  validate(therapySessionController.cancelTherapySessionValidation),
+  therapySessionController.cancelTherapySession
+);
+router.post(
+  '/:id/reschedule',
+  authorizeRoles(...ROLES_THERAPY_SESSIONS),
+  validate(therapySessionController.rescheduleTherapySessionValidation),
+  therapySessionController.rescheduleTherapySession
+);
+
 export default router;

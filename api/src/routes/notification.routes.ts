@@ -5,8 +5,9 @@ import {
 } from '../controllers/notification.controller';
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
-import { param } from 'express-validator';
+import { param, query } from 'express-validator';
 import { ROLES_CAN_CREATE_NOTIFICATIONS } from '../constants/roles';
+import { ROLES } from '../constants/roles';
 
 const router = Router();
 
@@ -42,6 +43,54 @@ router.post(
   authorizeRoles(...ROLES_CAN_CREATE_NOTIFICATIONS),
   validate(createNotificationValidation),
   notificationController.createNotification
+);
+
+// Destinatarios filtrados por entidad relacionada (p.ej. appointment)
+router.get(
+  '/recipients',
+  authorizeRoles(
+    ROLES.ADMIN,
+    ROLES.COORDINADOR_ENFERMERIA,
+    ROLES.COORDINADOR_PSICOLOGIA,
+    ROLES.ENFERMERO,
+    ROLES.PSICOLOGO
+  ),
+  validate([
+    query('relatedEntityType').notEmpty().withMessage('relatedEntityType is required').isString(),
+    query('relatedEntityId').isUUID().withMessage('Valid relatedEntityId is required'),
+  ]),
+  notificationController.getRecipients
+);
+
+// Todos los usuarios activos del sistema (sin filtrar por entidad relacionada)
+router.get(
+  '/recipients/all',
+  authorizeRoles(
+    ROLES.ADMIN,
+    ROLES.COORDINADOR_ENFERMERIA,
+    ROLES.COORDINADOR_PSICOLOGIA,
+    ROLES.ENFERMERO,
+    ROLES.PSICOLOGO
+  ),
+  validate([
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 500 })
+      .withMessage('Invalid limit')
+      .toInt(),
+    query('search').optional().isString().withMessage('search must be a string'),
+  ]),
+  notificationController.getAllRecipients
+);
+
+// Prescripciones recientes para poblar el dropdown de “Entidad relacionada (ID)”
+router.get(
+  '/prescriptions/recent',
+  authorizeRoles(ROLES.ADMIN, ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO, ROLES.COORDINADOR_PSICOLOGIA, ROLES.PSICOLOGO),
+  validate([
+    query('limit').optional().isInt({ min: 1, max: 100 }).toInt().withMessage('Invalid limit'),
+  ]),
+  notificationController.getRecentPrescriptions
 );
 
 // Delete notification - users can delete their own notifications

@@ -253,7 +253,10 @@ export class AppointmentService {
       const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(professional.id);
       const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
       const isStudentInScope =
-        patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+        patient.patientType === 'student' &&
+        assignedCareerIds.length > 0 &&
+        patient.careerId != null &&
+        assignedCareerIds.includes(patient.careerId);
       if (!isGeneral && !isStudentInScope) {
         throw new AppError(
           'El psicólogo solo puede agendar citas con estudiantes de sus carreras asignadas o con personal docente/administrativo',
@@ -263,13 +266,18 @@ export class AppointmentService {
     }
 
     // Check for conflicting appointments
-    const conflictingAppointment = await this.checkAvailability(
+    const availability = await this.checkAvailability(
       data.professionalId,
       data.scheduledDate,
       data.durationMinutes
     );
-    if (conflictingAppointment) {
-      throw new AppError('Professional is not available at this time', 409);
+    if (!availability.available) {
+      throw new AppError('Professional is not available at this time', 409, {
+        conflict: {
+          start: availability.blockedRange.start.toISOString(),
+          end: availability.blockedRange.end.toISOString(),
+        },
+      });
     }
 
     // Create appointment
@@ -347,6 +355,7 @@ export class AppointmentService {
       durationMinutes?: number;
       status?: string;
       notes?: string;
+      rescheduleReason?: string;
     }
   ) {
     const appointment = await prisma.appointment.findUnique({
@@ -375,17 +384,26 @@ export class AppointmentService {
       }
     }
 
+    const isRescheduling =
+      !!data.scheduledDate && data.scheduledDate.getTime() !== appointment.scheduledDate.getTime();
+
     // If rescheduling, check availability
-    if (data.scheduledDate && data.scheduledDate.getTime() !== appointment.scheduledDate.getTime()) {
+    if (isRescheduling) {
       const durationMinutes = data.durationMinutes || appointment.durationMinutes;
-      const conflictingAppointment = await this.checkAvailability(
+      const newScheduledDate = data.scheduledDate as Date;
+      const availability = await this.checkAvailability(
         appointment.professionalId,
-        data.scheduledDate,
+        newScheduledDate,
         durationMinutes,
         id
       );
-      if (conflictingAppointment) {
-        throw new AppError('Professional is not available at the new time', 409);
+      if (!availability.available) {
+        throw new AppError('Professional is not available at the new time', 409, {
+          conflict: {
+            start: availability.blockedRange.start.toISOString(),
+            end: availability.blockedRange.end.toISOString(),
+          },
+        });
       }
     }
 
@@ -393,6 +411,8 @@ export class AppointmentService {
       where: { id },
       data: {
         ...data,
+        // When rescheduling, clear cancellation reason (if any) to keep consistency.
+        ...(isRescheduling ? { cancellationReason: null } : {}),
         updatedAt: new Date(),
       },
       include: {
@@ -422,7 +442,7 @@ export class AppointmentService {
     });
 
     // Send notification if appointment was rescheduled
-    if (data.scheduledDate && data.scheduledDate.getTime() !== appointment.scheduledDate.getTime()) {
+    if (isRescheduling) {
       const dateString = formatDateToSpanish(updatedAppointment.scheduledDate);
 
       await notificationService.createBulk([
@@ -549,8 +569,20 @@ export class AppointmentService {
     scheduledDate: Date,
     durationMinutes: number,
     excludeAppointmentId?: string
-  ): Promise<boolean> {
-    const appointmentEnd = new Date(scheduledDate.getTime() + durationMinutes * 60000);
+  ): Promise<
+    | { available: true }
+    | { available: false; blockedRange: { start: Date; end: Date } }
+  > {
+    // Reglas de duración:
+    // - En promedio las citas duran ~45 min (reservamos mínimo 45)
+    // - En el peor caso pueden durar hasta 90 min (reservamos máximo 90)
+    // Esto reduce empalmes en la agenda cuando la duración real varía.
+    const EFFECTIVE_MIN_DURATION = 45
+    const EFFECTIVE_MAX_DURATION = 90
+    const clampDuration = (d: number) => Math.min(EFFECTIVE_MAX_DURATION, Math.max(EFFECTIVE_MIN_DURATION, d))
+
+    const effectiveNewDuration = clampDuration(durationMinutes)
+    const appointmentEnd = new Date(scheduledDate.getTime() + effectiveNewDuration * 60000);
 
     const where: Prisma.AppointmentWhereInput = {
       professionalId,
@@ -572,9 +604,12 @@ export class AppointmentService {
       },
     });
 
+    const overlapping: Array<{ id: string; start: Date; end: Date }> = []
+
     // Check if any existing appointment overlaps with the new appointment time slot
     for (const appt of conflictingAppointments) {
-      const apptEnd = new Date(appt.scheduledDate.getTime() + appt.durationMinutes * 60000);
+      const effectiveExistingDuration = clampDuration(appt.durationMinutes)
+      const apptEnd = new Date(appt.scheduledDate.getTime() + effectiveExistingDuration * 60000);
       
       // Two appointments overlap if:
       // 1. New appointment starts during existing appointment
@@ -586,11 +621,17 @@ export class AppointmentService {
         (scheduledDate <= appt.scheduledDate && appointmentEnd >= apptEnd);
       
       if (overlaps) {
-        return true; // Conflict found
+        overlapping.push({ id: appt.id, start: appt.scheduledDate, end: apptEnd })
       }
     }
 
-    return false; // No conflict
+    if (overlapping.length > 0) {
+      const blockedStart = new Date(Math.min(...overlapping.map((o) => o.start.getTime())))
+      const blockedEnd = new Date(Math.max(...overlapping.map((o) => o.end.getTime())))
+      return { available: false, blockedRange: { start: blockedStart, end: blockedEnd } }
+    }
+
+    return { available: true }
   }
 
   /** List professionals that can be assigned to appointments (psicologo, enfermero). */

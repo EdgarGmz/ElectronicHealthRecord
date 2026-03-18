@@ -37,6 +37,7 @@ export interface CreateMedicationInput {
   administrationRoutes?: string
   contraindications?: string
   sideEffects?: string
+  stock?: number
 }
 
 export interface UpdateMedicationInput extends Partial<CreateMedicationInput> {

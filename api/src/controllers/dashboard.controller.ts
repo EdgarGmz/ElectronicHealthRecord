@@ -1,6 +1,14 @@
 import { Response, NextFunction } from 'express';
 import { query, validationResult } from 'express-validator';
-import { getDashboardChartData, getNursingKpis, getNursingPatientsSeriesFiltered, type PeriodType } from '../services/dashboard-stats.service';
+import {
+  getDashboardChartData,
+  getNursingKpis as getNursingKpisService,
+  getNursingPatientsSeriesFiltered,
+  getNursingStaffProgress,
+  getMedicationStockSummary,
+  type PeriodType,
+  type NursingStaffProgressPeriod,
+} from '../services/dashboard-stats.service';
 import { getCoordinatorPsychologyDashboardData } from '../services/coordinator-psychology-dashboard.service';
 import { AuthRequest } from '../middleware/auth';
 
@@ -69,7 +77,7 @@ export const getCoordinatorPsychology = async (req: AuthRequest, res: Response, 
 
 export const getNursingKpis = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const data = await getNursingKpis();
+    const data = await getNursingKpisService();
     res.status(200).json({
       success: true,
       message: 'Nursing KPIs',
@@ -112,6 +120,46 @@ export const getNursingPatientsSeries = async (req: AuthRequest, res: Response, 
       success: true,
       message: 'Nursing patients series',
       data: { series },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const nursingStaffProgressValidation = [
+  query('period')
+    .optional()
+    .isIn(['week', 'month', 'year'])
+    .withMessage('period must be week, month, or year'),
+];
+
+export const getNursingStaffProgressHandler = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ success: false, message: 'Validation failed', errors: errors.array() });
+      return;
+    }
+
+    const period = (req.query.period as NursingStaffProgressPeriod) || 'month';
+    const progress = await getNursingStaffProgress(period);
+    res.status(200).json({
+      success: true,
+      message: 'Nursing staff progress',
+      data: { progress, period },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMedicationStockSummaryHandler = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const data = await getMedicationStockSummary();
+    res.status(200).json({
+      success: true,
+      message: 'Medication stock summary',
+      data,
     });
   } catch (error) {
     next(error);

@@ -118,6 +118,11 @@ export function NewPatientPage() {
     group: '',
     occupation: '',
     trimesterStr: '',
+    bloodType: '',
+    allergies: '',
+    chronicConditions: '',
+    currentMedications: '',
+    familyHistory: '',
   })
 
   useEffect(() => {
@@ -195,6 +200,11 @@ export function NewPatientPage() {
       if (form.guardianPhone?.trim()) payload.guardianPhone = form.guardianPhone.trim()
       if (form.group?.trim()) payload.group = form.group.trim()
       if (form.occupation?.trim()) payload.occupation = form.occupation.trim()
+      if (form.bloodType?.trim()) payload.bloodType = form.bloodType.trim()
+      if (form.allergies?.trim()) payload.allergies = form.allergies.trim()
+      if (form.chronicConditions?.trim()) payload.chronicConditions = form.chronicConditions.trim()
+      if (form.currentMedications?.trim()) payload.currentMedications = form.currentMedications.trim()
+      if (form.familyHistory?.trim()) payload.familyHistory = form.familyHistory.trim()
       const tri = form.trimesterStr.trim() ? parseInt(form.trimesterStr, 10) : undefined
       if (tri !== undefined && !Number.isNaN(tri) && tri >= 1 && tri <= 12) payload.trimester = tri
 
@@ -491,6 +501,84 @@ export function NewPatientPage() {
                 />
               </Field>
             </div>
+          </FormSection>
+
+          <FormSection title={t('expedient.generalData', 'Datos médicos')} icon={Heart}>
+            <Field id="new-patient-bloodType" label={t('expedient.bloodType', 'Tipo de sangre')} hint={t('common.optional', 'Opcional')}>
+              <select
+                id="new-patient-bloodType"
+                value={form.bloodType ?? ''}
+                onChange={(e) => update('bloodType', e.target.value)}
+                className={inputBaseClass}
+                aria-label={t('expedient.bloodType', 'Tipo de sangre')}
+              >
+                <option value="">
+                  {t('common.selectOptional', 'Selecciona (opcional)')}
+                </option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </Field>
+
+            <Field id="new-patient-allergies" label={t('expedient.allergies', 'Alergias')} hint={t('common.optional', 'Opcional')}>
+              <textarea
+                id="new-patient-allergies"
+                rows={3}
+                value={form.allergies ?? ''}
+                onChange={(e) => update('allergies', e.target.value)}
+                className={`${inputBaseClass} resize-none min-h-[96px]`}
+              />
+            </Field>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                id="new-patient-chronicConditions"
+                label={t('expedient.chronicConditions', 'Enfermedades crónicas')}
+                hint={t('common.optional', 'Opcional')}
+              >
+                <textarea
+                  id="new-patient-chronicConditions"
+                  rows={3}
+                  value={form.chronicConditions ?? ''}
+                  onChange={(e) => update('chronicConditions', e.target.value)}
+                  className={`${inputBaseClass} resize-none min-h-[96px]`}
+                />
+              </Field>
+
+              <Field
+                id="new-patient-currentMedications"
+                label={t('expedient.currentMedications', 'Medicación actual')}
+                hint={t('common.optional', 'Opcional')}
+              >
+                <textarea
+                  id="new-patient-currentMedications"
+                  rows={3}
+                  value={form.currentMedications ?? ''}
+                  onChange={(e) => update('currentMedications', e.target.value)}
+                  className={`${inputBaseClass} resize-none min-h-[96px]`}
+                />
+              </Field>
+            </div>
+
+            <Field
+              id="new-patient-familyHistory"
+              label={t('expedient.familyHistory', 'Antecedentes familiares')}
+              hint={t('common.optional', 'Opcional')}
+            >
+              <textarea
+                id="new-patient-familyHistory"
+                rows={3}
+                value={form.familyHistory ?? ''}
+                onChange={(e) => update('familyHistory', e.target.value)}
+                className={`${inputBaseClass} resize-none min-h-[96px]`}
+              />
+            </Field>
           </FormSection>
 
           <FormSection title={t('patients.formSectionAcademic')} icon={Briefcase}>

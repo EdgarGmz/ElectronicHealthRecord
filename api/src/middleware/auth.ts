@@ -69,7 +69,27 @@ export const authorizeRoles = (...roles: string[]) => {
       return;
     }
 
-    if (!roles.includes(req.user.role)) {
+    const normalizeRole = (role: string): string => {
+      // Soporta variaciones tipo "coordinador de enfermería" vs "coordinador_enfermeria"
+      const withoutDiacritics = role
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim()
+
+      const underscored = withoutDiacritics.replace(/\s+/g, '_')
+
+      // "coordinador_de_enfermeria" -> "coordinador_enfermeria"
+      if (underscored === 'coordinador_de_enfermeria') return 'coordinador_enfermeria'
+      if (underscored === 'coordinador_de_psicologia') return 'coordinador_psicologia'
+
+      return underscored
+    }
+
+    const normalizedUserRole = normalizeRole(String(req.user.role))
+    const normalizedAllowedRoles = roles.map(normalizeRole)
+
+    if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
       res.status(403).json({
         success: false,
         message: 'Insufficient permissions',

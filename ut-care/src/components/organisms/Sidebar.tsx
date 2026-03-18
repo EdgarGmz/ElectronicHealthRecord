@@ -9,6 +9,7 @@ import {
   FileText,
   Pill,
   Stethoscope,
+  Syringe,
   MessageSquare,
   BarChart3,
   ClipboardList,
@@ -37,13 +38,17 @@ export interface SidebarProps {
   onClose?: () => void
   /** true = drawer deslizable (oculto por defecto); false = barra fija siempre visible. */
   isDrawer?: boolean
+  /** Cantidad de notificaciones no leídas para mostrar insignia. */
+  unreadCount?: number
+  /** Cantidad de interconsultas pendientes para mostrar insignia. */
+  interconsultationsCount?: number
 }
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, key: 'nav.dashboard' },
-  // Procedimientos y atención de enfermería como prioridad alta
-  { to: '/procedures', icon: Stethoscope, key: 'nav.procedures' },
+  // Atención rápida y procedimientos con íconos distintos
   { to: '/nursing-attention', icon: Stethoscope, key: 'nav.nursingAttention' },
+  { to: '/procedures', icon: Syringe, key: 'nav.procedures' },
   { to: '/calendar', icon: CalendarDays, key: 'nav.calendar' },
   { to: '/supervision', icon: UserCog, key: 'nav.supervision' },
   { to: '/patients', icon: Users, key: 'nav.patients' },
@@ -58,7 +63,13 @@ const navItems = [
   { to: '/audit-logs', icon: ClipboardCheck, key: 'nav.auditLogs' },
 ]
 
-export function Sidebar({ open = true, onClose, isDrawer = false }: SidebarProps) {
+export function Sidebar({
+  open = true,
+  onClose,
+  isDrawer = false,
+  unreadCount = 0,
+  interconsultationsCount = 0,
+}: SidebarProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
@@ -67,6 +78,8 @@ export function Sidebar({ open = true, onClose, isDrawer = false }: SidebarProps
   /** En tablet/móvil (drawer) el menú siempre se muestra expandido; colapso solo en desktop. */
   const effectiveCollapsed = collapsed && !isDrawer
   const visibleNavItems = navItems.filter((item) => canSeeNavItem(item.to, user?.role))
+  const notificationBadgeText = unreadCount > 99 ? '99+' : String(unreadCount)
+  const interconsultationsBadgeText = interconsultationsCount > 99 ? '99+' : String(interconsultationsCount)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
 
@@ -149,7 +162,27 @@ export function Sidebar({ open = true, onClose, isDrawer = false }: SidebarProps
               }`
             }
           >
-            <Icon size={20} className="shrink-0" />
+            <div className="relative shrink-0">
+              <Icon size={20} className="shrink-0" />
+              {to === '/notifications' && unreadCount > 0 && (
+                <span
+                  className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-error)] px-1 text-[10px] font-semibold text-white border border-[var(--glass-border)]"
+                  aria-label={t('notifications.unread', 'No leídas')}
+                  title={t('notifications.unread', 'No leídas')}
+                >
+                  {notificationBadgeText}
+                </span>
+              )}
+              {to === '/interconsultations' && interconsultationsCount > 0 && (
+                <span
+                  className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-warning)] px-1 text-[10px] font-semibold text-black border border-[var(--glass-border)]"
+                  aria-label="Interconsultas pendientes"
+                  title="Interconsultas pendientes"
+                >
+                  {interconsultationsBadgeText}
+                </span>
+              )}
+            </div>
             {!effectiveCollapsed && <span>{t(key)}</span>}
           </NavLink>
         ))}

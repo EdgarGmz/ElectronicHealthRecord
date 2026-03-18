@@ -41,7 +41,11 @@ const limiter = rateLimit({
   max: config.rateLimit.maxRequests,
   message: 'Too many requests from this IP, please try again later.',
 });
-app.use('/api', limiter);
+// En desarrollo evitamos que el dashboard/calendario dispare 429
+// por múltiples requests en paralelo o reintentos del frontend.
+if (config.env !== 'development') {
+  app.use('/api', limiter);
+}
 
 // Body parsing middleware
 app.use(express.json());
