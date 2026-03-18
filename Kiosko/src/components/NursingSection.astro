@@ -1,0 +1,231 @@
+---
+// Kiosko/src/components/NursingSection.astro
+const nursingTips = [
+    {
+        title: "Primeros Auxilios",
+        description: "Maniobras básicas para actuar ante emergencias médicas.",
+        icon: "🩹",
+        details: "Maniobra de Heimlich, RCP básica, Curación de heridas, Control de hemorragias",
+        fullInfo: "Los primeros auxilios son la ayuda inmediata que se presta a una persona enferma o herida. Conocer la técnica correcta puede salvar vidas en los primeros minutos críticos antes de que llegue la ayuda profesional."
+    },
+    {
+        title: "Signos Vitales",
+        description: "Monitoreo fundamental para detectar anomalías a tiempo.",
+        icon: "❤️",
+        details: "Presión arterial, Frecuencia cardíaca, Temperatura corporal, Oxigenación",
+        fullInfo: "Los signos vitales reflejan funciones esenciales del cuerpo. Su monitoreo regular permite identificar problemas de salud ocultos y asegurar un funcionamiento óptimo del organismo."
+    },
+    {
+        title: "Salud Sexual",
+        description: "Información sobre métodos, prevención y planificación.",
+        icon: "🧬",
+        details: "Métodos anticonceptivos, Prevención ITS, Orientación reproductiva, Derechos sexuales",
+        fullInfo: "La salud sexual es un estado de bienestar físico, mental y social. Requiere un enfoque positivo y respetuoso para experiencias seguras y placenteras."
+    },
+    {
+        title: "Nutrición Saludable",
+        description: "Aprende a elegir mejor tus alimentos para una vida sana.",
+        icon: "🥗",
+        details: "Plato del buen comer, Hidratación, Control de peso, Lectura de etiquetas",
+        fullInfo: "Una nutrición adecuada es la base de la salud. Consumir una variedad de alimentos le da a tu cuerpo los nutrientes necesarios para prevenir enfermedades."
+    },
+    {
+        title: "Higiene y Prevención",
+        description: "Protocolos de limpieza y prevención de contagios.",
+        icon: "🧼",
+        details: "Lavado de manos, Uso de cubrebocas, Prevención de influenza, Higiene personal",
+        fullInfo: "La higiene es la herramienta más efectiva para prevenir contagios. Pequeños hábitos diarios reducen drásticamente el riesgo de infecciones."
+    },
+    {
+        title: "Salud Bucodental",
+        description: "Cuidado preventivo para una sonrisa saludable y funcional.",
+        icon: "🪥",
+        details: "Técnica de Bass, Uso de hilo dental, Prevención de caries, Limpieza lingual",
+        fullInfo: "La salud bucodental influye en todo el cuerpo. Una boca sana previene infecciones y mejora la calidad de vida y la autoestima."
+    },
+    {
+        title: "Vacunación",
+        description: "Información sobre esquemas y campañas de salud actuales.",
+        icon: "💉",
+        details: "Tétanos y Difteria, Refuerzos anuales, Cartilla de salud, Inmunización",
+        fullInfo: "Las vacunas protegen a toda la comunidad. Estimulan tu sistema inmunitario para producir defensas contra enfermedades graves."
+    }
+];
+---
+
+<section id="nursing-section" class="page-section">
+    <h2>Servicios de Enfermería</h2>
+    <div class="options-container">
+        {nursingTips.map((tip) => (
+            <div class="option-card interactive-nursing" 
+                 data-title={tip.title} 
+                 data-icon={tip.icon} 
+                 data-info={tip.fullInfo} 
+                 data-list={tip.details}>
+                <div class="card-icon">{tip.icon}</div>
+                <h3>{tip.title}</h3>
+                <p>{tip.description}</p>
+                <span class="more-link">Ver detalles →</span>
+            </div>
+        ))}
+    </div>
+
+    <!-- Modal con diseño integrado -->
+    <div id="nursing-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <div class="modal-icon-display"></div>
+                <h2 class="modal-title-text"></h2>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description-text"></p>
+                <div class="modal-details-box">
+                    <h4>Puntos Clave:</h4>
+                    <ul class="modal-details-list"></ul>
+                </div>
+            </div>
+            <button class="modal-btn">Entendido</button>
+        </div>
+    </div>
+</section>
+
+<script is:inline>
+    (function() {
+        const setupModal = () => {
+            const modal = document.getElementById('nursing-modal');
+            if (!modal) return;
+
+            const cards = document.querySelectorAll('.interactive-nursing');
+            const mTitle = modal.querySelector('.modal-title-text');
+            const mDesc = modal.querySelector('.modal-description-text');
+            const mList = modal.querySelector('.modal-details-list');
+            const mIcon = modal.querySelector('.modal-icon-display');
+            const closeX = modal.querySelector('.close-modal');
+            const closeBtn = modal.querySelector('.modal-btn');
+
+            cards.forEach(card => {
+                card.onclick = () => {
+                    const d = card.dataset;
+                    mTitle.textContent = d.title;
+                    mDesc.textContent = d.info;
+                    mIcon.textContent = d.icon;
+                    mList.innerHTML = d.list.split(',').map(i => `<li><span class="check">✓</span> ${i.trim()}</li>`).join('');
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                };
+            });
+
+            const close = () => { modal.classList.remove('active'); document.body.style.overflow = ''; };
+            closeX.onclick = close;
+            closeBtn.onclick = close;
+            modal.onclick = (e) => { if(e.target === modal) close(); };
+        };
+        setupModal();
+        document.addEventListener('astro:after-swap', setupModal);
+    })();
+</script>
+
+<style>
+    /* Estilos EXACTOS de Services.astro */
+    .page-section {
+        width: 100%;
+        max-width: 1200px;
+        padding: 4rem 2rem;
+        box-sizing: border-box;
+        text-align: center;
+        border-bottom: 1px solid var(--navbar-border);
+        background-color: var(--bg-color);
+    }
+
+    .page-section h2 {
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+        color: var(--heading-color);
+    }
+
+    .options-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3rem;
+        text-align: left;
+    }
+
+    .option-card {
+        padding: 1rem;
+        transition: background-color 0.3s;
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .option-card:hover {
+        background-color: rgba(162, 217, 206, 0.1);
+    }
+
+    .option-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--heading-color);
+    }
+
+    .option-card p {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: var(--body-text-color);
+    }
+
+    .card-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .more-link {
+        display: block;
+        margin-top: 1rem;
+        color: #A2D9CE;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 2000; opacity: 0; visibility: hidden;
+        transition: all 0.3s;
+        backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-content {
+        background: var(--card-bg);
+        width: 90%; max-width: 500px;
+        padding: 2.5rem; border-radius: 15px;
+        position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .close-modal { position: absolute; top: 15px; right: 20px; font-size: 2rem; cursor: pointer; color: var(--body-text-color); }
+    .modal-header { text-align: center; margin-bottom: 1.5rem; }
+    .modal-icon-display { font-size: 3.5rem; margin-bottom: 0.5rem; }
+    .modal-title-text { font-size: 2rem; color: var(--heading-color); margin: 0; }
+    .modal-description-text { color: var(--body-text-color); line-height: 1.6; text-align: left; margin-bottom: 1.5rem; }
+    .modal-details-box { text-align: left; background: var(--bg-color); padding: 1.2rem; border-radius: 10px; }
+    .modal-details-box h4 { margin: 0 0 10px 0; color: var(--heading-color); font-size: 1rem; }
+    .modal-details-list { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .modal-details-list li { font-size: 0.9rem; color: var(--body-text-color); display: flex; align-items: center; gap: 8px; }
+    .check { color: #A2D9CE; font-weight: bold; }
+    .modal-btn {
+        width: 100%; background: #2C3E50; color: white; border: none;
+        padding: 0.8rem; border-radius: 8px; font-weight: bold;
+        cursor: pointer; margin-top: 1.5rem; transition: background 0.3s;
+    }
+    .modal-btn:hover { background: #34495e; }
+
+    @media (max-width: 900px) { .options-container { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) {
+        .options-container { grid-template-columns: 1fr; gap: 2rem; }
+        .page-section { padding: 3rem 1rem; }
+        .page-section h2 { font-size: 2rem; }
+    }
+</style>

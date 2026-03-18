@@ -1,0 +1,231 @@
+---
+// Kiosko/src/components/PsychologySection.astro
+const psychologyTips = [
+    {
+        title: "Apoyo Emocional",
+        description: "Herramientas para gestionar tus emociones y fortalecer tu resiliencia.",
+        icon: "🧠",
+        details: "Gestión del duelo, Inteligencia emocional, Resolución de conflictos, Regulación afectiva",
+        fullInfo: "El apoyo emocional brinda herramientas prácticas para manejar situaciones de crisis. Aprender a identificar lo que sientes es vital para una salud mental sólida."
+    },
+    {
+        title: "Manejo del Estrés",
+        description: "Técnicas de relajación para reducir la ansiedad académica y personal.",
+        icon: "🌊",
+        details: "Mindfulness, Técnicas de respiración, Relajación muscular, Gestión de ansiedad",
+        fullInfo: "El estrés afecta tu rendimiento. Te enseñamos estrategias probadas para calmar tu sistema nervioso y recuperar el control en momentos de alta presión."
+    },
+    {
+        title: "Habilidades de Estudio",
+        description: "Estrategias de organización y métodos de aprendizaje efectivos.",
+        icon: "📚",
+        details: "Métodos de memorización, Gestión del tiempo, Concentración, Hábitos de lectura",
+        fullInfo: "Optimiza tu aprendizaje con técnicas que mejoran la retención de información y organizan tu tiempo para evitar el agotamiento académico."
+    },
+    {
+        title: "Relaciones Saludables",
+        description: "Construye vínculos positivos y establece límites sanos.",
+        icon: "🤝",
+        details: "Comunicación asertiva, Empatía, Límites personales, Vínculos afectivos",
+        fullInfo: "Las relaciones sanas se basan en el respeto. Aprender a decir 'no' y expresar tus necesidades mejora tu bienestar social y tu autoestima."
+    },
+    {
+        title: "Prevención de Adicciones",
+        description: "Orientación sobre riesgos y fortalecimiento de factores de protección.",
+        icon: "🚫",
+        details: "Factores de riesgo, Redes de apoyo, Estilos de vida sanos, Toma de decisiones",
+        fullInfo: "Identificar situaciones de riesgo y contar con una red de apoyo es vital para mantener una vida equilibrada y libre de dependencias."
+    },
+    {
+        title: "Autoestima y Autoconcepto",
+        description: "Trabaja en tu confianza y seguridad personal.",
+        icon: "✨",
+        details: "Aceptación personal, Fortalezas individuales, Autocuidado, Imagen corporal",
+        fullInfo: "Trabajamos en reconocer tus logros, fomentando un diálogo interno positivo que te permita crecer con seguridad y confianza."
+    },
+    {
+        title: "Orientación de Carrera",
+        description: "Acompañamiento en la toma de decisiones sobre tu futuro profesional.",
+        icon: "🚀",
+        details: "Perfil profesional, Mercado laboral, Proyecto de vida, Intereses vocacionales",
+        fullInfo: "Te ayudamos a alinear tus pasiones con las oportunidades reales, construyendo un proyecto de vida con propósito y metas claras."
+    }
+];
+---
+
+<section id="psychology-section" class="page-section">
+    <h2>Apoyo Psicopedagógico</h2>
+    <div class="options-container">
+        {psychologyTips.map((tip) => (
+            <div class="option-card interactive-psych" 
+                 data-title={tip.title} 
+                 data-icon={tip.icon} 
+                 data-info={tip.fullInfo} 
+                 data-list={tip.details}>
+                <div class="card-icon">{tip.icon}</div>
+                <h3>{tip.title}</h3>
+                <p>{tip.description}</p>
+                <span class="more-link">Ver detalles →</span>
+            </div>
+        ))}
+    </div>
+
+    <!-- Modal con diseño integrado -->
+    <div id="psych-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <div class="modal-icon-display"></div>
+                <h2 class="modal-title-text"></h2>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description-text"></p>
+                <div class="modal-details-box">
+                    <h4>Información Clave:</h4>
+                    <ul class="modal-details-list"></ul>
+                </div>
+            </div>
+            <button class="modal-btn">Entendido</button>
+        </div>
+    </div>
+</section>
+
+<script is:inline>
+    (function() {
+        const setupPsychModal = () => {
+            const modal = document.getElementById('psych-modal');
+            if (!modal) return;
+
+            const cards = document.querySelectorAll('.interactive-psych');
+            const mTitle = modal.querySelector('.modal-title-text');
+            const mDesc = modal.querySelector('.modal-description-text');
+            const mList = modal.querySelector('.modal-details-list');
+            const mIcon = modal.querySelector('.modal-icon-display');
+            const closeX = modal.querySelector('.close-modal');
+            const closeBtn = modal.querySelector('.modal-btn');
+
+            cards.forEach(card => {
+                card.onclick = () => {
+                    const d = card.dataset;
+                    mTitle.textContent = d.title;
+                    mDesc.textContent = d.info;
+                    mIcon.textContent = d.icon;
+                    mList.innerHTML = d.list.split(',').map(i => `<li><span class="check-psych">✓</span> ${i.trim()}</li>`).join('');
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                };
+            });
+
+            const close = () => { modal.classList.remove('active'); document.body.style.overflow = ''; };
+            closeX.onclick = close;
+            closeBtn.onclick = close;
+            modal.onclick = (e) => { if(e.target === modal) close(); };
+        };
+        setupPsychModal();
+        document.addEventListener('astro:after-swap', setupPsychModal);
+    })();
+</script>
+
+<style>
+    /* Estilos EXACTOS de Services.astro */
+    .page-section {
+        width: 100%;
+        max-width: 1200px;
+        padding: 4rem 2rem;
+        box-sizing: border-box;
+        text-align: center;
+        border-bottom: 1px solid var(--navbar-border);
+        background-color: var(--bg-color);
+    }
+
+    .page-section h2 {
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+        color: var(--heading-color);
+    }
+
+    .options-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3rem;
+        text-align: left;
+    }
+
+    .option-card {
+        padding: 1rem;
+        transition: background-color 0.3s;
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .option-card:hover {
+        background-color: rgba(162, 217, 206, 0.1);
+    }
+
+    .option-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--heading-color);
+    }
+
+    .option-card p {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: var(--body-text-color);
+    }
+
+    .card-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .more-link {
+        display: block;
+        margin-top: 1rem;
+        color: #A2D9CE;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 2000; opacity: 0; visibility: hidden;
+        transition: all 0.3s;
+        backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-content {
+        background: var(--card-bg);
+        width: 90%; max-width: 500px;
+        padding: 2.5rem; border-radius: 15px;
+        position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .close-modal { position: absolute; top: 15px; right: 20px; font-size: 2rem; cursor: pointer; color: var(--body-text-color); }
+    .modal-header { text-align: center; margin-bottom: 1.5rem; }
+    .modal-icon-display { font-size: 3.5rem; margin-bottom: 0.5rem; }
+    .modal-title-text { font-size: 2rem; color: var(--heading-color); margin: 0; }
+    .modal-description-text { color: var(--body-text-color); line-height: 1.6; text-align: left; margin-bottom: 1.5rem; }
+    .modal-details-box { text-align: left; background: var(--bg-color); padding: 1.2rem; border-radius: 10px; }
+    .modal-details-box h4 { margin: 0 0 10px 0; color: var(--heading-color); font-size: 1rem; }
+    .modal-details-list { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .modal-details-list li { font-size: 0.9rem; color: var(--body-text-color); display: flex; align-items: center; gap: 8px; }
+    .check-psych { color: #A2D9CE; font-weight: bold; }
+    .modal-btn {
+        width: 100%; background: #2C3E50; color: white; border: none;
+        padding: 0.8rem; border-radius: 8px; font-weight: bold;
+        cursor: pointer; margin-top: 1.5rem; transition: background 0.3s;
+    }
+    .modal-btn:hover { background: #34495e; }
+
+    @media (max-width: 900px) { .options-container { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) {
+        .options-container { grid-template-columns: 1fr; gap: 2rem; }
+        .page-section { padding: 3rem 1rem; }
+        .page-section h2 { font-size: 2rem; }
+    }
+</style>

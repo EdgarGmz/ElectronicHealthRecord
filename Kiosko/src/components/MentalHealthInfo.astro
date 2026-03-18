@@ -30,6 +30,26 @@ const mentalHealthTips = [
         title: "Practica el autocuidado",
         description: "Dedica tiempo a actividades que disfrutes y que te brinden paz mental.",
         icon: "✨"
+    },
+    {
+        title: "Establece límites",
+        description: "Aprender a decir 'no' protege tu energía y reduce el agotamiento emocional.",
+        icon: "🛡️"
+    },
+    {
+        title: "Practica la gratitud",
+        description: "Reconocer las cosas buenas de tu día, por pequeñas que sean, mejora tu perspectiva.",
+        icon: "🙏"
+    },
+    {
+        title: "Desconecta para conectar",
+        description: "Dedica tiempo lejos de las redes sociales para estar presente en el mundo real.",
+        icon: "🔌"
+    },
+    {
+        title: "Acepta tus errores",
+        description: "Ser amable contigo mismo cuando fallas es fundamental para una autoestima sana.",
+        icon: "❤️"
     }
 ];
 
@@ -63,6 +83,26 @@ const healthCareTips = [
         title: "Conecta con otros",
         description: "Las relaciones sociales positivas fortalecen tu sistema inmunológico y bienestar general.",
         icon: "👥"
+    },
+    {
+        title: "Respira profundo",
+        description: "Ejercicios de respiración consciente reducen el estrés y oxigenan mejor tu cuerpo.",
+        icon: "🌬️"
+    },
+    {
+        title: "Camina al aire libre",
+        description: "El contacto con la naturaleza y la luz solar mejora tu vitamina D y tu estado de ánimo.",
+        icon: "🌳"
+    },
+    {
+        title: "Espacio ordenado",
+        description: "Un entorno limpio y organizado ayuda a mantener la claridad mental y la calma interna.",
+        icon: "🧹"
+    },
+    {
+        title: "Evita el sedentarismo",
+        description: "Levántate y estira cada hora para mejorar la circulación y evitar dolores musculares.",
+        icon: "🚶‍♂️"
     }
 ];
 ---
@@ -129,7 +169,7 @@ const healthCareTips = [
     </div>
 </section>
 
-<script>
+<script is:inline>
     const setupCarousel = (carouselId, indicatorsId, wrapperId, autoPlay = false) => {
         const carousel = document.getElementById(carouselId);
         const indicatorsContainer = document.getElementById(indicatorsId);
@@ -140,63 +180,111 @@ const healthCareTips = [
 
         if (!carousel || !prevBtn || !nextBtn) return;
 
+        // --- INFINITE LOOP SETUP ---
+        const originalCards = Array.from(carousel.children);
+        const cardCount = originalCards.length;
+        if (cardCount === 0) return;
+
+        // Clone first and last cards to create the illusion of infinity
+        // We clone a few to ensure the view is always filled during transition
+        const clonesToEnd = originalCards.slice(0, 3).map(card => card.cloneNode(true));
+        const clonesToStart = originalCards.slice(-3).map(card => card.cloneNode(true));
+
+        clonesToEnd.forEach(clone => {
+            clone.classList.add('clone');
+            carousel.appendChild(clone);
+        });
+        
+        clonesToStart.reverse().forEach(clone => {
+            clone.classList.add('clone');
+            carousel.insertBefore(clone, carousel.firstChild);
+        });
+
         let autoPlayInterval;
+        let isTransitioning = false;
 
         const getCardWidth = () => {
             const card = carousel.querySelector('.carousel-card');
             return card ? card.offsetWidth + 24 : 324;
         };
 
+        // Initial position: skip the clones at the start
+        const initialScroll = () => {
+            carousel.scrollLeft = getCardWidth() * 3;
+        };
+        initialScroll();
+
         const updateIndicators = () => {
-            const scrollPosition = carousel.scrollLeft;
             const cardWidth = getCardWidth();
-            const activeIndex = Math.round(scrollPosition / cardWidth);
+            const scrollPosition = carousel.scrollLeft;
+            
+            // Calculate index relative to original cards
+            let activeIndex = Math.round(scrollPosition / cardWidth) - 3;
+            
+            // Normalize index for indicators
+            activeIndex = (activeIndex % cardCount + cardCount) % cardCount;
             
             indicators.forEach((indicator, index) => {
                 indicator.classList.toggle('active', index === activeIndex);
             });
         };
 
-        const scrollToIndex = (index) => {
+        const checkInfiniteScroll = () => {
             const cardWidth = getCardWidth();
-            carousel.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+            const scrollLeft = carousel.scrollLeft;
+            const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+
+            // If we've reached the end clones, jump back to the start originals
+            if (scrollLeft >= maxScroll - (cardWidth * 0.5)) {
+                carousel.style.scrollBehavior = 'auto';
+                carousel.scrollLeft = cardWidth * 3;
+                carousel.style.scrollBehavior = 'smooth';
+            } 
+            // If we've reached the start clones, jump to the end originals
+            else if (scrollLeft <= (cardWidth * 0.5)) {
+                carousel.style.scrollBehavior = 'auto';
+                carousel.scrollLeft = maxScroll - (cardWidth * 3);
+                carousel.style.scrollBehavior = 'smooth';
+            }
         };
 
         const nextSlide = () => {
+            if (isTransitioning) return;
             const cardWidth = getCardWidth();
-            const maxScroll = carousel.scrollWidth - carousel.clientWidth;
-            
-            if (carousel.scrollLeft >= maxScroll - 10) {
-                carousel.scrollTo({ left: 0, behavior: 'smooth' });
-            } else {
-                carousel.scrollBy({ left: cardWidth, behavior: 'smooth' });
-            }
+            carousel.style.scrollBehavior = 'smooth';
+            carousel.scrollBy({ left: cardWidth });
         };
 
         const prevSlide = () => {
+            if (isTransitioning) return;
             const cardWidth = getCardWidth();
-            if (carousel.scrollLeft <= 10) {
-                carousel.scrollTo({ left: carousel.scrollWidth, behavior: 'smooth' });
-            } else {
-                carousel.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-            }
+            carousel.style.scrollBehavior = 'smooth';
+            carousel.scrollBy({ left: -cardWidth });
         };
 
         // Event Listeners
-        carousel.addEventListener('scroll', updateIndicators);
+        carousel.addEventListener('scroll', () => {
+            updateIndicators();
+            // Use a small delay to allow smooth scroll to finish before checking jump
+            clearTimeout(window.scrollTimeout);
+            window.scrollTimeout = setTimeout(checkInfiniteScroll, 100);
+        });
+
         prevBtn.addEventListener('click', () => {
             prevSlide();
             resetAutoPlay();
         });
+
         nextBtn.addEventListener('click', () => {
             nextSlide();
             resetAutoPlay();
         });
 
-        indicators.forEach((indicator) => {
+        indicators.forEach((indicator, index) => {
             indicator.addEventListener('click', () => {
-                const index = parseInt(indicator.getAttribute('data-index'));
-                scrollToIndex(index);
+                const cardWidth = getCardWidth();
+                carousel.style.scrollBehavior = 'smooth';
+                carousel.scrollLeft = (index + 3) * cardWidth;
                 resetAutoPlay();
             });
         });
@@ -204,7 +292,7 @@ const healthCareTips = [
         // AutoPlay Logic
         const startAutoPlay = () => {
             if (autoPlay) {
-                autoPlayInterval = setInterval(nextSlide, 5000); // Cambia cada 5 segundos
+                autoPlayInterval = setInterval(nextSlide, 4000);
             }
         };
 
@@ -217,11 +305,13 @@ const healthCareTips = [
             startAutoPlay();
         };
 
-        // Pause on hover
         carousel.addEventListener('mouseenter', stopAutoPlay);
         carousel.addEventListener('mouseleave', startAutoPlay);
 
         startAutoPlay();
+        
+        // Handle window resize
+        window.addEventListener('resize', initialScroll);
     };
 
     const initAllCarousels = () => {
@@ -229,7 +319,8 @@ const healthCareTips = [
         setupCarousel('carousel-health', 'indicators-health', 'wrapper-health', true);
     };
 
-    initAllCarousels();
+    // Ensure it runs after images/styles are loaded for correct widths
+    window.addEventListener('load', initAllCarousels);
     document.addEventListener('astro:after-swap', initAllCarousels);
 </script>
 
@@ -240,8 +331,8 @@ const healthCareTips = [
         padding: 4rem 2rem;
         box-sizing: border-box;
         text-align: center;
-        border-bottom: 1px solid #e5e5e5;
-        background-color: #fff;
+        border-bottom: 1px solid var(--navbar-border);
+        background-color: var(--bg-color);
     }
 
     .spacer {
@@ -251,7 +342,7 @@ const healthCareTips = [
     .section-title {
         font-size: 2.5rem;
         margin-bottom: 3rem;
-        color: #2C3E50;
+        color: var(--heading-color);
         position: relative;
         display: inline-block;
     }
@@ -278,7 +369,7 @@ const healthCareTips = [
     .carousel-container {
         display: flex;
         gap: 24px;
-        overflow-x: auto;
+        overflow-x: hidden; /* Changed from auto to hide scrollbar and manual scroll */
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
         -ms-overflow-style: none;
@@ -293,12 +384,12 @@ const healthCareTips = [
     .carousel-card {
         flex: 0 0 300px;
         scroll-snap-align: center;
-        background: #fdfdfd;
+        background: var(--card-bg);
         padding: 40px 30px;
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border: 1px solid #f0f0f0;
+        border: 1px solid var(--navbar-border);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -321,19 +412,19 @@ const healthCareTips = [
 
     .carousel-card h3 {
         margin-bottom: 15px;
-        color: #2C3E50;
+        color: var(--heading-color);
         font-size: 1.4rem;
     }
 
     .carousel-card p {
-        color: #666;
+        color: var(--body-text-color);
         line-height: 1.6;
         font-size: 1rem;
     }
 
     .nav-btn {
-        background: white;
-        border: 1px solid #eee;
+        background: var(--card-bg);
+        border: 1px solid var(--navbar-border);
         border-radius: 50%;
         width: 45px;
         height: 45px;
@@ -344,7 +435,7 @@ const healthCareTips = [
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         transition: all 0.2s;
         z-index: 10;
-        color: #2C3E50;
+        color: var(--heading-color);
     }
 
     .nav-btn:hover {
@@ -365,7 +456,7 @@ const healthCareTips = [
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background-color: #ddd;
+        background-color: var(--navbar-border);
         border: none;
         cursor: pointer;
         padding: 0;

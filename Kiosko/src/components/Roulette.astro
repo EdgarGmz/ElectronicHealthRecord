@@ -75,18 +75,18 @@ const emotions = [
         padding: 2.5rem 2rem;
         box-sizing: border-box;
         text-align: center;
-        background: #fff;
+        background: var(--card-bg);
         border-radius: 20px 0 0 20px;
         box-shadow: -10px 0 35px rgba(0,0,0,0.1);
-        border: 1px solid #eee;
+        border: 1px solid var(--navbar-border);
         border-right: none;
         max-height: 95vh;
         overflow-y: auto;
     }
 
     .toggle-btn {
-        background-color: #333;
-        color: white;
+        background-color: var(--logo-color);
+        color: var(--bg-color);
         border: none;
         writing-mode: vertical-rl;
         text-orientation: mixed;
@@ -113,6 +113,7 @@ const emotions = [
     .roulette-content h2 {
         font-size: 2rem;
         margin-bottom: 1.5rem;
+        color: var(--heading-color);
     }
     
     .wheel-outer {
@@ -125,7 +126,7 @@ const emotions = [
         width: 300px;
         height: 300px;
         border-radius: 50%;
-        border: 4px solid #e5e5e5;
+        border: 4px solid var(--navbar-border);
         overflow: hidden;
         margin: 0 auto;
     }
@@ -168,8 +169,8 @@ const emotions = [
         width: 100px;
         height: 100px;
         position: absolute;
-        background: #fff;
-        border: 4px solid #e5e5e5;
+        background: var(--card-bg);
+        border: 4px solid var(--navbar-border);
         border-radius: 50%;
         top: 50%;
         left: 50%;
@@ -185,7 +186,7 @@ const emotions = [
         width: 0; height: 0;
         border-left: 12px solid transparent;
         border-right: 12px solid transparent;
-        border-bottom: 24px solid #ccc;
+        border-bottom: 24px solid var(--navbar-border);
         z-index: 10;
     }
 
@@ -194,16 +195,16 @@ const emotions = [
         padding: 10px 30px;
         font-size: 1rem;
         background-color: transparent;
-        color: #333;
-        border: 2px solid #333;
+        color: var(--heading-color);
+        border: 2px solid var(--heading-color);
         border-radius: 50px;
         cursor: pointer;
         transition: all 0.3s;
     }
 
     button#spinButton:hover {
-        background-color: #333;
-        color: white;
+        background-color: var(--heading-color);
+        color: var(--card-bg);
     }
 
     .result-display {
@@ -211,9 +212,9 @@ const emotions = [
         min-height: 180px; /* Espacio mucho más grande para el resultado */
         text-align: center;
         padding: 1.5rem;
-        background-color: #f9f9f9;
+        background-color: var(--bg-color);
         border-radius: 15px;
-        border: 1px dashed #ddd;
+        border: 1px dashed var(--navbar-border);
         opacity: 0;
         transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         transform: translateY(10px);
@@ -223,18 +224,18 @@ const emotions = [
         transform: translateY(0);
         border-style: solid;
         border-color: #A2D9CE;
-        background-color: #fff;
+        background-color: var(--card-bg);
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
     .result-display h3 {
         font-size: 1.8rem;
-        color: #2C3E50;
+        color: var(--heading-color);
         margin: 0 0 1rem 0;
         font-family: 'Playfair Display', serif;
     }
     .result-display p {
         font-size: 1.05rem;
-        color: #555;
+        color: var(--body-text-color);
         line-height: 1.6;
         margin: 0;
         font-style: italic;
