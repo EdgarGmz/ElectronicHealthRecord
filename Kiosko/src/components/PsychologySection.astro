@@ -10,7 +10,7 @@ const psychologyTips = [
     },
     {
         title: "Manejo del Estrés",
-        description: "Técnicas de relajación para reducir la ansiedad académica y personal.",
+        description: "Técnicas de relajación para reducir la ansiedad académica.",
         icon: "🌊",
         details: "Mindfulness, Técnicas de respiración, Relajación muscular, Gestión de ansiedad",
         fullInfo: "El estrés afecta tu rendimiento. Te enseñamos estrategias probadas para calmar tu sistema nervioso y recuperar el control en momentos de alta presión."
@@ -31,7 +31,7 @@ const psychologyTips = [
     },
     {
         title: "Prevención de Adicciones",
-        description: "Orientación sobre riesgos y fortalecimiento de factores de protección.",
+        description: "Orientación sobre riesgos y factores de protección.",
         icon: "🚫",
         details: "Factores de riesgo, Redes de apoyo, Estilos de vida sanos, Toma de decisiones",
         fullInfo: "Identificar situaciones de riesgo y contar con una red de apoyo es vital para mantener una vida equilibrada y libre de dependencias."
@@ -45,7 +45,7 @@ const psychologyTips = [
     },
     {
         title: "Orientación de Carrera",
-        description: "Acompañamiento en la toma de decisiones sobre tu futuro profesional.",
+        description: "Acompañamiento en la toma de decisiones profesionales.",
         icon: "🚀",
         details: "Perfil profesional, Mercado laboral, Proyecto de vida, Intereses vocacionales",
         fullInfo: "Te ayudamos a alinear tus pasiones con las oportunidades reales, construyendo un proyecto de vida con propósito y metas claras."
@@ -54,80 +54,94 @@ const psychologyTips = [
 ---
 
 <section id="psychology-section" class="page-section">
-    <h2>Apoyo Psicopedagógico</h2>
+    <h2 class="section-title">Apoyo Psicopedagógico</h2>
+    
     <div class="options-container">
         {psychologyTips.map((tip) => (
-            <div class="option-card interactive-psych" 
+            <div class="option-card interactive-psych-card" 
                  data-title={tip.title} 
                  data-icon={tip.icon} 
                  data-info={tip.fullInfo} 
                  data-list={tip.details}>
-                <div class="card-icon">{tip.icon}</div>
+                <div class="card-icon animated-icon-soft">{tip.icon}</div>
                 <h3>{tip.title}</h3>
                 <p>{tip.description}</p>
-                <span class="more-link">Ver detalles →</span>
+                <span class="click-hint-psych">Toca para saber más</span>
             </div>
         ))}
     </div>
 
-    <!-- Modal con diseño integrado -->
-    <div id="psych-modal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <div class="modal-header">
-                <div class="modal-icon-display"></div>
-                <h2 class="modal-title-text"></h2>
+    <!-- Modal Blanco Estable -->
+    <div id="psych-modal-fixed" class="custom-modal-overlay">
+        <div class="custom-modal-content">
+            <button class="custom-close-btn" id="close-psych-modal">&times;</button>
+            <div class="modal-inner-header">
+                <div class="modal-big-icon pop-in-soft" id="psych-modal-icon"></div>
+                <h2 id="psych-modal-title"></h2>
             </div>
-            <div class="modal-body">
-                <p class="modal-description-text"></p>
-                <div class="modal-details-box">
-                    <h4>Información Clave:</h4>
-                    <ul class="modal-details-list"></ul>
+            <div class="modal-inner-body">
+                <p id="psych-modal-desc"></p>
+                <div class="modal-inner-highlights">
+                    <h4>Información Clave</h4>
+                    <ul id="psych-modal-list"></ul>
                 </div>
             </div>
-            <button class="modal-btn">Entendido</button>
+            <button class="modal-inner-close-action" id="btn-psych-close">Entendido</button>
         </div>
     </div>
 </section>
 
 <script is:inline>
     (function() {
-        const setupPsychModal = () => {
-            const modal = document.getElementById('psych-modal');
+        const initPsychModal = () => {
+            const modal = document.getElementById('psych-modal-fixed');
+            const cards = document.querySelectorAll('.interactive-psych-card');
+            const closeX = document.getElementById('close-psych-modal');
+            const closeBtn = document.getElementById('btn-psych-close');
+
             if (!modal) return;
 
-            const cards = document.querySelectorAll('.interactive-psych');
-            const mTitle = modal.querySelector('.modal-title-text');
-            const mDesc = modal.querySelector('.modal-description-text');
-            const mList = modal.querySelector('.modal-details-list');
-            const mIcon = modal.querySelector('.modal-icon-display');
-            const closeX = modal.querySelector('.close-modal');
-            const closeBtn = modal.querySelector('.modal-btn');
+            const open = (data) => {
+                const iconEl = document.getElementById('psych-modal-icon');
+                document.getElementById('psych-modal-title').textContent = data.title;
+                document.getElementById('psych-modal-desc').textContent = data.info;
+                iconEl.textContent = data.icon;
+                
+                const list = document.getElementById('psych-modal-list');
+                list.innerHTML = data.list.split(',').map(i => `<li><span>✓</span> ${i.trim()}</li>`).join('');
+
+                modal.classList.add('is-visible');
+                
+                // Reiniciar animación pop-in sutil
+                iconEl.style.animation = 'none';
+                iconEl.offsetHeight;
+                iconEl.style.animation = null;
+
+                document.body.style.overflow = 'hidden';
+            };
+
+            const close = () => {
+                modal.classList.remove('is-visible');
+                document.body.style.overflow = '';
+            };
 
             cards.forEach(card => {
-                card.onclick = () => {
-                    const d = card.dataset;
-                    mTitle.textContent = d.title;
-                    mDesc.textContent = d.info;
-                    mIcon.textContent = d.icon;
-                    mList.innerHTML = d.list.split(',').map(i => `<li><span class="check-psych">✓</span> ${i.trim()}</li>`).join('');
-                    modal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                };
+                card.addEventListener('click', () => open(card.dataset));
             });
 
-            const close = () => { modal.classList.remove('active'); document.body.style.overflow = ''; };
-            closeX.onclick = close;
-            closeBtn.onclick = close;
-            modal.onclick = (e) => { if(e.target === modal) close(); };
+            closeX?.addEventListener('click', close);
+            closeBtn?.addEventListener('click', close);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) close();
+            });
         };
-        setupPsychModal();
-        document.addEventListener('astro:after-swap', setupPsychModal);
+
+        initPsychModal();
+        document.addEventListener('astro:after-swap', initPsychModal);
     })();
 </script>
 
 <style>
-    /* Estilos EXACTOS de Services.astro */
     .page-section {
         width: 100%;
         max-width: 1200px;
@@ -138,94 +152,118 @@ const psychologyTips = [
         background-color: var(--bg-color);
     }
 
-    .page-section h2 {
+    .section-title {
         font-size: 2.5rem;
         margin-bottom: 3rem;
         color: var(--heading-color);
+        font-family: 'Playfair Display', serif;
     }
 
     .options-container {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 3rem;
         text-align: left;
     }
 
     .option-card {
-        padding: 1rem;
-        transition: background-color 0.3s;
+        padding: 2rem;
+        transition: all 0.3s ease;
         background-color: var(--card-bg);
-        border-radius: 8px;
+        border-radius: 12px;
         cursor: pointer;
+        border: 1px solid var(--navbar-border);
+        display: flex;
+        flex-direction: column;
+        position: relative;
     }
 
     .option-card:hover {
         background-color: rgba(162, 217, 206, 0.1);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
     }
 
-    .option-card h3 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-        color: var(--heading-color);
+    /* --- ANIMACIÓN SOFT DE EMOJIS (No sale de su órbita) --- */
+    .animated-icon-soft {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: inline-block;
+        transform-origin: center;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .option-card p {
-        font-size: 1rem;
-        line-height: 1.6;
-        color: var(--body-text-color);
+    .option-card:hover .animated-icon-soft {
+        transform: scale(1.15) rotate(-5deg);
     }
 
-    .card-icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
+    .option-card h3 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--heading-color); font-family: 'Playfair Display', serif; }
+    .option-card p { font-size: 1rem; line-height: 1.6; color: var(--body-text-color); margin-bottom: 1rem; }
+    
+    .click-hint-psych { font-size: 0.8rem; color: #A2D9CE; font-weight: bold; text-transform: uppercase; margin-top: auto; }
 
-    .more-link {
-        display: block;
-        margin-top: 1rem;
-        color: #A2D9CE;
-        font-weight: bold;
-        font-size: 0.9rem;
-    }
-
-    /* Modal Styles */
-    .modal-overlay {
+    /* --- MODAL --- */
+    .custom-modal-overlay {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0,0,0,0.6);
         display: flex; align-items: center; justify-content: center;
-        z-index: 2000; opacity: 0; visibility: hidden;
-        transition: all 0.3s;
-        backdrop-filter: blur(4px);
+        z-index: 9999; opacity: 0; visibility: hidden;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
     }
-    .modal-overlay.active { opacity: 1; visibility: visible; }
-    .modal-content {
+
+    .custom-modal-overlay.is-visible { opacity: 1; visibility: visible; }
+
+    .custom-modal-content {
         background: var(--card-bg);
         width: 90%; max-width: 500px;
-        padding: 2.5rem; border-radius: 15px;
-        position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        padding: 3rem; border-radius: 15px;
+        position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        border: 1px solid var(--navbar-border);
+        transform: translateY(20px);
+        transition: all 0.3s ease;
     }
-    .close-modal { position: absolute; top: 15px; right: 20px; font-size: 2rem; cursor: pointer; color: var(--body-text-color); }
-    .modal-header { text-align: center; margin-bottom: 1.5rem; }
-    .modal-icon-display { font-size: 3.5rem; margin-bottom: 0.5rem; }
-    .modal-title-text { font-size: 2rem; color: var(--heading-color); margin: 0; }
-    .modal-description-text { color: var(--body-text-color); line-height: 1.6; text-align: left; margin-bottom: 1.5rem; }
-    .modal-details-box { text-align: left; background: var(--bg-color); padding: 1.2rem; border-radius: 10px; }
-    .modal-details-box h4 { margin: 0 0 10px 0; color: var(--heading-color); font-size: 1rem; }
-    .modal-details-list { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr; gap: 8px; }
-    .modal-details-list li { font-size: 0.9rem; color: var(--body-text-color); display: flex; align-items: center; gap: 8px; }
-    .check-psych { color: #A2D9CE; font-weight: bold; }
-    .modal-btn {
-        width: 100%; background: #2C3E50; color: white; border: none;
-        padding: 0.8rem; border-radius: 8px; font-weight: bold;
-        cursor: pointer; margin-top: 1.5rem; transition: background 0.3s;
-    }
-    .modal-btn:hover { background: #34495e; }
 
-    @media (max-width: 900px) { .options-container { grid-template-columns: 1fr 1fr; } }
+    .custom-modal-overlay.is-visible .custom-modal-content { transform: translateY(0); }
+
+    .custom-close-btn {
+        position: absolute; top: 15px; right: 20px;
+        background: none; border: none; font-size: 2rem;
+        color: var(--body-text-color); cursor: pointer;
+    }
+
+    .modal-inner-header { text-align: center; margin-bottom: 2rem; }
+    .modal-big-icon { font-size: 4rem; margin-bottom: 0.5rem; transform-origin: center; }
+
+    /* Pop-in suave */
+    .pop-in-soft {
+        animation: popSoft 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes popSoft {
+        0% { transform: scale(0.5); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-inner-header h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--heading-color); margin: 0; }
+    .modal-inner-body { text-align: left; }
+    #psych-modal-desc { color: var(--body-text-color); line-height: 1.7; font-size: 1.1rem; margin-bottom: 2rem; }
+    .modal-inner-highlights { background: var(--bg-color); padding: 1.5rem; border-radius: 10px; }
+    .modal-inner-highlights h4 { color: var(--heading-color); font-size: 1rem; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; }
+    .modal-inner-highlights ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    .modal-inner-highlights li { font-size: 0.95rem; color: var(--body-text-color); display: flex; align-items: center; gap: 10px; }
+    .modal-inner-highlights li span { color: #A2D9CE; font-weight: bold; }
+
+    .modal-inner-close-action {
+        width: 100%; background: #2C3E50; color: white; border: none;
+        padding: 1rem; border-radius: 8px; font-weight: bold;
+        font-size: 1rem; cursor: pointer; margin-top: 2rem; transition: background 0.3s;
+    }
+    .modal-inner-close-action:hover { background: #34495e; }
+
     @media (max-width: 600px) {
-        .options-container { grid-template-columns: 1fr; gap: 2rem; }
-        .page-section { padding: 3rem 1rem; }
-        .page-section h2 { font-size: 2rem; }
+        .custom-modal-content { padding: 2rem; }
+        .modal-inner-header h2 { font-size: 1.8rem; }
     }
 </style>

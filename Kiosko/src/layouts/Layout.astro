@@ -52,6 +52,38 @@ const { title } = Astro.props;
 	<body>
 		<slot />
 		<Footer />
+		<script is:inline>
+			// Scroll Reveal Animation
+			const observerOptions = {
+				threshold: 0.1,
+				rootMargin: '0px 0px -50px 0px'
+			};
+
+			const observer = new IntersectionObserver((entries) => {
+				entries.forEach(entry => {
+					if (entry.isIntersecting) {
+						entry.target.classList.add('reveal-visible');
+					}
+				});
+			}, observerOptions);
+
+			document.addEventListener('DOMContentLoaded', () => {
+				const sections = document.querySelectorAll('section, .reveal');
+				sections.forEach(section => {
+					section.classList.add('reveal-hidden');
+					observer.observe(section);
+				});
+			});
+
+			// Re-run on View Transitions
+			document.addEventListener('astro:after-swap', () => {
+				const sections = document.querySelectorAll('section, .reveal');
+				sections.forEach(section => {
+					section.classList.add('reveal-hidden');
+					observer.observe(section);
+				});
+			});
+		</script>
 	</body>
 </html>
 
@@ -84,6 +116,18 @@ const { title } = Astro.props;
 		color-scheme: dark;
 	}
 
+	/* Global Scroll Reveal Styles */
+	.reveal-hidden {
+		opacity: 0;
+		transform: translateY(30px);
+		transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	}
+
+	.reveal-visible {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
 	html,
 	body {
 		margin: 0;
@@ -94,7 +138,7 @@ const { title } = Astro.props;
 		background-color: var(--bg-color) !important;
 		color: var(--text-color) !important;
 		font-family: 'Lato', sans-serif;
-		transition: background-color 0.3s ease, color 0.3s ease;
+		scroll-behavior: smooth;
 	}
 
 	body > :first-child {
