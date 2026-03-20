@@ -209,8 +209,8 @@ Ver detalles completos en [`ACCEPTANCE_CRITERIA.md`](./ACCEPTANCE_CRITERIA.md)
 ### Recursos del Proyecto
 - 📖 [README Principal](../README.md)
 - 🏗️ [Estructura del Proyecto](../PROJECT_STRUCTURE.md)
-- 🔒 [Análisis de Seguridad](../documents/Analisis-Riesgos-Amenazas.md)
-- 📋 [Requisitos Funcionales](../documents/Req-Funcionales.md)
+- 🔒 [Análisis de Seguridad](../../documents/docs/riesgos/Analisis-Riesgos-Amenazas.md)
+- 📋 [Requisitos Funcionales](../../documents/docs/requisitos/Req-Funcionales.md)
 
 ### Herramientas Online
 - [Swagger Editor](https://editor.swagger.io/) - Para ver/editar la especificación

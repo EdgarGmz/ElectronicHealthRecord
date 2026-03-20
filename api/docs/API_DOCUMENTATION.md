@@ -289,13 +289,74 @@ Content-Type: application/json
 
 ### 9. 📊 Reportes (`/reports`)
 
+Módulo para generar reportes estadísticos y analíticos del sistema.
+
 | Endpoint | Método | Descripción |
 |----------|--------|-------------|
-| `/reports/statistics` | GET | Estadísticas generales |
-| `/reports/consultations` | GET | Reporte de consultas |
-| `/reports/diagnoses` | GET | Reporte de diagnósticos |
+| `/reports/statistics` | GET | Reporte de estadísticas generales (citas, pacientes, sesiones) |
+| `/reports/consultations` | GET | Reporte de interconsultas entre departamentos |
+| `/reports/diagnoses` | GET | Reporte de diagnósticos psicológicos (DSM-5/CIE-10) |
 
-**Formatos de exportación**: JSON, PDF, Excel
+#### Parámetros de consulta comunes
+
+Todos los endpoints de reportes requieren:
+- `periodStart` (requerido): Fecha inicial del período en formato ISO 8601 (ej: `2024-01-01`)
+- `periodEnd` (requerido): Fecha final del período en formato ISO 8601 (ej: `2024-12-31`)
+- `department` (opcional): Filtrar por departamento (`psychology`, `nursing`, o vacío para todos)
+
+#### Ejemplo de uso:
+
+```bash
+# Reporte de estadísticas del departamento de psicología
+GET /api/reports/statistics?periodStart=2024-01-01&periodEnd=2024-12-31&department=psychology
+
+# Reporte de interconsultas de todos los departamentos
+GET /api/reports/consultations?periodStart=2024-01-01&periodEnd=2024-12-31
+
+# Reporte de diagnósticos (solo psicología)
+GET /api/reports/diagnoses?periodStart=2024-01-01&periodEnd=2024-12-31
+```
+
+#### Respuesta del reporte de estadísticas:
+
+```json
+{
+  "success": true,
+  "message": "Statistics report generated successfully",
+  "data": {
+    "report": {
+      "id": "uuid",
+      "reportType": "statistics",
+      "department": "psychology",
+      "periodStart": "2024-01-01",
+      "periodEnd": "2024-12-31",
+      "createdAt": "2024-12-31T23:59:59.000Z"
+    },
+    "data": {
+      "period": { "start": "2024-01-01", "end": "2024-12-31" },
+      "department": "psychology",
+      "appointments": {
+        "total": 150,
+        "completed": 130,
+        "cancelled": 20,
+        "byType": [
+          { "type": "initial", "count": 45 },
+          { "type": "followup", "count": 85 }
+        ]
+      },
+      "patients": {
+        "total": 200,
+        "newPatients": 45
+      },
+      "therapySessions": 120
+    }
+  }
+}
+```
+
+**Autenticación**: Requerida (JWT token)  
+**Acceso**: Todos los usuarios autenticados pueden generar reportes  
+**Nota**: Los reportes se guardan en la base de datos para auditoría
 
 ### 10. 📝 Auditoría (`/audit-logs`)
 
@@ -607,7 +668,7 @@ Futuras versiones: /api/v2, /api/v3, etc.
 - 📖 **Especificación OpenAPI**: [`openapi.yaml`](./openapi.yaml)
 - 📚 **README Backend**: [`README.md`](./README.md)
 - 🏗️ **Estructura del Proyecto**: [`../PROJECT_STRUCTURE.md`](../PROJECT_STRUCTURE.md)
-- 🔒 **Seguridad**: [`../documents/Analisis-Riesgos-Amenazas.md`](../documents/Analisis-Riesgos-Amenazas.md)
+- 🔒 **Seguridad**: [`../../documents/docs/riesgos/Analisis-Riesgos-Amenazas.md`](../../documents/docs/riesgos/Analisis-Riesgos-Amenazas.md)
 
 ### Contacto
 

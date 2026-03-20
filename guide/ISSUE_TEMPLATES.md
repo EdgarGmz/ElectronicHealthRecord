@@ -330,12 +330,12 @@ Crear wireframes y mockups de alta fidelidad para todas las pantallas del sistem
 Definir la interfaz de usuario y experiencia antes de comenzar el desarrollo frontend.
 
 ### ✅ Criterios de Aceptación
-- [ ] Wireframes de baja fidelidad para todas las pantallas principales
-- [ ] Mockups de alta fidelidad aprobados
-- [ ] Flujo de navegación documentado
-- [ ] Guía de estilos (colores, tipografías, espaciados)
-- [ ] Design system básico (componentes reutilizables)
-- [ ] Diseño responsive (adaptable a diferentes tamaños)
+- [x] Wireframes de baja fidelidad para todas las pantallas principales
+- [x] Mockups de alta fidelidad aprobados ✅ **COMPLETADO (2026-02-14)**
+- [x] Flujo de navegación documentado
+- [x] Guía de estilos (colores, tipografías, espaciados)
+- [x] Design system básico (componentes reutilizables)
+- [x] Diseño responsive (adaptable a diferentes tamaños)
 
 ### 📝 Tareas
 

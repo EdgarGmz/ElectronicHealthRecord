@@ -5,8 +5,9 @@ import { AppError } from '../middleware/errorHandler';
 
 export class AuthService {
   async login(email: string, password: string) {
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
       select: {
         id: true,
         email: true,

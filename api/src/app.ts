@@ -11,6 +11,7 @@ import { config } from './config/env';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import logger from './utils/logger';
+import { runWithAuditContext } from './utils/audit-context';
 
 const app: Application = express();
 
@@ -18,8 +19,19 @@ const app: Application = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: config.cors.origin,
+    origin: (origin, callback) => {
+      const allowed = config.cors.allowedOrigins;
+      // Development: allow any localhost origin so any port (5173, 5174, etc.) works
+      if (config.env === 'development' && origin && /^https?:\/\/localhost(:\d+)?$/.test(origin)) {
+        return callback(null, true);
+      }
+      // No origin (e.g. same-origin or Postman): allow
+      if (!origin) return callback(null, true);
+      if (allowed.includes(origin)) return callback(null, true);
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
@@ -29,7 +41,11 @@ const limiter = rateLimit({
   max: config.rateLimit.maxRequests,
   message: 'Too many requests from this IP, please try again later.',
 });
-app.use('/api', limiter);
+// En desarrollo evitamos que el dashboard/calendario dispare 429
+// por múltiples requests en paralelo o reintentos del frontend.
+if (config.env !== 'development') {
+  app.use('/api', limiter);
+}
 
 // Body parsing middleware
 app.use(express.json());
@@ -37,6 +53,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Compression middleware
 app.use(compression());
+
+// Request-scoped context for audit logging (Prisma middleware uses this)
+app.use((req, _res, next) => runWithAuditContext(req, next));
 
 // Logging middleware
 if (config.env === 'development') {

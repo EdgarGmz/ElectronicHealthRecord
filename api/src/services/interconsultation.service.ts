@@ -1,3 +1,444 @@
-// Placeholder for interconsultation.service.ts
-// In a real implementation, this file would contain the business logic
-// for interconsultations, interacting with the database through Prisma.
+import { Prisma } from '@prisma/client';
+import prisma from '../config/database';
+import { AppError } from '../middleware/errorHandler';
+import { INTERCONSULTATION_STATUS } from '../constants/interconsultation';
+import { ROLES, ROLES_INTERCONSULTA } from '../constants/roles';
+
+export class InterconsultationService {
+  async getAll(
+    userId: string,
+    userRole: string,
+    page: number = 1,
+    limit: number = 10,
+    filters?: {
+      patientId?: string;
+      fromDepartment?: string;
+      toDepartment?: string;
+      status?: string;
+      urgency?: string;
+      fromProfessionalId?: string;
+      toProfessionalId?: string;
+    }
+  ) {
+    const skip = (page - 1) * limit;
+    const where: Prisma.InterconsultationWhereInput = {};
+
+    if (userRole === ROLES.PATIENT) {
+      const patient = await prisma.patient.findUnique({
+        where: { userId },
+      });
+      if (!patient) {
+        throw new AppError('Patient profile not found', 404);
+      }
+      where.patientId = patient.id;
+    } else if (userRole === ROLES.PSICOLOGO || userRole === ROLES.ENFERMERO) {
+      where.OR = [
+        { fromProfessionalId: userId },
+        { toProfessionalId: userId },
+        { respondedBy: userId },
+      ];
+    }
+
+    // Apply additional filters
+    if (filters?.patientId) {
+      where.patientId = filters.patientId;
+    }
+    if (filters?.fromDepartment) {
+      where.fromDepartment = filters.fromDepartment;
+    }
+    if (filters?.toDepartment) {
+      where.toDepartment = filters.toDepartment;
+    }
+    if (filters?.status) {
+      where.status = filters.status;
+    }
+    if (filters?.urgency) {
+      where.urgency = filters.urgency;
+    }
+    if (filters?.fromProfessionalId) {
+      where.fromProfessionalId = filters.fromProfessionalId;
+    }
+    if (filters?.toProfessionalId) {
+      where.toProfessionalId = filters.toProfessionalId;
+    }
+
+    const [interconsultations, total] = await Promise.all([
+      prisma.interconsultation.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          patient: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  phone: true,
+                  enrollmentNumber: true,
+                },
+              },
+            },
+          },
+          fromProfessional: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+            },
+          },
+          toProfessional: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+            },
+          },
+          respondedByUser: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.interconsultation.count({ where }),
+    ]);
+
+    return {
+      interconsultations,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getById(id: string, userId: string, userRole: string) {
+    const interconsultation = await prisma.interconsultation.findUnique({
+      where: { id },
+      include: {
+        patient: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                enrollmentNumber: true,
+              },
+            },
+          },
+        },
+        fromProfessional: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        toProfessional: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        respondedByUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!interconsultation) {
+      throw new AppError('Interconsultation not found', 404);
+    }
+
+    // Check access permissions
+    if (userRole === 'patient') {
+      const patient = await prisma.patient.findUnique({
+        where: { userId },
+      });
+      if (!patient || interconsultation.patientId !== patient.id) {
+        throw new AppError('Access denied', 403);
+      }
+    } else if (userRole === ROLES.PSICOLOGO || userRole === ROLES.ENFERMERO) {
+      if (
+        interconsultation.fromProfessionalId !== userId &&
+        interconsultation.toProfessionalId !== userId &&
+        interconsultation.respondedBy !== userId
+      ) {
+        throw new AppError('Access denied', 403);
+      }
+    }
+
+    return interconsultation;
+  }
+
+  async getPendingCount(userId: string, userRole: string): Promise<number> {
+    const where: Prisma.InterconsultationWhereInput = {
+      status: INTERCONSULTATION_STATUS.PENDING,
+    }
+
+    if (userRole === ROLES.PATIENT) {
+      const patient = await prisma.patient.findUnique({
+        where: { userId },
+      })
+
+      if (!patient) return 0
+      where.patientId = patient.id
+    } else if (userRole === ROLES.PSICOLOGO || userRole === ROLES.ENFERMERO) {
+      // Mismo criterio de acceso que getAll(): quién participa en la interconsulta.
+      where.OR = [
+        { fromProfessionalId: userId },
+        { toProfessionalId: userId },
+        { respondedBy: userId },
+      ]
+    }
+
+    // Para coordinadores/admin, se mantiene el mismo comportamiento de getAll():
+    // no restringimos por OR para no “ocultar” interconsultas.
+    return prisma.interconsultation.count({ where })
+  }
+
+  /**
+   * List professionals that can be assigned to an interconsultation,
+   * filtered by the destination department.
+   */
+  async getProfessionalsByToDepartment(toDepartment: string) {
+    const departmentToRoles: Record<string, readonly string[]> = {
+      'Enfermería': [ROLES.COORDINADOR_ENFERMERIA, ROLES.ENFERMERO],
+      'Psicología': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.PSICOLOGO],
+    }
+
+    const roles = departmentToRoles[toDepartment] ?? []
+    if (roles.length === 0) return []
+
+    const users = await prisma.user.findMany({
+      where: {
+        role: { in: roles as any },
+        isActive: true,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+      },
+      orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+    })
+
+    return users
+  }
+
+  async create(data: {
+    patientId: string;
+    fromDepartment: string;
+    toDepartment: string;
+    fromProfessionalId: string;
+    toProfessionalId?: string;
+    reason: string;
+    relevantInformation?: string;
+    urgency: string;
+  }) {
+    // Validate patient exists
+    const patient = await prisma.patient.findUnique({
+      where: { id: data.patientId },
+    });
+    if (!patient) {
+      throw new AppError('Patient not found', 404);
+    }
+
+    // Validate fromProfessional exists
+    const fromProfessional = await prisma.user.findUnique({
+      where: { id: data.fromProfessionalId },
+    });
+    if (!fromProfessional) {
+      throw new AppError('From professional not found', 404);
+    }
+    if (!ROLES_INTERCONSULTA.includes(fromProfessional.role as any)) {
+      throw new AppError('Rol del profesional de origen no válido para interconsulta', 400);
+    }
+
+    if (data.toProfessionalId) {
+      const toProfessional = await prisma.user.findUnique({
+        where: { id: data.toProfessionalId },
+      });
+      if (!toProfessional) {
+        throw new AppError('To professional not found', 404);
+      }
+      if (!ROLES_INTERCONSULTA.includes(toProfessional.role as any)) {
+        throw new AppError('Rol del profesional de destino no válido para interconsulta', 400);
+      }
+    }
+
+    // Create interconsultation
+    const interconsultation = await prisma.interconsultation.create({
+      data: {
+        patientId: data.patientId,
+        fromDepartment: data.fromDepartment,
+        toDepartment: data.toDepartment,
+        fromProfessionalId: data.fromProfessionalId,
+        toProfessionalId: data.toProfessionalId,
+        reason: data.reason,
+        relevantInformation: data.relevantInformation,
+        urgency: data.urgency,
+        status: INTERCONSULTATION_STATUS.PENDING,
+      },
+      include: {
+        patient: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+              },
+            },
+          },
+        },
+        fromProfessional: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        toProfessional: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    return interconsultation;
+  }
+
+  async addResponse(
+    id: string,
+    userId: string,
+    userRole: string,
+    response: string
+  ) {
+    const interconsultation = await prisma.interconsultation.findUnique({
+      where: { id },
+    });
+
+    if (!interconsultation) {
+      throw new AppError('Interconsultation not found', 404);
+    }
+
+    // Check permissions - only professionals from target department or assigned professional can respond
+    if (userRole === ROLES.PATIENT) {
+      throw new AppError('Los pacientes no pueden responder interconsultas', 403);
+    }
+
+    const coordinatorsOrAdmin = [ROLES.ADMIN, ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA];
+    if (!coordinatorsOrAdmin.includes(userRole as any)) {
+      if (interconsultation.toProfessionalId && interconsultation.toProfessionalId !== userId) {
+        throw new AppError('Only the assigned professional can respond to this interconsultation', 403);
+      }
+    }
+
+    // Check if already responded
+    if (interconsultation.status === INTERCONSULTATION_STATUS.RESPONDED) {
+      throw new AppError('This interconsultation has already been responded to', 400);
+    }
+
+    // Check if cancelled
+    if (interconsultation.status === INTERCONSULTATION_STATUS.CANCELLED) {
+      throw new AppError('Cannot respond to a cancelled interconsultation', 400);
+    }
+
+    // Update interconsultation with response
+    const updatedInterconsultation = await prisma.interconsultation.update({
+      where: { id },
+      data: {
+        response,
+        respondedBy: userId,
+        respondedAt: new Date(),
+        status: INTERCONSULTATION_STATUS.RESPONDED,
+      },
+      include: {
+        patient: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+              },
+            },
+          },
+        },
+        fromProfessional: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        toProfessional: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        respondedByUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    return updatedInterconsultation;
+  }
+}
+
+export default new InterconsultationService();

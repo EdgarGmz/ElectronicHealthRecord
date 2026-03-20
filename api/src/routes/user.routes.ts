@@ -1,17 +1,31 @@
 import { Router } from 'express';
-import userController, { updateUserValidation } from '../controllers/user.controller';
+import userController, { createUserValidation, updateUserValidation, updateMeValidation } from '../controllers/user.controller';
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { param } from 'express-validator';
+import { ROLES, ROLES_USER_CRUD } from '../constants/roles';
 
 const router = Router();
 
-// All routes require authentication
 router.use(authenticateToken);
 
-router.get('/', userController.getAll.bind(userController));
-router.get('/:id', validate([param('id').isUUID()]), userController.getById.bind(userController));
-router.put('/:id', validate(updateUserValidation), userController.update.bind(userController));
-router.delete('/:id', validate([param('id').isUUID()]), authorizeRoles('admin'), userController.delete.bind(userController));
+// Current user profile — any authenticated user
+router.get('/me', userController.getMe.bind(userController));
+router.put('/me', validate(updateMeValidation), userController.updateMe.bind(userController));
+router.get('/me/careers', authorizeRoles(ROLES.PSICOLOGO), userController.getMeCareers.bind(userController));
+
+// Solo admin: listar, ver, editar y eliminar usuarios. Coordinador de psicología solo puede crear usuarios (rol psicólogo).
+router.get('/', authorizeRoles(...ROLES_USER_CRUD), userController.getAll.bind(userController));
+router.get('/:id', authorizeRoles(...ROLES_USER_CRUD), validate([param('id').isUUID()]), userController.getById.bind(userController));
+router.put('/:id', authorizeRoles(...ROLES_USER_CRUD), validate(updateUserValidation), userController.update.bind(userController));
+router.delete('/:id', authorizeRoles(...ROLES_USER_CRUD), validate([param('id').isUUID()]), userController.delete.bind(userController));
+
+// Crear usuarios: solo admin
+router.post(
+  '/',
+  authorizeRoles(ROLES.ADMIN),
+  validate(createUserValidation),
+  userController.create.bind(userController)
+);
 
 export default router;

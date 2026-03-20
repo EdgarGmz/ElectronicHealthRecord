@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev:all": "npm run db:up && npm run dev",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "jest",
@@ -12,10 +13,17 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
+    "db:up": "docker compose -f ../docker-compose.yml up -d db",
+    "db:down": "docker compose -f ../docker-compose.yml down",
+    "db:status": "docker compose -f ../docker-compose.yml ps",
+    "prisma:reset": "prisma migrate reset --force --skip-generate",
+    "prisma:reset:seed": "prisma migrate reset --force --skip-generate && npm run prisma:seed",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
+    "prisma:seed": "npx prisma db seed",
+    "setup": "npm install && npm run db:up && npm run prisma:migrate && npm run prisma:generate && npm run prisma:seed",
     "docs:serve": "redoc-cli serve openapi.yaml --watch",
     "docs:typedoc": "typedoc --out docs/api-reference src/**/*.ts"
   },
@@ -101,5 +109,8 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }

@@ -43,7 +43,7 @@ Sigue estos pasos para tener la API de EHR funcionando en tu máquina local.
 
 *   Node.js (v18 o superior)
 *   npm (v9 o superior)
-*   Servidor de base de datos PostgreSQL
+*   Docker & Docker Compose (para la base de datos)
 
 ### 📦 1. Clonar el Repositorio
 
@@ -66,125 +66,206 @@ Crea un archivo `.env` en el directorio `api/` copiando el archivo de ejemplo:
 cp .env.example .env
 ```
 
-Ahora, abre el archivo `.env` y actualiza las siguientes variables. Son cruciales para que la API se conecte a la base de datos y funcione correctamente.
+Ahora, abre el archivo `.env` y actualiza las siguientes variables. La URL de la base de datos debe apuntar al contenedor de Docker (localhost si corres la API fuera de Docker).
 
 ```env
-# Conexión a la Base de Datos (PostgreSQL)
-# Reemplaza 'user', 'password' y 'ehr_db' con tus credenciales de PostgreSQL.
-DATABASE_URL="postgresql://user:password@localhost:5432/ehr_db?schema=public"
+# Conexión a la Base de Datos (PostgreSQL via Docker)
+DATABASE_URL="postgresql://admin:admin1234@localhost:5432/ehr_db?schema=public"
 
 # Secretos JWT para Autenticación
-# Genera secretos fuertes y únicos para entornos de producción.
 JWT_SECRET=tu-secreto-jwt-aqui
 JWT_REFRESH_SECRET=tu-secreto-refresh-jwt-aqui
-
-# Otras configuraciones opcionales (los valores por defecto se proporcionan en src/config/env.ts)
-# PORT=5000
-# HOST=localhost
-# CORS_ORIGIN=http://localhost:5173
-# LOG_LEVEL=info
 ```
 
-### 🐘 4. Configuración de la Base de Datos PostgreSQL
+### 🐘 4. Levantar la Base de Datos con Docker
 
-La API utiliza PostgreSQL. Necesitas tener un servidor PostgreSQL ejecutándose y configurar una base de datos y un usuario para la aplicación.
-
-#### 💾 A. Instalar y Ejecutar PostgreSQL
-
-Elige tu sistema operativo:
-
-##### 🐧 Linux (Ubuntu/Debian)
-
-1.  **Instalar PostgreSQL:**
-    ```bash
-    sudo apt update
-    sudo apt install postgresql postgresql-contrib
-    ```
-2.  **Iniciar y Habilitar el Servicio:**
-    PostgreSQL generalmente se inicia automáticamente después de la instalación. Verifica su estado y habilítalo para que se inicie al arrancar el sistema:
-    ```bash
-    sudo systemctl status postgresql
-    sudo systemctl enable postgresql
-    # Si no está corriendo, inícialo:
-    sudo systemctl start postgresql
-    ```
-
-##### 🍎 macOS (usando Homebrew)
-
-1.  **Instalar Homebrew** (si no lo tienes):
-    Sigue las instrucciones en [brew.sh](https://brew.sh/)
-2.  **Instalar PostgreSQL:**
-    ```bash
-    brew update
-    brew install postgresql
-    ```
-3.  **Iniciar Servicio:**
-    ```bash
-    brew services start postgresql
-    ```
-
-##### 🖥️ Windows
-
-1.  **Descargar Instalador:**
-    Visita la página oficial de [PostgreSQL Downloads (Windows)](https://www.postgresql.org/download/windows/) y descarga el instalador interactivo.
-2.  **Ejecutar Instalador:**
-    Sigue el asistente de instalación. Recuerda la contraseña que establezcas para el usuario `postgres`.
-3.  **Iniciar Servicio:**
-    PostgreSQL típicamente se inicia automáticamente. Puedes gestionarlo a través de los Servicios de Windows (`services.msc`).
-
-#### 👤 B. Crear Usuario y Base de Datos
-
-Una vez que PostgreSQL esté ejecutándose, crea un usuario y una base de datos dedicados para la API.
-
-1.  **Cambiar al usuario `postgres`:**
-    ```bash
-    sudo -i -u postgres
-    ```
-2.  **Acceder al shell de PostgreSQL:**
-    ```bash
-    psql
-    ```
-3.  **Crear Usuario y Base de Datos:**
-    Reemplaza `admin` y `admin1234` con tu nombre de usuario y contraseña deseados. Asegúrate de usar punto y coma `;` después de cada comando.
-    ```sql
-    CREATE USER admin WITH PASSWORD 'admin1234';
-    CREATE DATABASE ehr_db OWNER admin;
-    ```
-4.  **Otorgar Permisos al Usuario:**
-    El usuario `admin` necesita poder crear "shadow databases" durante las migraciones de Prisma.
-    ```sql
-    ALTER USER admin CREATEDB;
-    GRANT ALL PRIVILEGES ON DATABASE ehr_db TO admin;
-    ```
-5.  **Salir del shell de `psql`:**
-    ```sql
-    \q
-    ```
-6.  **Salir del usuario `postgres`:**
-    ```bash
-    exit
-    ```
-
-    **Importante:** Asegúrate de que la `DATABASE_URL` en tu archivo `.env` coincida exactamente con estas credenciales (ej., `postgresql://admin:admin1234@localhost:5432/ehr_db?schema=public`).
-
-### ⬆️ 5. Ejecutar Migraciones de la Base de Datos
-
-Con la base de datos configurada, aplica las migraciones de Prisma para crear las tablas necesarias:
+Desde la **raíz del proyecto**, levanta únicamente el servicio de base de datos:
 
 ```bash
+# Regresa a la raíz si estás en /api
+cd ..
+
+# Levanta PostgreSQL
+docker compose up -d
+```
+
+### ⬆️ 5. Ejecutar Migraciones
+
+Una vez que el contenedor `ehr-postgres` esté corriendo:
+
+```bash
+cd api
+
+# Ejecutar migraciones de Prisma
 npm run prisma:migrate
 ```
 *   Cuando se te solicite, ingresa un nombre para la migración (ej., `initial_setup`).
 
+### 🌱 5.1. Seeds: datos de prueba vs. datos mínimos de producción
+
+El proyecto ahora soporta **dos modos de seed** usando el mismo `prisma/seed.ts`:
+
+- **Seed de desarrollo/pruebas (`SEED_TARGET=dev`)**
+- **Seed de producción mínima (`SEED_TARGET=prod`)**
+
+Ambos seeds **comparten las mismas carreras**, generadas por `seedCareers()`:
+
+- TSU y Licenciaturas / Ingenierías configuradas en `prisma/seed.ts`.
+
+#### 5.1.1. Seed de desarrollo (datos de prueba realistas)
+
+Para poblar la BD con datos de prueba (recomendado en local):
+
+```bash
+SEED_TARGET=dev npx prisma db seed
+```
+
+Esto ejecuta `seedDev` en `prisma/seed.ts` y crea:
+
+- **Carreras** (todas las definidas en `seedCareers`).
+- **Usuarios fijos de prueba**:
+  - Xochilt Clara Villar Diego – `admin`
+  - Edgar Tiburcio Gomez Moran – `coordinador_enfermeria`
+  - Orlando de Jesus Casas Davila – `coordinador_psicologia`
+  - Carlos Alexis Rodriguez Garcia – `psicologo`
+  - Daniela Mayte Guevara Castillo – `enfermero`
+- **500 pacientes (alumnos)**:
+  - Nombres y apellidos latinos (`faker` ES_MX).
+  - `patientType = 'student'`.
+  - Matrícula numérica consecutiva empezando en **1000** (`1000`, `1001`, …).
+- **Datos relacionados** (igual que el seed original):
+  - Registros médicos y psicológicos.
+  - Sesiones de terapia con estados de ánimo.
+  - Consultas y procedimientos de enfermería.
+  - Medicamentos e inventario.
+  - Prescripciones y administraciones.
+  - Citas médicas, horarios de profesionales.
+  - Interconsultas, notificaciones, etc.
+
+> **Nota:** Si ya existen usuarios en la BD, `seedDev` no recrea todo; en ese caso sólo actualiza los **moods** y estados de ánimo de sesiones existentes.
+
+#### 5.1.2. Seed de producción (mínimo, sólo personal clave)
+
+Para un entorno de **deploy** donde solo quieres **carreras + usuarios de staff** sin datos de pacientes ni historiales:
+
+```bash
+SEED_TARGET=prod npx prisma db seed
+```
+
+Esto ejecuta `seedProd` y crea:
+
+- **Carreras** (mismas que en desarrollo).
+- **Usuarios de psicología**:
+  - Sergio David Elizondo Saldivar – `coordinador_psicologia`
+  - Aida Nohemi Quintero Sanchez – `psicologo`
+  - Maria Teresa Guadalupe del Angel Monte Mayor – `psicologo`
+  - Carlos Osiel Dominguez Fuentes – `psicologo`
+  - Silvia Treviño – `psicologo`
+  - Daniela Tellez Lozano – `psicologo`
+- **Usuarios de enfermería**:
+  - Alma Patricia Montoya Valdez – `enfermero`
+  - Jazmin Alejandra Parroquin Luna – `enfermero`
+  - Ivan Javier Treviño Hernandez – `coordinador_enfermeria`
+
+No se crean pacientes ni datos clínicos en este modo; está pensado para entornos controlados donde los datos reales se capturan manualmente.
+
+**Roles del sistema (5):** Solo el personal tiene acceso. El **admin** actúa como **auditor**: usuario único, no se puede borrar; solo lectura en pacientes, citas e inventario de medicamentos; sin acceso a expedientes, terapia ni evaluaciones psicométricas; acceso total a interconsultas, notificaciones, reportes, audit logs, usuarios y carreras. Definidos en `api/src/constants/roles.ts`. El paciente no es usuario del sistema.
+
+#### Expediente único y flujo de registro (enfermería y psicología)
+
+Hay **un solo expediente médico por persona** (estudiante, docente o personal administrativo), compartido por **ambos departamentos** (psicología y enfermería).
+
+- **Al llegar a enfermería o a psicología:** la enfermera o el personal captura la **matrícula** (estudiantes) o el **número de empleado** (docentes/administrativos). Si la persona **no estaba registrada**, se crea un **nuevo expediente** (y paciente); si **ya estaba registrada**, se **abre el expediente** existente.
+- **Búsqueda para abrir expediente:** `GET /api/patients/by-enrollment/:number` — devuelve el paciente (y su expediente) si existe alguien con esa matrícula o número de empleado; si no existe, responde 404 y en frontend se puede mostrar el formulario para “registro nuevo”.
+- **Uso del expediente:**
+  - **Psicología** puede ver **todo el historial** del paciente (incluidas atenciones de enfermería) para tener contexto general, detectar problemas o soluciones ante adversidades.
+  - **Enfermería** utiliza el mismo expediente sobre todo para **registrar la actividad** del paciente en el momento (por ejemplo, cuando se siente mal o tuvo un accidente), sin necesidad de ver todo el historial psicológico con el mismo nivel de detalle.
+  #### Tabla de roles y permisos
+
+  | Recurso / Acción | 👨‍💼 Admin | 🧠 Psicología | 🏥 Enfermería | 👨‍⚕️ Psicólogo | 👩‍⚕️ Enfermero |
+  |---|:---:|:---:|:---:|:---:|:---:|
+  | **👥 Pacientes** |
+  | Listar / Ver | ✅ | ✅ | ✅ | ✅ | ✅ |
+  | Crear / Editar | ❌ | ✅ | ❌ | ✅ | ✅ |
+  | Eliminar | ❌ | ✅ | ❌ | ✅ | ❌ |
+  | **📋 Expedientes médicos** | ❌ | ✅ | ✅* | ✅ | ✅** |
+  | Agregar diagnóstico (CIE/DSM) | ❌ | ❌ | ❌ | ✅ | ❌ |
+  | **📅 Citas** |
+  | Ver | ✅ | ✅ | ✅ | ✅ | ✅*** |
+  | Crear / Editar / Cancelar | ❌ | ✅ | ❌ | ✅ | ❌ |
+  | **💬 Sesiones de terapia** | ❌ | ✅ | 👁️ | ✅ | ❌ |
+  | **📊 Evaluaciones psicométricas** |
+  | Ver / Crear / Editar | ❌ | ✅ | 👁️ | ✅ | ❌ |
+  | Eliminar | ❌ | ✅ | ❌ | ❌ | ❌ |
+  | **💊 Medicamentos (inventario)** |
+  | Ver | ✅ | ✅ | ✅ | ✅ | ✅ |
+  | Crear | ❌ | ❌ | ✅ | ❌ | ❌ |
+  | Editar (stock) | ❌ | ❌ | ✅ | ❌ | ✅ |
+  | **🔄 Interconsultas** | ✅ | ✅ | ✅ | ✅ | ✅ |
+  | **🔔 Notificaciones** | ✅ | ✅ | ✅ | ✅ | ✅ |
+  | **📈 Reportes** | ✅ | ✅ | ✅ | ✅ | ✅ |
+  | **🔐 Auditoría (logs)** | ✅ | ✅ | ✅ | ❌ | ❌ |
+  | **👤 Usuarios** | ✅ | ✅* | ✅* | ❌ | ❌ |
+  | **🎓 Carreras** | ✅ | 👁️ | 👁️ | 👁️ | 👁️ |
+
+  **Leyenda:** ✅ Permitido | ❌ No permitido | 👁️ Solo lectura | \* Restringido al departamento | \*\* Enfermero: solo historial de enfermería (no psicología) | \*\*\* Enfermero: solo sus citas asignadas
+
+\* Las carreras se listan para todos (p. ej. en formularios); crear/editar/eliminar solo admin.
+
+**Notas:** El administrador no puede ser eliminado. El **coordinador de psicología** solo puede generar reportes del departamento de psicología, ver audit logs de ese departamento y crear nuevos usuarios con rol psicólogo; no tiene acceso al CRUD de carreras ni a crear/editar medicamentos. El **coordinador de enfermería** solo ve pacientes y expedientes registrados en enfermería (con al menos una consulta de enfermería), no genera citas (solo atiende ambulatorio/accidentes), tiene acceso restringido a sesiones de terapia y evaluaciones psicométricas (solo lectura, filtrado por pacientes de enfermería), CRUD completo de medicamentos, reportes y audit solo del departamento de enfermería, y solo puede crear usuarios con rol enfermero; carreras en solo lectura (listar). El **psicólogo** tiene **carreras asignadas**: solo puede atender a **estudiantes de esas carreras** o a **personal docente y administrativo** (estos últimos de forma general). Ese mismo alcance aplica a pacientes, expedientes, citas, sesiones de terapia y evaluaciones psicométricas; puede generar reportes pero solo con datos de sus carreras asignadas; acceso restringido a auditoría y usuarios; solo puede consultar carreras (listar). La **enfermera** tiene acceso total a pacientes (crear/editar, no eliminar); solo al **historial clínico de enfermería** (no de psicología); acceso restringido a citas (solo ver sus citas asignadas, no crear/editar/cancelar); sin acceso a sesiones de terapia ni evaluaciones psicométricas; medicamentos: solo consulta y editar stock (no crear nuevos); acceso total a interconsultas y notificaciones; acceso restringido a logs y usuarios; carreras solo consulta.
+
+**Leyenda:** ✅ Permitido | ❌ No permitido | 👁️ Solo lectura
+
+**Cuentas de prueba (seed DEV; el paciente no inicia sesión):**
+
+Todas las cuentas (staff y alumnos en DEV; solo staff en PROD) se crean **con contraseña**: el seed asigna `Password123!` a cada usuario para poder iniciar sesión.
+
+| Nombre completo | Email sugerido | Rol | Copiar |
+|-----------------|----------------|-----|--------|
+| Xochilt Clara Villar Diego | `admin@ehr-system.com` | admin | 📋 |
+| Orlando de Jesus Casas Davila | `orlando.casas@ehr-system.com` | coordinador_psicologia | 📋 |
+| Edgar Tiburcio Gomez Moran | `edgar.tiburcio@ehr-system.com` | coordinador_enfermeria | 📋 |
+| Carlos Alexis Rodriguez Garcia | `carlos.rodriguez@ehr-system.com` | psicologo | 📋 |
+| Daniela Mayte Guevara Castillo | `daniela.guevara@ehr-system.com` | enfermero | 📋 |
+
+> **Nota:** Haz clic en el icono 📋 junto a cada email para copiarlo al portapapeles.
+
+**Nota:** El script de seed es **idempotente**. Si ya existen datos en la base de datos, el script detectará esto y no creará registros duplicados. Para volver a poblar la base de datos desde cero, primero ejecuta:
+
+```bash
+npx prisma migrate reset
+```
+
+Este comando eliminará todos los datos, aplicará todas las migraciones y ejecutará automáticamente el script de seed con `SEED_TARGET` según la variable de entorno que tengas definida (por defecto `dev`).
+
 ### 🚀 6. Iniciar el Servidor de la API
 
-Finalmente, inicia el servidor de desarrollo:
+Puedes iniciar la API de dos formas:
 
+**Opción A: Solo API (si la DB ya está corriendo)**
 ```bash
 npm run dev
 ```
 
+**Opción B: DB + API (levanta la DB y luego la API)**
+```bash
+npm run dev:all
+```
+
 La API estará disponible en `http://localhost:5000/api`.
+
+### 🛠️ Scripts Útiles de Node
+
+He añadido varios scripts para facilitar el desarrollo:
+
+*   `npm run setup`: Realiza la instalación completa (npm install, levanta DB, corre migraciones y **seed DEV**).
+*   `npm run db:up`: Levanta solo el contenedor de la base de datos.
+*   `npm run db:down`: Detiene el contenedor de la base de datos.
+*   `npm run db:status`: Muestra el estado del contenedor de la DB.
+*   `npm run prisma:migrate`: Ejecuta las migraciones de Prisma.
+*   `npm run prisma:seed`: Puebla la base de datos con datos iniciales (por defecto seed DEV).
+*   `npm run prisma:seed:dev`: Ejecuta el seed de desarrollo (`SEED_TARGET=dev`).
+*   `npm run prisma:seed:prod`: Ejecuta el seed mínimo de producción (`SEED_TARGET=prod`).
 
 ### 📚 7. Acceder a la Documentación de la API
 

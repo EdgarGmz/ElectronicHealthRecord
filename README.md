@@ -175,27 +175,59 @@ Asegúrate de tener instalado:
 
 - **Node.js** v18+ o v20+ ([Descargar](https://nodejs.org/))
 - **npm** v9+ o **Yarn** v1.22+
-- **MySQL** v8.0+ ([Descargar](https://dev.mysql.com/downloads/))
+- **Docker & Docker Compose** ([Descargar](https://www.docker.com/products/docker-desktop))
 - **Git** v2.40+ ([Descargar](https://git-scm.com/))
-- **Redis** (opcional, para cache) ([Descargar](https://redis.io/download))
 
 ### **Instalación**
 
 #### **1. Clonar el repositorio**
 
 ```bash
-git clone https://github.com/tu-usuario/ElectronicHealthRecord.git
+git clone https://github.com/EdgarGmz/ElectronicHealthRecord.git
 cd ElectronicHealthRecord
 ```
 
-#### **2. Configurar Base de Datos**
+#### **2. Levantar la Base de Datos (Docker)**
 
-```sql
--- Crear base de datos MySQL
-CREATE DATABASE ehr_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'ehr_user'@'localhost' IDENTIFIED BY 'tu_password_seguro';
-GRANT ALL PRIVILEGES ON ehr_db.* TO 'ehr_user'@'localhost';
-FLUSH PRIVILEGES;
+Este proyecto utiliza Docker para facilitar el levantamiento de la base de datos PostgreSQL.
+
+```bash
+# Levantar el contenedor de PostgreSQL
+docker compose up -d
+
+# Verificar que el contenedor esté corriendo
+docker ps
+```
+
+#### **3. Configurar el Backend (API)**
+
+```bash
+cd api
+cp .env.example .env
+npm install
+```
+
+Asegúrate de que la `DATABASE_URL` en `api/.env` apunte a `localhost:5432`:
+`DATABASE_URL="postgresql://admin:admin1234@localhost:5432/ehr_db?schema=public"`
+
+#### **4. Migraciones y Seed**
+
+```bash
+# Ejecutar migraciones de Prisma
+npm run prisma:migrate
+
+# (Opcional) Poblar la base de datos con datos de prueba
+npx prisma db seed
+```
+
+#### **5. Iniciar Desarrollo**
+
+```bash
+# Backend (desde la carpeta api)
+npm run dev
+
+# O también puedes usar (levanta DB y luego API):
+npm run dev:all
 ```
 
 #### **3. Configurar Backend**
@@ -203,26 +235,21 @@ FLUSH PRIVILEGES;
 ```bash
 cd api
 
-# Instalar dependencias
+# Configuración automática (instala, levanta DB, migra y puebla)
+npm run setup
+
+# O manualmente:
 npm install
-
-# Copiar archivo de variables de entorno
-cp .env.example .env
-
-# Editar .env con tus configuraciones
-# Configurar DB_HOST, DB_USERNAME, DB_PASSWORD, JWT_SECRET, etc.
-
-# Ejecutar migraciones de base de datos
-npm run migration:run
-
-# (Opcional) Ejecutar seeds para datos de prueba
-npm run seed:run
+npm run db:up
+npm run prisma:migrate
+npm run prisma:seed
 ```
 
 #### **4. Configurar Frontend**
 
 ```bash
 cd ../Kiosko
+cd ../ut-care
 
 # Instalar dependencias
 npm install
@@ -247,11 +274,29 @@ npm run dev
 **Terminal 2 - Frontend:**
 ```bash
 cd Kiosko
+cd ut-care
 npm run dev
 ```
 
 El backend estará disponible en `http://localhost:5000`  
 El frontend estará disponible en `http://localhost:5173`
+
+---
+
+## 👤 Usuarios de prueba
+
+Tras ejecutar el seed (`npx prisma db seed`), puedes iniciar sesión en el frontend con cualquiera de estos usuarios. **La contraseña de todos es:** `Password123!`
+
+| Rol | Correo | Descripción |
+|-----|--------|-------------|
+| **Administrador** | `admin@ehr-system.com` | Acceso completo al sistema |
+| **Coordinador Psicología** | `coord.psicologia@ehr-system.com` | Gestión de psicología y carreras |
+| **Coordinador Enfermería** | `coord.enfermeria@ehr-system.com` | Gestión de enfermería y medicamentos |
+| **Psicólogo** | `psicologo1@ehr-system.com` | Atención psicológica (también `psicologo2`, `psicologo3`, …) |
+| **Enfermero/a** | `enfermera1@ehr-system.com` | Atención de enfermería (también `enfermera2`, …) |
+| **Paciente / Estudiante** | `estudiante1@ehr-system.com` | Rol paciente (también `estudiante2`, …) |
+
+> **Nota:** El seed crea más usuarios del mismo tipo (varios psicólogos, enfermeras y estudiantes). La contraseña es la misma para todos.
 
 ---
 
@@ -273,6 +318,7 @@ npm run migration:revert     # Revertir última migración
 ```
 
 ### **Frontend (Kiosko/)**
+### **Frontend (ut-care/)**
 
 ```bash
 npm run dev              # Ejecutar en modo desarrollo
@@ -332,7 +378,7 @@ CORS_ORIGIN=http://localhost:5173
 
 # Rate Limiting
 RATE_LIMIT_WINDOW_MS=900000  # 15 minutos
-RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_MAX_REQUESTS=400  # peticiones por IP en la ventana (aumentar si ves 429)
 ```
 
 ### **Frontend (.env)**
@@ -366,6 +412,7 @@ npm run test:coverage       # Con cobertura
 
 # Frontend
 cd Kiosko
+cd ut-care
 npm test                    # Tests unitarios con Vitest
 npm run test:e2e            # Tests E2E con Cypress/Playwright
 ```
@@ -381,23 +428,27 @@ El proyecto mantiene una cobertura mínima de:
 ## 📖 Documentación
 
 ### Gestión del Proyecto
-- **[📋 Acta de Constitución del Proyecto](./documents/Acta-Constitucion-Proyecto.md)** - Project Charter oficial
+- **[📋 Acta de Constitución del Proyecto](./documents/docs/gestion-proyecto/Acta-Constitucion-Proyecto.md)** - Project Charter oficial
 - **[Guía de GitHub Projects](./GITHUB_PROJECTS_GUIDE.md)** - Gestión del proyecto
 - **[Templates de Issues](./ISSUE_TEMPLATES.md)** - Plantillas para issues
 - **[Estructura del Proyecto](./PROJECT_STRUCTURE.md)** - Detalles de arquitectura
 - **[Referencia Rápida](./QUICK_REFERENCE.md)** - Comandos y referencias
 
 ### Requisitos y Análisis
-- **[Requisitos Funcionales](./documents/Req-Funcionales.md)** - Especificación de funcionalidades
+- **[📋 Reglas de Negocio](./documents/docs/requisitos/Reglas-Negocio.md)** - Reglas de negocio del sistema EHR (ODS 3, HIPAA)
+- **[📊 Diagrama de Flujo de Atención](./documents/docs/diseno-tecnico/Diagrama-Flujo-Atencion.md)** - Proceso completo de atención al paciente
+- **[🗺️ Flujo de Navegación Completo](./documents/Flujo-Navegacion-Completo.md)** - Arquitectura de navegación y flujos de usuario
+- **[Requisitos Funcionales](./documents/docs/requisitos/Req-Funcionales.md)** - Especificación de funcionalidades
 - **[Requisitos No Funcionales](./documents/Req-NoFuncionales.md)** - Criterios de calidad
 - **[Requisitos de Seguridad](./documents/Req-Seguridad.md)** - Especificación de seguridad
-- **[Análisis de Riesgos y Amenazas](./documents/Analisis-Riesgos-Amenazas.md)** - Evaluación de seguridad y cumplimiento
+- **[Análisis de Riesgos y Amenazas](./documents/docs/riesgos/Analisis-Riesgos-Amenazas.md)** - Evaluación de seguridad y cumplimiento
 
 ### Documentación Técnica
 - **[📚 Documentación API REST](./api/API_DOCUMENTATION.md)** - Guía completa de endpoints y uso
 - **[📄 Especificación OpenAPI](./api/openapi.yaml)** - Definición OpenAPI 3.0 de la API
 - **[API Documentation (Swagger UI)](http://localhost:5000/api-docs)** - Documentación interactiva (en desarrollo)
 - **[Frontend Docs](./Kiosko/README.md)** - Stack tecnológico frontend
+- **[Frontend Docs](./ut-care/README.md)** - Stack tecnológico frontend
 - **[Backend Docs](./api/README.md)** - Stack tecnológico backend
 
 ---
