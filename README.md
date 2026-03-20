@@ -122,7 +122,7 @@ ElectronicHealthRecord/
 │   ├── package.json
 │   └── tsconfig.json
 │
-├── client/                       # Frontend (React + TypeScript)
+├── Kiosko/                       # Frontend (React + TypeScript)
 │   ├── src/
 │   │   ├── components/           # Componentes Atomic Design
 │   │   │   ├── atoms/            # Componentes básicos
@@ -248,6 +248,7 @@ npm run prisma:seed
 #### **4. Configurar Frontend**
 
 ```bash
+cd ../Kiosko
 cd ../ut-care
 
 # Instalar dependencias
@@ -272,6 +273,7 @@ npm run dev
 
 **Terminal 2 - Frontend:**
 ```bash
+cd Kiosko
 cd ut-care
 npm run dev
 ```
@@ -315,6 +317,7 @@ npm run migration:run        # Ejecutar migraciones pendientes
 npm run migration:revert     # Revertir última migración
 ```
 
+### **Frontend (Kiosko/)**
 ### **Frontend (ut-care/)**
 
 ```bash
@@ -408,6 +411,7 @@ npm run test:watch          # Modo watch
 npm run test:coverage       # Con cobertura
 
 # Frontend
+cd Kiosko
 cd ut-care
 npm test                    # Tests unitarios con Vitest
 npm run test:e2e            # Tests E2E con Cypress/Playwright
@@ -443,6 +447,7 @@ El proyecto mantiene una cobertura mínima de:
 - **[📚 Documentación API REST](./api/API_DOCUMENTATION.md)** - Guía completa de endpoints y uso
 - **[📄 Especificación OpenAPI](./api/openapi.yaml)** - Definición OpenAPI 3.0 de la API
 - **[API Documentation (Swagger UI)](http://localhost:5000/api-docs)** - Documentación interactiva (en desarrollo)
+- **[Frontend Docs](./Kiosko/README.md)** - Stack tecnológico frontend
 - **[Frontend Docs](./ut-care/README.md)** - Stack tecnológico frontend
 - **[Backend Docs](./api/README.md)** - Stack tecnológico backend
 

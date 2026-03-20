@@ -1,0 +1,107 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Welcome from '../components/Welcome.astro';
+import Roulette from '../components/Roulette.astro';
+import MentalHealthInfo from '../components/MentalHealthInfo.astro';
+import Violentometro from '../components/Violentometro.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import NursingSection from '../components/NursingSection.astro';
+import PsychologySection from '../components/PsychologySection.astro';
+---
+
+<Layout title="EHR">
+	<header class="navbar">
+		<div class="logo">Psicopedagogía</div>
+		<nav>
+			<a href="/login" class="login-btn">Agendar cita</a>
+			<ThemeToggle />
+		</nav>
+	</header>
+
+	<main>
+		<Welcome />
+		<Roulette />
+		<NursingSection />
+		<PsychologySection />
+		<MentalHealthInfo />
+		<Violentometro />
+	</main>
+</Layout>
+
+<style>
+	.navbar {
+		position: sticky;
+		top: 0;
+		width: 100%;
+		background-color: var(--navbar-bg);
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0 30px;
+		box-sizing: border-box;
+		z-index: 1000;
+		border-bottom: 1px solid var(--navbar-border);
+		height: 70px;
+		transition: all 0.3s ease;
+	}
+
+	.logo {
+		color: var(--logo-color);
+		font-size: 1.5rem;
+		font-weight: bold;
+		font-family: 'Playfair Display', serif;
+	}
+
+	.navbar nav {
+		display: flex;
+		align-items: center;
+	}
+
+	.navbar nav a {
+		color: var(--nav-link-color);
+		text-decoration: none;
+		margin-left: 20px;
+		font-weight: 600;
+		transition: color 0.3s;
+	}
+
+	.navbar nav a:hover {
+		color: var(--nav-link-hover);
+	}
+
+	.login-btn {
+		background-color: #2C3E50;
+		padding: 8px 20px;
+		border-radius: 20px;
+		color: white !important;
+		text-decoration: none;
+		transition: all 0.3s ease;
+	}
+
+	.login-btn:hover {
+		background-color: #34495e;
+		transform: translateY(-2px);
+	}
+
+	main {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		width: 100%;
+	}
+
+	/* Responsive Styles */
+	@media (max-width: 768px) {
+		.navbar {
+			flex-direction: column;
+			height: auto;
+			padding: 15px;
+		}
+		.logo {
+			margin-bottom: 10px;
+		}
+		.navbar nav {
+			margin-top: 10px;
+		}
+	}
+</style>

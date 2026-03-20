@@ -1,0 +1,300 @@
+---
+const emotions = [
+	// Enojo
+    { nombre: "Irritado", color: "#d19a7c", description: "Una sensación de molestia o enfado ligero, a menudo causada por algo repetitivo o frustrante." },
+    { nombre: "Frustrado", color: "#d19a7c", description: "Sentimiento que surge cuando no puedes lograr algo que deseas, sintiéndote impotente." },
+    { nombre: "Furioso", color: "#d19a7c", description: "Un enojo muy intenso y descontrolado, a menudo con deseos de gritar o actuar impulsivamente." },
+	// Tristeza
+    { nombre: "Indiferente", color: "#7d708a", description: "Falta de interés, entusiasmo o preocupación. Es una desconexión de tus propias emociones o del entorno." },
+    { nombre: "Culpable", color: "#7d708a", description: "Sentimiento de responsabilidad por haber hecho algo mal, acompañado de remordimiento." },
+    { nombre: "Lastimado", color: "#7d708a", description: "Dolor emocional causado por las acciones o palabras de otros, como una herida interna." },
+	// Felicidad
+    { nombre: "Agradecido", color: "#ccc8c9", description: "Apreciar lo que tienes o lo que otros hacen por ti, generando una sensación de calidez y conexión." },
+    { nombre: "Estusiasmado", color: "#ccc8c9", description: "Una gran alegría y excitación por algo que va a suceder o que estás haciendo." },
+    { nombre: "Juguetón", color: "#ccc8c9", description: "Un estado de ánimo alegre, ligero y con ganas de divertirse y no tomar las cosas demasiado en serio." },
+	// Sorpresa
+    { nombre: "Abrumado", color: "#d8cba8", description: "Sentir que tienes demasiadas cosas que manejar, superando tu capacidad para lidiar con ellas." },
+    { nombre: "Confundido", color: "#d8cba8", description: "Incapacidad para pensar con claridad o entender lo que está sucediendo." },
+    { nombre: "Impactado", color: "#d8cba8", description: "Una fuerte impresión o conmoción causada por un evento inesperado, a menudo negativo." },
+	// Repugnancia
+    { nombre: "Amargado", color: "#d0d2c5", description: "Un sentimiento persistente de resentimiento y cinismo, como si la vida hubiera perdido su sabor." },
+    { nombre: "Decepcionado", color: "#d0d2c5", description: "Tristeza por el incumplimiento de una expectativa o esperanza que tenías." },
+    { nombre: "Resentido", color: "#d0d2c5", description: "Enojo o indignación que guardas hacia alguien por una ofensa o maltrato que sientes que te hizo." },
+	// Amor
+    { nombre: "Afectuoso", color: "#8d7492", description: "Sentir y demostrar cariño, ternura y calidez hacia alguien." },
+    { nombre: "Aceptado", color: "#8d7492", description: "Sentimiento de ser valorado y bienvenido tal como eres, formando parte de un grupo o relación." },
+    { nombre: "Confiado", color: "#8d7492", description: "Sensación de seguridad y certeza en las propias habilidades o en la honestidad de los demás." },
+	// Miedo
+    { nombre: "Rechazado", color: "#d0d2c5", description: "Dolor por ser excluido o no aceptado por otros, afectando el sentimiento de pertenencia." },
+    { nombre: "Inseguro", color: "#d0d2c5", description: "Falta de confianza en uno mismo o en las propias capacidades, a menudo con ansiedad sobre el futuro." },
+    { nombre: "Avergonzado", color: "#d0d2c5", description: "Sentimiento de humillación o incomodidad por una acción propia que se considera tonta o incorrecta." },
+];
+---
+<div id="rouletteSidebar" class="roulette-sidebar is-collapsed">
+    <button id="rouletteToggleBtn" class="toggle-btn">
+        <span>Ruleta</span>
+    </button>
+    <div id="roulette" class="roulette-content">
+        <h2>¿Quieres saber del como te sientes?</h2>
+        <div class="wheel-outer">
+            <div class="wheel-container">
+                <div class="wheel" id="wheel">
+                    {emotions.map((emo, i) => (
+                        <div class="segment" style={`--rotation: ${i * (360/emotions.length)}deg; --segment-color: ${emo.color};`}>
+                            <span>{emo.nombre}</span>
+                        </div>
+                    ))}
+                    <div class="center-circle"></div>
+                </div>
+            </div>
+            <div class="pin"></div>
+        </div>
+        <button id="spinButton">Girar Ruleta</button>
+        <div class="result-display">
+            <h3 id="emotionName"></h3>
+            <p id="emotionDescription"></p>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .roulette-sidebar {
+        position: fixed;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        z-index: 1010;
+        transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+        display: flex;
+        align-items: center;
+    }
+
+    .roulette-content {
+        width: 500px; /* Un poco más de ancho para dar aire al contenido */
+        padding: 2.5rem 2rem;
+        box-sizing: border-box;
+        text-align: center;
+        background: var(--card-bg);
+        border-radius: 20px 0 0 20px;
+        box-shadow: -10px 0 35px rgba(0,0,0,0.1);
+        border: 1px solid var(--navbar-border);
+        border-right: none;
+        max-height: 95vh;
+        overflow-y: auto;
+    }
+
+    .toggle-btn {
+        background-color: var(--logo-color);
+        color: var(--bg-color);
+        border: none;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        padding: 20px 10px;
+        border-radius: 10px 0 0 10px;
+        cursor: pointer;
+        font-size: 1.2rem;
+        font-weight: bold;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    }
+    
+    .toggle-btn span {
+        display: block;
+        transform: rotate(180deg);
+    }
+
+    .roulette-sidebar.is-collapsed {
+        transform: translateY(-50%) translateX(calc(100% - 50px)); /* Hide sidebar, but keep toggle visible */
+    }
+
+    /* --- Inner Roulette Styles --- */
+    .roulette-content h2 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: var(--heading-color);
+    }
+    
+    .wheel-outer {
+        position: relative;
+        margin: 10px auto;
+    }
+
+    .wheel-container {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        border: 4px solid var(--navbar-border);
+        overflow: hidden;
+        margin: 0 auto;
+    }
+
+    .wheel {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    .segment {
+        position: absolute;
+        width: 50%;
+        height: 47px;
+        left: 50%;
+        top: 50%;
+        transform-origin: left center;
+        margin-top: -23.5px;
+        transform: rotate(var(--rotation));
+        box-sizing: border-box;
+    }
+
+    .segment span {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 100%;
+        height: 100%;
+        background-color: var(--segment-color);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: bold;
+        clip-path: polygon(0 50%, 100% 0, 100% 100%);
+        padding-right: 25px;
+        font-family: 'Lato', sans-serif;
+    }
+
+    .center-circle {
+        width: 100px;
+        height: 100px;
+        position: absolute;
+        background: var(--card-bg);
+        border: 4px solid var(--navbar-border);
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 5;
+    }
+
+    .pin {
+        position: absolute;
+        bottom: -24px; 
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0; height: 0;
+        border-left: 12px solid transparent;
+        border-right: 12px solid transparent;
+        border-bottom: 24px solid var(--navbar-border);
+        z-index: 10;
+    }
+
+    button#spinButton {
+        margin-top: 40px;
+        padding: 10px 30px;
+        font-size: 1rem;
+        background-color: transparent;
+        color: var(--heading-color);
+        border: 2px solid var(--heading-color);
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    button#spinButton:hover {
+        background-color: var(--heading-color);
+        color: var(--card-bg);
+    }
+
+    .result-display {
+        margin-top: 2rem;
+        min-height: 180px; /* Espacio mucho más grande para el resultado */
+        text-align: center;
+        padding: 1.5rem;
+        background-color: var(--bg-color);
+        border-radius: 15px;
+        border: 1px dashed var(--navbar-border);
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateY(10px);
+    }
+    .result-display.visible {
+        opacity: 1;
+        transform: translateY(0);
+        border-style: solid;
+        border-color: #A2D9CE;
+        background-color: var(--card-bg);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .result-display h3 {
+        font-size: 1.8rem;
+        color: var(--heading-color);
+        margin: 0 0 1rem 0;
+        font-family: 'Playfair Display', serif;
+    }
+    .result-display p {
+        font-size: 1.05rem;
+        color: var(--body-text-color);
+        line-height: 1.6;
+        margin: 0;
+        font-style: italic;
+    }
+</style>
+
+<script is:inline define:vars={{ emotions }}>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Sidebar toggle logic
+        const sidebar = document.getElementById('rouletteSidebar');
+        const toggleBtn = document.getElementById('rouletteToggleBtn');
+
+        if (sidebar && toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('is-collapsed');
+            });
+        }
+
+        // Roulette game logic
+        const wheel = document.getElementById('wheel');
+        const spinButton = document.getElementById('spinButton');
+        const resultDisplay = document.querySelector('.result-display');
+        const emotionNameEl = document.getElementById('emotionName');
+        const emotionDescriptionEl = document.getElementById('emotionDescription');
+        
+        if (!wheel || !spinButton || !emotionNameEl || !emotionDescriptionEl) {
+            return;
+        }
+
+        let currentRotation = 0;
+
+        spinButton.addEventListener('click', () => {
+            resultDisplay.classList.remove('visible');
+            
+            const totalSegments = emotions.length;
+            const segmentAngle = 360 / totalSegments;
+
+            const winningSegmentIndex = Math.floor(Math.random() * totalSegments);
+            const winningEmotion = emotions[winningSegmentIndex];
+
+            const winningAngle = (winningSegmentIndex * segmentAngle) + (segmentAngle / 2);
+            const rotationNeeded = 90 - winningAngle;
+
+            const randomSpins = 5 + Math.floor(Math.random() * 5);
+            const newRotation = (currentRotation - (currentRotation % 360)) + (360 * randomSpins) + rotationNeeded;
+
+            wheel.style.transform = `rotate(${newRotation}deg)`;
+            currentRotation = newRotation;
+
+            emotionNameEl.textContent = 'Girando...';
+            emotionDescriptionEl.textContent = '';
+            
+            setTimeout(() => {
+                if (winningEmotion) {
+                    emotionNameEl.textContent = winningEmotion.nombre;
+                    emotionDescriptionEl.textContent = winningEmotion.description;
+                    resultDisplay.classList.add('visible');
+                }
+            }, 5000);
+        });
+    });
+</script>

@@ -1,0 +1,88 @@
+---
+// Kiosko/src/components/Footer.astro
+---
+<footer class="site-footer">
+    <div class="footer-container">
+        <div class="footer-section about">
+            <h3 class="footer-logo">UTSC</h3>
+            <p>Universidad Tecnológica Santa Catarina</p>
+            <p>© {new Date().getFullYear()} Todos los derechos reservados.</p>
+        </div>
+        <div class="footer-section contact">
+            <h4>Contacto</h4>
+            <p>
+                Carretera Saltillo-Monterrey Km. 61.5<br>
+                C.P. 66359, Santa Catarina, N.L.
+            </p>
+            <p>Tel: (81) 8124 8400</p>
+        </div>
+        <div class="footer-section social">
+            <h4>Redes Sociales</h4>
+            <div class="social-links">
+                <a href="https://www.facebook.com/UTSCNL/?locale=es_LA" aria-label="Facebook" target="_blank" rel="noopener noreferrer">FB</a>
+                <a href="https://www.instagram.com/utsantacatarina/?hl=es" aria-label="Instagram" target="_blank" rel="noopener noreferrer">IG</a>
+                <a href="https://utsc.edu.mx" aria-label="UTSC" target="_blank" rel="noopener noreferrer">UTSC</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+    .site-footer {
+        background-color: #2C3E50;
+        color: #bdc3c7;
+        padding: 3rem 2rem;
+        font-family: 'Lato', sans-serif;
+    }
+
+    .footer-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+
+    .footer-section h4 {
+        color: #fff;
+        font-family: 'Playfair Display', serif;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+    
+    .footer-logo {
+        color: #A2D9CE;
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        margin: 0;
+    }
+
+    .footer-section p {
+        margin: 0.5rem 0;
+        line-height: 1.6;
+    }
+
+    .social-links {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .social-links a {
+        color: #fff;
+        background-color: #34495e;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        text-decoration: none;
+        font-weight: bold;
+        transition: background-color 0.3s, transform 0.3s;
+    }
+
+    .social-links a:hover {
+        background-color: #A2D9CE;
+        transform: translateY(-3px);
+    }
+</style>

@@ -1,0 +1,231 @@
+---
+// Kiosko/src/components/Violentometro.astro
+const sections = [
+    {
+        title: "TEN CUIDADO",
+        color: "#1e90ff", // Azul
+        rgb: "30, 144, 255",
+        items: [
+            { text: "Hacer bromas hirientes", description: "Comentarios que buscan ofender o menospreciar, disfrazados de humor." },
+            { text: "Chantajear", description: "Manipular a alguien con amenazas para conseguir algo, generando culpa o miedo." },
+            { text: "Mentir / Engañar", description: "Alterar la verdad o dar información falsa para beneficiarse o dañar a otra persona." },
+            { text: "Ignorar / Ley del hielo", description: "Excluir o no prestar atención deliberadamente a alguien para castigarle o controlar su comportamiento." },
+            { text: "Celar", description: "Sentir envidia o desconfianza excesiva hacia la pareja o amigos, limitando su libertad." },
+            { text: "Culpabilizar", description: "Atribuir a otra persona la responsabilidad de problemas o errores propios, generando en ella sentimientos de culpa." },
+            { text: "Descalificar", description: "Minimizar o anular las opiniones, sentimientos o capacidades de alguien, haciéndole sentir inferior." },
+            { text: "Ridiculizar / Ofender", description: "Burlarse, hacer mofa o insultar a alguien, afectando su autoestima y dignidad." },
+            { text: "Humillar en público", description: "Exponer a alguien a la vergüenza o al ridículo frente a otras personas." },
+            { text: "Intimidar / Amenazar", description: "Asustar o presionar a alguien para que haga algo que no quiere, usando el miedo como herramienta." },
+            { text: "Controlar / Prohibir", description: "Restringir la autonomía de alguien imponiendo reglas sobre su forma de vestir, con quién se relaciona o cómo gasta su dinero." }
+        ]
+    },
+    {
+        title: "REACCIONA",
+        color: "#dc3545", // Rojo
+        rgb: "220, 53, 69",
+        items: [
+            { text: "Golpear 'jugando'", description: "Contacto físico agresivo disfrazado de juego que causa dolor o incomodidad." },
+            { text: "Pellizcar / Arañar", description: "Agresión física leve que deja marcas o causa dolor punzante." },
+            { text: "Empujar / Jalonear", description: "Uso de la fuerza física para mover o desestabilizar a alguien sin su consentimiento." },
+            { text: "Cachetear", description: "Golpear el rostro con la mano abierta, una agresión física directa y humillante." },
+            { text: "Patear", description: "Golpear con el pie, a menudo buscando causar daño físico o intimidación." },
+            { text: "Manosear", description: "Tocar a alguien de forma sexual sin su permiso, invadiendo su espacio personal." },
+            { text: "Acariciar agresivamente", description: "Contacto físico que parece afectuoso pero es forzado, incómodo o excesivo." },
+            { text: "Encerrar / Aislar", description: "Impedir la libertad de movimiento de alguien o alejarle de sus seres queridos." },
+            { text: "Amenazar con objetos", description: "Usar objetos o armas para intimidar y generar miedo." },
+        ]
+    },
+    {
+        title: "ACTÚA",
+        color: "#6f42c1", // Púrpura
+        rgb: "111, 66, 193",
+        items: [
+            { text: "Amenazar de muerte", description: "Expresar la intención de causar la muerte a alguien, generando terror extremo." },
+            { text: "Forzar a una relación sexual", description: "Presionar o coaccionar a alguien para tener relaciones sexuales contra su voluntad." },
+            { text: "Abusar sexualmente", description: "Cualquier acto sexual sin consentimiento, que viola la integridad de una persona." },
+            { text: "Violar", description: "Acto sexual forzado, constituyendo una grave agresión sexual." },
+            { text: "Mutilar", description: "Causar daños permanentes o la pérdida de una parte del cuerpo." },
+            { text: "Asesinar", description: "Quitar la vida a una persona, el nivel más extremo de violencia." }
+        ]
+    }
+];
+---
+<section id="violentometro" class="page-section">
+    <div class="container">
+        <h2 class="section-title">Violentómetro</h2>
+        <p class="section-subtitle">Identifica las señales de violencia. Cada nivel aumenta la gravedad.</p>
+
+        <div class="violentometro-grid">
+            {sections.map((section) => (
+                <div class="violentometro-column" style={`--section-color: ${section.color}; --section-color-rgb: ${section.rgb};`}>
+                    <div class="section-header">
+                        <h3>{section.title}</h3>
+                    </div>
+                    <ul class="section-items">
+                        {section.items.map((item) => (
+                            <li class="violentometro-item" role="button" tabindex="0">
+                                <div class="item-content">
+                                    <p class="item-text">{item.text}</p>
+                                    <div class="item-description-wrapper">
+                                        <p class="item-description">{item.description}</p>
+                                    </div>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ))}
+        </div>
+        
+        <p class="call-to-action">
+            Si identificas alguna de estas situaciones, busca ayuda. No estás solo/a.
+        </p>
+    </div>
+</section>
+
+<script>
+    const initViolentometro = () => {
+        const items = document.querySelectorAll('.violentometro-item');
+        items.forEach(item => {
+            const toggle = () => item.classList.toggle('expanded');
+            item.addEventListener('click', toggle);
+            item.addEventListener('keydown', (e) => {
+                // @ts-ignore
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggle();
+                }
+            });
+        });
+    };
+
+    initViolentometro();
+    document.addEventListener('astro:after-swap', initViolentometro);
+</script>
+
+<style>
+    .page-section {
+        width: 100%;
+        max-width: 1200px;
+        padding: 4rem 2rem;
+        box-sizing: border-box;
+        text-align: center;
+        border-bottom: 1px solid var(--navbar-border);
+        background-color: var(--bg-color);
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--heading-color);
+    }
+
+    .section-subtitle {
+        color: var(--body-text-color);
+        margin-bottom: 3rem;
+        font-size: 1rem;
+    }
+
+    .violentometro-grid {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-start;
+        justify-content: center;
+    }
+
+    .violentometro-column {
+        flex: 1;
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--navbar-border);
+    }
+
+    .section-header {
+        background-color: var(--section-color);
+        color: white;
+        padding: 1.2rem;
+        text-align: center;
+    }
+
+    .section-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: white;
+    }
+
+    .section-items {
+        list-style: none;
+        padding: 1rem;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .violentometro-item {
+        background-color: rgba(var(--section-color-rgb), 0.1);
+        padding: 0.8rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+    }
+
+    .violentometro-item:hover {
+        background-color: rgba(var(--section-color-rgb), 0.2);
+        transform: translateX(5px);
+    }
+
+    .item-text {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-color);
+        line-height: 1.3;
+    }
+
+    .item-description-wrapper {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+    }
+
+    .violentometro-item.expanded .item-description-wrapper {
+        max-height: 120px;
+        margin-top: 0.6rem;
+    }
+
+    .item-description {
+        font-size: 0.8rem;
+        color: var(--body-text-color);
+        margin: 0;
+        line-height: 1.4;
+        border-top: 1px solid rgba(var(--section-color-rgb), 0.2);
+        padding-top: 0.5rem;
+    }
+
+    .call-to-action {
+        margin-top: 3rem;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: var(--heading-color);
+    }
+
+    @media (max-width: 992px) {
+        .violentometro-grid {
+            flex-direction: column;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .violentometro-column {
+            width: 100%;
+        }
+    }
+</style>

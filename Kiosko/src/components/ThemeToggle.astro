@@ -1,0 +1,125 @@
+---
+---
+<button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+  <div class="toggle-track">
+    <div class="toggle-thumb">
+      <span class="sun-icon">☀️</span>
+      <span class="moon-icon">🌙</span>
+    </div>
+  </div>
+</button>
+
+<style>
+  .theme-toggle {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--card-bg);
+    border: 1px solid var(--navbar-border);
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .theme-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  }
+
+  .toggle-track {
+    width: 44px;
+    height: 24px;
+    background-color: #2C3E50;
+    border-radius: 12px;
+    position: relative;
+    transition: background-color 0.3s;
+  }
+
+  .toggle-thumb {
+    width: 18px;
+    height: 18px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .sun-icon, .moon-icon {
+    font-size: 10px;
+    position: absolute;
+    transition: opacity 0.3s;
+  }
+
+  .moon-icon {
+    opacity: 0;
+  }
+
+  /* Dark mode styles for the toggle */
+  :global(.dark) .toggle-track {
+    background-color: #A2D9CE;
+  }
+
+  :global(.dark) .toggle-thumb {
+    transform: translateX(20px);
+  }
+
+  :global(.dark) .sun-icon {
+    opacity: 0;
+  }
+
+  :global(.dark) .moon-icon {
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    .theme-toggle {
+      bottom: 20px;
+      right: 20px;
+      padding: 8px;
+    }
+  }
+</style>
+
+<script is:inline>
+  const handleToggleClick = () => {
+    const element = document.documentElement;
+    const isDark = element.classList.contains("dark");
+    const newTheme = isDark ? "light" : "dark";
+    
+    // Apply theme
+    if (newTheme === 'dark') {
+      element.classList.add('dark');
+    } else {
+      element.classList.remove('dark');
+    }
+    
+    // Save preference
+    localStorage.setItem("theme", newTheme);
+  };
+
+  const setupToggle = () => {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      themeToggle.removeEventListener('click', handleToggleClick);
+      themeToggle.addEventListener('click', handleToggleClick);
+    }
+  };
+
+  // Run on page load
+  setupToggle();
+
+  // Support for View Transitions
+  document.addEventListener('astro:after-swap', setupToggle);
+</script>

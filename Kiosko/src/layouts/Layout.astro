@@ -1,0 +1,152 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+		<ViewTransitions />
+		<script is:inline>
+			const getTheme = () => {
+				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+					return localStorage.getItem('theme');
+				}
+				return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+			};
+
+			const setTheme = (theme) => {
+				if (theme === 'dark') {
+					document.documentElement.classList.add('dark');
+				} else {
+					document.documentElement.classList.remove('dark');
+				}
+				localStorage.setItem('theme', theme);
+			};
+
+			// Initial setup
+			setTheme(getTheme());
+
+			// Re-setup on view transitions
+			document.addEventListener('astro:after-swap', () => {
+				setTheme(getTheme());
+			});
+		</script>
+	</head>
+	<body>
+		<slot />
+		<Footer />
+		<script is:inline>
+			// Scroll Reveal Animation
+			const observerOptions = {
+				threshold: 0.1,
+				rootMargin: '0px 0px -50px 0px'
+			};
+
+			const observer = new IntersectionObserver((entries) => {
+				entries.forEach(entry => {
+					if (entry.isIntersecting) {
+						entry.target.classList.add('reveal-visible');
+					}
+				});
+			}, observerOptions);
+
+			document.addEventListener('DOMContentLoaded', () => {
+				const sections = document.querySelectorAll('section, .reveal');
+				sections.forEach(section => {
+					section.classList.add('reveal-hidden');
+					observer.observe(section);
+				});
+			});
+
+			// Re-run on View Transitions
+			document.addEventListener('astro:after-swap', () => {
+				const sections = document.querySelectorAll('section, .reveal');
+				sections.forEach(section => {
+					section.classList.add('reveal-hidden');
+					observer.observe(section);
+				});
+			});
+		</script>
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		--bg-color: #F7F7F7;
+		--text-color: #333;
+		--navbar-bg: #ffffff;
+		--navbar-border: #eeeeee;
+		--logo-color: #333333;
+		--nav-link-color: #333333;
+		--nav-link-hover: #A2D9CE;
+		--card-bg: #ffffff;
+		--heading-color: #222222;
+		--body-text-color: #555555;
+		color-scheme: light;
+	}
+
+	:root.dark {
+		--bg-color: #121212;
+		--text-color: #e0e0e0;
+		--navbar-bg: #1e1e1e;
+		--navbar-border: #333333;
+		--logo-color: #ffffff;
+		--nav-link-color: #cccccc;
+		--nav-link-hover: #A2D9CE;
+		--card-bg: #1e1e1e;
+		--heading-color: #ffffff;
+		--body-text-color: #bbbbbb;
+		color-scheme: dark;
+	}
+
+	/* Global Scroll Reveal Styles */
+	.reveal-hidden {
+		opacity: 0;
+		transform: translateY(30px);
+		transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	}
+
+	.reveal-visible {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	html,
+	body {
+		margin: 0;
+		width: 100%;
+		min-height: 100%; 
+		display: flex;
+		flex-direction: column;
+		background-color: var(--bg-color) !important;
+		color: var(--text-color) !important;
+		font-family: 'Lato', sans-serif;
+		scroll-behavior: smooth;
+	}
+
+	body > :first-child {
+		flex-grow: 1;
+	}
+
+	h1, h2, h3, h4, h5 {
+		font-family: 'Playfair Display', serif;
+		color: var(--heading-color);
+	}
+</style>
