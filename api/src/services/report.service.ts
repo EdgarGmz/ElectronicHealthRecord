@@ -160,7 +160,7 @@ export class ReportService {
         totalConsultations,
         medicationsAdministered,
         proceduresPerformed,
-        medicationsByMedication: [],
+        medicationsByMedication: [] as Array<{ medication: string; count: number }>,
         medicationAdministrations: medicationAdministrations.map((ma) => {
           const patientUser = ma.consultation?.medicalRecord?.patient?.user;
           const patientName = patientUser
@@ -199,7 +199,7 @@ export class ReportService {
         const medicationName = med?.name ?? med?.genericName ?? row.medicationId;
         return {
           medication: medicationName,
-          count: row._count._all,
+          count: ((row as any)._count?._all ?? (row as any)._count) as number,
         };
       }).sort((a, b) => b.count - a.count).slice(0, MAX_REPORT_LIST_RECORDS);
     }

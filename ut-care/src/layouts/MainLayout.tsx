@@ -17,7 +17,6 @@ import {
 } from '@/services/notification.service'
 import type { Notification } from '@/types/notification'
 import { getInterconsultations, getPendingInterconsultationsCount } from '@/services/interconsultation.service'
-import type { Interconsultation } from '@/types/interconsultation'
 
 /** Devuelve la clave i18n del módulo (nav.*) según la ruta actual. */
 function getModuleKey(pathname: string): string {

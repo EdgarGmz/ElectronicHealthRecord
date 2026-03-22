@@ -1,15 +1,12 @@
 import { useMemo, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Users, Calendar, Clock, CalendarDays, ArrowRight } from 'lucide-react'
+import { Users, Calendar, Clock } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
-import { getVisibleDashboardCards, type DashboardCardId, canSeeNavItem } from '@/constants/roles'
+import { getVisibleDashboardCards, type DashboardCardId } from '@/constants/roles'
 import { ROLES } from '@/constants/roles'
 import { getPatients } from '@/services/patient.service'
-import { getAppointments } from '@/services/appointment.service'
-import { getUnreadCount } from '@/services/notification.service'
 import { DashboardChartsSection } from '@/components/dashboard/DashboardChartsSection'
 import { DashboardCoordinatorPsychology } from '@/components/dashboard/DashboardCoordinatorPsychology'
 import { DashboardCoordinatorNursing } from '@/components/dashboard/DashboardCoordinatorNursing'
@@ -23,16 +20,6 @@ const CARD_CONFIG: Record<
   totalPatients: { labelKey: 'dashboard.totalPatients', Icon: Users },
   appointmentsToday: { labelKey: 'dashboard.appointmentsToday', Icon: Calendar },
   pending: { labelKey: 'dashboard.pending', Icon: Clock },
-}
-
-function getTodayRange(): { startDate: string; endDate: string } {
-  const now = new Date()
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
-  return {
-    startDate: start.toISOString(),
-    endDate: end.toISOString(),
-  }
 }
 
 export function DashboardPage() {
@@ -80,7 +67,6 @@ export function DashboardPage() {
     return n !== undefined ? String(n) : '—'
   }
 
-  const showCalendarShortcut = canSeeNavItem('/calendar', user?.role)
   const restOfCards = visibleCards.filter((id) => id !== 'appointmentsToday' && id !== 'pending')
 
   return (

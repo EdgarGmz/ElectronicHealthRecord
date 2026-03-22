@@ -386,7 +386,10 @@ export function DashboardCoordinatorNursing() {
                         border: '1px solid var(--border)',
                         borderRadius: '8px',
                       }}
-                      formatter={(value: number) => [value, t('dashboard.coordinatorNursing.consultations')]}
+                      formatter={(value: unknown) => {
+                        const n = typeof value === 'number' ? value : Number(value ?? 0)
+                        return [Number.isFinite(n) ? n : 0, t('dashboard.coordinatorNursing.consultations')]
+                      }}
                     />
                     <Bar dataKey="consultas" fill={NURSING_COLOR} radius={[4, 4, 0, 0]} name={t('dashboard.coordinatorNursing.consultations')} />
                   </BarChart>
@@ -453,10 +456,11 @@ export function DashboardCoordinatorNursing() {
                         border: '1px solid var(--border)',
                         borderRadius: '8px',
                       }}
-                      formatter={(value: number, name: string) => [
-                        value,
-                        name === 'x' ? 'Psicología' : 'Enfermería',
-                      ]}
+                      formatter={(value: unknown, name: unknown) => {
+                        const n = typeof value === 'number' ? value : Number(value ?? 0)
+                        const key = String(name ?? '')
+                        return [Number.isFinite(n) ? n : 0, key === 'x' ? 'Psicología' : 'Enfermería']
+                      }}
                     />
                     <Scatter name={t('dashboard.coordinatorNursing.nursing', 'Enfermería')} data={scatterPoints} fill={NURSING_COLOR} />
                   </ScatterChart>
@@ -631,7 +635,10 @@ export function DashboardCoordinatorNursing() {
                           border: '1px solid var(--border)',
                           borderRadius: '8px',
                         }}
-                        formatter={(value: number, name: string) => [value, name]}
+                        formatter={(value: unknown, name: unknown) => {
+                          const n = typeof value === 'number' ? value : Number(value ?? 0)
+                          return [Number.isFinite(n) ? n : 0, String(name ?? '')]
+                        }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -730,7 +737,10 @@ export function DashboardCoordinatorNursing() {
                         border: '1px solid var(--border)',
                         borderRadius: '8px',
                       }}
-                      formatter={(value: number) => [value, t('dashboard.coordinatorNursing.patientsAttended', 'Pacientes atendidos')]}
+                      formatter={(value: unknown) => {
+                        const n = typeof value === 'number' ? value : Number(value ?? 0)
+                        return [Number.isFinite(n) ? n : 0, t('dashboard.coordinatorNursing.patientsAttended', 'Pacientes atendidos')]
+                      }}
                     />
                     <Bar dataKey="patientsAttended" fill={NURSING_COLOR} radius={[0, 4, 4, 0]} maxBarSize={30} />
                   </BarChart>

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { AuthRequest } from '../middleware/auth';
 import therapySessionService from '../services/therapy-session.service';

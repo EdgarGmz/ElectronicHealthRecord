@@ -137,11 +137,11 @@ export async function getWorkloadDistribution(
   const sessionsByTherapist = new Map(
     sessionsGrouped.map((s) => [
       s.therapistId,
-      { count: s._count._all, hours: (s._sum.sessionDuration ?? 0) / 60 },
+      { count: s._count, hours: (s._sum.sessionDuration ?? 0) / 60 },
     ])
   );
   const appointmentsByProfessional = new Map(
-    appointmentsGrouped.map((a) => [a.professionalId, a._count._all])
+    appointmentsGrouped.map((a) => [a.professionalId, a._count])
   );
   const patientsByTherapist = new Map<string, Set<string>>();
   for (const s of patientIdsFromSessions) {

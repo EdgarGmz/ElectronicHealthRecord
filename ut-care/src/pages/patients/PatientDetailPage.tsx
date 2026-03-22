@@ -107,26 +107,6 @@ function groupMoodCount(sessions: TherapySession[]): { mood: string; count: numb
     .slice(0, 8)
 }
 
-const RISK_LEVELS_ALERT = ['high', 'medium']
-
-function nursingRecurrencesLast6Months(consultations: NursingConsultation[]): number {
-  const sixMonthsAgo = new Date()
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-  return consultations.filter((c) => new Date(c.consultationDate) >= sixMonthsAgo).length
-}
-
-function nursingAlertCount(record: MedicalRecord | null): number {
-  if (!record) return 0
-  let n = 0
-  if (record.allergies?.trim()) n += 1
-  const pr = record.psychologyRecord
-  if (pr) {
-    if (RISK_LEVELS_ALERT.includes(pr.suicideRiskLevel?.toLowerCase())) n += 1
-    if (RISK_LEVELS_ALERT.includes(pr.violenceRiskLevel?.toLowerCase())) n += 1
-  }
-  return n
-}
-
 function nurseName(c: NursingConsultation): string {
   const u = c.nurse
   return u ? `${u.firstName} ${u.lastName}`.trim() : '—'
@@ -165,7 +145,6 @@ export function PatientDetailPage() {
   const [expedientTab, setExpedientTab] = useState<'psychology' | 'medical'>('psychology')
 
   const role = user?.role?.toLowerCase()?.trim()
-  const isCoordinatorPsychology = role === ROLES.COORDINADOR_PSICOLOGIA
   const isCoordinatorNursing = role === ROLES.COORDINADOR_ENFERMERIA
   const isNurse = role === ROLES.ENFERMERO
   const isNursingRole = isCoordinatorNursing || isNurse
@@ -610,7 +589,10 @@ export function PatientDetailPage() {
                                 border: '1px solid var(--border)',
                                 borderRadius: '8px',
                               }}
-                              formatter={(value: number) => [value, t('patients.totalSessions')]}
+                              formatter={(value: unknown) => {
+                                const n = typeof value === 'number' ? value : Number(value ?? 0)
+                                return [Number.isFinite(n) ? n : 0, t('patients.totalSessions')]
+                              }}
                               labelFormatter={(label) => label}
                             />
                             <Bar dataKey="count" fill="var(--color-primary)" radius={[4, 4, 0, 0]} name={t('patients.totalSessions')} />
@@ -638,7 +620,7 @@ export function PatientDetailPage() {
                                 cx="50%"
                                 cy="50%"
                                 outerRadius={72}
-                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                label={({ name, percent }) => `${name} ${(((percent ?? 0) as number) * 100).toFixed(0)}%`}
                               >
                                 {appointmentsByStatus.map((_, i) => (
                                   <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
@@ -650,7 +632,10 @@ export function PatientDetailPage() {
                                   border: '1px solid var(--border)',
                                   borderRadius: '8px',
                                 }}
-                                formatter={(value: number, name: string) => [value, name]}
+                                formatter={(value: unknown, name: unknown) => {
+                                  const n = typeof value === 'number' ? value : Number(value ?? 0)
+                                  return [Number.isFinite(n) ? n : 0, String(name ?? '')]
+                                }}
                               />
                               <Legend />
                             </PieChart>
@@ -906,7 +891,7 @@ export function PatientDetailPage() {
             )}
 
             <div className="mt-6 flex justify-end">
-              <GlassButton type="button" variant="secondary" onClick={closeHistoryModal} disabled={historyModalLoading}>
+              <GlassButton type="button" variant="glass" onClick={closeHistoryModal} disabled={historyModalLoading}>
                 {t('common.close')}
               </GlassButton>
             </div>

@@ -23,6 +23,7 @@ export function NursingAttentionPage() {
   const [patientResults, setPatientResults] = useState<Patient[]>([])
   const [patientSearching, setPatientSearching] = useState(false)
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
+  void patientSearching
   const [careers, setCareers] = useState<Career[]>([])
   const [fastError, setFastError] = useState<string | null>(null)
   const [quickFirstName, setQuickFirstName] = useState('')
@@ -473,7 +474,7 @@ export function NursingAttentionPage() {
                 <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
                   <GlassButton
                     type="button"
-                    variant="secondary"
+                    variant="glass"
                     onClick={() => setShowCancelConfirm(true)}
                     className="inline-flex items-center gap-2"
                   >
@@ -774,7 +775,7 @@ export function NursingAttentionPage() {
             <div className="mt-6 flex justify-end">
               <GlassButton
                 type="button"
-                variant="secondary"
+                variant="glass"
                 onClick={() => setDetailAttention(null)}
                 disabled={detailAttentionLoading}
               >

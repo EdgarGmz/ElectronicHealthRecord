@@ -95,13 +95,21 @@ export async function getCoordinatorPsychologyDashboardData(
   userId: string,
   userRole: string
 ): Promise<CoordinatorPsychologyDashboardData> {
+  void userId; // evita TS6133 por parámetro no usado
   if (userRole !== ROLES.COORDINADOR_PSICOLOGIA) {
     return {
       riskAlerts: [],
       crisisFollowUp: [],
       agendaToday: [],
       appointmentsToConfirm: [],
-      clinicalMetrics: { churnRatePercent: 0, churnDenominator: 0, churnNumerator: 0, averageProgressScales: [], topDiagnoses: [] },
+      clinicalMetrics: {
+        churnRatePercent: 0,
+        churnDenominator: 0,
+        churnNumerator: 0,
+        averageProgressScales: [],
+        topDiagnoses: [],
+        moodDistribution: [],
+      },
       workload: [],
       groundingPhrase: GROUNDING_PHRASES[0],
     };
@@ -189,7 +197,7 @@ export async function getCoordinatorPsychologyDashboardData(
       }),
     ]);
 
-  const sessionCountByRecord = new Map(sessionCountsPerRecord.map((s) => [s.psychologyRecordId, s._count._all]));
+  const sessionCountByRecord = new Map(sessionCountsPerRecord.map((s) => [s.psychologyRecordId, s._count]));
   const lastSessionByRecord = new Map<string, Date>();
   for (const s of lastSessions) {
     if (!lastSessionByRecord.has(s.psychologyRecordId) || lastSessionByRecord.get(s.psychologyRecordId)! < s.sessionDate) {

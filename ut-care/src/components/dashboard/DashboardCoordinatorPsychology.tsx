@@ -476,10 +476,11 @@ export function DashboardCoordinatorPsychology() {
                     </Pie>
                     <Tooltip
                       contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px' }}
-                      formatter={(value: number, _n: unknown, props: { payload?: { name?: string; percent?: number } }) => [
-                        `${value} casos (${props?.payload?.percent ?? 0}%)`,
-                        props?.payload?.name ?? '',
-                      ]}
+                      formatter={(value: unknown, _n: unknown, props: { payload?: { name?: string; percent?: number } }) => {
+                        const n = typeof value === 'number' ? value : Number(value ?? 0)
+                        const safe = Number.isFinite(n) ? n : 0
+                        return [`${safe} casos (${props?.payload?.percent ?? 0}%)`, props?.payload?.name ?? '']
+                      }}
                     />
                     <Legend
                       layout="vertical"
@@ -524,11 +525,13 @@ export function DashboardCoordinatorPsychology() {
                     </Pie>
                     <Tooltip
                       contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px' }}
-                      formatter={(value: number, _n: unknown, props: { payload?: { name?: string; percent?: number; emoji?: string } }) => {
+                      formatter={(value: unknown, _n: unknown, props: { payload?: { name?: string; percent?: number; emoji?: string } }) => {
                         const label = props?.payload?.name ?? ''
                         const emoji = props?.payload?.emoji ?? ''
+                        const n = typeof value === 'number' ? value : Number(value ?? 0)
+                        const safe = Number.isFinite(n) ? n : 0
                         return [
-                          `${value} sesiones (${props?.payload?.percent ?? 0}%)`,
+                          `${safe} sesiones (${props?.payload?.percent ?? 0}%)`,
                           `${emoji ? `${emoji} ` : ''}${label}`,
                         ]
                       }}
@@ -588,7 +591,11 @@ export function DashboardCoordinatorPsychology() {
                     />
                     <Tooltip
                       contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px' }}
-                      formatter={(v: number) => [`${v} horas`, 'Carga semanal']}
+                      formatter={(value: unknown) => {
+                        const n = typeof value === 'number' ? value : Number(value ?? 0)
+                        const safe = Number.isFinite(n) ? n : 0
+                        return [`${safe} horas`, 'Carga semanal']
+                      }}
                     />
                     <Bar dataKey="horas" radius={[0, 4, 4, 0]} maxBarSize={28}>
                       {workloadData.map((entry, i) => (
@@ -631,10 +638,14 @@ export function DashboardCoordinatorPsychology() {
                     <YAxis stroke="var(--text-secondary)" fontSize={11} />
                     <Tooltip
                       contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px' }}
-                      formatter={(v: number, _n: unknown, props: { payload?: { n?: number } }) => [
-                        `${v > 0 ? '+' : ''}${v} (n=${props?.payload?.n ?? 0})`,
+                      formatter={(value: unknown, _n: unknown, props: { payload?: { n?: number } }) => {
+                        const n = typeof value === 'number' ? value : Number(value ?? 0)
+                        const safe = Number.isFinite(n) ? n : 0
+                        return [
+                        `${safe > 0 ? '+' : ''}${safe} (n=${props?.payload?.n ?? 0})`,
                         'Cambio promedio',
-                      ]}
+                        ]
+                      }}
                     />
                     <Bar dataKey="cambio" radius={[4, 4, 0, 0]} maxBarSize={48}>
                       {scalesData.map((entry, i) => (

@@ -217,7 +217,7 @@ export class PatientService {
       const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
       const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
       const isStudentInScope =
-        patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+        patient.patientType === 'student' && patient.careerId != null && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
       if (!isGeneral && !isStudentInScope) {
         throw new AppError(
           'Acceso denegado: solo puede atender estudiantes de sus carreras asignadas o personal docente/administrativo',

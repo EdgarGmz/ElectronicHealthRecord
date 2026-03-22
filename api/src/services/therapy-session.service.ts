@@ -81,9 +81,9 @@ export class TherapySessionService {
     if (filters?.patientId && userRole !== ROLES.COORDINADOR_PSICOLOGIA) {
       const mr = (where.psychologyRecord as Prisma.PsychologyRecordWhereInput)?.medicalRecord as Prisma.MedicalRecordWhereInput | undefined;
       where.psychologyRecord = {
-        ...where.psychologyRecord,
-        medicalRecord: { ...mr, patientId: filters.patientId },
-      };
+        ...(where.psychologyRecord ?? {}),
+        medicalRecord: { ...(mr ?? {}), patientId: filters.patientId },
+      } as Prisma.PsychologyRecordWhereInput;
     }
     if (filters?.therapistId) {
       where.therapistId = filters.therapistId;
@@ -143,7 +143,7 @@ export class TherapySessionService {
       const p = session.psychologyRecord.medicalRecord.patient;
       const isGeneral = PATIENT_TYPES_GENERAL.includes(p.patientType as any);
       const isStudentInScope =
-        p.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(p.careerId);
+        p.patientType === 'student' && p.careerId != null && assignedCareerIds.length > 0 && assignedCareerIds.includes(p.careerId);
       if (!isGeneral && !isStudentInScope) {
         throw new AppError('Access denied to this therapy session', 403);
       }
@@ -183,7 +183,7 @@ export class TherapySessionService {
       const p = record.medicalRecord.patient;
       const isGeneral = PATIENT_TYPES_GENERAL.includes(p.patientType as any);
       const isStudentInScope =
-        p.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(p.careerId);
+        p.patientType === 'student' && p.careerId != null && assignedCareerIds.length > 0 && assignedCareerIds.includes(p.careerId);
       if (!isGeneral && !isStudentInScope) {
         throw new AppError('Access denied: you can only create sessions for your assigned careers or faculty/administrative', 403);
       }

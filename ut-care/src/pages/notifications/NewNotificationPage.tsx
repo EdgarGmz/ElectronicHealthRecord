@@ -9,7 +9,6 @@ import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { SuccessModal } from '@/components/molecules/SuccessModal'
 import {
   createNotification,
-  getNotificationRecipients,
   getAllNotificationRecipients,
   getRecentPrescriptions,
 } from '@/services/notification.service'
@@ -23,7 +22,6 @@ import type { Interconsultation } from '@/types/interconsultation'
 import type { Medication } from '@/types/medication'
 import type { User } from '@/types/user'
 import { useAuthStore } from '@/store/auth.store'
-import { ROLES } from '@/constants/roles'
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
@@ -76,6 +74,8 @@ export function NewNotificationPage() {
 
   const relatedEntityTypeValue = form.relatedEntityType?.trim() ?? ''
   const relatedEntityIdValue = form.relatedEntityId?.trim() ?? ''
+  void relatedEntityIdValue
+  void createdId
 
   const destinationUser = useMemo(() => {
     const id = form.userId?.trim()

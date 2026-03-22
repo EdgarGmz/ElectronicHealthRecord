@@ -104,7 +104,7 @@ export function DataTable<T>({
   data,
   getRowId,
   loading,
-  error,
+  error: _error,
   emptyMessage,
   pagination,
   onPageChange,
@@ -123,6 +123,7 @@ export function DataTable<T>({
   exportTitle,
   i18n = {},
 }: DataTableProps<T>) {
+  void _error
   const currentUser = useAuthStore((s) => s.user)
   const [exportModalOpen, setExportModalOpen] = useState(false)
   const [pendingFormat, setPendingFormat] = useState<'pdf' | 'csv' | 'xlsx' | null>(null)

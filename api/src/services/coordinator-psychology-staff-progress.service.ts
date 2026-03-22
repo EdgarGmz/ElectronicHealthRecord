@@ -87,7 +87,7 @@ export async function getStaffProgress(period: StaffProgressPeriod = 'month'): P
 
   const recordsMap = new Map<string, number>();
   for (const r of recordsCountByPsychologist) {
-    if (r.assignedPsychologistId) recordsMap.set(r.assignedPsychologistId, r._count._all);
+    if (r.assignedPsychologistId) recordsMap.set(r.assignedPsychologistId, r._count);
   }
 
   const sessionsCountByTherapist = new Map<string, number>();

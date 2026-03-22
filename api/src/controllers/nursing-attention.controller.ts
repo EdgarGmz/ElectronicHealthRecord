@@ -30,7 +30,7 @@ export const getNursingAttentionById = async (
       return;
     }
     const { id } = req.params;
-    const isPsychology = userRole && PSYCHOLOGY_ROLES.includes(userRole);
+    const isPsychology = userRole ? PSYCHOLOGY_ROLES.includes(userRole) : false;
     const attention = await nursingAttentionService.getById(id, userId, isPsychology);
     res.status(200).json({
       success: true,
@@ -62,7 +62,7 @@ export const listMyNursingAttentions = async (
     const dateTo = typeof req.query.dateTo === 'string' ? req.query.dateTo : undefined;
     const disposition = typeof req.query.disposition === 'string' ? req.query.disposition : undefined;
     const patientId = typeof req.query.patientId === 'string' ? req.query.patientId : undefined;
-    const isPsychology = userRole && PSYCHOLOGY_ROLES.includes(userRole);
+    const isPsychology = userRole ? PSYCHOLOGY_ROLES.includes(userRole) : false;
     const isCoordinator = userRole === 'coordinador_enfermeria';
 
     if (isPsychology && !patientId) {
@@ -73,7 +73,7 @@ export const listMyNursingAttentions = async (
     const attentions = await nursingAttentionService.listForNurse(
       isPsychology ? '' : userId,
       { search, dateFrom, dateTo, disposition, patientId },
-      isCoordinator || isPsychology === true
+      isCoordinator || isPsychology
     );
 
     res.status(200).json({

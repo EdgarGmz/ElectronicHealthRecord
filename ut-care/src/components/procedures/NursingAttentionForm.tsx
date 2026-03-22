@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next'
 import { GlassCard } from '@/components/atoms/GlassCard'
 
 export interface NursingAttentionFormProps {
@@ -18,8 +17,6 @@ export function NursingAttentionForm({
   disabled,
   onChange,
 }: NursingAttentionFormProps) {
-  const { t } = useTranslation()
-
   return (
     <GlassCard className="space-y-4 rounded-2xl">
       <div className="grid gap-4 md:grid-cols-2">

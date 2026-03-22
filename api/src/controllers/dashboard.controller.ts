@@ -77,6 +77,8 @@ export const getCoordinatorPsychology = async (req: AuthRequest, res: Response, 
 
 export const getNursingKpis = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Mantener compatibilidad con firma Express sin disparar `noUnusedParameters`.
+    void req;
     const data = await getNursingKpisService();
     res.status(200).json({
       success: true,
@@ -155,6 +157,8 @@ export const getNursingStaffProgressHandler = async (req: AuthRequest, res: Resp
 
 export const getMedicationStockSummaryHandler = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Mantener compatibilidad con firma Express sin disparar `noUnusedParameters`.
+    void req;
     const data = await getMedicationStockSummary();
     res.status(200).json({
       success: true,

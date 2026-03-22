@@ -216,6 +216,7 @@ export async function getWorkloadDistributionHandler(req: Request, res: Response
 /** GET /careers-with-assignments — Todas las carreras con asignación (para modal; una carrera = un psicólogo). */
 export async function getCareersWithAssignments(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    void req;
     const careers = await psychologistCareerService.getCareersWithAssignments();
     res.status(200).json({
       success: true,

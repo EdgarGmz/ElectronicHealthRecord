@@ -48,10 +48,6 @@ const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'error'> = {
   [APPOINTMENT_STATUS.CONFIRMED]: 'warning',
 }
 
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: 'long', timeStyle: 'short' })
-}
-
 function formatDateShort(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 }

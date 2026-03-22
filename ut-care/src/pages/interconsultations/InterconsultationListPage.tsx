@@ -70,10 +70,6 @@ export function InterconsultationListPage() {
       .finally(() => setLoading(false))
   }, [page, limit, status, urgency, fromDepartment, toDepartment, t])
 
-  const statusRespondedLabel = t('interconsultations.statusResponded')
-  const statusCancelledLabel = t('interconsultations.statusCancelled')
-  const statusPendingLabel = t('interconsultations.statusPending')
-
   const normalizeStatus = (value: string) => {
     const v = value?.toString().trim().toLowerCase()
     // Soporta valores en español (DB/enum), en inglés (seed anterior) y estilos tipo snake_case.

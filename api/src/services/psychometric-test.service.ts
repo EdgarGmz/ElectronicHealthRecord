@@ -190,11 +190,11 @@ export class PsychometricTestService {
       ) {
         throw new AppError('Access denied', 403);
       }
-      const patient = evaluation.psychologyRecord.medicalRecord.patient as { patientType: string; careerId: string };
+      const patient = evaluation.psychologyRecord.medicalRecord.patient as { patientType: string; careerId: string | null };
       const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
       const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
       const isStudentInScope =
-        patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+        patient.patientType === 'student' && patient.careerId != null && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
       if (!isGeneral && !isStudentInScope) {
         throw new AppError(
           'Acceso denegado: solo puede ver evaluaciones de estudiantes de sus carreras asignadas o personal docente/administrativo',
@@ -255,7 +255,7 @@ export class PsychometricTestService {
         const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(data.administeredBy);
         const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
         const isStudentInScope =
-          patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+          patient.patientType === 'student' && patient.careerId != null && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
         if (!isGeneral && !isStudentInScope) {
           throw new AppError(
             'Solo puede crear evaluaciones para estudiantes de sus carreras asignadas o personal docente/administrativo',

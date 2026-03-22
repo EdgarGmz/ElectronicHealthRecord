@@ -170,7 +170,7 @@ function ProcedureForm({
           >
             {submitting ? t('procedures.creatingProcedure') : t('procedures.registerProcedure')}
           </GlassButton>
-          <GlassButton type="button" variant="secondary" disabled={submitting} onClick={onCancel}>
+          <GlassButton type="button" variant="glass" disabled={submitting} onClick={onCancel}>
             {t('procedures.cancelProcedure')}
           </GlassButton>
         </div>
@@ -701,7 +701,7 @@ export function ProcedureListPage() {
             <div className="mt-6 flex justify-end">
               <GlassButton
                 type="button"
-                variant="secondary"
+                variant="glass"
                 onClick={() => setDetailProcedure(null)}
                 disabled={detailProcedureLoading}
               >

@@ -134,7 +134,6 @@ export function NewAppointmentPage() {
   }
 
   const patientName = (p: Patient) => `${p.user.firstName} ${p.user.lastName}`.trim()
-  const professionalLabel = user ? `${user.firstName} ${user.lastName}`.trim() : ''
 
   const filteredPatients = useMemo(() => {
     const q = patientSearch.trim().toLowerCase()

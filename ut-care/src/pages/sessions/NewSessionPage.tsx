@@ -9,7 +9,6 @@ import {
   X,
   StickyNote,
   CalendarCheck,
-  User,
 } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
@@ -152,10 +151,6 @@ export function NewSessionPage() {
 
     loadRecord()
       .catch((firstErr: unknown) => {
-        const status =
-          firstErr && typeof firstErr === 'object' && 'response' in firstErr
-            ? (firstErr as { response?: { status?: number } }).response?.status
-            : undefined
         throw firstErr
       })
       .then((record) => {

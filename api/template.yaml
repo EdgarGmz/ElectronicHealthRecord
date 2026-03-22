@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: EHR API (Express) deployed as AWS Lambda + API Gateway.
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 30
+    MemorySize: 1024
+
+Resources:
+  EhrApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/lambda.handler
+      CodeUri: .
+      Environment:
+        Variables:
+          # Define aquí tus variables (o pásalas por `sam deploy --parameter-overrides` / console).
+          NODE_ENV: production
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+

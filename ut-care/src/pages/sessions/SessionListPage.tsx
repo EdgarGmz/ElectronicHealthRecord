@@ -53,7 +53,7 @@ export function SessionListPage() {
       setPatientOptions([])
       return
     }
-    Promise.all([getMyCareers().catch(() => []), getPatients({ limit: 300 })])
+    Promise.all([getMyCareers().catch(() => [] as string[]), getPatients({ limit: 300 })])
       .then(([careerIds, r]) => {
         const allowed =
           careerIds.length === 0

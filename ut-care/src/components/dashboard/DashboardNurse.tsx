@@ -11,7 +11,6 @@ import {
   ClipboardList,
   Layers,
   GraduationCap,
-  Briefcase,
   Users2,
   User,
   User2,
@@ -113,12 +112,7 @@ export function DashboardNurse() {
   const [error, setError] = useState<string | null>(null)
 
   const user = useAuthStore((s) => s.user)
-  const firstName = user?.firstName ?? t('dashboard.coordinatorNursing.coordinator')
-  const today = new Date().toLocaleDateString(undefined, {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  })
+  void user
 
   const { startDate: chartStart, endDate: chartEnd } = useMemo(
     () => (chartPeriod === 'month' ? getDateRange('month', 5) : getDateRange('day', 14)),
@@ -421,7 +415,10 @@ export function DashboardNurse() {
                         border: '1px solid var(--border)',
                         borderRadius: '8px',
                       }}
-                      formatter={(value: number) => [value, t('dashboard.coordinatorNursing.consultations')]}
+                  formatter={(value: unknown) => {
+                    const n = typeof value === 'number' ? value : Number(value ?? 0)
+                    return [Number.isFinite(n) ? n : 0, t('dashboard.coordinatorNursing.consultations')]
+                  }}
                     />
                     <Bar dataKey="consultas" fill={NURSING_COLOR} radius={[4, 4, 0, 0]} name={t('dashboard.coordinatorNursing.consultations')} />
                   </BarChart>
@@ -487,16 +484,21 @@ export function DashboardNurse() {
                     border: '1px solid var(--border)',
                     borderRadius: '8px',
                   }}
-                  formatter={(value: number, name: string) => [
-                    value,
-                    name === 'male'
+                  formatter={(value: unknown, name: unknown) => {
+                    const n = typeof value === 'number' ? value : Number(value ?? 0)
+                    const safe = Number.isFinite(n) ? n : 0
+                    const key = String(name ?? '')
+                    return [
+                    safe,
+                    key === 'male'
                       ? t('dashboard.nurse.male')
-                      : name === 'female'
+                      : key === 'female'
                         ? t('dashboard.nurse.female')
                         : segmentMode === 'career'
-                          ? getCareerLabel(name)
+                          ? getCareerLabel(key)
                           : t('dashboard.nurse.patientsAttended'),
-                  ]}
+                    ]
+                  }}
                 />
                 <Legend
                   wrapperStyle={{ fontSize: '12px' }}

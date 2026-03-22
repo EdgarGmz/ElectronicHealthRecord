@@ -231,7 +231,7 @@ export class MedicalRecordService {
       const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
       const isGeneral = PATIENT_TYPES_GENERAL.includes(p.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
       const isStudentInScope =
-        p.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(p.careerId);
+        p.patientType === 'student' && p.careerId != null && assignedCareerIds.length > 0 && assignedCareerIds.includes(p.careerId);
       if (!isGeneral && !isStudentInScope) {
         throw new AppError(
           'Acceso denegado: solo puede ver expedientes de estudiantes de sus carreras asignadas o personal docente/administrativo',
@@ -266,7 +266,7 @@ export class MedicalRecordService {
       const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
       const isGeneral = PATIENT_TYPES_GENERAL.includes(p.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
       const isStudentInScope =
-        p.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(p.careerId);
+        p.patientType === 'student' && p.careerId != null && assignedCareerIds.length > 0 && assignedCareerIds.includes(p.careerId);
       if (!isGeneral && !isStudentInScope) {
         throw new AppError(
           'Acceso denegado: solo puede ver expedientes de estudiantes de sus carreras asignadas o personal docente/administrativo',
@@ -305,7 +305,7 @@ export class MedicalRecordService {
       const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(data.createdBy);
       const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
       const isStudentInScope =
-        patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+        patient.patientType === 'student' && patient.careerId != null && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
       if (!isGeneral && !isStudentInScope) {
         throw new AppError(
           'Solo puede crear expedientes para estudiantes de sus carreras asignadas o personal docente/administrativo',
@@ -359,7 +359,8 @@ export class MedicalRecordService {
       select: { role: true },
     });
     const role = creator?.role?.toLowerCase().trim();
-    if (!role || ![ROLES.PSICOLOGO, ROLES.ENFERMERO, ROLES.COORDINADOR_PSICOLOGIA].includes(role)) {
+    const allowedRoles = [ROLES.PSICOLOGO, ROLES.ENFERMERO, ROLES.COORDINADOR_PSICOLOGIA] as const;
+    if (!role || !allowedRoles.includes(role as (typeof allowedRoles)[number])) {
       throw new AppError('No tiene permiso para crear expedientes', 403);
     }
 
@@ -367,7 +368,7 @@ export class MedicalRecordService {
       const assignedCareerIds = await psychologistCareerService.getAssignedCareerIds(userId);
       const isGeneral = PATIENT_TYPES_GENERAL.includes(patient.patientType as (typeof PATIENT_TYPES_GENERAL)[number]);
       const isStudentInScope =
-        patient.patientType === 'student' && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
+        patient.patientType === 'student' && patient.careerId != null && assignedCareerIds.length > 0 && assignedCareerIds.includes(patient.careerId);
       if (!isGeneral && !isStudentInScope) {
         throw new AppError(
           'Solo puede crear expedientes para estudiantes de sus carreras asignadas o personal docente/administrativo',

@@ -175,17 +175,15 @@ class NursingAttentionService {
       treatment: attention.treatment,
       observations: attention.observations,
       createdAt: attention.createdAt,
-      patient: attention.patient
-        ? patient
-          ? {
-              user: {
-                firstName: patient.user.firstName ?? '',
-                lastName: patient.user.lastName ?? '',
-                enrollmentNumber: patient.user.enrollmentNumber ?? null,
-                email: patient.user.email ?? '',
-              },
-            }
-          : undefined
+      patient: patient
+        ? {
+            user: {
+              firstName: patient.user.firstName ?? '',
+              lastName: patient.user.lastName ?? '',
+              enrollmentNumber: patient.user.enrollmentNumber ?? null,
+              email: patient.user.email ?? '',
+            },
+          }
         : undefined,
     };
   }

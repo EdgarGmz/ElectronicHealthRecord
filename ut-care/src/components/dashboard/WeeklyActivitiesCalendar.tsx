@@ -162,13 +162,15 @@ export function WeeklyActivitiesCalendar({
             <div className="calendar-event-detail-modal-header">
               <div
                 className="calendar-event-detail-modal-icon-badge"
-                style={{ backgroundColor: `${CALENDAR_COLORS[detailModal.type] ?? 'var(--color-primary)'}20` }}
+                style={{
+                  backgroundColor: `${(CALENDAR_COLORS as Record<string, string>)[detailModal.type] ?? 'var(--color-primary)'}20`,
+                }}
                 aria-hidden
               >
-                {detailModal.type === CALENDAR_EVENT_TYPES.APPOINTMENT && <Calendar className="h-6 w-6" style={{ color: CALENDAR_COLORS[CALENDAR_EVENT_TYPES.APPOINTMENT] }} />}
-                {detailModal.type === CALENDAR_EVENT_TYPES.BIRTHDAY && <PartyPopper className="h-6 w-6" style={{ color: CALENDAR_COLORS[CALENDAR_EVENT_TYPES.BIRTHDAY] }} />}
-                {detailModal.type === CALENDAR_EVENT_TYPES.HOLIDAY && <CalendarDays className="h-6 w-6" style={{ color: CALENDAR_COLORS[CALENDAR_EVENT_TYPES.HOLIDAY] }} />}
-                {detailModal.type === CALENDAR_EVENT_TYPES.MEETING && <Building2 className="h-6 w-6" style={{ color: CALENDAR_COLORS[CALENDAR_EVENT_TYPES.MEETING] }} />}
+                {detailModal.type === CALENDAR_EVENT_TYPES.APPOINTMENT && <Calendar className="h-6 w-6" style={{ color: (CALENDAR_COLORS as Record<string, string>)[CALENDAR_EVENT_TYPES.APPOINTMENT] }} />}
+                {detailModal.type === CALENDAR_EVENT_TYPES.BIRTHDAY && <PartyPopper className="h-6 w-6" style={{ color: (CALENDAR_COLORS as Record<string, string>)[CALENDAR_EVENT_TYPES.BIRTHDAY] }} />}
+                {detailModal.type === CALENDAR_EVENT_TYPES.HOLIDAY && <CalendarDays className="h-6 w-6" style={{ color: (CALENDAR_COLORS as Record<string, string>)[CALENDAR_EVENT_TYPES.HOLIDAY] }} />}
+                {detailModal.type === CALENDAR_EVENT_TYPES.MEETING && <Building2 className="h-6 w-6" style={{ color: (CALENDAR_COLORS as Record<string, string>)[CALENDAR_EVENT_TYPES.MEETING] }} />}
               </div>
               <div className="min-w-0 flex-1">
                 <h2 id="calendar-event-modal-title" className="text-lg font-semibold text-[var(--text-primary)] truncate">

@@ -282,7 +282,7 @@ export function EditPatientPage() {
               <Field id="edit-patient-careerId" label={t('patients.career')} required error={fieldErrors.careerId}>
                 <select
                   id="edit-patient-careerId"
-                  value={form.careerId}
+                  value={form.careerId ?? ''}
                   onChange={(e) => update('careerId', e.target.value)}
                   className={`${inputBaseClass} ${fieldErrors.careerId ? 'ring-2 ring-[var(--color-error)]' : ''}`}
                   disabled={careersLoading}

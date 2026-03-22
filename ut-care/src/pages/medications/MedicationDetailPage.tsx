@@ -230,7 +230,10 @@ export function MedicationDetailPage() {
                       border: '1px solid var(--border)',
                       borderRadius: '8px',
                     }}
-                    formatter={(value: number) => [value, t('medications.consumptionByMonth')]}
+                    formatter={(value: unknown) => {
+                      const n = typeof value === 'number' ? value : Number(value ?? 0)
+                      return [Number.isFinite(n) ? n : 0, t('medications.consumptionByMonth')]
+                    }}
                     labelFormatter={(label) => label}
                   />
                   <Bar dataKey="count" fill="var(--color-primary)" radius={[4, 4, 0, 0]} name={t('medications.consumptionByMonth')} />
