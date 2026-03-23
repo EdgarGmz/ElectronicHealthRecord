@@ -1,0 +1,121 @@
+MPX,Microsoft Project for Windows,4.0,ANSI
+10,$,1,2,",",.
+11,2,0,1,8.00,40.00,,,0,0
+12,1,0,480,/,:,am,pm,20,20
+20,Standard,0,1,1,1,1,1,0
+25,1
+25,2,08:00 am,12:00 pm,01:00 pm,05:00 pm
+25,3,08:00 am,12:00 pm,01:00 pm,05:00 pm
+25,4,08:00 am,12:00 pm,01:00 pm,05:00 pm
+25,5,08:00 am,12:00 pm,01:00 pm,05:00 pm
+25,6,08:00 am,12:00 pm,01:00 pm,05:00 pm
+25,7
+30,Electronic Health Record (EHR),,,Standard,20/01/2026,10/04/2026,0,20/01/2026,,$0.00,$0.00,$0.00,0h,0h,0h,0%,0d,0d,0d,0%,,,,,0d,0d
+60,Name,Outline Level,% Work Complete,Duration,Remaining Duration,% Complete,Start,Finish,Constraint Date,Predecessors,Fixed,ID,Constraint Type,Priority,Unique ID,Outline Number,Summary,Created
+61,1,3,25,40,43,44,50,51,68,70,80,90,91,95,98,99,120,125
+70,Electronic Health Record (EHR) System,0,0%,59d,59d,0%,20/01/2026,10/04/2026,01/01/1970,,No,0,As Soon As Possible,Medium,1,1,Yes,01/01/2026
+71,Recursos: Edgar Gómez
+70,Fase 1: Análisis,1,0%,16d,16d,100%,20/01/2026,10/02/2026,01/01/1970,,No,1,As Soon As Possible,Medium,2,1.1,Yes,01/01/2026
+71,Recursos: Edgar Gómez
+70,Acta de constitución y kick-off del proyecto,2,0%,3d,3d,100%,20/01/2026,22/01/2026,01/01/1970,,No,2,As Soon As Possible,Medium,3,1.1.1,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Requisitos funcionales,2,0%,5d,5d,100%,23/01/2026,29/01/2026,01/01/1970,2,No,3,As Soon As Possible,Medium,4,1.1.2,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Requisitos no funcionales,2,0%,3d,3d,100%,27/01/2026,29/01/2026,01/01/1970,2,No,4,As Soon As Possible,Medium,5,1.1.3,,01/01/2026
+71,Recursos: Backend Developer 1
+70,Análisis de riesgos y amenazas,2,0%,4d,4d,100%,30/01/2026,04/02/2026,01/01/1970,3,No,5,As Soon As Possible,Medium,6,1.1.4,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Casos de uso e historias de usuario,2,0%,4d,4d,100%,30/01/2026,04/02/2026,01/01/1970,3,No,6,As Soon As Possible,Medium,7,1.1.5,,01/01/2026
+71,Recursos: Frontend Developer 1
+70,Reglas de negocio y diagrama de flujo de atención,2,0%,3d,3d,100%,03/02/2026,06/02/2026,01/01/1970,5,No,7,As Soon As Possible,Medium,8,1.1.6,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Revisión con Stakeholders/Profesores - Fase Análisis,2,0%,2d,2d,100%,05/02/2026,07/02/2026,01/01/1970,"6,7",No,8,As Soon As Possible,Medium,9,1.1.7,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Entrega Fase Análisis (documentos y aceptación),2,0%,2d,2d,100%,08/02/2026,10/02/2026,01/01/1970,8,No,9,As Soon As Possible,Medium,10,1.1.8,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Fase 2: Diseño,1,0%,13d,13d,60%,11/02/2026,28/02/2026,01/01/1970,,No,10,As Soon As Possible,Medium,11,1.2,Yes,01/01/2026
+71,Recursos: Edgar Gómez
+70,Documentación API REST (OpenAPI 3.0),2,0%,5d,5d,100%,11/02/2026,17/02/2026,01/01/1970,9,No,11,As Soon As Possible,Medium,12,1.2.1,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Diagrama ER y esquema de base de datos,2,0%,4d,4d,100%,12/02/2026,17/02/2026,01/01/1970,9,No,12,As Soon As Possible,Medium,13,1.2.2,,01/01/2026
+71,Recursos: Backend Developer 1
+70,Arquitectura del sistema (diseño detallado),2,0%,3d,3d,100%,18/02/2026,20/02/2026,01/01/1970,"11,12",No,13,As Soon As Possible,Medium,14,1.2.3,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Wireframes pantallas principales,2,0%,5d,5d,100%,18/02/2026,24/02/2026,01/01/1970,9,No,14,As Soon As Possible,Medium,15,1.2.4,,01/01/2026
+71,Recursos: UI/UX Designer
+70,Wireframes pantallas restantes,2,0%,5d,5d,0%,25/02/2026,28/02/2026,01/01/1970,14,No,15,As Soon As Possible,Medium,16,1.2.5,,01/01/2026
+71,Recursos: UI/UX Designer
+70,Mockups de alta fidelidad,2,0%,4d,4d,80%,21/02/2026,26/02/2026,01/01/1970,14,No,16,As Soon As Possible,Medium,17,1.2.6,,01/01/2026
+71,Recursos: UI/UX Designer
+70,Design system y guía de estilos,2,0%,4d,4d,100%,19/02/2026,24/02/2026,01/01/1970,13,No,17,As Soon As Possible,Medium,18,1.2.7,,01/01/2026
+71,Recursos: UI/UX Designer
+70,Documento Esquema Web Services y Autenticación,2,0%,2d,2d,100%,17/02/2026,18/02/2026,01/01/1970,11,No,18,As Soon As Possible,Medium,19,1.2.8,,01/01/2026
+71,Recursos: Backend Developer 1
+70,Plan de Trabajo (MS Project) y estimación,2,0%,2d,2d,100%,24/02/2026,25/02/2026,01/01/1970,13,No,19,As Soon As Possible,Medium,20,1.2.9,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Revisión con Stakeholders/Profesores - Fase Diseño,2,0%,2d,2d,0%,26/02/2026,27/02/2026,01/01/1970,"15,16,17,19",No,20,As Soon As Possible,Medium,21,1.2.10,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Entrega Fase Diseño (documentos y aprobación),2,0%,1d,1d,0%,28/02/2026,28/02/2026,01/01/1970,20,No,21,As Soon As Possible,Medium,22,1.2.11,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Fase 3: Desarrollo,1,0%,20d,20d,0%,02/03/2026,28/03/2026,01/01/1970,,No,22,As Soon As Possible,Medium,23,1.3,Yes,01/01/2026
+71,Recursos: Edgar Gómez
+70,Setup backend (Express TypeScript Prisma PostgreSQL),2,0%,4d,4d,0%,02/03/2026,06/03/2026,01/01/1970,21,No,23,As Soon As Possible,Medium,24,1.3.1,,01/01/2026
+71,Recursos: Backend Developer 1;Backend Developer 2
+70,Autenticación JWT y autorización RBAC,2,0%,4d,4d,0%,05/03/2026,10/03/2026,01/01/1970,23,No,24,As Soon As Possible,Medium,25,1.3.2,,01/01/2026
+71,Recursos: Backend Developer 1
+70,Endpoints módulo pacientes y usuarios,2,0%,4d,4d,0%,09/03/2026,13/03/2026,01/01/1970,24,No,25,As Soon As Possible,Medium,26,1.3.3,,01/01/2026
+71,Recursos: Backend Developer 1;Backend Developer 2
+70,Endpoints módulo citas,2,0%,3d,3d,0%,12/03/2026,16/03/2026,01/01/1970,25,No,26,As Soon As Possible,Medium,27,1.3.4,,01/01/2026
+71,Recursos: Backend Developer 2
+70,Endpoints expedientes médicos,2,0%,4d,4d,0%,13/03/2026,18/03/2026,01/01/1970,25,No,27,As Soon As Possible,Medium,28,1.3.5,,01/01/2026
+71,Recursos: Backend Developer 1
+70,Revisión con Stakeholders/Profesores - MVP (Prototipo funcional),2,0%,1d,1d,0%,14/03/2026,14/03/2026,01/01/1970,"26,27",No,28,As Soon As Possible,Medium,29,1.3.6,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Endpoints medicamentos procedimientos enfermería,2,0%,4d,4d,0%,17/03/2026,20/03/2026,01/01/1970,27,No,29,As Soon As Possible,Medium,30,1.3.7,,01/01/2026
+71,Recursos: Backend Developer 2
+70,Endpoints terapia sesiones psicometría interconsultas,2,0%,4d,4d,0%,19/03/2026,24/03/2026,01/01/1970,29,No,30,As Soon As Possible,Medium,31,1.3.8,,01/01/2026
+71,Recursos: Backend Developer 1
+70,Endpoints reportes auditoría notificaciones,2,0%,3d,3d,0%,23/03/2026,26/03/2026,01/01/1970,30,No,31,As Soon As Possible,Medium,32,1.3.9,,01/01/2026
+71,Recursos: Backend Developer 2
+70,Tests unitarios e integración backend,2,0%,4d,4d,0%,25/03/2026,30/03/2026,01/01/1970,31,No,32,As Soon As Possible,Medium,33,1.3.10,,01/01/2026
+71,Recursos: Backend Developer 1;QA Engineer
+70,Setup frontend (React Vite Tailwind) y estructura,2,0%,3d,3d,0%,09/03/2026,11/03/2026,01/01/1970,21,No,33,As Soon As Possible,Medium,34,1.3.11,,01/01/2026
+71,Recursos: Frontend Developer 1;Frontend Developer 2
+70,Componentes de autenticación y layout (UI),2,0%,4d,4d,0%,12/03/2026,17/03/2026,01/01/1970,33,No,34,As Soon As Possible,Medium,35,1.3.12,,01/01/2026
+71,Recursos: Frontend Developer 1
+70,Módulo pacientes y usuarios (UI),2,0%,4d,4d,0%,16/03/2026,20/03/2026,01/01/1970,34,No,35,As Soon As Possible,Medium,36,1.3.13,,01/01/2026
+71,Recursos: Frontend Developer 1;Frontend Developer 2
+70,Módulo citas y expedientes médicos (UI),2,0%,5d,5d,0%,19/03/2026,25/03/2026,01/01/1970,35,No,36,As Soon As Possible,Medium,37,1.3.14,,01/01/2026
+71,Recursos: Frontend Developer 2
+70,Módulos medicamentos terapia reportes (UI),2,0%,5d,5d,0%,24/03/2026,30/03/2026,01/01/1970,36,No,37,As Soon As Possible,Medium,38,1.3.15,,01/01/2026
+71,Recursos: Frontend Developer 1;Frontend Developer 2
+70,Integración Electron y empaquetado,2,0%,3d,3d,0%,27/03/2026,31/03/2026,01/01/1970,37,No,38,As Soon As Possible,Medium,39,1.3.16,,01/01/2026
+71,Recursos: Frontend Developer 2
+70,Tests E2E frontend,2,0%,3d,3d,0%,30/03/2026,02/04/2026,01/01/1970,38,No,39,As Soon As Possible,Medium,40,1.3.17,,01/01/2026
+71,Recursos: QA Engineer
+70,Revisión con Stakeholders/Profesores - Desarrollo completo,2,0%,1d,1d,0%,28/03/2026,28/03/2026,01/01/1970,"32,39",No,40,As Soon As Possible,Medium,41,1.3.18,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Fase 4: Testing y QA,1,0%,5d,5d,0%,30/03/2026,03/04/2026,01/01/1970,,No,41,As Soon As Possible,Medium,42,1.4,Yes,01/01/2026
+71,Recursos: QA Engineer
+70,Pruebas de rendimiento y carga,2,0%,3d,3d,0%,31/03/2026,02/04/2026,01/01/1970,40,No,42,As Soon As Possible,Medium,43,1.4.1,,01/01/2026
+71,Recursos: QA Engineer
+70,Auditoría de seguridad (revisión OWASP),2,0%,2d,2d,0%,31/03/2026,01/04/2026,01/01/1970,40,No,43,As Soon As Possible,Medium,44,1.4.2,,01/01/2026
+71,Recursos: Edgar Gómez;Backend Developer 1
+70,Pruebas de usabilidad con usuarios,2,0%,2d,2d,0%,01/04/2026,02/04/2026,01/01/1970,42,No,44,As Soon As Possible,Medium,45,1.4.3,,01/01/2026
+71,Recursos: QA Engineer;UI/UX Designer
+70,Corrección de bugs críticos y optimización,2,0%,3d,3d,0%,02/04/2026,04/04/2026,01/01/1970,"42,43,44",No,45,As Soon As Possible,Medium,46,1.4.4,,01/01/2026
+71,Recursos: Backend Developer 1;Backend Developer 2;Frontend Developer 1;Frontend Developer 2
+70,Revisión con Stakeholders/Profesores - QA y aceptación,2,0%,1d,1d,0%,03/04/2026,03/04/2026,01/01/1970,45,No,46,As Soon As Possible,Medium,47,1.4.5,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Fase 5: Despliegue y Cierre,1,0%,5d,5d,0%,04/04/2026,10/04/2026,01/01/1970,,No,47,As Soon As Possible,Medium,48,1.5,Yes,01/01/2026
+71,Recursos: Edgar Gómez
+70,Configuración de ambiente de producción,2,0%,2d,2d,0%,04/04/2026,05/04/2026,01/01/1970,46,No,48,As Soon As Possible,Medium,49,1.5.1,,01/01/2026
+71,Recursos: Edgar Gómez;Backend Developer 1
+70,Documentación de usuario y manual de administración,2,0%,3d,3d,0%,04/04/2026,07/04/2026,01/01/1970,46,No,49,As Soon As Possible,Medium,50,1.5.2,,01/01/2026
+71,Recursos: Frontend Developer 1;Edgar Gómez
+70,Capacitación a usuarios (Dept. Psicología y Enfermería),2,0%,2d,2d,0%,06/04/2026,07/04/2026,01/01/1970,"48,49",No,50,As Soon As Possible,Medium,51,1.5.3,,01/01/2026
+71,Recursos: Edgar Gómez;UI/UX Designer
+70,Transferencia de conocimiento y cierre administrativo,2,0%,2d,2d,0%,08/04/2026,09/04/2026,01/01/1970,50,No,51,As Soon As Possible,Medium,52,1.5.4,,01/01/2026
+71,Recursos: Edgar Gómez
+70,Entrega final del proyecto (10 Abril 2026),2,0%,1d,1d,0%,10/04/2026,10/04/2026,01/01/1970,51,No,52,As Soon As Possible,Medium,53,1.5.5,,01/01/2026
+71,Recursos: Edgar Gómez
