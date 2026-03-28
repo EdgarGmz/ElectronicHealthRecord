@@ -70,7 +70,7 @@ export function DashboardPage() {
   const restOfCards = visibleCards.filter((id) => id !== 'appointmentsToday' && id !== 'pending')
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="dashboard-page">
       <LoadingModal open={loading} message={t('common.loading')} />
       {/* Tarjetas KPI principales */}
       {restOfCards.length > 0 && (

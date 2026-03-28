@@ -93,6 +93,7 @@ export function LoginPage() {
                   <input
                     type="email"
                     autoComplete="email"
+                    data-testid="login-email"
                     className="login-input w-full pl-10 pr-4 py-3"
                     placeholder="tu@institucion.edu"
                     {...register('email')}
@@ -111,6 +112,7 @@ export function LoginPage() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] pointer-events-none z-10" />
                   <PasswordInput
                     autoComplete="current-password"
+                    data-testid="login-password"
                     placeholder="••••••••"
                     className="pl-10 pr-12"
                     {...register('password')}
@@ -143,7 +145,12 @@ export function LoginPage() {
               </div>
 
 
-              <GlassButton type="submit" variant="primary" className="w-full py-3 text-base font-semibold">
+              <GlassButton
+                type="submit"
+                variant="primary"
+                className="w-full py-3 text-base font-semibold"
+                data-testid="login-submit"
+              >
                 {t('auth.login')}
               </GlassButton>
             </form>

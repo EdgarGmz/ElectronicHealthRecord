@@ -1,0 +1,191 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API (build, test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: admin1234
+          POSTGRES_DB: ehr_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U admin -d ehr_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 10s
+
+    env:
+      DATABASE_URL: postgresql://admin:admin1234@localhost:5432/ehr_db
+      # Las pruebas no usan Puppeteer; evita descargar Chromium en cada job.
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed database
+        run: npm run prisma:seed
+
+      - name: Build
+        run: npm run build
+
+      # Omitimos __tests__/performance: umbrales de tiempo no estables en runners de CI.
+      - name: Test
+        run: npm test -- --testPathIgnorePatterns=performance
+
+  kiosko:
+    name: Kiosko (build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Kiosko
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: Kiosko/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+  ut-care:
+    name: ut-care (build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ut-care
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ut-care/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+  # E2E instala api + ut-care aquí. Si el repo crece y esto se vuelve lento, valorar:
+  # - needs: [api, ut-care] + actions/download-artifact con node_modules o carpetas de build
+  #   generadas en esos jobs (y/o caché de npm más agresiva por lockfile).
+  # - O un job "prepare" que empaquete artefactos y e2e solo descargue + Playwright.
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: e2e
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: admin1234
+          POSTGRES_DB: ehr_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U admin -d ehr_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 10s
+
+    env:
+      DATABASE_URL: postgresql://admin:admin1234@localhost:5432/ehr_db
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: |
+            api/package-lock.json
+            ut-care/package-lock.json
+            e2e/package-lock.json
+
+      - name: Install API and ut-care dependencies (parallel)
+        run: |
+          set -e
+          (cd api && npm ci) &
+          pid_api=$!
+          (cd ut-care && npm ci) &
+          pid_ut=$!
+          wait "$pid_api"
+          wait "$pid_ut"
+
+      - name: Prisma generate & migrate
+        working-directory: api
+        run: npx prisma generate && npx prisma migrate deploy
+
+      - name: Seed database
+        working-directory: api
+        run: npm run prisma:seed
+
+      - name: Install E2E dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Run E2E tests
+        run: npm test
