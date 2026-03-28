@@ -265,6 +265,7 @@ def main() -> int:
         pred_raw = row["Predecessors"].strip().strip('"')
         res_raw = row["Resource Names"].strip()
         pct = int(row["Percent Complete"].strip() or "0")
+        stakeholder = (row.get("Stakeholder") or "").strip()
 
         wbs = outline_wbs(csv_ol, counters)
         dh, empty_dur = parse_duration_hours(dur_raw)
@@ -285,7 +286,12 @@ def main() -> int:
                 if part.isdigit():
                     preds.append(int(part))
 
-        notes = f"Recursos: {res_raw}" if res_raw else ""
+        parts: list[str] = []
+        if stakeholder:
+            parts.append(f"Revisión / stakeholder: {stakeholder}")
+        if res_raw:
+            parts.append(f"Recursos: {res_raw}")
+        notes = " | ".join(parts)
 
         task_chunks.append(
             task_block(

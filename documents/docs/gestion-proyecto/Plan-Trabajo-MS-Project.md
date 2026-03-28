@@ -35,28 +35,29 @@ Las fechas de entrega de cada sub-proyecto o producto han sido establecidas seg�
 
 ---
 
-## 3. Recursos / Personas a Asignar (según Acta de Constitución)
+## 3. Recursos / Personas (plan base en `Plan-Trabajo-EHR.csv`)
 
-| Recurso | Rol | Uso en el plan |
-|---------|-----|----------------|
-| Edgar Gómez | Project Manager & Tech Lead | Planificación, arquitectura, revisión, desarrollo crítico |
-| Backend Developer 1 | Backend Developer | API, base de datos, seguridad |
-| Backend Developer 2 | Backend Developer | API, integración, testing |
-| Frontend Developer 1 | Frontend Developer | UI React, componentes, UX |
-| Frontend Developer 2 | Frontend Developer | Electron, integración, testing |
-| UI/UX Designer | UI/UX Designer | Wireframes, mockups, design system |
-| QA Engineer | QA Engineer | Testing, QA, usabilidad |
-
-*Nota: Donde figure [TBD] en el equipo, asignar en MS Project el rol genérico (ej. "Backend Developer") o el nombre cuando se confirme.*
+| Persona | Rol en el proyecto | Uso en el plan |
+|---------|-------------------|----------------|
+| Edgar Tiburcio Gomez Moran | PM, desarrollador backend, analista | Planificación, requisitos, arquitectura, API, seguridad, revisiones con stakeholders |
+| Juan Enrique Castillo Ontiveros | Desarrollador frontend | UI React, wireframes/mockups/design system (con Orlando), documentación de usuario |
+| Orlando de Jesús Casas Dávila | Desarrollador frontend | UI, Electron, wireframes/mockups/design system (con Juan) |
+| Daniela Mayte Guevara Castillo | Tester / QA | Pruebas de carga, E2E (con Carlos), usabilidad, fase Testing |
+| Carlos Alexis Rodriguez Garcia | Tester / QA | Tests backend (con Edgar y Daniela), E2E, auditoría de seguridad (con Edgar), usabilidad, corrección de bugs |
 
 ---
 
-## 4. Reglas Aplicadas en el Plan
+## 4. Reglas Aplicadas en el Plan (rúbrica académica)
 
-- **Duración máxima por actividad:** 5 días laborables (1 semana), para permitir actualizar el % de avance cada viernes.
-- **Columna % Completo:** Incluida en el CSV; actualizar semanalmente.
-- **Vínculos:** Las actividades están ligadas por predecesoras (Finish-to-Start donde aplique).
-- **Documentos de entrega:** Incluidos como actividades o parte de entregables (Acta, Req. Funcionales, Req. No Funcionales, Análisis Riesgos, API OpenAPI, Diagrama ER, Wireframes, Mockups, Design System, Esquema Web Services y Autenticación, Plan de Trabajo, Manual de usuario, etc.).
+- **Nivel 1 — Nombre del proyecto:** Una tarea resumen con el nombre *Electronic Health Record (EHR) System*; fechas globales del cuatrimestre (20 ene – 10 abr 2026).
+- **Nivel 2 — Fases:** Cinco fases (Análisis, Diseño, Desarrollo, Testing y QA, Despliegue y Cierre), alineadas con el Acta de Constitución y los hitos de entrega.
+- **Nivel 3 — Actividades:** Tareas ejecutables bajo cada fase; duración **máxima 5 días laborables (1 semana)** para poder registrar avance cada viernes.
+- **Predecesoras:** Actividades ligadas con **Predecessors** (ID de tarea) donde aplica una secuencia lógica; en MS Project se interpretan como fin-inicio salvo que se cambie el tipo de vínculo.
+- **Ventana del cuatrimestre:** Todas las actividades tienen **Inicio** y **Fin** dentro del periodo del proyecto (20-ene a 10-abr-2026); las fechas del CSV son plan base y pueden re-planificarse en MS Project manteniendo los hitos acordados con Profesores/Stakeholders.
+- **Revisión con Stakeholders/Profesores:** Hay tareas explícitas de revisión por fase (y columna **Stakeholder** en el CSV) para documentar con quién validar entregables; conviene concertar fechas reales en cada revisión.
+- **Recursos:** Cada actividad de nivel 3 tiene asignado al menos un **Resource Names** (rol o persona según el Acta).
+- **% Completo:** Columna **Percent Complete** en el CSV; actualizar **cada semana** (p. ej. los viernes) el avance de las tareas en curso.
+- **Entregables y documentos:** Incluidos como tareas o dentro del nombre del entregable (Acta, Matriz RACI, requisitos, riesgos, casos de uso, OpenAPI, ER, arquitectura, wireframes, mockups, design system, plan de trabajo, desarrollo, pruebas, manuales, capacitación, cierre).
 
 ---
 
@@ -66,21 +67,25 @@ Todas las actividades y documentos que forman parte de la entrega del proyecto e
 
 | Fase | Actividades / Documentos de entrega |
 |------|-------------------------------------|
-| **Fase 1 Análisis** | Acta de constitución, Requisitos funcionales, Requisitos no funcionales, Análisis de riesgos y amenazas, Casos de uso e historias de usuario, Reglas de negocio, Diagrama de flujo de atención, Revisión con Profesores, Entrega Fase Análisis |
+| **Fase 1 Análisis** | Acta de constitución, **Matriz RACI**, Requisitos funcionales, Requisitos no funcionales, Análisis de riesgos y amenazas, Casos de uso e historias de usuario, Reglas de negocio, Diagrama de flujo de atención, Revisión con Profesores, Entrega Fase Análisis |
 | **Fase 2 Diseño** | Documentación API REST (OpenAPI), Diagrama ER y esquema BD, Arquitectura del sistema, Wireframes (principales y restantes), Mockups alta fidelidad, Design system, Esquema Web Services y Autenticación, Plan de Trabajo (MS Project), Revisión con Profesores, Entrega Fase Diseño |
-| **Fase 3 Desarrollo** | Backend (setup, auth JWT, endpoints por módulo, tests), Frontend (setup, componentes, módulos UI, Electron, tests E2E), Revisión MVP (14 Mar), Revisión Desarrollo completo (28 Mar) |
+| **Fase 3 Desarrollo** | Backend (setup, auth JWT, endpoints por módulo, tests), Frontend (setup, componentes, módulos UI, Electron, tests E2E), Revisión MVP (plan base tras citas y expedientes; alinear con hito del Acta), Revisión desarrollo completo antes de Testing |
 | **Fase 4 Testing** | Pruebas rendimiento/carga, Auditoría seguridad, Pruebas usabilidad, Corrección bugs críticos, Revisión con Profesores - QA |
 | **Fase 5 Despliegue** | Configuración producción, Documentación de usuario y manual de administración, Capacitación, Transferencia de conocimiento, Entrega final (10 Abr) |
 
-*El archivo `Plan-Trabajo-EHR.csv` contiene cada una de estas actividades como tarea con nivel de esquema (Outline Level), duración ≤ 5 días, fechas, predecesoras, recursos y columna **% Completo**.*
+*El archivo `Plan-Trabajo-EHR.csv` contiene cada una de estas actividades como tarea con nivel de esquema (Outline Level), duración ≤ 5 días, fechas, predecesoras, recursos, columna **Stakeholder** (revisión con Profesores/áreas) y columna **% Completo**.*
 
 ---
 
 ## 6. Cómo Importar el Plan en MS Project
 
+**Recomendado:** abrir **`Plan-Trabajo-EHR.xml`** (MSPDI, UTF-8 sin BOM), generado con `python3 build_plan_mspdi.py` o con `./exportar-a-ms-project.sh`. Así se conservan notas (recursos + stakeholder), niveles de esquema y predecesoras sin un asistente de importación de CSV.
+
+**Alternativa CSV:**
+
 1. Abrir Microsoft Project.
-2. **Archivo → Abrir** y seleccionar `Plan-Trabajo-EHR.csv` (o **Archivo → Nuevo desde archivo** si su versión lo permite).
-3. Si usa **Archivo → Importar**: elegir archivo de texto/CSV, delimitador coma, codificación UTF-8. Asignar columnas a los campos de MS Project:
+2. **Archivo → Abrir** / **Importar** el archivo `Plan-Trabajo-EHR.csv`, delimitador coma, codificación UTF-8.
+3. Asignar columnas a los campos de MS Project:
    - `Task Name` → Nombre de tarea
    - `Duration` → Duración
    - `Start` → Inicio
@@ -89,9 +94,10 @@ Todas las actividades y documentos que forman parte de la entrega del proyecto e
    - `Resource Names` → Recursos
    - `Percent Complete` → % Completo
    - `Outline Level` → Nivel de esquema (1=Proyecto, 2=Fase, 3=Actividad)
-4. Ajustar el **calendario del proyecto** (Inicio: 20/01/2026, Fin: 10/04/2026). Si su MS Project usa formato de fecha distinto (DD/MM/AAAA o MM/DD/AAAA), reasignar las columnas Start/Finish en el asistente de importación.
+   - `Stakeholder` → copiar a **Notas** de la tarea si su asistente no tiene campo dedicado (en el XML ya va en Notas vía el generador).
+4. Ajustar el **calendario del proyecto** (Inicio: 20/01/2026, Fin: 10/04/2026). Si las fechas se muestran en otro formato regional, revisar el mapeo de columnas Start/Finish.
 5. Revisar que las tareas de resumen (Fases) reflejen correctamente las fechas de sus subtareas.
-6. Añadir o reemplazar recursos en la pestaña **Recursos** si desea asignar nombres concretos (sustituir "Backend Developer 1", etc., por los nombres reales del equipo).
+6. Sustituir en **Recursos** los roles genéricos por nombres reales del equipo cuando estén confirmados.
 
 ---
 
