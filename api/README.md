@@ -361,6 +361,16 @@ Una vez que el servidor esté ejecutándose, puedes acceder a la documentación 
 
 </div>
 
+**Ejecutar en local**
+
+```bash
+npm test
+# Alineado con CI (excluye pruebas de rendimiento poco estables en runners):
+npm test -- --testPathIgnorePatterns=performance
+```
+
+**CI (GitHub Actions):** el job `api` del workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) levanta PostgreSQL, aplica migraciones y seed, compila con `npm run build` y ejecuta Jest. Las pruebas E2E del monorepo corren en el job `e2e` (Playwright); ver [README del paquete e2e](../e2e/README.md).
+
 ### ⚙️ Variables de Entorno
 
 <div align="center">

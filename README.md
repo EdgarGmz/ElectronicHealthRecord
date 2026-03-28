@@ -105,6 +105,12 @@ Sistema integral de gestión de registros de salud electrónicos diseñado espec
 
 ```
 ElectronicHealthRecord/
+├── .github/workflows/            # CI/CD (GitHub Actions)
+│   └── ci.yml                    # Jobs: api, kiosko, ut-care, e2e
+├── e2e/                          # Pruebas E2E (Playwright, ut-care + API)
+│   ├── tests/
+│   ├── playwright.config.ts
+│   └── package.json
 ├── api/                          # Backend (Express + TypeScript)
 │   ├── src/
 │   │   ├── controllers/          # Controladores de rutas
@@ -399,23 +405,49 @@ VITE_APP_VERSION=1.0.0
 
 ---
 
+## 🔄 CI/CD (GitHub Actions)
+
+En cada `push` y `pull_request` hacia `develop` o `main`, el workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) ejecuta en paralelo:
+
+| Job | Qué hace |
+|-----|----------|
+| **api** | PostgreSQL de servicio, `npm ci`, Prisma (generate, migrate, seed), `npm run build`, tests **Jest** (se omiten pruebas de rendimiento en `__tests__/performance/`). |
+| **kiosko** | `npm ci` y `astro build`. |
+| **ut-care** | `npm ci` y `npm run build` (TypeScript + Vite). |
+| **e2e** | PostgreSQL, dependencias de `api`, `ut-care` y `e2e` (instalación en paralelo donde aplica), seed, Playwright (Chromium) y pruebas E2E del cliente web. |
+
+Los jobs comparten caché de npm según los `package-lock.json` de cada paquete. Para ampliar el pipeline (despliegue, artefactos entre jobs, etc.), extiende el mismo workflow o añade workflows adicionales en `.github/workflows/`.
+
+---
+
 ## 🧪 Testing
 
-### **Ejecutar Tests**
+### **Tests automatizados (API)**
 
 ```bash
-# Backend
 cd api
-npm test                    # Todos los tests
+npm test                    # Jest (unitarios + integración)
 npm run test:watch          # Modo watch
 npm run test:coverage       # Con cobertura
-
-# Frontend
-cd Kiosko
-cd ut-care
-npm test                    # Tests unitarios con Vitest
-npm run test:e2e            # Tests E2E con Cypress/Playwright
+# Mismo criterio que en CI (sin pruebas de carpeta performance):
+npm test -- --testPathIgnorePatterns=performance
 ```
+
+Requisitos: base de datos según `DATABASE_URL` (p. ej. `docker compose up -d` desde la raíz) y migraciones/seed si las pruebas lo necesitan.
+
+### **Pruebas E2E (navegador)**
+
+Las pruebas end-to-end del frontend **ut-care** contra la API real están en [`e2e/`](./e2e/). Usan **Playwright** (Chromium). Resumen de ejecución local:
+
+```bash
+# Desde la raíz: PostgreSQL arriba, seed aplicado (ver e2e/README.md)
+cd e2e
+npm ci
+npx playwright install chromium   # primera vez
+DATABASE_URL="postgresql://admin:admin1234@localhost:5432/ehr_db" npm test
+```
+
+Detalle: [`e2e/README.md`](./e2e/README.md).
 
 ### **Cobertura de Tests**
 
@@ -444,6 +476,7 @@ El proyecto mantiene una cobertura mínima de:
 - **[Análisis de Riesgos y Amenazas](./documents/docs/riesgos/Analisis-Riesgos-Amenazas.md)** - Evaluación de seguridad y cumplimiento
 
 ### Documentación Técnica
+- **[🎭 Pruebas E2E (Playwright)](./e2e/README.md)** - Automatización del cliente ut-care y CI
 - **[📚 Documentación API REST](./api/API_DOCUMENTATION.md)** - Guía completa de endpoints y uso
 - **[📄 Especificación OpenAPI](./api/openapi.yaml)** - Definición OpenAPI 3.0 de la API
 - **[API Documentation (Swagger UI)](http://localhost:5000/api-docs)** - Documentación interactiva (en desarrollo)

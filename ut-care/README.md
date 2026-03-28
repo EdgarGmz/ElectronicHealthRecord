@@ -20,7 +20,7 @@ Frontend del Sistema de Registro de Salud Electrónico. Construido con React, Ty
 ## Instalación
 
 ```bash
-cd client
+cd ut-care
 npm install
 cp .env.example .env
 # Editar .env: VITE_API_URL=http://localhost:5000/api
@@ -65,6 +65,12 @@ src/
 ├── main.tsx
 └── index.css           # variables CSS tema + utilidades glass
 ```
+
+## Pruebas E2E (Playwright)
+
+Las pruebas end-to-end del flujo web (login, dashboard, etc.) viven en el paquete [`../e2e/`](../e2e/) del repositorio (Playwright + Chromium). El CI las ejecuta en GitHub Actions junto con la API y la base de datos; en local necesitas PostgreSQL con migraciones y seed. Instrucciones completas: [`../e2e/README.md`](../e2e/README.md).
+
+Los formularios de login y el dashboard incluyen `data-testid` (`login-email`, `login-password`, `login-submit`, `dashboard-page`) para selectores estables en automatización.
 
 ## Documentación de diseño
 
