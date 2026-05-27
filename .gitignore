@@ -34,3 +34,23 @@ e2e/test-results/
 e2e/playwright-report/
 e2e/blob-report/
 e2e/playwright/.cache/
+
+# .NET / .NET MAUI (AppEHR/)
+bin/
+obj/
+*.user
+.vs/
+*.suo
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+*.nupkg
+*.snupkg
+*.DotSettings.user
+project.lock.json
+project.fragment.lock.json

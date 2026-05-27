@@ -10,6 +10,7 @@
 [![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Electron](https://img.shields.io/badge/Electron-47848F?style=for-the-badge&logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![.NET MAUI](https://img.shields.io/badge/.NET%20MAUI-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/apps/maui)
 
 </div>
 
@@ -19,6 +20,8 @@
 
 Sistema integral de gestión de registros de salud electrónicos diseñado específicamente para departamentos de enfermería y psicología en entornos institucionales. Proporciona una plataforma completa para el manejo de expedientes médicos, citas, historiales clínicos y administración de pacientes, cumpliendo con estándares de seguridad HIPAA.
 
+Incluye **AppEHR**, una aplicación móvil y de escritorio multiplataforma construida con **.NET MAUI** exclusivamente para psicólogos, donde pueden consultar sus citas programadas, revisar sus estadísticas personales y agendar citas rápidas — sin acceso para supervisores ni personal de enfermería.
+
 ### ✨ Características Principales
 
 - 📊 **Gestión de Expedientes Médicos** - Creación, edición y consulta de historiales clínicos completos
@@ -27,7 +30,8 @@ Sistema integral de gestión de registros de salud electrónicos diseñado espec
 - 💊 **Control de Medicamentos** - Registro y seguimiento de prescripciones
 - 🔐 **Seguridad Avanzada** - Autenticación JWT, encriptación de datos sensibles
 - 📱 **Aplicación Desktop** - Multiplataforma con Electron (Windows, macOS, Linux)
-- 📈 **Reportes y Estadísticas** - Generación de informes médicos en PDF
+- � **App Móvil para Psicólogos (AppEHR)** - App nativa con .NET MAUI (Android, iOS, Windows) exclusiva para psicólogos: citas, estadísticas personales y agendado rápido
+- �📈 **Reportes y Estadísticas** - Generación de informes médicos en PDF
 - 🌐 **Interfaz Intuitiva** - Diseño moderno con TailwindCSS y Atomic Design
 - 🔄 **Tiempo Real** - Notificaciones y actualizaciones instantáneas
 - 🌍 **Multiidioma** - Soporte de internacionalización
@@ -37,35 +41,38 @@ Sistema integral de gestión de registros de salud electrónicos diseñado espec
 ## 🏗️ Arquitectura del Sistema
 
 ```
-┌─────────────────────────────────────────────────┐
-│           Electron Desktop App                  │
-│  ┌─────────────────────────────────────────┐   │
-│  │        React Frontend (Client)          │   │
-│  │   • React Router • TailwindCSS          │   │
-│  │   • Redux Toolkit • React Query         │   │
-│  │   • Atomic Design Pattern               │   │
-│  └─────────────────┬───────────────────────┘   │
-└────────────────────┼───────────────────────────┘
-                     │ HTTP/REST API
-                     │ WebSocket (Socket.io)
-┌────────────────────▼───────────────────────────┐
-│          Express.js Backend (API)              │
-│   • TypeScript • TypeORM • JWT                 │
-│   • Repository Pattern • Redis Cache           │
-└────────────────────┬───────────────────────────┘
-                     │
-┌────────────────────▼───────────────────────────┐
-│              MySQL Database                     │
-│   • Expedientes • Pacientes • Citas            │
-│   • Medicamentos • Usuarios • Audit Logs       │
-└─────────────────────────────────────────────────┘
+┌──────────────────────────────────┐  ┌──────────────────────────────────┐
+│      Electron Desktop App        │  │  AppEHR (.NET MAUI)              │
+│  ┌────────────────────────────┐  │  │  Solo psicólogos                 │
+│  │   React Frontend (Client)  │  │  │  • Citas programadas             │
+│  │  • React Router            │  │  │  • Estadísticas personales       │
+│  │  • TailwindCSS             │  │  │  • Agendado rápido               │
+│  │  • Redux Toolkit           │  │  │  Android • iOS • Windows         │
+│  │  • Atomic Design           │  │  └──────────────┬───────────────────┘
+│  └──────────────┬─────────────┘  │                 │
+└─────────────────┼────────────────┘                 │
+                  │ HTTP/REST API                     │ HTTP/REST API
+                  │ WebSocket (Socket.io)             │ JWT
+                  └──────────────────┬───────────────┘
+                                     │
+┌────────────────────────────────────▼──────────────────────────────────┐
+│                      Express.js Backend (API)                         │
+│          • TypeScript • Prisma • JWT • Repository Pattern             │
+│          • Redis Cache • Socket.io • Winston                          │
+└────────────────────────────────────┬──────────────────────────────────┘
+                                     │
+┌────────────────────────────────────▼──────────────────────────────────┐
+│                         PostgreSQL Database                           │
+│        • Expedientes • Pacientes • Citas • Medicamentos               │
+│        • Usuarios • Audit Logs                                        │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
-### **Frontend**
+### **Frontend Web / Desktop**
 
 | Categoría | Tecnologías |
 |-----------|-------------|
@@ -79,6 +86,17 @@ Sistema integral de gestión de registros de salud electrónicos diseñado espec
 | **Arquitectura** | Atomic Design, Observer Pattern |
 | **i18n** | react-i18next |
 | **Documentación** | Storybook |
+
+### **App Móvil — AppEHR (solo psicólogos)**
+
+| Categoría | Tecnologías |
+|-----------|-------------|
+| **Framework** | .NET MAUI (net10.0) |
+| **Plataformas** | Android, iOS, Windows (WinUI 3) |
+| **Lenguaje** | C# + XAML |
+| **UI** | MAUI Controls, Shell Navigation |
+| **Autenticación** | JWT (mismo backend) |
+| **Acceso** | Exclusivo para rol `Psicólogo` |
 
 ### **Backend**
 
@@ -107,6 +125,17 @@ Sistema integral de gestión de registros de salud electrónicos diseñado espec
 ElectronicHealthRecord/
 ├── .github/workflows/            # CI/CD (GitHub Actions)
 │   └── ci.yml                    # Jobs: api, kiosko, ut-care, e2e
+├── AppEHR/                       # App móvil/escritorio — solo psicólogos (.NET MAUI)
+│   ├── AppShell.xaml             # Navegación principal (Shell)
+│   ├── MainPage.xaml             # Página inicial
+│   ├── MauiProgram.cs            # Entry point y DI
+│   ├── Platforms/                # Código específico por plataforma
+│   │   ├── Android/
+│   │   ├── iOS/
+│   │   ├── MacCatalyst/
+│   │   └── Windows/
+│   ├── Resources/                # Íconos, fuentes, imágenes, splash
+│   └── AppEHR.csproj
 ├── e2e/                          # Pruebas E2E (Playwright, ut-care + API)
 │   ├── tests/
 │   ├── playwright.config.ts
@@ -337,6 +366,26 @@ npm run format           # Formatear código con Prettier
 npm run storybook        # Ejecutar Storybook
 npm run build-storybook  # Compilar Storybook
 ```
+
+### **App Móvil para Psicólogos (AppEHR/)**
+
+Requiere el [SDK de .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) y las cargas de trabajo de MAUI instaladas.
+
+```bash
+# Instalar cargas de trabajo MAUI (primera vez)
+dotnet workload install maui
+
+# Ejecutar en Windows
+dotnet run --project AppEHR/AppEHR.csproj -f net10.0-windows10.0.19041.0
+
+# Ejecutar en Android (emulador o dispositivo)
+dotnet run --project AppEHR/AppEHR.csproj -f net10.0-android
+
+# Compilar para producción
+dotnet publish AppEHR/AppEHR.csproj -f net10.0-android -c Release
+```
+
+> **Nota:** AppEHR consume el mismo backend REST (`VITE_API_URL` → ajustar la URL base en `MauiProgram.cs`). Solo los usuarios con rol `Psicólogo` pueden autenticarse en la app; supervisores y personal de enfermería no tienen acceso.
 
 ---
 
