@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:AppEHR.ViewModels"
+             xmlns:models="clr-namespace:AppEHR.Models"
+             xmlns:converters="clr-namespace:AppEHR.Converters"
+             x:Class="AppEHR.Views.QuickAppointmentPage"
+             Title="Agendar Cita Rápida">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:StringToBooleanConverter x:Key="StringToBooleanConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+        <!-- Background Gradient -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStartLight}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
+                <GradientStop Color="{AppThemeBinding Light={StaticResource GradientEndLight}, Dark={StaticResource GradientEndDark}}" Offset="1.0" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <ScrollView Padding="16">
+            <VerticalStackLayout Spacing="16">
+
+                <!-- Alert Messages Banner -->
+                <Border StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                        Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                        Padding="12"
+                        IsVisible="{Binding StatusMessage, Converter={StaticResource StringToBooleanConverter}}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Label Grid.Column="0" 
+                               Text="{Binding IsError, Converter={StaticResource StringToBooleanConverter}, ConverterParameter='⚠️'}" 
+                               FontSize="16" 
+                               VerticalOptions="Center" 
+                               Margin="0,0,8,0" />
+                        <Label Grid.Column="1" 
+                               Text="{Binding StatusMessage}" 
+                               FontSize="12" 
+                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                               VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- SECTION 1: SEARCH & BOOK (If New Patient Form is CLOSED) -->
+                <VerticalStackLayout Spacing="16" IsVisible="{Binding ShowNewPatientForm, Converter={StaticResource StringToBooleanConverter}, ConverterParameter='invert'}">
+                    
+                    <!-- Search Card -->
+                    <Border StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                            Padding="16">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Buscar Alumno o Personal" FontSize="14" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Border Grid.Column="0" StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="8" />
+                                    </Border.StrokeShape>
+                                    <Entry Text="{Binding EnrollmentQuery}" 
+                                           Placeholder="Matrícula o Nº de empleado" 
+                                           TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                                           PlaceholderColor="Gray"
+                                           Margin="6,0"
+                                           HeightRequest="40" />
+                                </Border>
+                                
+                                <Button Grid.Column="1" 
+                                        Text="Buscar" 
+                                        Command="{Binding SearchPatientCommand}"
+                                        BackgroundColor="{StaticResource BrandPrimary}"
+                                        TextColor="White"
+                                        CornerRadius="8"
+                                        HeightRequest="40" />
+                            </Grid>
+
+                            <!-- If not found option -->
+                            <Button Text="➕ Registrar Paciente Nuevo" 
+                                    Command="{Binding ToggleNewPatientFormCommand}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource BrandPrimary}"
+                                    FontAttributes="Bold"
+                                    FontSize="12"
+                                    HorizontalOptions="Start"
+                                    Margin="0,4,0,0" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Patient Info (If found) -->
+                    <Border StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                            Padding="16"
+                            IsVisible="{Binding PatientFound}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Paciente Seleccionado" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                            <Label Text="{Binding FoundPatient.User.FullName}" FontSize="18" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" IsVisible="{Binding FoundPatient.Career, Converter={StaticResource StringToBooleanConverter}}">
+                                <Label Grid.Column="0" Text="🎓" FontSize="12" />
+                                <Label Grid.Column="1" Text="{Binding FoundPatient.Career.Name}" FontSize="12" TextColor="Gray" />
+                            </Grid>
+                            
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                                <Label Grid.Column="0" Text="✉️" FontSize="12" />
+                                <Label Grid.Column="1" Text="{Binding FoundPatient.User.Email}" FontSize="12" TextColor="Gray" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Appointment Details Form (If found) -->
+                    <Border StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                            Padding="16"
+                            IsVisible="{Binding PatientFound}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="14">
+                            <Label Text="Detalles de la Cita Rápida" FontSize="14" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            
+                            <!-- Date & Time -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                    <Label Text="Fecha" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                    <DatePicker Date="{Binding ScheduledDate}" Format="dd/MM/yyyy" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                    <Label Text="Hora" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                    <TimePicker Time="{Binding ScheduledTime}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <!-- Duration Picker -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Duración" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Picker SelectedIndex="{Binding DurationMinutes, Converter={StaticResource StringToBooleanConverter}, ConverterParameter=DurationToIndex}" 
+                                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}">
+                                    <Picker.Items>
+                                        <x:String>40 Minutos (Mínimo)</x:String>
+                                        <x:String>50 Minutos (Estándar)</x:String>
+                                        <x:String>60 Minutos</x:String>
+                                        <x:String>90 Minutos (Máximo)</x:String>
+                                    </Picker.Items>
+                                </Picker>
+                            </VerticalStackLayout>
+
+                            <!-- Appointment Type -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Tipo de Consulta" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Picker SelectedIndex="{Binding SelectedAppointmentType, Converter={StaticResource StringToBooleanConverter}, ConverterParameter=TypeToIndex}" 
+                                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}">
+                                    <Picker.Items>
+                                        <x:String>Seguimiento (follow_up)</x:String>
+                                        <x:String>Consulta Inicial (initial_consultation)</x:String>
+                                        <x:String>Urgencia (emergency)</x:String>
+                                        <x:String>Rutina (routine)</x:String>
+                                    </Picker.Items>
+                                </Picker>
+                            </VerticalStackLayout>
+
+                            <!-- Notes -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Notas / Motivo" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="8" />
+                                    </Border.StrokeShape>
+                                    <Editor Text="{Binding Notes}" 
+                                            Placeholder="Notas sobre el encuentro rápido (ej: pasillo de biblioteca)" 
+                                            TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                                            PlaceholderColor="Gray"
+                                            HeightRequest="80" 
+                                            Margin="6,0"/>
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Submit Button -->
+                            <Button Text="Agendar Cita Rápida" 
+                                    Command="{Binding BookAppointmentCommand}"
+                                    BackgroundColor="{StaticResource BrandPrimary}"
+                                    TextColor="White"
+                                    CornerRadius="12"
+                                    FontAttributes="Bold"
+                                    HeightRequest="48"
+                                    Margin="0,6,0,0" />
+
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- SECTION 2: NEW PATIENT REGISTRATION FORM (If New Patient Form is OPENED) -->
+                <VerticalStackLayout Spacing="16" IsVisible="{Binding ShowNewPatientForm}">
+                    <Border StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                            Padding="18">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="14">
+                            <Label Text="Registrar Nuevo Paciente" FontSize="16" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            
+                            <!-- First Name & Last Name -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Nombre(s)" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="8" />
+                                    </Border.StrokeShape>
+                                    <Entry Text="{Binding NewFirstName}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Apellido(s)" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="8" />
+                                    </Border.StrokeShape>
+                                    <Entry Text="{Binding NewLastName}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Email -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Correo Electrónico" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="8" />
+                                    </Border.StrokeShape>
+                                    <Entry Text="{Binding NewEmail}" Keyboard="Email" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Phone -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="WhatsApp / Teléfono" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="8" />
+                                    </Border.StrokeShape>
+                                    <Entry Text="{Binding NewPhone}" Keyboard="Telephone" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Date of Birth -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Fecha de Nacimiento" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <DatePicker Date="{Binding NewDateOfBirth}" Format="dd/MM/yyyy" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+                            </VerticalStackLayout>
+
+                            <!-- Patient Type Picker -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Tipo de Paciente" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Picker SelectedItem="{Binding NewPatientType}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}">
+                                    <Picker.Items>
+                                        <x:String>student</x:String>
+                                        <x:String>faculty</x:String>
+                                        <x:String>administrative</x:String>
+                                    </Picker.Items>
+                                </Picker>
+                            </VerticalStackLayout>
+
+                            <!-- Enrollment/Employee Number -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Matrícula o Nº Empleado" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="8" />
+                                    </Border.StrokeShape>
+                                    <Entry Text="{Binding NewEnrollmentNumber}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Student Fields (Visible if patient type is student) -->
+                            <VerticalStackLayout Spacing="14" IsVisible="{Binding IsStudentSelected}">
+                                <!-- Career Selector (Restricted to Psychologist careers) -->
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Carrera Académica (A Cargo del Psicólogo)" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                    <Picker ItemsSource="{Binding AssignedCareers}" 
+                                            ItemDisplayBinding="{Binding Name}" 
+                                            SelectedItem="{Binding SelectedNewPatientCareer}"
+                                            TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+                                </VerticalStackLayout>
+
+                                <!-- Group -->
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Grupo" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                    <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="8" />
+                                        </Border.StrokeShape>
+                                        <Entry Text="{Binding NewGroup}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                    </Border>
+                                </VerticalStackLayout>
+
+                                <!-- Trimester -->
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Cuatrimestre (1-12)" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                    <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="8" />
+                                        </Border.StrokeShape>
+                                        <Entry Text="{Binding NewTrimester}" Keyboard="Numeric" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                    </Border>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+
+                            <!-- Staff Fields (Visible if patient type is NOT student) -->
+                            <VerticalStackLayout Spacing="4" IsVisible="{Binding IsStudentSelected, Converter={StaticResource StringToBooleanConverter}, ConverterParameter='invert'}">
+                                <Label Text="Ocupación / Puesto" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="8" />
+                                    </Border.StrokeShape>
+                                    <Entry Text="{Binding NewOccupation}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Submit Buttons -->
+                            <Button Text="Guardar y Continuar" 
+                                    Command="{Binding RegisterPatientCommand}"
+                                    BackgroundColor="{StaticResource BrandPrimary}"
+                                    TextColor="White"
+                                    CornerRadius="12"
+                                    FontAttributes="Bold"
+                                    HeightRequest="48"
+                                    Margin="0,8,0,0" />
+
+                            <Button Text="Cancelar" 
+                                    Command="{Binding ToggleNewPatientFormCommand}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="Gray"
+                                    FontAttributes="Bold"
+                                    HeightRequest="40" />
+
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>
