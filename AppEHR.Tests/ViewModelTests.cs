@@ -56,7 +56,7 @@ namespace AppEHR.Tests
             mockApi.PostResponseJson = @"{
                 ""success"": true,
                 ""data"": {
-                    ""token"": ""mock_token"",
+                    ""accessToken"": ""mock_token"",
                     ""refreshToken"": ""mock_refresh_token"",
                     ""user"": {
                         ""id"": ""user123"",
@@ -67,6 +67,7 @@ namespace AppEHR.Tests
                     }
                 }
             }";
+
 
             viewModel.Email = "admin@test.com";
             viewModel.Password = "password";

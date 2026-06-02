@@ -75,7 +75,7 @@ namespace AppEHR.Services
                 }
 
                 var data = doc.RootElement.GetProperty("data");
-                var token = data.GetProperty("token").GetString();
+                var token = data.GetProperty("accessToken").GetString();
                 var refreshToken = data.GetProperty("refreshToken").GetString();
                 var userJson = data.GetProperty("user").GetRawText();
                 var user = JsonSerializer.Deserialize<User>(userJson);
@@ -99,6 +99,7 @@ namespace AppEHR.Services
                     await SecureStorage.SetAsync("refresh_token", refreshToken);
                     await SecureStorage.SetAsync("current_user", userJson);
                 }
+
                 catch
                 {
                     // Ignorar errores de almacenamiento en pruebas unitarias
@@ -127,6 +128,7 @@ namespace AppEHR.Services
             try
             {
                 SecureStorage.RemoveAll();
+                Preferences.Default.Remove("remember_me");
             }
             catch
             {

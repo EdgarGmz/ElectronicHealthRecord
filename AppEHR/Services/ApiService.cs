@@ -120,15 +120,32 @@ namespace AppEHR.Services
                     using var doc = JsonDocument.Parse(responseBody);
                     var dataProp = doc.RootElement.GetProperty("data");
                     
-                    var newAccessToken = dataProp.GetProperty("token").GetString();
-                    var newRefreshToken = dataProp.GetProperty("refreshToken").GetString();
+                    string? newAccessToken = null;
+                    if (dataProp.TryGetProperty("accessToken", out var accessTokenProp))
+                    {
+                        newAccessToken = accessTokenProp.GetString();
+                    }
 
-                    if (!string.IsNullOrEmpty(newAccessToken) && !string.IsNullOrEmpty(newRefreshToken))
+                    string? newRefreshToken = null;
+                    if (dataProp.TryGetProperty("refreshToken", out var refreshTokenProp))
+                    {
+                        newRefreshToken = refreshTokenProp.GetString();
+                    }
+                    else
+                    {
+                        newRefreshToken = refreshToken; // Mantener el actual
+                    }
+
+                    if (!string.IsNullOrEmpty(newAccessToken))
                     {
                         await SecureStorage.SetAsync("access_token", newAccessToken);
-                        await SecureStorage.SetAsync("refresh_token", newRefreshToken);
+                        if (!string.IsNullOrEmpty(newRefreshToken))
+                        {
+                            await SecureStorage.SetAsync("refresh_token", newRefreshToken);
+                        }
                         return true;
                     }
+
                 }
             }
             catch

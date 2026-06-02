@@ -54,7 +54,7 @@ namespace AppEHR.Services
                 var meCareersContent = await meCareersResponse.Content.ReadAsStringAsync();
                 using var meDoc = JsonDocument.Parse(meCareersContent);
                 var assignedIds = new List<string>();
-                var meData = meDoc.RootElement.GetProperty("data");
+                var meData = meDoc.RootElement.GetProperty("data").GetProperty("careerIds");
                 if (meData.ValueKind == JsonValueKind.Array)
                 {
                     foreach (var item in meData.EnumerateArray())
@@ -64,6 +64,7 @@ namespace AppEHR.Services
                     }
                 }
 
+
                 if (assignedIds.Count == 0) return result;
 
                 // 2. Obtener todas las carreras disponibles para cruzar nombres
@@ -72,12 +73,13 @@ namespace AppEHR.Services
 
                 var allCareersContent = await allCareersResponse.Content.ReadAsStringAsync();
                 using var allDoc = JsonDocument.Parse(allCareersContent);
-                var allData = allDoc.RootElement.GetProperty("data").GetProperty("careers");
+                var allData = allDoc.RootElement.GetProperty("data");
                 
                 if (allData.ValueKind == JsonValueKind.Array)
                 {
                     foreach (var item in allData.EnumerateArray())
                     {
+
                         var career = JsonSerializer.Deserialize<Career>(item.GetRawText());
                         if (career != null && assignedIds.Contains(career.Id))
                         {
