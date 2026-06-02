@@ -1,30 +1,45 @@
-# AppEHR - Asistente Móvil de Psicología 🏥🧠
+# 📱 AppEHR - Asistente Móvil de Psicología 🏥🧠
 
-**AppEHR** es una aplicación móvil y de escritorio multiplataforma desarrollada en **.NET MAUI (con .NET 10)**. Funciona como un asistente operativo de alta velocidad pensado exclusivamente para los **psicólogos** de la institución educativa. Les permite consultar su itinerario diario, dar de alta nuevos alumnos sobre la marcha y agendar citas rápidas directamente al encontrarse con pacientes en pasillos, cafeterías u otros espacios comunes del campus.
+> **Navegación Rápida:**
+> *   **[🏥 Regresar al README Principal](../README.md)**
+> *   **[⚙️ Backend (API REST)](../api/README.md)**
+> *   **[💻 Cliente Web (ut-care)](../ut-care/README.md)**
 
 ---
 
-## 🗺️ Diagrama de Flujo y Pantallas
+## 📋 Descripción
 
-El siguiente diagrama detalla la navegación y la lógica de validación implementada en el flujo de pantallas de la aplicación:
+**AppEHR** es una aplicación multiplataforma construida sobre el framework **.NET MAUI (.NET 10) con C# y XAML**. Funciona como un asistente de alta velocidad diseñado de forma exclusiva para los **psicólogos** operativos. 
+
+Su funcionalidad se centra en:
+1.  Consultar el itinerario diario de citas asignadas.
+2.  Visualizar métricas semanales y mensuales de rendimiento.
+3.  Registrar pacientes de tipo estudiante (restringido a las carreras asignadas del psicólogo) y de tipo docente/administrativo.
+4.  Agendar citas rápidas presenciales sobre la marcha cuando los alumnos los abordan en pasillos o áreas comunes del campus.
+
+---
+
+## 🗺️ Diagrama de Flujo de Pantallas
+
+El siguiente diagrama detalla la lógica de pantallas y las validaciones de negocio en tiempo de ejecución:
 
 ```mermaid
 graph TD
     A[Inicio: App Móvil] --> B[🔑 Pantalla de Login]
     B -->|Ingresar Credenciales| C{¿El rol es 'psicologo'?}
-    C -->|No| D[❌ Mostrar Error: Acceso Denegado]
+    C -->|No| D[❌ Mostrar Alerta: Acceso Denegado]
     C -->|Sí| E[📅 Dashboard: Mi Agenda]
     
     E -->|Filtrar Citas| F[Pestañas: Hoy / Semana / Mes]
-    E -->|Acción de Contacto| G[💬 WhatsApp / ✉️ Correo]
-    E -->|Salir| B
-    E -->|Botón Flotante| H[🔍 Buscador de Pacientes]
+    E -->|Contacto Rápido| G[💬 WhatsApp / ✉️ Correo]
+    E -->|Cerrar Sesión| B
+    E -->|Botón Flotante +| H[🔍 Buscador de Pacientes]
     
-    H -->|Ingresar Matrícula/ID| I{¿Paciente Existe?}
+    H -->|Ingresar Matrícula/ID| I{¿El Paciente Existe?}
     I -->|Sí| J[📝 Formulario de Cita Rápida]
-    I -->|No| K[➕ Formulario: Registrar Paciente]
+    I -->|No| K[➕ Registrar Paciente Nuevo]
     
-    K -->|Tipo: estudiante| L[Selector de Carrera: Solo las asignadas a tu cargo]
+    K -->|Tipo: estudiante| L[Selector: Solo sus carreras asignadas]
     K -->|Guardar Paciente| J
     K -->|Cancelar| H
     
@@ -34,104 +49,81 @@ graph TD
 
 ---
 
-## 🎨 Características Destacadas
+## 📋 Requisitos del Entorno
 
-*   **Diseño Crystal Glass (Glassmorphism):** Estética moderna con fondos degradados y tarjetas semi-transparentes con bordes luminosos de baja opacidad, consistente con el portal principal `ut-care`.
-*   **Seguridad de Rol Estricta:** Bloqueo explícito a nivel de autenticación móvil para denegar el acceso a roles administrativos o médicos (`admin`, `enfermero`, etc.).
-*   **KPIs de Desempeño Compactos:** Visualización de horas acumuladas de consulta a la semana mediante barra de progreso, y contadores mensuales de efectividad (citas totales, citas completadas, citas canceladas).
-*   **Filtro de Carreras Asignadas:** Al dar de alta un alumno nuevo, el selector de carreras del psicólogo se filtra de manera inteligente en base a sus asignaciones (obtenidas desde `/api/users/me/careers`), impidiendo registrar alumnos fuera de sus áreas.
-*   **Contacto Directo Integrado:** Accesos directos en las tarjetas de citas para iniciar chats directos de WhatsApp o abrir clientes de correo nativos de forma automática.
+Para compilar y ejecutar el proyecto móvil localmente, necesitas contar con:
 
----
-
-## 📋 Requisitos del Sistema
-
-Antes de iniciar la app, asegúrate de cumplir con las siguientes herramientas en tu entorno de desarrollo:
-
-*   **SDK de .NET:** Versión **10.0** o superior (`dotnet --version`).
-*   **Workload de MAUI:** Instalado y configurado (`dotnet workload install maui`).
-*   **Node.js & npm:** Versión **18.0** o superior instalada para correr el backend local.
-*   **Base de Datos:** Docker Desktop ejecutándose (para levantar PostgreSQL) o una base de datos local equivalente.
-*   **Emulador de Dispositivos:** Android Studio configurado con un dispositivo virtual (AVD) o Windows 10/11 con Developer Mode habilitado.
+*   **SDK de .NET 10.0** o superior.
+*   **Workload de MAUI** instalado (`dotnet workload install maui`).
+*   **Android Studio** (Para herramientas de SDK y emuladores Android).
+*   **Windows 10/11** con el Modo Desarrollador activado (si compilas para Windows Desktop).
 
 ---
 
-## 🚀 Pasos para Iniciar la App (Desde Cero / Clonada)
+## 🚀 Pasos para Compilar y Ejecutar
 
-Sigue esta secuencia para levantar el entorno de base de datos, backend y la aplicación móvil de manera local:
+Asegúrate de que la API backend esté ejecutándose en tu PC en el puerto `5000`.
 
-### Paso 1: Configurar e Iniciar la Base de Datos y el Backend
-1. Abre tu terminal y navega al directorio del backend:
-   ```bash
-   cd api
-   ```
-2. Crea el archivo de variables de entorno `.env` copiando el ejemplo base:
-   ```bash
-   cp .env.example .env
-   ```
-3. Ejecuta el script de inicialización automática. Este comando instalará los paquetes de Node, levantará la base de datos PostgreSQL en Docker, creará el esquema de base de datos a través de Prisma e inyectará los seeds iniciales:
-   ```bash
-   npm run setup
-   ```
-4. Inicia el servidor del backend en modo desarrollo:
-   ```bash
-   npm run dev
-   ```
-   *El backend estará disponible en `http://localhost:5000/api`.*
-
----
-
-### Paso 2: Iniciar la Aplicación Móvil (AppEHR)
-Abre otra terminal independiente para compilar y ejecutar el proyecto móvil:
-
-1. Ve a la carpeta de la aplicación móvil:
-   ```bash
-   cd AppEHR
-   ```
-2. Restaura los paquetes NuGet necesarios:
-   ```bash
-   dotnet restore
-   ```
-3. Compila e inicia la aplicación según tu plataforma objetivo:
-   *   **Para ejecutar en Windows Desktop:**
-       ```bash
-       dotnet build -t:Run -f net10.0-windows10.0.19041.0
-       ```
-   *   **Para ejecutar en Emulador de Android (con el emulador ya encendido):**
-       ```bash
-       dotnet build -t:Run -f net10.0-android
-       ```
-       *(La app detecta automáticamente que se ejecuta en Android y redirige de forma transparente la dirección localhost al gateway del host `10.0.2.2:5000`).*
+1.  **Navegar al directorio móvil:**
+    ```bash
+    cd AppEHR
+    ```
+2.  **Restaurar dependencias NuGet:**
+    ```bash
+    dotnet restore
+    ```
+3.  **Ejecutar según la plataforma:**
+    *   **En Windows (Desktop):**
+        ```bash
+        dotnet build -t:Run -f net10.0-windows10.0.19041.0
+        ```
+    *   **En Emulador Android (con emulador encendido):**
+        ```bash
+        dotnet build -t:Run -f net10.0-android
+        ```
+        *(En emulador la app detecta automáticamente la red local y usa `http://10.0.2.2:5000/api` para el backend).*
 
 ---
 
-## 🧪 Pruebas UAT (User Acceptance Testing)
+## 📱 Depuración en Dispositivo Android Físico
 
-Para realizar las pruebas de aceptación y validar las reglas de negocio descritas, utiliza los siguientes usuarios precargados en el ambiente de desarrollo (`dev`):
+Al depurar en un celular físico real por cable USB, realiza las siguientes configuraciones de seguridad y ruteo de red:
 
-### 🔑 Credenciales de Acceso
+### 1. Activar permisos de desarrollador en el celular
+*   Ve a **Ajustes > Opciones de desarrollador**.
+*   Activa **Depuración USB** e **Instalar vía USB (Install via USB)**.
+    *   *Dispositivos Xiaomi (MIUI/HyperOS):* Activar "Instalar vía USB" requiere conexión de datos móviles activa en el teléfono e iniciar sesión en tu cuenta Mi Account.
+*   Mantén la pantalla del celular desbloqueada. Durante el despliegue de Visual Studio, aparecerá una alerta de seguridad preguntando si aceptas la instalación. Presiona **Aceptar** en menos de 10 segundos para evitar el error `INSTALL_FAILED_USER_RESTRICTED`.
 
-| Rol de Usuario | Nombre Completo | Correo de Acceso | Contraseña común | Comportamiento Esperado UAT |
-| :--- | :--- | :--- | :--- | :--- |
-| **Psicólogo Operativo** | Carlos Alexis Rodriguez Garcia | `carlos.rodriguez@ehr-system.com` | `Password123!` | **Acceso Exitoso.** Puede ver su agenda, registrar pacientes bajo sus carreras académicas asociadas y agendar citas. |
-| **Coordinador Psicología** | Orlando de Jesus Casas Davila | `orlando.casas@ehr-system.com` | `Password123!` | **Acceso Bloqueado.** Muestra alerta: *"Acceso exclusivo para personal de psicología"*. |
-| **Administrador** | Xochilt Clara Villar Diego | `admin@ehr-system.com` | `Password123!` | **Acceso Bloqueado.** Muestra alerta de acceso exclusivo. |
-| **Enfermero Operativo** | Daniela Mayte Guevara Castillo | `daniela.guevara@ehr-system.com` | `Password123!` | **Acceso Bloqueado.** Muestra alerta de acceso exclusivo. |
+### 2. Establecer redirección de puertos USB (ADB Reverse)
+Dado que un celular físico no puede resolver el alias `10.0.2.2`, el constructor de `ApiService.cs` conmuta automáticamente a `localhost` en dispositivos físicos. Para crear el túnel de comunicación a través del cable USB:
+*   Con el celular conectado por USB, abre PowerShell en tu PC y ejecuta:
+    ```powershell
+    & "C:\Program Files (x86)\Android\android-sdk\platform-tools\adb.exe" reverse tcp:5000 tcp:5000
+    ```
+    *(Si tienes `adb` configurado en tu PATH, puedes escribir simplemente: `adb reverse tcp:5000 tcp:5000`)*
+*   El comando confirmará imprimiendo `5000`. Listo, ahora las solicitudes HTTP de la app se redirigirán a la API de tu computadora.
 
-### 🛠️ Casos de Prueba Recomendados para UAT
+---
 
-1.  **Validación de Acceso:** Intenta ingresar con el usuario `daniela.guevara@ehr-system.com`. Verifica que el sistema te impida el acceso. Posteriormente, inicia sesión con `carlos.rodriguez@ehr-system.com` y confirma que entras al dashboard principal.
-2.  **Validación de Cita Rápida (Duración):** Busca la matrícula de un alumno existente (ej. `1001`) e intenta reservar una cita con una duración de 30 minutos. Comprueba que el formulario arroje un mensaje de error y te impida guardarla. Sube la duración a 50 minutos y confirma que se guarde exitosamente.
-3.  **Filtro de Carreras en Nuevos Registros:** Presiona en registrar un nuevo paciente de tipo `student`. Despliega el selector de Carrera Académica y comprueba que solo se muestren las carreras asociadas al psicólogo (ej: *TSU en Desarrollo y Gestión de Software* e *Ingeniería en Desarrollo y Gestión de Software*).
-4.  **Prueba de Enlace WhatsApp/Correo:** En tu itinerario del Dashboard, presiona en el botón `💬 WhatsApp` de cualquier cita y verifica que redirija a tu navegador abriendo la URL `https://wa.me/` con el número telefónico del paciente.
+## 🧪 Casos de Prueba UAT (User Acceptance Testing)
+
+Utiliza la cuenta del psicólogo de desarrollo para validar las reglas de negocio en la app:
+*   **Usuario:** `carlos.rodriguez@ehr-system.com`
+*   **Contraseña:** `Password123!`
+
+### Casos prácticos a validar:
+1.  **Restricción de Rol:** Intenta iniciar sesión con `daniela.guevara@ehr-system.com` (enfermero) u `orlando.casas@ehr-system.com` (coordinador). Confirma que se muestre la alerta: *"Acceso exclusivo para personal de psicología"*.
+2.  **Validación de Citas:** Intenta agendar una cita con una duración menor a 40 minutos (ej. 30 min). Comprueba que el sistema lo rechace. Ajusta a 50 minutos y confirma que se agende con éxito.
+3.  **Restricción de Carreras:** Presiona registrar paciente nuevo, selecciona tipo `student`. Comprueba que en la lista de carreras únicamente figuren las asignadas a Carlos Rodriguez (*TSU en Desarrollo y Gestión de Software* e *Ingeniería en Desarrollo y Gestión de Software*).
 
 ---
 
 ## 🤖 Pruebas Automatizadas (Unit Tests)
 
-Si deseas verificar el comportamiento lógico de los ViewModels localmente sin levantar servidores o emuladores físicos, ejecuta el conjunto de tests unitarios:
+La solución incluye un proyecto de pruebas en xUnit para verificar la lógica de los ViewModels y convertidores de forma aislada:
 ```bash
 cd AppEHR.Tests
 dotnet test
 ```
-*Los tests validan de forma aislada las restricciones de duración, la restricción de inicio de sesión por rol y el agendado de citas futuras.*
+*Los tests mockean las llamadas HTTP a la API y validan de manera local las duraciones de las citas y validación de rol.*
