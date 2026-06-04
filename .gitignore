@@ -34,3 +34,15 @@ e2e/test-results/
 e2e/playwright-report/
 e2e/blob-report/
 e2e/playwright/.cache/
+
+# Visual Studio & .NET build outputs / cache
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userprefs
+*.db
+*.dtbcache*
+.dtbcache*
+*.futdcache*
