@@ -27,7 +27,7 @@ app.use(
       }
       // No origin (e.g. same-origin or Postman): allow
       if (!origin) return callback(null, true);
-      if (allowed.includes(origin)) return callback(null, true);
+      if (allowed.includes(origin) || allowed.includes('*')) return callback(null, true);
       callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
