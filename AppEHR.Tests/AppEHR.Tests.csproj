@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <UseMaui>true</UseMaui>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AppEHR\AppEHR.csproj" />
+  </ItemGroup>
+
+  <!-- Clear MAUI assets inherited from referenced project to avoid Resizetizer duplication -->
+  <Target Name="ClearMauiResources" BeforeTargets="ResizetizeImages;ProcessMauiImages;CleanResizetizer;GetImagePriorities">
+    <ItemGroup>
+      <MauiIcon Remove="@(MauiIcon)" />
+      <MauiSplashScreen Remove="@(MauiSplashScreen)" />
+      <MauiImage Remove="@(MauiImage)" />
+      <MauiFont Remove="@(MauiFont)" />
+      <MauiAsset Remove="@(MauiAsset)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

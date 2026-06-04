@@ -20,10 +20,11 @@ export const ROLES_VISIBLE_IN_USERS: readonly string[] = [
   ROLES.ENFERMERO,
 ]
 
-/** Solo coordinadores pueden crear pacientes. Psicólogo y enfermero solo consultan y editan. */
+/** Coordinadores y psicólogos pueden registrar pacientes nuevos. */
 export const ROLES_CAN_CREATE_PATIENT: readonly string[] = [
   ROLES.COORDINADOR_PSICOLOGIA,
   ROLES.COORDINADOR_ENFERMERIA,
+  ROLES.PSICOLOGO,
 ]
 
 /** Solo coordinadores pueden eliminar (desactivar) pacientes. */
