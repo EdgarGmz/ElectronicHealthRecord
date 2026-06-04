@@ -32,8 +32,11 @@ export const ROLES_CAN_MANAGE_PATIENTS = [
   ROLES.ENFERMERO,
 ] as const;
 
-/** Solo coordinadores pueden crear pacientes nuevos. Psicólogo y enfermero solo consultan/editan. */
+/** Coordinadores, psicólogos y enfermeros pueden registrar pacientes nuevos en el sistema. */
 export const ROLES_CAN_CREATE_PATIENT = [
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.COORDINADOR_ENFERMERIA,
+  ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ] as const;
 

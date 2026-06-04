@@ -35,14 +35,29 @@ e2e/playwright-report/
 e2e/blob-report/
 e2e/playwright/.cache/
 
-# Visual Studio & .NET build outputs / cache
+# Visual Studio & .NET / .NET MAUI build outputs and cache
 .vs/
+bin/
+obj/
 [Bb]in/
 [Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
 *.user
 *.suo
 *.userprefs
+*.userosscache
+*.sln.docstates
 *.db
 *.dtbcache*
 .dtbcache*
 *.futdcache*
+*.nupkg
+*.snupkg
+*.DotSettings.user
+project.lock.json
+project.fragment.lock.json
