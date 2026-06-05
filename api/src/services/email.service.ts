@@ -87,6 +87,36 @@ export class EmailService {
       logger.error(`Failed to send password reset email to ${email}:`, error);
     }
   }
+
+  async sendWaitingListNotification(email: string, firstName: string, department: string) {
+    const deptName = department === 'psicologia' ? 'Psicología' : 'Enfermería';
+    const mailOptions = {
+      from: process.env.SMTP_FROM || 'noreply@ehr-system.com',
+      to: email,
+      subject: 'Espacio disponible - UT Care',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+          <h2 style="color: #2b6cb0;">Espacio Disponible en UT Care</h2>
+          <p>Hola ${firstName},</p>
+          <p>Te escribimos porque estás en nuestra lista de espera y se ha liberado un espacio en el departamento de <strong>${deptName}</strong>.</p>
+          <p>Por favor, ponte en contacto con el departamento correspondiente o inicia sesión en el sistema para agendar tu cita lo antes posible.</p>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+          <p style="color: #a0aec0; font-size: 12px;">Este es un mensaje automático, por favor no respondas a este correo.</p>
+        </div>
+      `,
+    };
+
+    logger.info(`[Email simulation] Waiting list release email for ${firstName} (${email}) in ${deptName}`);
+
+    try {
+      if (process.env.SMTP_USER && process.env.SMTP_USER !== 'your-email@example.com') {
+        await transporter.sendMail(mailOptions);
+        logger.info(`Waiting list email sent to ${email}`);
+      }
+    } catch (error) {
+      logger.error(`Failed to send waiting list notification to ${email}:`, error);
+    }
+  }
 }
 
 export default new EmailService();
