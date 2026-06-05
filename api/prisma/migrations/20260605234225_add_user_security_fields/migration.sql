@@ -12,7 +12,20 @@ ADD COLUMN     "is_confirmed" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN     "must_change_password" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN     "reset_password_expires" TIMESTAMP(3),
 ADD COLUMN     "reset_password_token" VARCHAR(255),
-ADD COLUMN     "username" VARCHAR(50) NOT NULL;
+ADD COLUMN     "username" VARCHAR(50);
+
+-- Populate usernames for existing users before setting NOT NULL
+UPDATE "users" SET "username" = 'XochiltVLL' WHERE "email" = 'admin@ehr-system.com';
+UPDATE "users" SET "username" = 'EdgarGMZ' WHERE "email" = 'edgar.tiburcio@ehr-system.com';
+UPDATE "users" SET "username" = 'OrlandoCSS' WHERE "email" = 'orlando.casas@ehr-system.com';
+UPDATE "users" SET "username" = 'CarlosRDR' WHERE "email" = 'carlos.rodriguez@ehr-system.com';
+UPDATE "users" SET "username" = 'DanielaGVR' WHERE "email" = 'daniela.guevara@ehr-system.com';
+
+-- Fallback for any other users
+UPDATE "users" SET "username" = split_part("email", '@', 1) WHERE "username" IS NULL;
+
+-- Make it NOT NULL
+ALTER TABLE "users" ALTER COLUMN "username" SET NOT NULL;
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
