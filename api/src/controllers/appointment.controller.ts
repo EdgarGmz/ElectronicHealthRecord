@@ -1,4 +1,4 @@
-import { NextFunction, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { body, param } from 'express-validator';
 import appointmentService from '../services/appointment.service';
 import { AuthRequest } from '../middleware/auth';

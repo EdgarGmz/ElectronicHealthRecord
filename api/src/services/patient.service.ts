@@ -265,6 +265,7 @@ export class PatientService {
       lastName: string;
       dateOfBirth: Date;
       phone?: string;
+      sex?: string;
       enrollmentNumber?: string;
       patientType: string;
       maritalStatus?: string;
