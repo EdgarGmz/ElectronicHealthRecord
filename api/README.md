@@ -79,15 +79,15 @@ Una vez que el contenedor de Docker de PostgreSQL esté activo (ejecutando `dock
 
 ## 👤 Cuentas de Prueba (Seed DEV)
 
-Para realizar pruebas locales, puedes iniciar sesión en cualquier cliente utilizando las siguientes credenciales de prueba precargadas por el seed. **La contraseña de acceso de todas las cuentas es:** `Password123!`
+Para realizar pruebas locales, puedes iniciar sesión en cualquier cliente utilizando las siguientes credenciales de prueba precargadas por el seed. **El inicio de sesión se realiza de forma exclusiva con el Nombre de Usuario (Username)**. La contraseña de acceso para todas las cuentas es: `Password123!`
 
-| Nombre Completo | Correo Electrónico | Rol del Sistema | Descripción |
-| :--- | :--- | :--- | :--- |
-| Xochilt Clara Villar Diego | `admin@ehr-system.com` | `admin` | Administrador / Auditor del sistema |
-| Orlando de Jesus Casas Davila | `orlando.casas@ehr-system.com` | `coordinador_psicologia` | Coordinador de Psicología |
-| Edgar Tiburcio Gomez Moran | `edgar.tiburcio@ehr-system.com` | `coordinador_enfermeria` | Coordinador de Enfermería |
-| Carlos Alexis Rodriguez Garcia | `carlos.rodriguez@ehr-system.com` | `psicologo` | Psicólogo Clínico Operativo |
-| Daniela Mayte Guevara Castillo | `daniela.guevara@ehr-system.com` | `enfermero` | Personal de Enfermería |
+| Nombre Completo | Nombre de Usuario (Username) | Correo Electrónico | Rol del Sistema | Descripción |
+| :--- | :--- | :--- | :--- | :--- |
+| Xochilt Clara Villar Diego | `XochiltVLL` | `admin@ehr-system.com` | `admin` | Administrador / Auditor del sistema |
+| Orlando de Jesus Casas Davila | `OrlandoCSS` | `orlando.casas@ehr-system.com` | `coordinador_psicologia` | Coordinador de Psicología |
+| Edgar Tiburcio Gomez Moran | `EdgarGMZ` | `edgar.tiburcio@ehr-system.com` | `coordinador_enfermeria` | Coordinador de Enfermería |
+| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `carlos.rodriguez@ehr-system.com` | `psicologo` | Psicólogo Clínico Operativo |
+| Daniela Mayte Guevara Castillo | `DanielaGVR` | `daniela.guevara@ehr-system.com` | `enfermero` | Personal de Enfermería |
 
 ---
 
