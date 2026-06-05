@@ -25,6 +25,21 @@ export const refreshTokenValidation = [
   body('refreshToken').notEmpty().withMessage('Refresh token is required'),
 ];
 
+export const confirmAccountValidation = [
+  body('token').notEmpty().withMessage('Token is required'),
+];
+
+export const forgotPasswordValidation = [
+  body('email').isEmail().withMessage('Valid email is required'),
+];
+
+export const resetPasswordValidation = [
+  body('token').notEmpty().withMessage('Token is required'),
+  body('newPassword')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters'),
+];
+
 export class AuthController {
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -108,6 +123,45 @@ export class AuthController {
       res.status(200).json({
         success: true,
         message: 'Logout successful',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async confirmAccount(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { token } = req.body;
+      const result = await authService.confirmAccount(token);
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email } = req.body;
+      const result = await authService.forgotPassword(email);
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { token, newPassword } = req.body;
+      const result = await authService.resetPassword(token, newPassword);
+      res.status(200).json({
+        success: true,
+        message: result.message,
       });
     } catch (error) {
       next(error);
