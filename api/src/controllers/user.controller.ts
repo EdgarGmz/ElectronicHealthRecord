@@ -33,6 +33,11 @@ export const updateMeValidation = [
   body('dateOfBirth').optional().isISO8601().withMessage('Invalid date of birth'),
 ];
 
+export const changePasswordValidation = [
+  body('currentPassword').notEmpty().withMessage('Contraseña actual es requerida'),
+  body('newPassword').isLength({ min: 8 }).withMessage('La nueva contraseña debe tener al menos 8 caracteres'),
+];
+
 export class UserController {
   async create(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -180,6 +185,23 @@ export class UserController {
       const { id } = req.params;
       const result = await userService.delete(id);
 
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async changePassword(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, message: 'No autenticado' });
+        return;
+      }
+      const result = await userService.changePassword(userId, req.body);
       res.status(200).json({
         success: true,
         message: result.message,
