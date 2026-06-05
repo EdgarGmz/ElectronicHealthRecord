@@ -6,6 +6,30 @@ import { hashPassword } from '../utils/password';
 import { ROLES } from '../constants/roles';
 import psychologistCareerService from './psychologist-career.service';
 
+async function generateUniqueUsername(firstName: string, lastName: string): Promise<string> {
+  const cleanName = firstName.trim().split(' ')[0].normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const cleanLastName = lastName.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const consonants = cleanLastName.replace(/[aeiouáéíóúü\s]/gi, '');
+  const suffix = consonants.substring(0, 3);
+  const capitalizedFirst = cleanName.charAt(0).toUpperCase() + cleanName.slice(1).toLowerCase();
+  const capitalizedSuffix = suffix.toUpperCase();
+  const base = `${capitalizedFirst}${capitalizedSuffix}`;
+
+  let username = base;
+  let counter = 1;
+  while (true) {
+    const existing = await prisma.user.findUnique({
+      where: { username },
+    });
+    if (!existing) {
+      break;
+    }
+    username = `${base}${counter}`;
+    counter++;
+  }
+  return username;
+}
+
 /** Pacientes que tienen al menos una consulta de enfermería (registrados en enfermería) */
 const NURSING_PATIENT_WHERE: Prisma.PatientWhereInput = {
   medicalRecord: {
@@ -285,10 +309,12 @@ export class PatientService {
     const passwordHash = await hashPassword(passwordToUse);
 
     // Create user and patient in a transaction
+    const username = await generateUniqueUsername(data.firstName, data.lastName);
     const patient = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
           email: data.email,
+          username,
           passwordHash,
           firstName: data.firstName,
           lastName: data.lastName,
@@ -297,6 +323,8 @@ export class PatientService {
           enrollmentNumber: data.enrollmentNumber,
           sex: (data as any).sex ?? null,
           role: ROLES.PATIENT,
+          isConfirmed: true,
+          mustChangePassword: false,
         },
       });
 
