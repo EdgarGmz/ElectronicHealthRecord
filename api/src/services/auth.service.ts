@@ -4,18 +4,21 @@ import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '.
 import { AppError } from '../middleware/errorHandler';
 
 export class AuthService {
-  async login(email: string, password: string) {
-    const normalizedEmail = email.trim().toLowerCase();
+  async login(username: string, password: string) {
+    const normalizedUsername = username.trim();
     const user = await prisma.user.findFirst({
-      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+      where: { username: { equals: normalizedUsername, mode: 'insensitive' } },
       select: {
         id: true,
         email: true,
+        username: true,
         passwordHash: true,
         firstName: true,
         lastName: true,
         role: true,
         isActive: true,
+        isConfirmed: true,
+        mustChangePassword: true,
       },
     });
 
@@ -25,6 +28,10 @@ export class AuthService {
 
     if (!user.isActive) {
       throw new AppError('Account is inactive', 403);
+    }
+
+    if (!user.isConfirmed) {
+      throw new AppError('Debes confirmar tu cuenta por correo electrónico primero.', 403);
     }
 
     const isPasswordValid = await comparePassword(password, user.passwordHash);
@@ -48,9 +55,11 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
+        username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        mustChangePassword: user.mustChangePassword,
       },
       accessToken,
       refreshToken,

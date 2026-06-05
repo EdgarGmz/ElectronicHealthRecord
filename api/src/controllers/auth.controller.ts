@@ -6,7 +6,7 @@ import { createAuditLog, AUDIT_ACTIONS, AUDIT_TABLES } from '../utils/audit';
 import type { AuthRequest } from '../middleware/auth';
 
 export const loginValidation = [
-  body('email').isEmail().withMessage('Valid email is required'),
+  body('username').notEmpty().withMessage('Username is required'),
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
@@ -28,16 +28,16 @@ export const refreshTokenValidation = [
 export class AuthController {
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { email, password } = req.body;
-      const result = await authService.login(email, password);
+      const { username, password } = req.body;
+      const result = await authService.login(username, password);
 
-      logger.info(`User logged in: ${email}`);
+      logger.info(`User logged in: ${username}`);
       await createAuditLog({
         userId: result.user.id,
         action: AUDIT_ACTIONS.LOGIN,
         tableName: AUDIT_TABLES.USER,
         recordId: result.user.id,
-        newValues: { email: result.user.email, role: result.user.role },
+        newValues: { username: result.user.username, role: result.user.role },
         req,
       });
 
@@ -47,10 +47,9 @@ export class AuthController {
         data: result,
       });
     } catch (error) {
-      const email = req.body?.email;
-      if (typeof email === 'string' && email) {
-        logger.warn(`Login failed: ${email}`);
-        // LOGIN_FAILED no se guarda en AuditLog porque userId es obligatorio (FK); el logger queda como registro.
+      const username = req.body?.username;
+      if (typeof username === 'string' && username) {
+        logger.warn(`Login failed: ${username}`);
       }
       next(error);
     }
