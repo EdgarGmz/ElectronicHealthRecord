@@ -14,6 +14,7 @@ import {
   PlayCircle,
   CalendarPlus,
   X,
+  Users,
 } from 'lucide-react'
 import { canSeeNavItem } from '@/constants/roles'
 import {
@@ -29,7 +30,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { ConfirmModal } from '@/components/molecules/ConfirmModal'
-import { cancelAppointment, getAppointments, rescheduleAppointment } from '@/services/appointment.service'
+import { cancelAppointment, getAppointments, rescheduleAppointment, getQueue, type WaitingListEntry } from '@/services/appointment.service'
 import { getTherapySessions } from '@/services/therapy-session.service'
 import { getNotifications, getUnreadCount } from '@/services/notification.service'
 import type { Appointment } from '@/types/appointment'
@@ -96,6 +97,7 @@ export function DashboardPsychologist() {
   const [sessions, setSessions] = useState<TherapySession[]>([])
   const [reminders, setReminders] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState<number>(0)
+  const [queue, setQueue] = useState<WaitingListEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null)
@@ -165,14 +167,16 @@ export function DashboardPsychologist() {
       getNotifications({ page: 1, limit: 5, isRead: false })
         .then((r) => r.notifications),
       getUnreadCount().then((r) => r.count),
+      getQueue().catch(() => [] as WaitingListEntry[]),
     ])
-      .then(([today, upcoming, sess, notifs, totalUnread]) => {
+      .then(([today, upcoming, sess, notifs, totalUnread, qList]) => {
         if (cancelled) return
         setAppointmentsToday(today)
         setUpcomingAppointments(upcoming)
         setSessions(sess)
         setReminders(notifs)
         setUnreadCount(totalUnread)
+        setQueue(qList)
       })
       .catch(() => {
         if (!cancelled) setError(t('common.error'))
@@ -205,7 +209,7 @@ export function DashboardPsychologist() {
   }, [appointmentDetail])
 
   // Si la cita cambia de estado (ej. "completada") desde otras pantallas,
-  // necesitamos refrescar la tabla para reflejarlo.
+  // o se agregan alumnos a la fila virtual, necesitamos refrescar la tabla.
   useEffect(() => {
     if (!user?.id) return
 
@@ -214,6 +218,8 @@ export function DashboardPsychologist() {
       if (cancelled) return
       try {
         await refreshAppointmentsToday()
+        const qList = await getQueue()
+        if (!cancelled) setQueue(qList)
       } catch {
         // Silenciar; el siguiente tick reintenta.
       }
@@ -380,6 +386,71 @@ export function DashboardPsychologist() {
           {t('dashboard.psychologist.roleDescription')}
         </p>
         <p className="mt-1 text-xs text-[var(--text-muted)]">{todayLabel}</p>
+      </GlassCard>
+
+      {/* Fila Virtual (Lista de Espera) */}
+      <GlassCard>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-base font-semibold text-[var(--text-primary)] flex items-center gap-2">
+            <Users className="h-5 w-5 text-[var(--color-primary)]" />
+            Fila Virtual (Lista de Espera)
+          </h3>
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+            {queue.length} en espera
+          </span>
+        </div>
+        {queue.length === 0 ? (
+          <p className="py-6 text-center text-sm text-[var(--text-muted)]">
+            No hay alumnos en la fila virtual de tus carreras asignadas.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm font-sans">
+              <thead>
+                <tr className="border-b border-[var(--border)] text-left text-[var(--text-muted)]">
+                  <th className="pb-2 pr-2 font-medium">Alumno</th>
+                  <th className="pb-2 pr-2 font-medium">Carrera</th>
+                  <th className="pb-2 pr-2 font-medium">Motivo</th>
+                  <th className="pb-2 pr-2 font-medium">Hora de Registro</th>
+                  <th className="pb-2 font-medium text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {queue.map((entry) => {
+                  const registerTime = new Date(entry.createdAt).toLocaleTimeString(undefined, {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+                  return (
+                    <tr key={entry.id} className="border-b border-[var(--border)]/60 hover:bg-[var(--bg)]/10">
+                      <td className="py-2.5 pr-2 font-medium text-[var(--text-primary)] font-sans">
+                        {entry.patient?.user ? `${entry.patient.user.firstName} ${entry.patient.user.lastName}` : 'Anónimo'}
+                      </td>
+                      <td className="py-2.5 pr-2 text-[var(--text-secondary)] font-sans">
+                        {entry.patient?.career?.name || '—'}
+                      </td>
+                      <td className="py-2.5 pr-2 text-[var(--text-secondary)] max-w-xs truncate font-sans">
+                        {entry.reason || 'Sin motivo especificado'}
+                      </td>
+                      <td className="py-2.5 pr-2 text-[var(--text-muted)] font-sans">
+                        {registerTime}
+                      </td>
+                      <td className="py-2.5 text-right whitespace-nowrap">
+                        <Link
+                          to={`/sessions/new?patientId=${encodeURIComponent(entry.patient.id)}`}
+                          className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1 text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
+                        >
+                          <PlayCircle size={12} />
+                          Atender
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </GlassCard>
 
       {/* Citas de hoy: listado con opción Iniciar */}
