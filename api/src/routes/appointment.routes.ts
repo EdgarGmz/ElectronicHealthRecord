@@ -4,6 +4,7 @@ import {
   createAppointmentValidation,
   updateAppointmentValidation,
   cancelAppointmentValidation,
+  joinQueueValidation,
 } from '../controllers/appointment.controller';
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import { validate } from '../middleware/validation';
@@ -12,8 +13,13 @@ import { ROLES_CAN_MANAGE_APPOINTMENTS, ROLES_CAN_CREATE_APPOINTMENT } from '../
 
 const router = Router();
 
-// All routes require authentication. Admin solo puede ver citas; no crear/editar/cancelar.
+// Public route for Kiosk check-in (Waiting list)
+router.post('/queue/join', validate(joinQueueValidation), appointmentController.joinQueue);
+
+// All other routes require authentication. Admin solo puede ver citas; no crear/editar/cancelar.
 router.use(authenticateToken);
+
+router.get('/queue', appointmentController.getQueue);
 
 router.get('/', appointmentController.getAppointments);
 router.get('/professionals', appointmentController.getAppointmentProfessionals);
