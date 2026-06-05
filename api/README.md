@@ -77,17 +77,13 @@ Una vez que el contenedor de Docker de PostgreSQL esté activo (ejecutando `dock
 
 ---
 
-## 👤 Cuentas de Prueba (Seed DEV)
+## 👤 Cuenta de Prueba (Seed CLEAN)
 
-Para realizar pruebas locales, puedes iniciar sesión en cualquier cliente utilizando las siguientes credenciales de prueba precargadas por el seed. **El inicio de sesión se realiza de forma exclusiva con el Nombre de Usuario (Username)**. La contraseña de acceso para todas las cuentas es: `Password123!`
+Para realizar pruebas locales, puedes iniciar sesión en cualquier cliente utilizando la credencial del administrador precargada por el seed. **El inicio de sesión se realiza de forma exclusiva con el Nombre de Usuario (Username)**. La contraseña de acceso es: `Password123!`
 
 | Nombre Completo | Nombre de Usuario (Username) | Correo Electrónico | Rol del Sistema | Descripción |
 | :--- | :--- | :--- | :--- | :--- |
-| Xochilt Clara Villar Diego | `XochiltVLL` | `admin@ehr-system.com` | `admin` | Administrador / Auditor del sistema |
-| Orlando de Jesus Casas Davila | `OrlandoCSS` | `orlando.casas@ehr-system.com` | `coordinador_psicologia` | Coordinador de Psicología |
-| Edgar Tiburcio Gomez Moran | `EdgarGMZ` | `edgar.tiburcio@ehr-system.com` | `coordinador_enfermeria` | Coordinador de Enfermería |
-| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `carlos.rodriguez@ehr-system.com` | `psicologo` | Psicólogo Clínico Operativo |
-| Daniela Mayte Guevara Castillo | `DanielaGVR` | `daniela.guevara@ehr-system.com` | `enfermero` | Personal de Enfermería |
+| Edgar Gomez | `EdgarGMZ` | `admin@ehr-system.com` | `admin` | Administrador / Auditor del sistema |
 
 ---
 

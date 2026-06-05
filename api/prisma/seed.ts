@@ -1082,16 +1082,77 @@ async function seedProd() {
   console.log('✅ Seed PROD completed. All users have password: ' + DEFAULT_SEED_PASSWORD);
 }
 
+// Clear database helper
+async function clearDatabase() {
+  console.log('🗑️ Clearing database (except Careers)...');
+  await prisma.notification.deleteMany();
+  await prisma.auditLog.deleteMany();
+  await prisma.report.deleteMany();
+  await prisma.systemSetting.deleteMany();
+  await prisma.interconsultation.deleteMany();
+  await prisma.professionalSchedule.deleteMany();
+  await prisma.waitingList.deleteMany();
+  await prisma.appointmentReminder.deleteMany();
+  await prisma.appointment.deleteMany();
+  await prisma.medicationAdministration.deleteMany();
+  await prisma.prescription.deleteMany();
+  await prisma.medication.deleteMany();
+  await prisma.nursingProcedure.deleteMany();
+  await prisma.nursingConsultation.deleteMany();
+  await prisma.treatmentPlan.deleteMany();
+  await prisma.therapySession.deleteMany();
+  await prisma.mood.deleteMany();
+  await prisma.psychometricEvaluation.deleteMany();
+  await prisma.psychologyRecord.deleteMany();
+  await prisma.medicalRecord.deleteMany();
+  await prisma.emergencyContact.deleteMany();
+  await prisma.psychologistCareer.deleteMany();
+  await prisma.patient.deleteMany();
+  await prisma.user.deleteMany();
+  console.log('✅ Database cleared!');
+}
+
+// Clean seed target: only admin user and careers
+async function seedClean() {
+  await clearDatabase();
+  await seedCareers();
+
+  const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
+  const adminFirstName = 'Edgar';
+  const adminLastName = 'Gomez';
+  const adminEmail = 'admin@ehr-system.com';
+  const adminUsername = 'EdgarGMZ';
+
+  console.log('👤 Seeding admin user...');
+  await prisma.user.create({
+    data: {
+      email: adminEmail,
+      username: adminUsername,
+      passwordHash: defaultPasswordHash,
+      firstName: adminFirstName,
+      lastName: adminLastName,
+      dateOfBirth: new Date('1990-01-15'),
+      role: 'admin',
+      isConfirmed: true,
+      mustChangePassword: false,
+    },
+  });
+  console.log('✅ Admin user created successfully!');
+  console.log('✅ Seed CLEAN completed. Only admin user and careers exist.');
+}
+
 // Main seed function
 async function main() {
   console.log('🌱 Starting database seeding...\n');
 
   try {
-    const target = process.env.SEED_TARGET || 'dev';
+    const target = process.env.SEED_TARGET || 'clean';
     if (target === 'prod') {
       await seedProd();
-    } else {
+    } else if (target === 'dev') {
       await seedDev();
+    } else {
+      await seedClean();
     }
   } catch (error) {
     console.error('❌ Error seeding database:', error);
