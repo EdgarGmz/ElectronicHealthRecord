@@ -77,3 +77,34 @@ export async function rescheduleAppointment(
   })
   return data.data
 }
+
+export interface WaitingListEntry {
+  id: string
+  patientId: string
+  department: string
+  preferredProfessionalId?: string
+  requestedDate?: string
+  priority: string
+  reason?: string
+  status: string
+  createdAt: string
+  updatedAt: string
+  patient: {
+    id: string
+    career?: {
+      id: string
+      name: string
+    }
+    user: {
+      firstName: string
+      lastName: string
+      email: string
+      phone?: string
+    }
+  }
+}
+
+export async function getQueue(): Promise<WaitingListEntry[]> {
+  const { data } = await api.get<{ success: boolean; data: WaitingListEntry[] }>('/appointments/queue')
+  return data.data
+}
