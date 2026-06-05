@@ -84,7 +84,7 @@ export function ConfirmAccountPage() {
             </p>
             <div className="pt-4">
               <Link to="/login">
-                <GlassButton variant="outline" className="w-full">
+                <GlassButton variant="glass" className="w-full">
                   Volver al Inicio
                 </GlassButton>
               </Link>

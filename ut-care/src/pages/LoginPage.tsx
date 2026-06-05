@@ -261,7 +261,7 @@ export function LoginPage() {
                 <div className="flex gap-3">
                   <GlassButton
                     type="button"
-                    variant="outline"
+                    variant="glass"
                     className="flex-1"
                     onClick={() => setForgotOpen(false)}
                   >
