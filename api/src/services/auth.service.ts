@@ -6,6 +6,30 @@ import crypto from 'crypto';
 import emailService from './email.service';
 import logger from '../utils/logger';
 
+async function generateUniqueUsername(firstName: string, lastName: string): Promise<string> {
+  const cleanName = firstName.trim().split(' ')[0].normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const cleanLastName = lastName.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const consonants = cleanLastName.replace(/[aeiouáéíóúü\s]/gi, '');
+  const suffix = consonants.substring(0, 3);
+  const capitalizedFirst = cleanName.charAt(0).toUpperCase() + cleanName.slice(1).toLowerCase();
+  const capitalizedSuffix = suffix.toUpperCase();
+  const base = `${capitalizedFirst}${capitalizedSuffix}`;
+
+  let username = base;
+  let counter = 1;
+  while (true) {
+    const existing = await prisma.user.findUnique({
+      where: { username },
+    });
+    if (!existing) {
+      break;
+    }
+    username = `${base}${counter}`;
+    counter++;
+  }
+  return username;
+}
+
 export class AuthService {
   async login(username: string, password: string) {
     const normalizedUsername = username.trim();
@@ -87,11 +111,13 @@ export class AuthService {
       throw new AppError('Email already registered', 409);
     }
 
+    const username = await generateUniqueUsername(data.firstName, data.lastName);
     const passwordHash = await hashPassword(data.password);
 
     const user = await prisma.user.create({
       data: {
         email: data.email,
+        username,
         passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -99,10 +125,13 @@ export class AuthService {
         phone: data.phone,
         role: data.role,
         enrollmentNumber: data.enrollmentNumber,
+        isConfirmed: true,
+        mustChangePassword: false,
       },
       select: {
         id: true,
         email: true,
+        username: true,
         firstName: true,
         lastName: true,
         role: true,
