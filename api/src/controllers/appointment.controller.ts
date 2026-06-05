@@ -28,6 +28,18 @@ export const cancelAppointmentValidation = [
   body('cancellationReason').notEmpty().withMessage('Cancellation reason is required'),
 ];
 
+export const joinQueueValidation = [
+  body('firstName').notEmpty().withMessage('First name is required'),
+  body('lastName').notEmpty().withMessage('Last name is required'),
+  body('careerId').optional().isUUID().withMessage('Invalid career ID'),
+  body('email').optional().isEmail().withMessage('Invalid email format'),
+  body('phone').optional().isString(),
+  body('age').optional().isInt({ min: 1, max: 120 }).withMessage('Invalid age'),
+  body('sex').optional().isString(),
+  body('department').optional().isIn(['psicologia', 'enfermeria']).withMessage('Invalid department'),
+  body('reason').optional().isString(),
+];
+
 export const getAppointments = async (
   req: AuthRequest,
   res: Response,
@@ -267,6 +279,47 @@ export const getAvailability = async (
       success: true,
       message: 'Availability retrieved successfully',
       data: availability,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getQueue = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+
+    const queue = await appointmentService.getQueue(req.user.userId, req.user.role);
+
+    res.status(200).json({
+      success: true,
+      message: 'Fila virtual recuperada con éxito',
+      data: queue,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const joinQueue = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const queueEntry = await appointmentService.joinQueue(req.body);
+
+    res.status(201).json({
+      success: true,
+      message: 'Te has registrado en la fila virtual con éxito',
+      data: queueEntry,
     });
   } catch (error) {
     next(error);
