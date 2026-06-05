@@ -18,6 +18,30 @@ async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, SALT_ROUNDS);
 }
 
+const usedUsernames = new Set<string>();
+
+function generateUsername(firstName: string, lastName: string): string {
+  const cleanName = firstName.trim().split(' ')[0].normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const cleanLastName = lastName.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const consonants = cleanLastName.replace(/[aeiouáéíóúü\s]/gi, '');
+  const suffix = consonants.substring(0, 3);
+  const capitalizedFirst = cleanName.charAt(0).toUpperCase() + cleanName.slice(1).toLowerCase();
+  const capitalizedSuffix = suffix.toUpperCase(); // keeping consonants uppercase like Gmz, Rdg, etc.
+  return `${capitalizedFirst}${capitalizedSuffix}`;
+}
+
+function generateUniqueUsername(firstName: string, lastName: string): string {
+  const base = generateUsername(firstName, lastName);
+  let username = base;
+  let counter = 1;
+  while (usedUsernames.has(username)) {
+    username = `${base}${counter}`;
+    counter++;
+  }
+  usedUsernames.add(username);
+  return username;
+}
+
 // Helper function to get a random element from an array
 function randomElement<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
@@ -923,11 +947,18 @@ async function seedDev() {
   console.log('👤 Seeding DEV staff users (with password)...');
   const staffUsers: any[] = [];
   for (const s of staffDev) {
+    const username = generateUniqueUsername(s.firstName, s.lastName);
     const user = await prisma.user.upsert({
       where: { email: s.email },
-      update: { passwordHash: defaultPasswordHash },
+      update: {
+        passwordHash: defaultPasswordHash,
+        username,
+        isConfirmed: true,
+        mustChangePassword: false,
+      },
       create: {
         email: s.email,
+        username,
         passwordHash: defaultPasswordHash,
         firstName: s.firstName,
         lastName: s.lastName,
@@ -936,6 +967,8 @@ async function seedDev() {
         enrollmentNumber: s.enrollmentNumber,
         sex: Math.random() < 0.5 ? 'male' : 'female',
         phone: faker.string.numeric(10),
+        isConfirmed: true,
+        mustChangePassword: false,
       },
     });
     staffUsers.push(user);
@@ -946,21 +979,30 @@ async function seedDev() {
   const patientUsers: any[] = [];
   for (let i = 0; i < 500; i++) {
     const enrollment = String(1000 + i);
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+    const username = generateUniqueUsername(firstName, lastName);
     const user = await prisma.user.upsert({
       where: { email: `alumno.${enrollment}@utcare.local` },
       update: {
         passwordHash: defaultPasswordHash,
+        username,
+        isConfirmed: true,
+        mustChangePassword: false,
       },
       create: {
         email: `alumno.${enrollment}@utcare.local`,
+        username,
         passwordHash: defaultPasswordHash,
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
+        firstName,
+        lastName,
         dateOfBirth: faker.date.birthdate({ min: 18, max: 45, mode: 'age' }),
         role: 'patient',
         enrollmentNumber: enrollment,
         sex: Math.random() < 0.5 ? 'male' : 'female',
         phone: faker.string.numeric(10),
+        isConfirmed: true,
+        mustChangePassword: false,
       },
     });
     patientUsers.push(user);
@@ -1013,17 +1055,26 @@ async function seedProd() {
 
   console.log('👤 Seeding PROD staff users (with password)...');
   for (const s of staffProd) {
+    const username = generateUniqueUsername(s.firstName, s.lastName);
     await prisma.user.upsert({
       where: { email: s.email },
-      update: { passwordHash: defaultPasswordHash },
+      update: {
+        passwordHash: defaultPasswordHash,
+        username,
+        isConfirmed: true,
+        mustChangePassword: false,
+      },
       create: {
         email: s.email,
+        username,
         passwordHash: defaultPasswordHash,
         firstName: s.firstName,
         lastName: s.lastName,
         dateOfBirth: new Date('1985-06-01'),
         role: s.role,
         sex: Math.random() < 0.5 ? 'male' : 'female',
+        isConfirmed: true,
+        mustChangePassword: false,
       },
     });
   }

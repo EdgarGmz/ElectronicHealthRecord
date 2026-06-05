@@ -20,6 +20,13 @@ model User {
   sex              String?             @db.VarChar(10)
   role             String              @db.VarChar(50)
   isActive         Boolean             @map("is_active") @default(true)
+  username         String              @unique @db.VarChar(50)
+  isConfirmed      Boolean             @default(false) @map("is_confirmed")
+  mustChangePassword Boolean           @default(false) @map("must_change_password")
+  confirmationToken String?            @map("confirmation_token") @db.VarChar(255)
+  confirmationTokenExpires DateTime?   @map("confirmation_token_expires")
+  resetPasswordToken String?           @map("reset_password_token") @db.VarChar(255)
+  resetPasswordExpires DateTime?         @map("reset_password_expires")
   createdAt        DateTime            @map("created_at") @default(now())
   updatedAt        DateTime            @map("updated_at") @default(now())
 

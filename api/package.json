@@ -25,6 +25,7 @@
     "prisma:studio": "prisma studio",
     "prisma:seed": "npx prisma db seed",
     "setup": "npm install && npm run db:up && npm run prisma:migrate && npm run prisma:generate && npm run prisma:seed",
+    "auth:reset-admin": "ts-node src/scripts/reset-admin.ts",
     "docs:serve": "redoc-cli serve openapi.yaml --watch",
     "docs:typedoc": "typedoc --out docs/api-reference src/**/*.ts"
   },
