@@ -1,6 +1,6 @@
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
-import { hashPassword } from '../utils/password';
+import { hashPassword, comparePassword } from '../utils/password';
 import { ROLES_VISIBLE_IN_USERS, ROLES } from '../constants/roles';
 import crypto from 'crypto';
 import emailService from './email.service';
@@ -267,6 +267,35 @@ export class UserService {
       prisma.user.delete({ where: { id } }),
     ]);
     return { message: 'Psicólogo eliminado permanentemente' };
+  }
+
+  async changePassword(userId: string, data: { currentPassword?: string; newPassword?: string }) {
+    const { currentPassword, newPassword } = data;
+    if (!currentPassword || !newPassword) {
+      throw new AppError('Se requieren la contraseña actual y la nueva contraseña.', 400);
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new AppError('Usuario no encontrado', 404);
+    }
+
+    const isPasswordValid = await comparePassword(currentPassword, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new AppError('La contraseña actual es incorrecta.', 400);
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash,
+        mustChangePassword: false,
+      },
+    });
+
+    return { message: 'Contraseña cambiada con éxito.' };
   }
 }
 
