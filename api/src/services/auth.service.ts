@@ -2,6 +2,9 @@ import prisma from '../config/database';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt';
 import { AppError } from '../middleware/errorHandler';
+import crypto from 'crypto';
+import emailService from './email.service';
+import logger from '../utils/logger';
 
 export class AuthService {
   async login(username: string, password: string) {
@@ -153,6 +156,87 @@ export class AuthService {
     } catch (error) {
       throw new AppError('Invalid refresh token', 401);
     }
+  }
+
+  async confirmAccount(token: string) {
+    const user = await prisma.user.findFirst({
+      where: {
+        confirmationToken: token,
+        confirmationTokenExpires: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      throw new AppError('El enlace de confirmación es inválido o ha expirado.', 400);
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isConfirmed: true,
+        confirmationToken: null,
+        confirmationTokenExpires: null,
+      },
+    });
+
+    return { message: 'Cuenta confirmada con éxito. Ya puedes iniciar sesión.' };
+  }
+
+  async forgotPassword(email: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+    });
+
+    if (user) {
+      const resetPasswordToken = crypto.randomBytes(32).toString('hex');
+      const resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          resetPasswordToken,
+          resetPasswordExpires,
+        },
+      });
+
+      // Send email
+      emailService.sendPasswordResetEmail(user.email, user.username, resetPasswordToken).catch((err) => {
+        logger.error(`Error sending password reset email:`, err);
+      });
+    }
+
+    // Always return the same generic message for security
+    return {
+      message: 'Si el correo electrónico está registrado en nuestro sistema, recibirás un enlace para restablecer tu contraseña en unos momentos.',
+    };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const user = await prisma.user.findFirst({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      throw new AppError('El token de restablecimiento de contraseña es inválido o ha expirado.', 400);
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+        mustChangePassword: false,
+      },
+    });
+
+    return { message: 'Contraseña restablecida con éxito. Ya puedes iniciar sesión con tu nueva contraseña.' };
   }
 }
 
