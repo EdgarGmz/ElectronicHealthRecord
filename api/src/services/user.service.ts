@@ -2,6 +2,33 @@ import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { hashPassword } from '../utils/password';
 import { ROLES_VISIBLE_IN_USERS, ROLES } from '../constants/roles';
+import crypto from 'crypto';
+import emailService from './email.service';
+import logger from '../utils/logger';
+
+async function generateUniqueUsername(firstName: string, lastName: string): Promise<string> {
+  const cleanName = firstName.trim().split(' ')[0].normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const cleanLastName = lastName.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const consonants = cleanLastName.replace(/[aeiouáéíóúü\s]/gi, '');
+  const suffix = consonants.substring(0, 3);
+  const capitalizedFirst = cleanName.charAt(0).toUpperCase() + cleanName.slice(1).toLowerCase();
+  const capitalizedSuffix = suffix.toUpperCase();
+  const base = `${capitalizedFirst}${capitalizedSuffix}`;
+
+  let username = base;
+  let counter = 1;
+  while (true) {
+    const existing = await prisma.user.findUnique({
+      where: { username },
+    });
+    if (!existing) {
+      break;
+    }
+    username = `${base}${counter}`;
+    counter++;
+  }
+  return username;
+}
 
 export class UserService {
   async create(data: {
@@ -19,10 +46,16 @@ export class UserService {
     if (existing) {
       throw new AppError('Email ya registrado', 409);
     }
+
+    const username = await generateUniqueUsername(data.firstName, data.lastName);
     const passwordHash = await hashPassword(data.password);
+    const confirmationToken = crypto.randomBytes(32).toString('hex');
+    const confirmationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     const user = await prisma.user.create({
       data: {
         email: data.email,
+        username,
         passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -31,10 +64,15 @@ export class UserService {
         sex: data.sex ?? null,
         role: data.role,
         enrollmentNumber: data.enrollmentNumber,
+        isConfirmed: false,
+        mustChangePassword: true,
+        confirmationToken,
+        confirmationTokenExpires,
       },
       select: {
         id: true,
         email: true,
+        username: true,
         firstName: true,
         lastName: true,
         dateOfBirth: true,
@@ -47,6 +85,13 @@ export class UserService {
         updatedAt: true,
       },
     });
+
+    // Send confirmation email asynchronously without blocking response
+    emailService.sendConfirmationEmail(user.email, user.username, data.password, confirmationToken)
+      .catch((err) => {
+        logger.error(`Error sending user confirmation email to ${user.email}:`, err);
+      });
+
     return user;
   }
 
