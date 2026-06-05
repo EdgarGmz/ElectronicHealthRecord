@@ -7,6 +7,9 @@ import notificationService from './notification.service';
 import { NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '../constants/notification';
 import { formatDateToSpanish } from '../utils/date-formatter';
 import psychologistCareerService from './psychologist-career.service';
+import patientService from './patient.service';
+import emailService from './email.service';
+import logger from '../utils/logger';
 
 const PATIENT_TYPES_GENERAL = ['faculty', 'administrative'] as const;
 
@@ -561,6 +564,55 @@ export class AppointmentService {
       },
     ]);
 
+    // Notify waiting list patients
+    try {
+      const waitingListEntries = await prisma.waitingList.findMany({
+        where: {
+          department: cancelledAppointment.department,
+          status: 'espera',
+        },
+        include: {
+          patient: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (waitingListEntries.length > 0) {
+        const waitingNotifications = waitingListEntries.map((entry) => ({
+          userId: entry.patient.userId,
+          type: NOTIFICATION_TYPES.SYSTEM_ALERT,
+          title: 'Espacio disponible',
+          message: `Se ha liberado un espacio en el departamento de ${cancelledAppointment.department === 'psicologia' ? 'Psicología' : 'Enfermería'}. Ponte en contacto para agendar tu cita.`,
+          relatedEntityType: 'appointment',
+          relatedEntityId: cancelledAppointment.id,
+          priority: NOTIFICATION_PRIORITIES.HIGH,
+        }));
+        await notificationService.createBulk(waitingNotifications);
+
+        for (const entry of waitingListEntries) {
+          emailService.sendWaitingListNotification(
+            entry.patient.user.email,
+            entry.patient.user.firstName,
+            cancelledAppointment.department
+          ).catch((err) => {
+            logger.error(`Error sending waiting list notification email to ${entry.patient.user.email}:`, err);
+          });
+        }
+      }
+    } catch (err) {
+      logger.error('Error processing waiting list notifications on appointment cancellation:', err);
+    }
+
     return cancelledAppointment;
   }
 
@@ -734,6 +786,121 @@ export class AppointmentService {
       slots: availableSlots,
       bookedAppointments: appointments.length,
     };
+  }
+
+  async getQueue(userId: string, userRole: string) {
+    const whereClause: any = {
+      status: 'espera',
+    };
+
+    if (userRole === ROLES.PSICOLOGO) {
+      whereClause.department = 'psicologia';
+      const assignedCareers = await prisma.psychologistCareer.findMany({
+        where: { psychologistId: userId },
+      });
+      const careerIds = assignedCareers.map((c) => c.careerId);
+      whereClause.patient = {
+        careerId: { in: careerIds },
+      };
+    } else if (userRole === ROLES.COORDINADOR_PSICOLOGIA) {
+      whereClause.department = 'psicologia';
+    } else if (userRole === ROLES.ENFERMERO || userRole === ROLES.COORDINADOR_ENFERMERIA) {
+      whereClause.department = 'enfermeria';
+    }
+
+    return prisma.waitingList.findMany({
+      where: whereClause,
+      include: {
+        patient: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+              },
+            },
+            career: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+  }
+
+  async joinQueue(data: {
+    enrollmentNumber?: string;
+    firstName: string;
+    lastName: string;
+    careerId?: string;
+    email?: string;
+    phone?: string;
+    age?: number;
+    sex?: string;
+    department?: string;
+    reason?: string;
+  }) {
+    let patient = null;
+
+    if (data.enrollmentNumber || data.email) {
+      const orConditions = [];
+      if (data.enrollmentNumber) orConditions.push({ user: { enrollmentNumber: data.enrollmentNumber } });
+      if (data.email) orConditions.push({ user: { email: data.email } });
+
+      patient = await prisma.patient.findFirst({
+        where: { OR: orConditions },
+        include: { user: true },
+      });
+    }
+
+    if (!patient) {
+      const tempEmail = data.email || `anonimo.${Date.now()}.${Math.floor(Math.random() * 1000)}@utcare.local`;
+      const tempEnrollment = data.enrollmentNumber || `ANON-${Date.now()}`;
+      const dob = data.age
+        ? new Date(Date.now() - data.age * 365.25 * 24 * 60 * 60 * 1000)
+        : new Date('2000-01-01');
+
+      patient = await patientService.create({
+        email: tempEmail,
+        firstName: data.firstName || 'Anónimo',
+        lastName: data.lastName || 'Anónimo',
+        dateOfBirth: dob,
+        phone: data.phone,
+        sex: data.sex || 'other',
+        enrollmentNumber: tempEnrollment,
+        patientType: 'student',
+        careerId: data.careerId || null,
+      });
+    }
+
+    const waitingEntry = await prisma.waitingList.create({
+      data: {
+        patientId: patient.id,
+        department: data.department || 'psicologia',
+        priority: 'media',
+        status: 'espera',
+        reason: data.reason || 'Registro en Kiosko',
+      },
+      include: {
+        patient: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+            career: true,
+          },
+        },
+      },
+    });
+
+    return waitingEntry;
   }
 }
 
