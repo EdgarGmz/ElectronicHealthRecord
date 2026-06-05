@@ -3,6 +3,9 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { RoleGuard } from '@/components/RoleGuard'
 import { MainLayout } from '@/layouts/MainLayout'
 import { LoginPage } from '@/pages/LoginPage'
+import { ConfirmAccountPage } from '@/pages/ConfirmAccountPage'
+import { ChangePasswordPage } from '@/pages/ChangePasswordPage'
+import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { PatientListPage } from '@/pages/patients/PatientListPage'
 import { PatientDetailPage } from '@/pages/patients/PatientDetailPage'
@@ -50,6 +53,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/confirm-account" element={<ConfirmAccountPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/"
           element={
@@ -59,6 +64,7 @@ function App() {
           }
         >
           <Route index element={<DashboardPage />} />
+          <Route path="change-password" element={<ChangePasswordPage />} />
           <Route path="calendar" element={<RoleGuard><CalendarPage /></RoleGuard>} />
           <Route path="supervision" element={<RoleGuard><SupervisionLayout /></RoleGuard>}>
             <Route index element={<Navigate to="/supervision/psychologists" replace />} />
