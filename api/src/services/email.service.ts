@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export class EmailService {
-  private frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+  private frontendUrl = process.env.FRONTEND_URL || (process.env.CORS_ORIGIN && process.env.CORS_ORIGIN !== '*' ? process.env.CORS_ORIGIN : 'http://localhost:5173');
 
   async sendConfirmationEmail(email: string, username: string, tempPass: string, token: string) {
     const confirmUrl = `${this.frontendUrl}/confirm-account?token=${token}`;
