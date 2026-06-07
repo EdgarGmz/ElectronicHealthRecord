@@ -197,6 +197,7 @@ export function UsersPage() {
         e && typeof e === 'object' && 'response' in e
           ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
           : null
+      setPasswordPrompt((p) => ({ ...p, open: false }))
       setError(msg || t('common.error'))
     } finally {
       setBusy(false)
@@ -227,6 +228,7 @@ export function UsersPage() {
         e && typeof e === 'object' && 'response' in e
           ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
           : null
+      setPasswordPrompt((p) => ({ ...p, open: false }))
       setError(msg || t('common.error'))
     } finally {
       setBusy(false)
@@ -256,6 +258,7 @@ export function UsersPage() {
         e && typeof e === 'object' && 'response' in e
           ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
           : null
+      setPasswordPrompt((p) => ({ ...p, open: false }))
       setError(msg || t('common.error'))
     } finally {
       setBusy(false)

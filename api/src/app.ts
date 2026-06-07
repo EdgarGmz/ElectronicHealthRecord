@@ -31,7 +31,7 @@ app.use(
       callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-password'],
   })
 );
 
