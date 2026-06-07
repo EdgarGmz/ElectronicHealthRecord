@@ -14,13 +14,59 @@ const transporter = nodemailer.createTransport({
 export class EmailService {
   private frontendUrl = process.env.FRONTEND_URL || (process.env.CORS_ORIGIN && process.env.CORS_ORIGIN !== '*' ? process.env.CORS_ORIGIN : 'http://localhost:5173');
 
+  private async sendMail(to: string, subject: string, html: string, simulationLog: string) {
+    logger.info(simulationLog);
+
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (resendApiKey) {
+      try {
+        const from = process.env.SMTP_FROM || 'onboarding@resend.dev';
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${resendApiKey}`,
+          },
+          body: JSON.stringify({
+            from,
+            to,
+            subject,
+            html,
+          }),
+        });
+
+        if (response.ok) {
+          logger.info(`Email sent via Resend to ${to}`);
+          return;
+        } else {
+          const errText = await response.text();
+          logger.error(`Resend API returned error for ${to}: ${response.status} - ${errText}`);
+        }
+      } catch (error) {
+        logger.error(`Failed to send email via Resend to ${to}:`, error);
+      }
+    }
+
+    // Fallback to SMTP if configured
+    try {
+      if (process.env.SMTP_USER && process.env.SMTP_USER !== 'your-email@example.com') {
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || 'noreply@ehr-system.com',
+          to,
+          subject,
+          html,
+        });
+        logger.info(`Email sent via SMTP to ${to}`);
+      }
+    } catch (error) {
+      logger.error(`Failed to send email via SMTP to ${to}:`, error);
+    }
+  }
+
   async sendConfirmationEmail(email: string, username: string, tempPass: string, token: string) {
     const confirmUrl = `${this.frontendUrl}/confirm-account?token=${token}`;
-    const mailOptions = {
-      from: process.env.SMTP_FROM || 'noreply@ehr-system.com',
-      to: email,
-      subject: 'Confirmación de cuenta - UT Care',
-      html: `
+    const subject = 'Confirmación de cuenta - UT Care';
+    const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
           <h2 style="color: #2b6cb0;">¡Bienvenido a UT Care!</h2>
           <p>Se ha creado una cuenta para ti en el Sistema de Expediente Clínico Electrónico.</p>
@@ -38,28 +84,16 @@ export class EmailService {
           <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
           <p style="color: #a0aec0; font-size: 12px;">Por seguridad, se te pedirá cambiar tu contraseña temporal en el primer inicio de sesión.</p>
         </div>
-      `,
-    };
+    `;
+    const simulationLog = `[Email simulation] Confirmation email for ${username} (${email}). Link: ${confirmUrl}`;
 
-    logger.info(`[Email simulation] Confirmation email for ${username} (${email}). Link: ${confirmUrl}`);
-
-    try {
-      if (process.env.SMTP_USER && process.env.SMTP_USER !== 'your-email@example.com') {
-        await transporter.sendMail(mailOptions);
-        logger.info(`Confirmation email sent to ${email}`);
-      }
-    } catch (error) {
-      logger.error(`Failed to send confirmation email to ${email}:`, error);
-    }
+    await this.sendMail(email, subject, html, simulationLog);
   }
 
   async sendPasswordResetEmail(email: string, username: string, token: string) {
     const resetUrl = `${this.frontendUrl}/reset-password?token=${token}`;
-    const mailOptions = {
-      from: process.env.SMTP_FROM || 'noreply@ehr-system.com',
-      to: email,
-      subject: 'Restablecer contraseña - UT Care',
-      html: `
+    const subject = 'Restablecer contraseña - UT Care';
+    const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
           <h2 style="color: #2b6cb0;">Restablecer Contraseña</h2>
           <p>Hola ${username},</p>
@@ -73,28 +107,16 @@ export class EmailService {
           <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
           <p style="color: #a0aec0; font-size: 12px;">Si tú no solicitaste este cambio, puedes ignorar este correo de forma segura.</p>
         </div>
-      `,
-    };
+    `;
+    const simulationLog = `[Email simulation] Password reset email for ${username} (${email}). Link: ${resetUrl}`;
 
-    logger.info(`[Email simulation] Password reset email for ${username} (${email}). Link: ${resetUrl}`);
-
-    try {
-      if (process.env.SMTP_USER && process.env.SMTP_USER !== 'your-email@example.com') {
-        await transporter.sendMail(mailOptions);
-        logger.info(`Password reset email sent to ${email}`);
-      }
-    } catch (error) {
-      logger.error(`Failed to send password reset email to ${email}:`, error);
-    }
+    await this.sendMail(email, subject, html, simulationLog);
   }
 
   async sendWaitingListNotification(email: string, firstName: string, department: string) {
     const deptName = department === 'psicologia' ? 'Psicología' : 'Enfermería';
-    const mailOptions = {
-      from: process.env.SMTP_FROM || 'noreply@ehr-system.com',
-      to: email,
-      subject: 'Espacio disponible - UT Care',
-      html: `
+    const subject = 'Espacio disponible - UT Care';
+    const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
           <h2 style="color: #2b6cb0;">Espacio Disponible en UT Care</h2>
           <p>Hola ${firstName},</p>
@@ -103,19 +125,10 @@ export class EmailService {
           <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
           <p style="color: #a0aec0; font-size: 12px;">Este es un mensaje automático, por favor no respondas a este correo.</p>
         </div>
-      `,
-    };
+    `;
+    const simulationLog = `[Email simulation] Waiting list release email for ${firstName} (${email}) in ${deptName}`;
 
-    logger.info(`[Email simulation] Waiting list release email for ${firstName} (${email}) in ${deptName}`);
-
-    try {
-      if (process.env.SMTP_USER && process.env.SMTP_USER !== 'your-email@example.com') {
-        await transporter.sendMail(mailOptions);
-        logger.info(`Waiting list email sent to ${email}`);
-      }
-    } catch (error) {
-      logger.error(`Failed to send waiting list notification to ${email}:`, error);
-    }
+    await this.sendMail(email, subject, html, simulationLog);
   }
 }
 
