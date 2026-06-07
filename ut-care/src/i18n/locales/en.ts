@@ -7,6 +7,7 @@ export const en = {
     logoutConfirmMessage: 'Are you sure you want to leave the system?',
     loggingOut: 'Leaving the system',
     email: 'Email',
+    username: 'Username',
     password: 'Password',
     rememberMe: 'Keep me signed in',
     forgotPassword: 'Forgot password?',
