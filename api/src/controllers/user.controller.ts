@@ -4,13 +4,15 @@ import userService from '../services/user.service';
 import psychologistCareerService from '../services/psychologist-career.service';
 import { AuthRequest } from '../middleware/auth';
 import { ROLES, ROLES_VISIBLE_IN_USERS } from '../constants/roles';
+import prisma from '../config/database';
+import { comparePassword } from '../utils/password';
 
 export const createUserValidation = [
   body('email').isEmail().withMessage('Email válido requerido'),
   body('password').isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres'),
   body('firstName').notEmpty().withMessage('Nombre requerido'),
   body('lastName').notEmpty().withMessage('Apellido requerido'),
-  body('dateOfBirth').isISO8601().withMessage('Fecha de nacimiento válida requerida'),
+  body('dateOfBirth').optional().isISO8601().withMessage('Fecha de nacimiento válida requerida'),
   body('role').isIn(ROLES_VISIBLE_IN_USERS).withMessage('Rol debe ser uno de: coordinador_psicologia, coordinador_enfermeria, psicologo, enfermero'),
   body('phone').optional().trim(),
   body('enrollmentNumber').optional().trim(),
@@ -48,7 +50,7 @@ export class UserController {
       }
       const data = {
         ...req.body,
-        dateOfBirth: new Date(req.body.dateOfBirth),
+        dateOfBirth: req.body.dateOfBirth ? new Date(req.body.dateOfBirth) : new Date('1990-01-01'),
       };
       const user = await userService.create(data);
       res.status(201).json({
@@ -163,16 +165,42 @@ export class UserController {
   async update(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
+      const adminId = req.user?.userId;
+      const adminPassword = (req.headers['x-admin-password'] as string) || req.body.adminPassword;
+
+      if (!adminId) {
+        res.status(401).json({ success: false, message: 'No autenticado' });
+        return;
+      }
+
+      if (!adminPassword) {
+        res.status(400).json({ success: false, message: 'Se requiere la contraseña del administrador para confirmar esta acción' });
+        return;
+      }
+
+      const admin = await prisma.user.findUnique({ where: { id: adminId } });
+      if (!admin) {
+        res.status(404).json({ success: false, message: 'Administrador no encontrado' });
+        return;
+      }
+
+      const isPasswordValid = await comparePassword(adminPassword, admin.passwordHash);
+      if (!isPasswordValid) {
+        res.status(401).json({ success: false, message: 'Contraseña de administrador incorrecta' });
+        return;
+      }
+
+      const { adminPassword: _, ...restBody } = req.body;
       const data = {
-        ...req.body,
-        dateOfBirth: req.body.dateOfBirth ? new Date(req.body.dateOfBirth) : undefined,
+        ...restBody,
+        dateOfBirth: restBody.dateOfBirth ? new Date(restBody.dateOfBirth) : undefined,
       };
 
       const user = await userService.update(id, data);
 
       res.status(200).json({
         success: true,
-        message: 'User updated successfully',
+        message: 'Usuario actualizado correctamente',
         data: user,
       });
     } catch (error) {
@@ -180,9 +208,34 @@ export class UserController {
     }
   }
 
-  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async delete(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
+      const adminId = req.user?.userId;
+      const adminPassword = (req.headers['x-admin-password'] as string) || req.body.adminPassword;
+
+      if (!adminId) {
+        res.status(401).json({ success: false, message: 'No autenticado' });
+        return;
+      }
+
+      if (!adminPassword) {
+        res.status(400).json({ success: false, message: 'Se requiere la contraseña del administrador para confirmar esta acción' });
+        return;
+      }
+
+      const admin = await prisma.user.findUnique({ where: { id: adminId } });
+      if (!admin) {
+        res.status(404).json({ success: false, message: 'Administrador no encontrado' });
+        return;
+      }
+
+      const isPasswordValid = await comparePassword(adminPassword, admin.passwordHash);
+      if (!isPasswordValid) {
+        res.status(401).json({ success: false, message: 'Contraseña de administrador incorrecta' });
+        return;
+      }
+
       const result = await userService.delete(id);
 
       res.status(200).json({

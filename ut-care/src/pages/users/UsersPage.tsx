@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Pencil, Power, PowerOff } from 'lucide-react'
+import { Plus, Pencil, Power, PowerOff, Eye } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
-import { ConfirmModal } from '@/components/molecules/ConfirmModal'
 import { DataTable } from '@/components/organisms/DataTable'
 import type { DataTableColumn } from '@/components/organisms/DataTable'
 import type { User, CreateUserInput, UpdateUserInput } from '@/types/user'
@@ -39,15 +38,27 @@ export function UsersPage() {
 
   const [editing, setEditing] = useState<User | null>(null)
   const [creatingOpen, setCreatingOpen] = useState(false)
-  const [confirmDeactivate, setConfirmDeactivate] = useState<User | null>(null)
-  const [confirmActivate, setConfirmActivate] = useState<User | null>(null)
+  const [viewingUser, setViewingUser] = useState<User | null>(null)
+  const [passwordPrompt, setPasswordPrompt] = useState<{
+    open: boolean
+    title: string
+    message: string
+    confirmLabel: string
+    variant?: 'default' | 'danger'
+    onConfirm: (password: string) => void
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    confirmLabel: '',
+    onConfirm: () => {},
+  })
 
   const [createForm, setCreateForm] = useState<CreateUserInput>({
     email: '',
     password: '',
     firstName: '',
     lastName: '',
-    dateOfBirth: '',
     phone: '',
     role: ROLES.PSICOLOGO,
     enrollmentNumber: '',
@@ -78,6 +89,7 @@ export function UsersPage() {
 
   const columns: DataTableColumn<User>[] = [
     { id: 'name', label: t('auditLogs.tableUser'), getValue: (row) => fullName(row), sortable: true },
+    { id: 'username', label: 'Usuario', getValue: (row) => row.username || '—', sortable: true },
     {
       id: 'email',
       label: t('auth.email'),
@@ -94,7 +106,6 @@ export function UsersPage() {
       type: 'status',
       statusMap: { Activo: 'success', Inactivo: 'error' },
     },
-    { id: 'dob', label: t('profilePage.dateOfBirth'), getValue: (row) => formatDate(row.dateOfBirth), sortable: true },
     { id: 'createdAt', label: t('auditLogs.tableDate'), getValue: (row) => row.createdAt ? formatDate(row.createdAt) : '—', sortable: true },
   ]
 
@@ -130,7 +141,6 @@ export function UsersPage() {
       firstName: u.firstName,
       lastName: u.lastName,
       phone: u.phone ?? '',
-      dateOfBirth: u.dateOfBirth.slice(0, 10),
       role: u.role,
       isActive: u.isActive,
     })
@@ -167,7 +177,7 @@ export function UsersPage() {
     }
   }
 
-  const submitEdit = async () => {
+  const submitEdit = async (password: string) => {
     if (!editing) return
     setBusy(true)
     setError(null)
@@ -177,9 +187,10 @@ export function UsersPage() {
         firstName: editForm.firstName?.trim(),
         lastName: editForm.lastName?.trim(),
         phone: editForm.phone?.trim() || undefined,
-      })
+      }, password)
       setEditing(null)
       setEditForm({})
+      setPasswordPrompt((p) => ({ ...p, open: false }))
       load()
     } catch (e: unknown) {
       const msg =
@@ -192,34 +203,74 @@ export function UsersPage() {
     }
   }
 
-  const doDeactivate = async () => {
-    if (!confirmDeactivate) return
+  const handleSaveEditClick = () => {
+    if (!editing) return
+    setPasswordPrompt({
+      open: true,
+      title: 'Confirmar cambios',
+      message: `Ingrese su contraseña de administrador para guardar los cambios de ${fullName(editing)}.`,
+      confirmLabel: 'Guardar cambios',
+      variant: 'default',
+      onConfirm: (pwd) => submitEdit(pwd),
+    })
+  }
+
+  const doDeactivate = async (id: string, password: string) => {
     setBusy(true)
     setError(null)
     try {
-      await deactivateUser(confirmDeactivate.id)
-      setConfirmDeactivate(null)
+      await deactivateUser(id, password)
+      setPasswordPrompt((p) => ({ ...p, open: false }))
       load()
-    } catch {
-      setError(t('common.error'))
+    } catch (e: unknown) {
+      const msg =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : null
+      setError(msg || t('common.error'))
     } finally {
       setBusy(false)
     }
   }
 
-  const doActivate = async () => {
-    if (!confirmActivate) return
+  const handleDeactivateClick = (u: User) => {
+    setPasswordPrompt({
+      open: true,
+      title: 'Confirmar desactivación',
+      message: `Se desactivará a ${fullName(u)}. Ingrese su contraseña de administrador para confirmar:`,
+      confirmLabel: 'Desactivar',
+      variant: 'danger',
+      onConfirm: (pwd) => doDeactivate(u.id, pwd),
+    })
+  }
+
+  const doActivate = async (id: string, password: string) => {
     setBusy(true)
     setError(null)
     try {
-      await updateUser(confirmActivate.id, { isActive: true })
-      setConfirmActivate(null)
+      await updateUser(id, { isActive: true }, password)
+      setPasswordPrompt((p) => ({ ...p, open: false }))
       load()
-    } catch {
-      setError(t('common.error'))
+    } catch (e: unknown) {
+      const msg =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : null
+      setError(msg || t('common.error'))
     } finally {
       setBusy(false)
     }
+  }
+
+  const handleActivateClick = (u: User) => {
+    setPasswordPrompt({
+      open: true,
+      title: 'Confirmar reactivación',
+      message: `Se reactivará a ${fullName(u)}. Ingrese su contraseña de administrador para confirmar:`,
+      confirmLabel: 'Reactivar',
+      variant: 'default',
+      onConfirm: (pwd) => doActivate(u.id, pwd),
+    })
   }
 
   return (
@@ -227,24 +278,15 @@ export function UsersPage() {
       <LoadingModal open={loading || busy} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
 
-      <ConfirmModal
-        open={!!confirmDeactivate}
-        onClose={() => setConfirmDeactivate(null)}
-        onConfirm={doDeactivate}
-        confirming={busy}
-        variant="danger"
-        title="Desactivar usuario"
-        message={`Se desactivará a ${confirmDeactivate ? fullName(confirmDeactivate) : ''}.`}
-        confirmLabel="Desactivar"
-      />
-      <ConfirmModal
-        open={!!confirmActivate}
-        onClose={() => setConfirmActivate(null)}
-        onConfirm={doActivate}
-        confirming={busy}
-        title="Reactivar usuario"
-        message={`Se reactivará a ${confirmActivate ? fullName(confirmActivate) : ''}.`}
-        confirmLabel="Reactivar"
+      <AdminPasswordModal
+        open={passwordPrompt.open}
+        onClose={() => setPasswordPrompt((p) => ({ ...p, open: false }))}
+        onConfirm={passwordPrompt.onConfirm}
+        title={passwordPrompt.title}
+        message={passwordPrompt.message}
+        confirmLabel={passwordPrompt.confirmLabel}
+        variant={passwordPrompt.variant}
+        busy={busy}
       />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
@@ -298,6 +340,14 @@ export function UsersPage() {
               <button
                 type="button"
                 className="inline-flex items-center gap-1 text-[var(--color-primary)] hover:underline"
+                onClick={() => setViewingUser(row)}
+              >
+                <Eye size={16} />
+                Ver
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-[var(--color-primary)] hover:underline"
                 onClick={() => openEdit(row)}
               >
                 <Pencil size={16} />
@@ -308,7 +358,7 @@ export function UsersPage() {
                   <button
                     type="button"
                     className="inline-flex items-center gap-1 text-[var(--color-error)] hover:underline"
-                    onClick={() => setConfirmDeactivate(row)}
+                    onClick={() => handleDeactivateClick(row)}
                   >
                     <PowerOff size={16} />
                     Desactivar
@@ -317,7 +367,7 @@ export function UsersPage() {
                   <button
                     type="button"
                     className="inline-flex items-center gap-1 text-[var(--color-primary)] hover:underline"
-                    onClick={() => setConfirmActivate(row)}
+                    onClick={() => handleActivateClick(row)}
                   >
                     <Power size={16} />
                     Reactivar
@@ -409,17 +459,7 @@ export function UsersPage() {
                     : setEditForm((p) => ({ ...p, lastName: e.target.value }))}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('profilePage.dateOfBirth')}</label>
-                <input
-                  type="date"
-                  className="glass-input w-full px-4 py-2.5"
-                  value={creatingOpen ? createForm.dateOfBirth : (editForm.dateOfBirth ?? '')}
-                  onChange={(e) => creatingOpen
-                    ? setCreateForm((p) => ({ ...p, dateOfBirth: e.target.value }))
-                    : setEditForm((p) => ({ ...p, dateOfBirth: e.target.value }))}
-                />
-              </div>
+              {/* Fecha de nacimiento no requerida */}
               <div>
                 <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('profilePage.phone')}</label>
                 <input
@@ -457,13 +497,181 @@ export function UsersPage() {
               <GlassButton type="button" onClick={() => { setCreatingOpen(false); setEditing(null); setConfirmPassword(''); }}>
                 {t('common.cancel')}
               </GlassButton>
-              <GlassButton type="button" variant="primary" onClick={creatingOpen ? submitCreate : submitEdit} disabled={busy}>
+              <GlassButton type="button" variant="primary" onClick={creatingOpen ? submitCreate : handleSaveEditClick} disabled={busy}>
                 {t('common.save')}
               </GlassButton>
             </div>
           </div>
         </div>
       )}
+
+      {viewingUser && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setViewingUser(null)}>
+          <div className="glass-card w-full max-w-lg rounded-2xl p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6 pb-3 border-b border-[var(--border)]">
+              <h2 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+                <Eye className="text-[var(--color-primary)]" size={22} />
+                Detalles del Usuario
+              </h2>
+              <button
+                type="button"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg"
+                onClick={() => setViewingUser(null)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <span className="text-xs font-semibold text-[var(--text-secondary)] block uppercase tracking-wider">Nombre Completo</span>
+                <span className="text-base font-medium text-[var(--text-primary)]">{fullName(viewingUser)}</span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-[var(--text-secondary)] block uppercase tracking-wider">Nombre de Usuario</span>
+                <span className="text-base font-medium text-[var(--text-primary)] font-mono bg-white/5 dark:bg-black/20 px-2 py-0.5 rounded border border-[var(--border)] inline-block">{viewingUser.username}</span>
+              </div>
+              <div className="sm:col-span-2">
+                <span className="text-xs font-semibold text-[var(--text-secondary)] block uppercase tracking-wider">Correo Electrónico</span>
+                <span className="text-base font-medium text-[var(--text-primary)]">
+                  {viewingUser.email ? <EmailLink email={viewingUser.email} /> : '—'}
+                </span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-[var(--text-secondary)] block uppercase tracking-wider">Rol de Sistema</span>
+                <span className="text-base font-medium text-[var(--text-primary)] capitalize">
+                  {t(`roles.${viewingUser.role}`) || viewingUser.role}
+                </span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-[var(--text-secondary)] block uppercase tracking-wider">Estado de Cuenta</span>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${
+                  viewingUser.isActive 
+                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                    : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${viewingUser.isActive ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                  {viewingUser.isActive ? 'Activo' : 'Inactivo'}
+                </span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-[var(--text-secondary)] block uppercase tracking-wider">Teléfono de Contacto</span>
+                <span className="text-base font-medium text-[var(--text-primary)]">{viewingUser.phone || '—'}</span>
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-[var(--text-secondary)] block uppercase tracking-wider">Cédula / Matrícula</span>
+                <span className="text-base font-medium text-[var(--text-primary)]">{viewingUser.enrollmentNumber || '—'}</span>
+              </div>
+              <div className="sm:col-span-2">
+                <span className="text-xs font-semibold text-[var(--text-secondary)] block uppercase tracking-wider">Fecha de Creación (Registro)</span>
+                <span className="text-base font-medium text-[var(--text-primary)]">
+                  {viewingUser.createdAt ? formatDate(viewingUser.createdAt) : '—'}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end">
+              <GlassButton type="button" variant="primary" onClick={() => setViewingUser(null)}>
+                Cerrar
+              </GlassButton>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface AdminPasswordModalProps {
+  open: boolean
+  onClose: () => void
+  onConfirm: (password: string) => void
+  title: string
+  message: string
+  confirmLabel: string
+  variant?: 'default' | 'danger'
+  busy?: boolean
+}
+
+function AdminPasswordModal({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmLabel,
+  variant = 'default',
+  busy = false,
+}: AdminPasswordModalProps) {
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (open) {
+      setPassword('')
+      setError('')
+    }
+  }, [open])
+
+  if (!open) return null
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!password) {
+      setError('La contraseña es requerida')
+      return
+    }
+    onConfirm(password)
+  }
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <form
+        onSubmit={handleSubmit}
+        className="glass-card flex w-full max-w-md flex-col gap-5 rounded-2xl px-8 py-8 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col gap-1 text-center w-full">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+            {title}
+          </h2>
+          <p className="text-sm text-[var(--text-secondary)] mb-2">
+            {message}
+          </p>
+          <div className="text-left w-full">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+              Contraseña del Administrador
+            </label>
+            <PasswordInput
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                if (error) setError('')
+              }}
+              placeholder="••••••••"
+              autoFocus
+            />
+            {error && (
+              <p className="mt-1 text-xs text-[var(--color-error)]">
+                {error}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex w-full gap-3 justify-center mt-2">
+          <GlassButton type="button" onClick={onClose} disabled={busy}>
+            Cancelar
+          </GlassButton>
+          <GlassButton
+            type="submit"
+            variant="primary"
+            disabled={busy}
+            className={variant === 'danger' ? '!bg-[var(--color-error)] hover:!opacity-90' : ''}
+          >
+            {busy ? 'Confirmando...' : confirmLabel}
+          </GlassButton>
+        </div>
+      </form>
     </div>
   )
 }

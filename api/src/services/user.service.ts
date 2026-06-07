@@ -124,6 +124,7 @@ export class UserService {
         select: {
           id: true,
           email: true,
+          username: true,
           firstName: true,
           lastName: true,
           dateOfBirth: true,
@@ -157,6 +158,7 @@ export class UserService {
       select: {
         id: true,
         email: true,
+        username: true,
         firstName: true,
         lastName: true,
         dateOfBirth: true,
@@ -206,6 +208,7 @@ export class UserService {
       select: {
         id: true,
         email: true,
+        username: true,
         firstName: true,
         lastName: true,
         dateOfBirth: true,
