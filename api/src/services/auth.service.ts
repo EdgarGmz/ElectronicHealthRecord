@@ -237,7 +237,7 @@ export class AuthService {
 
     // Always return the same generic message for security
     return {
-      message: 'Si el correo electrónico está registrado en nuestro sistema, recibirás un enlace para restablecer tu contraseña en unos momentos.',
+      message: 'Notificación enviada, por favor verifica tu correo',
     };
   }
 

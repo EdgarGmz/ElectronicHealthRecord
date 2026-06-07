@@ -84,7 +84,7 @@ export function LoginPage() {
       setForgotMessage(res.data.message)
     } catch (err: unknown) {
       // In case of error, still show the generic success message to prevent email harvesting
-      setForgotMessage('Si el correo electrónico está registrado en nuestro sistema, recibirás un enlace para restablecer tu contraseña en unos momentos.')
+      setForgotMessage('Notificación enviada, por favor verifica tu correo')
     }
   }
 
