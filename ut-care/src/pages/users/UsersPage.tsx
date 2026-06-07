@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Pencil, Power, PowerOff, Eye } from 'lucide-react'
+import { Plus, Pencil, Eye } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
@@ -356,26 +356,38 @@ export function UsersPage() {
                 <Pencil size={16} />
                 {t('common.edit')}
               </button>
-              {row.role !== 'admin' && (
-                row.isActive ? (
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 text-[var(--color-error)] hover:underline"
-                    onClick={() => handleDeactivateClick(row)}
-                  >
-                    <PowerOff size={16} />
-                    Desactivar
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 text-[var(--color-primary)] hover:underline"
-                    onClick={() => handleActivateClick(row)}
-                  >
-                    <Power size={16} />
-                    Reactivar
-                  </button>
-                )
+              {row.role !== 'admin' ? (
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={row.isActive}
+                  title={row.isActive ? 'Desactivar usuario' : 'Activar usuario'}
+                  onClick={() => (row.isActive ? handleDeactivateClick(row) : handleActivateClick(row))}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 ${
+                    row.isActive ? 'bg-[var(--color-primary)]' : 'bg-[var(--text-muted)]/40'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
+                      row.isActive ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}
+                    style={{ marginTop: '2px' }}
+                  />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={true}
+                  disabled
+                  title="Los administradores no pueden ser desactivados"
+                  className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-[var(--color-primary)]/50 opacity-60"
+                >
+                  <span
+                    className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 translate-x-5"
+                    style={{ marginTop: '2px' }}
+                  />
+                </button>
               )}
             </div>
           )}
