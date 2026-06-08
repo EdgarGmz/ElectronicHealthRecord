@@ -47,10 +47,16 @@ import { SupervisionCalendarPage } from '@/pages/supervision/SupervisionCalendar
 import { SupervisionAnalyticsPage } from '@/pages/supervision/SupervisionAnalyticsPage'
 import { CalendarPage } from '@/pages/calendar/CalendarPage'
 import { NursingAttentionPage } from '@/pages/nursing/NursingAttentionPage'
+import { useAuthStore } from '@/store/auth.store'
+import { SessionExpiredModal } from '@/components/molecules/SessionExpiredModal'
 
 function App() {
+  const isSessionExpired = useAuthStore((s) => s.isSessionExpired)
+  const logout = useAuthStore((s) => s.logout)
+
   return (
     <BrowserRouter>
+      <SessionExpiredModal open={isSessionExpired} onConfirm={logout} />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/confirm-account" element={<ConfirmAccountPage />} />

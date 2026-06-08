@@ -50,12 +50,14 @@ interface AuthState {
   refreshToken: string | null
   user: User | null
   rememberMe: boolean
+  isSessionExpired: boolean
   /** False until persist has rehydrated from storage (avoids redirect to login on F5). */
   _hasHydrated: boolean
   setAuth: (token: string, refreshToken: string | null, user: User, rememberMe?: boolean) => void
   setUser: (user: User) => void
   setRememberMe: (value: boolean) => void
   setHasHydrated: (value: boolean) => void
+  setSessionExpired: (value: boolean) => void
   logout: () => void
   isAuthenticated: () => boolean
 }
@@ -70,13 +72,15 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       user: null,
       rememberMe: true,
+      isSessionExpired: false,
       _hasHydrated: false,
       setAuth: (token, refreshToken, user, rememberMe) =>
         set((_) => ({ token, refreshToken, user, ...(rememberMe !== undefined ? { rememberMe } : {}) })),
       setUser: (user) => set({ user }),
       setRememberMe: (value) => set({ rememberMe: value }),
       setHasHydrated: (value) => set({ _hasHydrated: value }),
-      logout: () => set({ token: null, refreshToken: null, user: null }),
+      setSessionExpired: (value) => set({ isSessionExpired: value }),
+      logout: () => set({ token: null, refreshToken: null, user: null, isSessionExpired: false }),
       isAuthenticated: () => !!get().token,
     }),
     {

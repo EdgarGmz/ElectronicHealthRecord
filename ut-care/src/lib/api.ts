@@ -26,7 +26,7 @@ api.interceptors.response.use(
     const url = err.config?.url || ''
     // Solo cerrar sesión en 401 cuando no sea un intento explícito de login
     if (status === 401 && !url.includes('/auth/login')) {
-      useAuthStore.getState().logout()
+      useAuthStore.getState().setSessionExpired(true)
     }
     return Promise.reject(err)
   }
