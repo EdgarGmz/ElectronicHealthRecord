@@ -3,7 +3,7 @@ import app from '../../app';
 
 describe('Performance & Stress Testing', () => {
   const loginData = {
-    email: 'admin@ehr-system.com',
+    username: 'EdgarGMZ',
     password: 'Password123!'
   };
 
