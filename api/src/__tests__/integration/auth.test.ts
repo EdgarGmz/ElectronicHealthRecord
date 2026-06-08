@@ -3,7 +3,7 @@ import app from '../../app';
 
 describe('Auth API (Integration & Black Box)', () => {
   const loginData = {
-    email: 'admin@ehr-system.com',
+    username: 'EdgarGMZ',
     password: 'Password123!'
   };
 
@@ -16,14 +16,14 @@ describe('Auth API (Integration & Black Box)', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data).toHaveProperty('accessToken');
     expect(res.body.data).toHaveProperty('user');
-    expect(res.body.data.user.email).toEqual(loginData.email);
+    expect(res.body.data.user.email).toEqual('admin@ehr-system.com');
   });
 
   it('should fail with invalid credentials', async () => {
     const res = await request(app)
       .post('/api/auth/login')
       .send({
-        email: 'admin@ehr-system.com',
+        username: 'EdgarGMZ',
         password: 'wrongPassword'
       });
 
@@ -36,7 +36,7 @@ describe('Auth API (Integration & Black Box)', () => {
     const res = await request(app)
       .post('/api/auth/login')
       .send({
-        email: 'nonexistent@example.com',
+        username: 'nonexistent',
         password: 'Password123!'
       });
 
