@@ -6,14 +6,14 @@ const adminPassword = process.env.E2E_ADMIN_PASSWORD ?? 'Password123!'
 test.describe('Autenticación (ut-care)', () => {
   test('muestra el formulario de login', async ({ page }) => {
     await page.goto('/login')
-    await expect(page.getByTestId('login-email')).toBeVisible()
+    await expect(page.getByTestId('login-username')).toBeVisible()
     await expect(page.getByTestId('login-password')).toBeVisible()
     await expect(page.getByTestId('login-submit')).toBeVisible()
   })
 
   test('login correcto y redirige al dashboard', async ({ page }) => {
     await page.goto('/login')
-    await page.getByTestId('login-email').fill(adminEmail)
+    await page.getByTestId('login-username').fill(adminEmail)
     await page.getByTestId('login-password').fill(adminPassword)
     await page.getByTestId('login-submit').click()
     await expect(page).not.toHaveURL(/\/login/)
@@ -23,7 +23,7 @@ test.describe('Autenticación (ut-care)', () => {
 
   test('credenciales incorrectas muestran diálogo de error', async ({ page }) => {
     await page.goto('/login')
-    await page.getByTestId('login-email').fill(adminEmail)
+    await page.getByTestId('login-username').fill(adminEmail)
     await page.getByTestId('login-password').fill('wrong-password-e2e')
     await page.getByTestId('login-submit').click()
     await expect(page.getByRole('alertdialog')).toBeVisible({ timeout: 15_000 })
