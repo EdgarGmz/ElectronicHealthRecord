@@ -1,8 +1,15 @@
 import { test, expect } from '@playwright/test'
 
+const legacyAdminUsername = process.env.E2E_ADMIN_EMAIL
+if (legacyAdminUsername && legacyAdminUsername.includes('@')) {
+  throw new Error(
+    'E2E_ADMIN_EMAIL is deprecated and login expects a username. Set E2E_ADMIN_USERNAME (e.g. "EdgarGMZ").'
+  )
+}
+
 const adminUsername =
   process.env.E2E_ADMIN_USERNAME ??
-  process.env.E2E_ADMIN_EMAIL ??
+  legacyAdminUsername ??
   'EdgarGMZ'
 const adminPassword = process.env.E2E_ADMIN_PASSWORD ?? 'Password123!'
 
