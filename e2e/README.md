@@ -6,7 +6,7 @@ Automatización del cliente **ut-care** contra la **API** real: login, redirecci
 
 - **Node.js** 18+ y npm.
 - **PostgreSQL** accesible (p. ej. `docker compose up -d` desde la raíz del repositorio).
-- Base de datos migrada y con datos de prueba (`admin@ehr-system.com`, etc.): en `api/`, `npx prisma migrate deploy` y `npm run prisma:seed` (o el flujo que uses habitualmente).
+- Base de datos migrada y con datos de prueba (incluyendo usuario admin `EdgarGMZ`): en `api/`, `npx prisma migrate deploy` y `npm run prisma:seed` (o el flujo que uses habitualmente).
 
 ## Primera vez
 
@@ -33,7 +33,7 @@ Variables opcionales:
 
 | Variable | Descripción |
 |----------|-------------|
-| `E2E_ADMIN_EMAIL` | Email del usuario admin (por defecto `admin@ehr-system.com`). |
+| `E2E_ADMIN_USERNAME` | Username del usuario admin (por defecto `EdgarGMZ`). |
 | `E2E_ADMIN_PASSWORD` | Contraseña (por defecto la del seed: `Password123!`). |
 
 Modo UI interactivo: `npm run test:ui`.
