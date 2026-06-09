@@ -47,6 +47,53 @@ export class EmailService {
       }
     }
 
+    // Brevo HTTP API (solves SMTP port blocking on Render Free tier)
+    const brevoApiKey = process.env.BREVO_API_KEY || (process.env.SMTP_HOST === 'smtp-relay.brevo.com' ? process.env.SMTP_PASS : undefined);
+    if (brevoApiKey) {
+      try {
+        const fromHeader = process.env.SMTP_FROM || 'noreply@ehr-system.com';
+        let senderEmail = fromHeader;
+        let senderName = 'UT Care';
+        const match = fromHeader.match(/^(?:"?([^"]*)"?\s+)?<([^>]+)>$/);
+        if (match) {
+          senderName = match[1] || senderName;
+          senderEmail = match[2];
+        }
+
+        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'api-key': brevoApiKey,
+            'content-type': 'application/json',
+            'accept': 'application/json',
+          },
+          body: JSON.stringify({
+            sender: {
+              name: senderName,
+              email: senderEmail,
+            },
+            to: [
+              {
+                email: to,
+              },
+            ],
+            subject,
+            htmlContent: html,
+          }),
+        });
+
+        if (response.ok) {
+          logger.info(`Email sent via Brevo HTTP API to ${to}`);
+          return;
+        } else {
+          const errText = await response.text();
+          logger.error(`Brevo API returned error for ${to}: ${response.status} - ${errText}`);
+        }
+      } catch (error) {
+        logger.error(`Failed to send email via Brevo HTTP API to ${to}:`, error);
+      }
+    }
+
     // Fallback to SMTP if configured
     try {
       if (process.env.SMTP_USER && process.env.SMTP_USER !== 'your-email@example.com') {
