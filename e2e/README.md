@@ -33,7 +33,8 @@ Variables opcionales:
 
 | Variable | Descripción |
 |----------|-------------|
-| `E2E_ADMIN_EMAIL` | Email del usuario admin (por defecto `admin@ehr-system.com`). |
+| `E2E_ADMIN_USERNAME` | Usuario admin para login (por defecto `EdgarGMZ`). |
+| `E2E_ADMIN_EMAIL` | **Legado**: se interpreta como *username* (no email). Si contiene `@`, usa `E2E_ADMIN_USERNAME`. |
 | `E2E_ADMIN_PASSWORD` | Contraseña (por defecto la del seed: `Password123!`). |
 
 Modo UI interactivo: `npm run test:ui`.
