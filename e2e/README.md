@@ -6,7 +6,7 @@ Automatización del cliente **ut-care** contra la **API** real: login, redirecci
 
 - **Node.js** 18+ y npm.
 - **PostgreSQL** accesible (p. ej. `docker compose up -d` desde la raíz del repositorio).
-- Base de datos migrada y con datos de prueba (`admin@ehr-system.com`, etc.): en `api/`, `npx prisma migrate deploy` y `npm run prisma:seed` (o el flujo que uses habitualmente).
+- Base de datos migrada y con datos de prueba (incluyendo usuario admin `EdgarGMZ`): en `api/`, `npx prisma migrate deploy` y `npm run prisma:seed` (o el flujo que uses habitualmente).
 
 ## Primera vez
 

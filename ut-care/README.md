@@ -121,4 +121,4 @@ Estas pruebas validan:
 *   Flujo completo de registro de pacientes e historial clínico.
 
 Para ejecutar los tests locales, lee el instructivo detallado en **[e2e/README.md](../e2e/README.md)**.
-Los formularios web cuentan con atributos estables `data-testid` (como `login-email`, `login-password` y `login-submit`) para evitar roturas ante futuros rediseños visuales.
+Los formularios web cuentan con atributos estables `data-testid` (como `login-username`, `login-password` y `login-submit`) para evitar roturas ante futuros rediseños visuales.
