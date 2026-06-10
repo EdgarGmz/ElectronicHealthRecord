@@ -47,3 +47,11 @@ export async function deactivateUser(id: string, adminPassword?: string): Promis
   await api.delete(`/users/${id}`, config)
 }
 
+export async function resendConfirmation(id: string): Promise<void> {
+  await api.post(`/users/${id}/resend-confirmation`)
+}
+
+export async function resetPasswordByAdmin(id: string): Promise<void> {
+  await api.post(`/users/${id}/reset-password-admin`)
+}
+

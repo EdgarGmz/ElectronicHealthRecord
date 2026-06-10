@@ -8,6 +8,7 @@ export interface User {
   phone: string | null
   role: string
   isActive: boolean
+  isConfirmed: boolean
   enrollmentNumber: string | null
   createdAt?: string
   updatedAt?: string
@@ -20,7 +21,6 @@ export interface UsersResponse {
 
 export interface CreateUserInput {
   email: string
-  password: string
   firstName: string
   lastName: string
   dateOfBirth?: string

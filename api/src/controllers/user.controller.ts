@@ -9,7 +9,6 @@ import { comparePassword } from '../utils/password';
 
 export const createUserValidation = [
   body('email').isEmail().withMessage('Email válido requerido'),
-  body('password').isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres'),
   body('firstName').notEmpty().withMessage('Nombre requerido'),
   body('lastName').notEmpty().withMessage('Apellido requerido'),
   body('dateOfBirth').optional().isISO8601().withMessage('Fecha de nacimiento válida requerida'),
@@ -258,6 +257,40 @@ export class UserController {
       res.status(200).json({
         success: true,
         message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resendConfirmation(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (req.user?.role !== ROLES.ADMIN) {
+        res.status(403).json({ success: false, message: 'Insufficient permissions' });
+        return;
+      }
+      const { id } = req.params;
+      await userService.resendConfirmation(id);
+      res.status(200).json({
+        success: true,
+        message: 'Correo de confirmación reenviado con éxito.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPasswordByAdmin(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (req.user?.role !== ROLES.ADMIN) {
+        res.status(403).json({ success: false, message: 'Insufficient permissions' });
+        return;
+      }
+      const { id } = req.params;
+      await userService.resetPasswordByAdmin(id);
+      res.status(200).json({
+        success: true,
+        message: 'Contraseña restablecida con éxito. Se ha enviado un correo con las nuevas credenciales.',
       });
     } catch (error) {
       next(error);

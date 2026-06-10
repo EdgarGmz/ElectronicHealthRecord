@@ -177,6 +177,28 @@ export class EmailService {
 
     await this.sendMail(email, subject, html, simulationLog);
   }
+
+  async sendPasswordResetByAdminEmail(email: string, username: string, tempPass: string) {
+    const subject = 'Contraseña restablecida por Administrador - UT Care';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+          <h2 style="color: #2b6cb0;">Tu contraseña ha sido restablecida</h2>
+          <p>Hola ${username},</p>
+          <p>Un administrador ha restablecido la contraseña de tu cuenta de UT Care.</p>
+          <p>Tus nuevas credenciales de acceso temporal son las siguientes:</p>
+          <div style="background-color: #f7fafc; padding: 15px; border-radius: 5px; border: 1px solid #edf2f7; margin-bottom: 20px;">
+            <p style="margin: 5px 0;"><strong>Usuario:</strong> ${username}</p>
+            <p style="margin: 5px 0;"><strong>Contraseña temporal:</strong> ${tempPass}</p>
+          </div>
+          <p>Por favor, ingresa a la plataforma utilizando estas credenciales. Se te pedirá cambiar esta contraseña temporal inmediatamente en tu primer inicio de sesión.</p>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+          <p style="color: #a0aec0; font-size: 12px;">Si crees que esto es un error o no estabas enterado de este cambio, por favor contacta con soporte o con el administrador.</p>
+        </div>
+    `;
+    const simulationLog = `[Email simulation] Password reset by Admin email for ${username} (${email}). Temp password: ${tempPass}`;
+
+    await this.sendMail(email, subject, html, simulationLog);
+  }
 }
 
 export default new EmailService();
