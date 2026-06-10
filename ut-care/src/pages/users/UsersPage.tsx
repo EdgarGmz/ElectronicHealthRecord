@@ -220,7 +220,8 @@ export function UsersPage() {
             href={`https://wa.me/${cleanNumber}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[var(--color-primary)] hover:underline flex items-center gap-1"
+            className="hover:underline flex items-center gap-1 font-medium"
+            style={{ color: '#25D366' }}
           >
             {row.phone}
           </a>
@@ -514,38 +515,40 @@ export function UsersPage() {
                   </button>
                 )
               )}
-              {row.role !== 'admin' ? (
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={row.isActive}
-                  title={row.isActive ? 'Desactivar usuario' : 'Activar usuario'}
-                  onClick={() => (row.isActive ? handleDeactivateClick(row) : handleActivateClick(row))}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 ${
-                    row.isActive ? 'bg-[var(--color-primary)]' : 'bg-[var(--text-muted)]/40'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
-                      row.isActive ? 'translate-x-5' : 'translate-x-0.5'
+              {row.isConfirmed && (
+                row.role !== 'admin' ? (
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={row.isActive}
+                    title={row.isActive ? 'Desactivar usuario' : 'Activar usuario'}
+                    onClick={() => (row.isActive ? handleDeactivateClick(row) : handleActivateClick(row))}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 ${
+                      row.isActive ? 'bg-[var(--color-primary)]' : 'bg-[var(--text-muted)]/40'
                     }`}
-                    style={{ marginTop: '2px' }}
-                  />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={true}
-                  disabled
-                  title="Los administradores no pueden ser desactivados"
-                  className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-[var(--color-primary)]/50 opacity-60"
-                >
-                  <span
-                    className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 translate-x-5"
-                    style={{ marginTop: '2px' }}
-                  />
-                </button>
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
+                        row.isActive ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                      style={{ marginTop: '2px' }}
+                    />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={true}
+                    disabled
+                    title="Los administradores no pueden ser desactivados"
+                    className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-[var(--color-primary)]/50 opacity-60"
+                  >
+                    <span
+                      className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 translate-x-5"
+                      style={{ marginTop: '2px' }}
+                    />
+                  </button>
+                )
               )}
             </div>
           )}
