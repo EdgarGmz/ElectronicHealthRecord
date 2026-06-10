@@ -14,16 +14,17 @@ import { ROLES, ROLES_VISIBLE_IN_USERS } from '@/constants/roles'
 import { EmailLink } from '@/components/atoms/EmailLink'
 import { PasswordInput } from '@/components/atoms/PasswordInput'
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
-}
+
 
 function fullName(u: User): string {
   return `${u.firstName} ${u.lastName}`.trim()
 }
 
 export function UsersPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const formatDate = (iso: string): string => {
+    return new Date(iso).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })
+  }
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
