@@ -40,6 +40,7 @@ import { ProfilePage } from '@/pages/profile/ProfilePage'
 import { HelpPage } from '@/pages/help/HelpPage'
 import { AuditLogsPage } from '@/pages/audit-logs/AuditLogsPage'
 import { UsersPage } from '@/pages/users/UsersPage'
+import { CareersPage } from '@/pages/careers/CareersPage'
 import { SupervisionLayout } from '@/pages/supervision/SupervisionLayout'
 import { SupervisionPsychologistsPage } from '@/pages/supervision/SupervisionPsychologistsPage'
 import { SupervisionProgressPage } from '@/pages/supervision/SupervisionProgressPage'
@@ -109,6 +110,7 @@ function App() {
           <Route path="notifications/new" element={<NewNotificationPage />} />
           <Route path="notifications/:id" element={<NotificationDetailPage />} />
           <Route path="users" element={<RoleGuard><UsersPage /></RoleGuard>} />
+          <Route path="careers" element={<RoleGuard><CareersPage /></RoleGuard>} />
           <Route path="audit-logs" element={<RoleGuard><AuditLogsPage /></RoleGuard>} />
           <Route path="admin" element={<SettingsPage />} />
           <Route path="profile" element={<ProfilePage />} />

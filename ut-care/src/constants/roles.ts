@@ -123,6 +123,7 @@ const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/notifications': [],
   '/users': [ROLES.ADMIN],
   '/audit-logs': [ROLES.ADMIN],
+  '/careers': [ROLES.ADMIN],
 }
 
 /** Paths that require medical record access (expediente). Coordinators see only patient history, not full expedient. */
