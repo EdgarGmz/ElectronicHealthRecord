@@ -78,8 +78,8 @@ export interface DataTableProps<T> {
   exportFormats?: ('pdf' | 'csv' | 'xlsx')[]
   exportFilename?: string
   exportTitle?: string
-  /** Claves i18n para la barra de herramientas. */
   i18n?: {
+    actions?: string
     clearFilters?: string
     export?: string
     exportPdf?: string
@@ -437,7 +437,9 @@ export function DataTable<T>({
                       </span>
                     </th>
                   ))}
-                  <th className="w-24 px-4 py-3" />
+                  <th className="w-24 px-4 py-3 font-medium text-[var(--text-primary)]">
+                    {t.actions ?? ''}
+                  </th>
                 </tr>
               </thead>
               <tbody>

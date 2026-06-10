@@ -1010,6 +1010,7 @@ export const en = {
     required: 'Required',
   },
   table: {
+    actions: 'Actions',
     clearFilters: 'Clear filters',
     rowsPerPage: 'Per page',
     export: 'Export',

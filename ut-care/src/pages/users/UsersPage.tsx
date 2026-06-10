@@ -557,6 +557,7 @@ export function UsersPage() {
           exportFilename="usuarios"
           exportTitle={t('nav.users')}
           i18n={{
+            actions: t('table.actions'),
             clearFilters: t('table.clearFilters'),
             export: t('table.export'),
             exportPdf: t('table.exportPdf'),
