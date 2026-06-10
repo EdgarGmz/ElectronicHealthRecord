@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Pencil, Eye } from 'lucide-react'
+import { Plus, Pencil, Eye, Mail, KeyRound } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
@@ -8,7 +8,7 @@ import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { DataTable } from '@/components/organisms/DataTable'
 import type { DataTableColumn } from '@/components/organisms/DataTable'
 import type { User, CreateUserInput, UpdateUserInput } from '@/types/user'
-import { createUser, deactivateUser, getUsers, updateUser } from '@/services/user.service'
+import { createUser, deactivateUser, getUsers, updateUser, resendConfirmation, resetPasswordByAdmin } from '@/services/user.service'
 import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { ROLES, ROLES_VISIBLE_IN_USERS } from '@/constants/roles'
 import { EmailLink } from '@/components/atoms/EmailLink'
@@ -56,15 +56,125 @@ export function UsersPage() {
 
   const [createForm, setCreateForm] = useState<CreateUserInput>({
     email: '',
-    password: '',
     firstName: '',
     lastName: '',
     phone: '',
     role: ROLES.PSICOLOGO,
     enrollmentNumber: '',
   })
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [editForm, setEditForm] = useState<UpdateUserInput>({})
+  const [cooldowns, setCooldowns] = useState<Record<string, number>>({})
+
+  // Initialize cooldowns from sessionStorage on mount
+  useEffect(() => {
+    const activeCooldowns: Record<string, number> = {}
+    const now = Date.now()
+
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i)
+      if (key && (key.startsWith('cooldown_resend_') || key.startsWith('cooldown_reset_'))) {
+        const val = sessionStorage.getItem(key)
+        if (val) {
+          const expiresAt = parseInt(val, 10)
+          const remaining = Math.ceil((expiresAt - now) / 1000)
+          if (remaining > 0) {
+            const shortKey = key.replace('cooldown_', '') // e.g. resend_uuid
+            activeCooldowns[shortKey] = remaining
+          } else {
+            sessionStorage.removeItem(key)
+          }
+        }
+      }
+    }
+    setCooldowns(activeCooldowns)
+  }, [])
+
+  // Timer interval to tick active cooldowns
+  useEffect(() => {
+    const activeKeys = Object.keys(cooldowns)
+    if (activeKeys.length === 0) return
+
+    const interval = setInterval(() => {
+      setCooldowns((prev) => {
+        const next = { ...prev }
+        const now = Date.now()
+        let hasChanges = false
+
+        for (const key of Object.keys(next)) {
+          const storageKey = `cooldown_${key}`
+          const val = sessionStorage.getItem(storageKey)
+          if (val) {
+            const expiresAt = parseInt(val, 10)
+            const remaining = Math.ceil((expiresAt - now) / 1000)
+            if (remaining > 0) {
+              if (next[key] !== remaining) {
+                next[key] = remaining
+                hasChanges = true
+              }
+            } else {
+              delete next[key]
+              sessionStorage.removeItem(storageKey)
+              hasChanges = true
+            }
+          } else {
+            delete next[key]
+            hasChanges = true
+          }
+        }
+
+        return hasChanges ? next : prev
+      })
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [cooldowns])
+
+  const startCooldown = (type: 'resend' | 'reset', userId: string) => {
+    const key = `${type}_${userId}`
+    const storageKey = `cooldown_${key}`
+    const durationMs = 30000 // 30 seconds
+    const expiresAt = Date.now() + durationMs
+
+    sessionStorage.setItem(storageKey, String(expiresAt))
+    setCooldowns((prev) => ({
+      ...prev,
+      [key]: 30,
+    }))
+  }
+
+  const handleResendConfirmation = async (user: User) => {
+    setBusy(true)
+    setError(null)
+    try {
+      await resendConfirmation(user.id)
+      startCooldown('resend', user.id)
+    } catch (e: unknown) {
+      const msg =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : null
+      setError(msg || 'Error al reenviar la confirmación.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleResetPassword = async (user: User) => {
+    setBusy(true)
+    setError(null)
+    try {
+      await resetPasswordByAdmin(user.id)
+      startCooldown('reset', user.id)
+    } catch (e: unknown) {
+      const msg =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : null
+      setError(msg || 'Error al restablecer la contraseña.')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const load = () => {
     setLoading(true)
@@ -97,16 +207,43 @@ export function UsersPage() {
       sortable: true,
       render: (row) => (row.email ? <EmailLink email={row.email} /> : '—'),
     },
+    {
+      id: 'phone',
+      label: 'Teléfono',
+      getValue: (row) => row.phone || '—',
+      sortable: true,
+      render: (row) => {
+        if (!row.phone) return '—'
+        const cleanNumber = row.phone.replace(/\D/g, '')
+        return (
+          <a
+            href={`https://wa.me/${cleanNumber}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[var(--color-primary)] hover:underline flex items-center gap-1"
+          >
+            {row.phone}
+          </a>
+        )
+      },
+    },
     { id: 'role', label: t('auditLogs.tableRole'), getValue: (row) => t(`roles.${row.role}`) || row.role, sortable: true },
     {
       id: 'status',
       label: 'Estado',
-      getValue: (row) => (row.isActive ? 'Activo' : 'Inactivo'),
+      getValue: (row) => {
+        if (!row.isConfirmed) return 'No confirmado'
+        return row.isActive ? 'Activo' : 'Desactivado'
+      },
       sortable: true,
       type: 'status',
-      statusMap: { Activo: 'success', Inactivo: 'error' },
+      statusMap: {
+        'No confirmado': 'warning',
+        'Activo': 'success',
+        'Desactivado': 'error',
+      },
     },
-    { id: 'createdAt', label: t('auditLogs.tableDate'), getValue: (row) => row.createdAt ? formatDate(row.createdAt) : '—', sortable: true },
+    { id: 'createdAt', label: 'Fecha de Creación', getValue: (row) => row.createdAt ? formatDate(row.createdAt) : '—', sortable: true },
   ]
 
   const sortedData = useMemo(() => {
@@ -147,10 +284,6 @@ export function UsersPage() {
   }
 
   const submitCreate = async () => {
-    if (createForm.password !== confirmPassword) {
-      setError(t('auth.passwordMismatch'))
-      return
-    }
     setBusy(true)
     setError(null)
     try {
@@ -163,8 +296,7 @@ export function UsersPage() {
         enrollmentNumber: createForm.enrollmentNumber?.trim() || undefined,
       })
       setCreatingOpen(false)
-      setCreateForm({ email: '', password: '', firstName: '', lastName: '', dateOfBirth: '', phone: '', role: ROLES.PSICOLOGO, enrollmentNumber: '' })
-      setConfirmPassword('')
+      setCreateForm({ email: '', firstName: '', lastName: '', phone: '', role: ROLES.PSICOLOGO, enrollmentNumber: '' })
       load()
     } catch (e: unknown) {
       const msg =
@@ -311,6 +443,7 @@ export function UsersPage() {
           getRowId={(row) => row.id}
           loading={loading}
           error={error}
+          onRowClick={(row) => setViewingUser(row)}
           emptyMessage="No hay usuarios."
           pagination={pagination}
           onPageChange={setPage}
@@ -356,6 +489,31 @@ export function UsersPage() {
                 <Pencil size={16} />
                 {t('common.edit')}
               </button>
+              {!row.isConfirmed ? (
+                <button
+                  type="button"
+                  disabled={cooldowns[`resend_${row.id}`] !== undefined}
+                  onClick={() => handleResendConfirmation(row)}
+                  className="inline-flex items-center gap-1 text-[var(--color-primary)] hover:underline disabled:opacity-50 disabled:no-underline"
+                  title="Reenviar correo de confirmación"
+                >
+                  <Mail size={16} />
+                  {cooldowns[`resend_${row.id}`] !== undefined ? `${cooldowns[`resend_${row.id}`]}s` : 'Reenviar'}
+                </button>
+              ) : (
+                row.role !== 'admin' && (
+                  <button
+                    type="button"
+                    disabled={cooldowns[`reset_${row.id}`] !== undefined}
+                    onClick={() => handleResetPassword(row)}
+                    className="inline-flex items-center gap-1 text-[var(--color-primary)] hover:underline disabled:opacity-50 disabled:no-underline"
+                    title="Restablecer contraseña"
+                  >
+                    <KeyRound size={16} />
+                    {cooldowns[`reset_${row.id}`] !== undefined ? `${cooldowns[`reset_${row.id}`]}s` : 'Restablecer'}
+                  </button>
+                )
+              )}
               {row.role !== 'admin' ? (
                 <button
                   type="button"
@@ -428,30 +586,10 @@ export function UsersPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               {creatingOpen && (
-                <>
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('auth.email')}</label>
-                    <input className="glass-input w-full px-4 py-2.5" value={createForm.email} onChange={(e) => setCreateForm((p) => ({ ...p, email: e.target.value }))} />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('auth.password')}</label>
-                    <PasswordInput
-                      className=""
-                      value={createForm.password}
-                      onChange={(e) => setCreateForm((p) => ({ ...p, password: e.target.value }))}
-                      placeholder="••••••••"
-                      showStrength
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('auth.confirmPassword')}</label>
-                    <PasswordInput
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
-                    />
-                  </div>
-                </>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('auth.email')}</label>
+                  <input className="glass-input w-full px-4 py-2.5" value={createForm.email} onChange={(e) => setCreateForm((p) => ({ ...p, email: e.target.value }))} />
+                </div>
               )}
 
               <div>
@@ -509,7 +647,7 @@ export function UsersPage() {
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
-              <GlassButton type="button" onClick={() => { setCreatingOpen(false); setEditing(null); setConfirmPassword(''); }}>
+              <GlassButton type="button" onClick={() => { setCreatingOpen(false); setEditing(null); }}>
                 {t('common.cancel')}
               </GlassButton>
               <GlassButton type="button" variant="primary" onClick={creatingOpen ? submitCreate : handleSaveEditClick} disabled={busy}>
@@ -561,12 +699,20 @@ export function UsersPage() {
               <div>
                 <span className="text-xs font-semibold text-[var(--text-secondary)] block uppercase tracking-wider">Estado de Cuenta</span>
                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${
-                  viewingUser.isActive 
-                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                  !viewingUser.isConfirmed
+                    ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                    : viewingUser.isActive
+                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
                     : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                 }`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${viewingUser.isActive ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                  {viewingUser.isActive ? 'Activo' : 'Inactivo'}
+                  <span className={`h-1.5 w-1.5 rounded-full ${
+                    !viewingUser.isConfirmed
+                      ? 'bg-amber-500'
+                      : viewingUser.isActive
+                      ? 'bg-emerald-500'
+                      : 'bg-rose-500'
+                  }`} />
+                  {!viewingUser.isConfirmed ? 'No confirmado' : viewingUser.isActive ? 'Activo' : 'Desactivado'}
                 </span>
               </div>
               <div>

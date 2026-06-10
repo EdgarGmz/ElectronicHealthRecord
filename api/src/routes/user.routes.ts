@@ -34,4 +34,19 @@ router.post(
   userController.create.bind(userController)
 );
 
+// Acciones adicionales de admin
+router.post(
+  '/:id/resend-confirmation',
+  authorizeRoles(ROLES.ADMIN),
+  validate([param('id').isUUID()]),
+  userController.resendConfirmation.bind(userController)
+);
+
+router.post(
+  '/:id/reset-password-admin',
+  authorizeRoles(ROLES.ADMIN),
+  validate([param('id').isUUID()]),
+  userController.resetPasswordByAdmin.bind(userController)
+);
+
 export default router;

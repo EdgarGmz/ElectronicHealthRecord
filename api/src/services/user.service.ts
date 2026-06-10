@@ -33,7 +33,7 @@ async function generateUniqueUsername(firstName: string, lastName: string): Prom
 export class UserService {
   async create(data: {
     email: string;
-    password: string;
+    password?: string;
     firstName: string;
     lastName: string;
     dateOfBirth: Date;
@@ -48,7 +48,8 @@ export class UserService {
     }
 
     const username = await generateUniqueUsername(data.firstName, data.lastName);
-    const passwordHash = await hashPassword(data.password);
+    const generatedPassword = data.password || (Math.random().toString(36).substring(2, 12) + 'A1!');
+    const passwordHash = await hashPassword(generatedPassword);
     const confirmationToken = crypto.randomBytes(32).toString('hex');
     const confirmationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
@@ -80,6 +81,7 @@ export class UserService {
         sex: true,
         role: true,
         isActive: true,
+        isConfirmed: true,
         enrollmentNumber: true,
         createdAt: true,
         updatedAt: true,
@@ -87,7 +89,7 @@ export class UserService {
     });
 
     // Send confirmation email asynchronously without blocking response
-    emailService.sendConfirmationEmail(user.email, user.username, data.password, confirmationToken)
+    emailService.sendConfirmationEmail(user.email, user.username, generatedPassword, confirmationToken)
       .catch((err) => {
         logger.error(`Error sending user confirmation email to ${user.email}:`, err);
       });
@@ -132,6 +134,7 @@ export class UserService {
           sex: true,
           role: true,
           isActive: true,
+          isConfirmed: true,
           enrollmentNumber: true,
           createdAt: true,
           updatedAt: true,
@@ -166,6 +169,7 @@ export class UserService {
         sex: true,
         role: true,
         isActive: true,
+        isConfirmed: true,
         enrollmentNumber: true,
         createdAt: true,
         updatedAt: true,
@@ -215,6 +219,7 @@ export class UserService {
         phone: true,
         role: true,
         isActive: true,
+        isConfirmed: true,
         enrollmentNumber: true,
         updatedAt: true,
       },
@@ -299,6 +304,63 @@ export class UserService {
     });
 
     return { message: 'Contraseña cambiada con éxito.' };
+  }
+
+  async resendConfirmation(id: string) {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new AppError('Usuario no encontrado', 404);
+    }
+    if (user.isConfirmed) {
+      throw new AppError('La cuenta ya está confirmada', 400);
+    }
+
+    const generatedPassword = Math.random().toString(36).substring(2, 12) + 'A1!';
+    const passwordHash = await hashPassword(generatedPassword);
+    const confirmationToken = crypto.randomBytes(32).toString('hex');
+    const confirmationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    await prisma.user.update({
+      where: { id },
+      data: {
+        passwordHash,
+        confirmationToken,
+        confirmationTokenExpires,
+        updatedAt: new Date(),
+      },
+    });
+
+    emailService.sendConfirmationEmail(user.email, user.username, generatedPassword, confirmationToken)
+      .catch((err) => {
+        logger.error(`Error sending user confirmation email to ${user.email}:`, err);
+      });
+  }
+
+  async resetPasswordByAdmin(id: string) {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new AppError('Usuario no encontrado', 404);
+    }
+    if (user.role === ROLES.ADMIN) {
+      throw new AppError('No se puede restablecer la contraseña del administrador principal', 403);
+    }
+
+    const generatedPassword = Math.random().toString(36).substring(2, 12) + 'A1!';
+    const passwordHash = await hashPassword(generatedPassword);
+
+    await prisma.user.update({
+      where: { id },
+      data: {
+        passwordHash,
+        mustChangePassword: true,
+        updatedAt: new Date(),
+      },
+    });
+
+    emailService.sendPasswordResetByAdminEmail(user.email, user.username, generatedPassword)
+      .catch((err) => {
+        logger.error(`Error sending password reset by admin email to ${user.email}:`, err);
+      });
   }
 }
 

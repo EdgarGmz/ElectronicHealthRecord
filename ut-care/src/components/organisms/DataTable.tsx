@@ -72,6 +72,8 @@ export interface DataTableProps<T> {
   rowVariant?: (row: T) => TableRowVariant
   /** Clase CSS personalizada por fila (ej. bitácora por tipo de acción). */
   rowClassName?: (row: T) => string
+  /** Evento opcional al hacer clic en una fila */
+  onRowClick?: (row: T, event: React.MouseEvent) => void
   /** Formatos de exportación mostrados. */
   exportFormats?: ('pdf' | 'csv' | 'xlsx')[]
   exportFilename?: string
@@ -118,6 +120,7 @@ export function DataTable<T>({
   renderActions,
   rowVariant,
   rowClassName,
+  onRowClick,
   exportFormats = ['pdf', 'csv', 'xlsx'],
   exportFilename = 'datos',
   exportTitle,
@@ -441,7 +444,22 @@ export function DataTable<T>({
                 {data.map((row) => (
                   <tr
                     key={getRowId(row)}
-                    className={rowClassName?.(row) ?? getTableRowClass(rowVariant?.(row) ?? 'default')}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement
+                      if (
+                        target.closest('button') ||
+                        target.closest('a') ||
+                        target.closest('input') ||
+                        target.closest('select') ||
+                        target.closest('[role="switch"]')
+                      ) {
+                        return
+                      }
+                      onRowClick?.(row, e)
+                    }}
+                    className={`${rowClassName?.(row) ?? getTableRowClass(rowVariant?.(row) ?? 'default')} ${
+                      onRowClick ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors' : ''
+                    }`}
                   >
                     {columns.map((col) => (
                       <td
