@@ -583,7 +583,7 @@ export function UsersPage() {
               <button
                 type="button"
                 className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                onClick={() => { setCreatingOpen(false); setEditing(null); setConfirmPassword(''); }}
+                onClick={() => { setCreatingOpen(false); setEditing(null); }}
               >
                 ✕
               </button>
