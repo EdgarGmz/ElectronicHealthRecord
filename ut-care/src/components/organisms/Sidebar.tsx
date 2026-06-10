@@ -24,6 +24,7 @@ import {
   X,
   PanelLeftClose,
   PanelLeft,
+  GraduationCap,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useSidebarStore } from '@/store/sidebar.store'
@@ -60,6 +61,7 @@ const navItems = [
   { to: '/reports', icon: BarChart3, key: 'nav.reports' },
   { to: '/notifications', icon: Bell, key: 'nav.notifications' },
   { to: '/users', icon: Settings2, key: 'nav.users' },
+  { to: '/careers', icon: GraduationCap, key: 'nav.careers' },
   { to: '/audit-logs', icon: ClipboardCheck, key: 'nav.auditLogs' },
 ]
 

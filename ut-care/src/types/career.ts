@@ -3,4 +3,7 @@ export interface Career {
   name: string
   code: string | null
   isActive?: boolean
+  _count?: {
+    patients: number
+  }
 }
