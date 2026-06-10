@@ -15,7 +15,7 @@ import { EmailLink } from '@/components/atoms/EmailLink'
 import { PasswordInput } from '@/components/atoms/PasswordInput'
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { dateStyle: 'short' })
+  return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 function fullName(u: User): string {
