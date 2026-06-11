@@ -19,6 +19,7 @@ namespace AppEHR.ViewModels
             _authService = authService;
             Title = "Iniciar Sesión";
             LoginCommand = new Command(async () => await ExecuteLoginCommandAsync(), () => !IsBusy);
+            ForgotPasswordCommand = new Command(async () => await ExecuteForgotPasswordCommandAsync());
         }
 
         public string Username
@@ -46,6 +47,7 @@ namespace AppEHR.ViewModels
         }
 
         public ICommand LoginCommand { get; }
+        public ICommand ForgotPasswordCommand { get; }
 
         private async Task ExecuteLoginCommandAsync()
         {
@@ -84,7 +86,56 @@ namespace AppEHR.ViewModels
             }
             catch (System.Exception ex)
             {
-                ErrorMessage = $"Error: {ex.Message}";
+                ErrorMessage = $"Error de conexión: {ex.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private async Task ExecuteForgotPasswordCommandAsync()
+        {
+            if (IsBusy) return;
+
+            string email = await Shell.Current.DisplayPromptAsync(
+                "Restablecer Contraseña",
+                "Ingresa tu correo electrónico registrado:",
+                "Enviar",
+                "Cancelar",
+                "correo@ejemplo.com",
+                -1,
+                Keyboard.Email
+            );
+
+            if (string.IsNullOrWhiteSpace(email)) return;
+
+            IsBusy = true;
+            ErrorMessage = string.Empty;
+
+            try
+            {
+                var result = await _authService.ForgotPasswordAsync(email.Trim());
+                if (result.Success)
+                {
+                    await Shell.Current.DisplayAlert(
+                        "Correo Enviado",
+                        result.Message ?? "Se ha enviado un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada.",
+                        "Aceptar"
+                    );
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert(
+                        "Error",
+                        result.Message ?? "No se pudo enviar el correo de restablecimiento.",
+                        "Aceptar"
+                    );
+                }
+            }
+            catch (System.Exception ex)
+            {
+                await Shell.Current.DisplayAlert("Error", $"Error de conexión: {ex.Message}", "Aceptar");
             }
             finally
             {

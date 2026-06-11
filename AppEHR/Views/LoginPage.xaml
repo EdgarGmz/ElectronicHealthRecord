@@ -126,6 +126,18 @@
                                 HeightRequest="48"
                                 Margin="0,8,0,0"/>
 
+                        <!-- Forgot Password Link -->
+                        <Button Text="¿Olvidaste tu contraseña?"
+                                Command="{Binding ForgotPasswordCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="{StaticResource BrandPrimary}"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                HorizontalOptions="Center"
+                                HeightRequest="38"
+                                Padding="0"
+                                Margin="0,4,0,0"/>
+
                         <!-- Loading Indicator -->
                         <ActivityIndicator IsRunning="{Binding IsBusy}" 
                                            IsVisible="{Binding IsBusy}" 
