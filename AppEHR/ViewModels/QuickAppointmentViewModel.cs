@@ -224,6 +224,21 @@ namespace AppEHR.ViewModels
         }
         #endregion
 
+        public new bool IsBusy
+        {
+            get => base.IsBusy;
+            set
+            {
+                if (base.IsBusy != value)
+                {
+                    base.IsBusy = value;
+                    ((Command)SearchPatientCommand).ChangeCanExecute();
+                    ((Command)BookAppointmentCommand).ChangeCanExecute();
+                    ((Command)RegisterPatientCommand).ChangeCanExecute();
+                }
+            }
+        }
+
         public ICommand SearchPatientCommand { get; }
         public ICommand BookAppointmentCommand { get; }
         public ICommand RegisterPatientCommand { get; }

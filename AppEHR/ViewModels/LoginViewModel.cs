@@ -46,6 +46,19 @@ namespace AppEHR.ViewModels
             set => SetProperty(ref _rememberMe, value);
         }
 
+        public new bool IsBusy
+        {
+            get => base.IsBusy;
+            set
+            {
+                if (base.IsBusy != value)
+                {
+                    base.IsBusy = value;
+                    ((Command)LoginCommand).ChangeCanExecute();
+                }
+            }
+        }
+
         public ICommand LoginCommand { get; }
         public ICommand ForgotPasswordCommand { get; }
 
