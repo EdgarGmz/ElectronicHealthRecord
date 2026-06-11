@@ -69,7 +69,7 @@ namespace AppEHR.Tests
             }";
 
 
-            viewModel.Email = "admin@test.com";
+            viewModel.Username = "admin_user";
             viewModel.Password = "password";
 
             // Act

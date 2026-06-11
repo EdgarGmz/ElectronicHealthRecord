@@ -55,9 +55,9 @@
 
                     <VerticalStackLayout Spacing="16">
                         
-                        <!-- Email Input -->
+                        <!-- Username Input -->
                         <VerticalStackLayout Spacing="6">
-                            <Label Text="Correo Institucional" 
+                            <Label Text="Nombre de Usuario" 
                                    FontSize="12" 
                                    FontAttributes="Bold" 
                                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
@@ -67,9 +67,9 @@
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Entry Text="{Binding Email}" 
-                                       Placeholder="nombre@institucion.edu.mx" 
-                                       Keyboard="Email" 
+                                <Entry Text="{Binding Username}" 
+                                       Placeholder="Introduce tu usuario" 
+                                       Keyboard="Default" 
                                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
                                        PlaceholderColor="Gray"
                                        Margin="6,0"

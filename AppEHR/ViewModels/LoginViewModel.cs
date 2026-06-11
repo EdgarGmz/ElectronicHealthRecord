@@ -9,7 +9,7 @@ namespace AppEHR.ViewModels
     public class LoginViewModel : BaseViewModel
     {
         private readonly AuthService _authService;
-        private string _email = string.Empty;
+        private string _username = string.Empty;
         private string _password = string.Empty;
         private string _errorMessage = string.Empty;
         private bool _rememberMe;
@@ -21,10 +21,10 @@ namespace AppEHR.ViewModels
             LoginCommand = new Command(async () => await ExecuteLoginCommandAsync(), () => !IsBusy);
         }
 
-        public string Email
+        public string Username
         {
-            get => _email;
-            set => SetProperty(ref _email, value);
+            get => _username;
+            set => SetProperty(ref _username, value);
         }
 
         public string Password
@@ -51,9 +51,9 @@ namespace AppEHR.ViewModels
         {
             if (IsBusy) return;
 
-            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+            if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
             {
-                ErrorMessage = "Ingresa correo y contraseña";
+                ErrorMessage = "Ingresa usuario y contraseña";
                 return;
             }
 
@@ -62,7 +62,7 @@ namespace AppEHR.ViewModels
 
             try
             {
-                var result = await _authService.LoginAsync(Email.Trim(), Password);
+                var result = await _authService.LoginAsync(Username.Trim(), Password);
                 if (result.Success)
                 {
                     try

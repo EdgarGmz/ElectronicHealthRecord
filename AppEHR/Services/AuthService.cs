@@ -57,11 +57,11 @@ namespace AppEHR.Services
             }
         }
 
-        public async Task<(bool Success, string Message)> LoginAsync(string email, string password)
+        public async Task<(bool Success, string Message)> LoginAsync(string username, string password)
         {
             try
             {
-                var credentials = new { email, password };
+                var credentials = new { username, password };
                 var response = await _apiService.PostAsync("auth/login", credentials);
                 var content = await response.Content.ReadAsStringAsync();
 
