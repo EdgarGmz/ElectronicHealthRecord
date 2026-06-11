@@ -24,8 +24,13 @@ api.interceptors.response.use(
   (err) => {
     const status = err.response?.status
     const url = err.config?.url || ''
-    // Solo cerrar sesión en 401 cuando no sea un intento explícito de login
-    if (status === 401 && !url.includes('/auth/login')) {
+    const message = err.response?.data?.message || ''
+
+    // Cerrar sesión si el token es inválido o expiró (401 o 403 con mensaje específico de token)
+    const isUnauthorized = status === 401 && !url.includes('/auth/login')
+    const isTokenExpiredForbidden = status === 403 && message === 'Invalid or expired token'
+
+    if (isUnauthorized || isTokenExpiredForbidden) {
       useAuthStore.getState().setSessionExpired(true)
     }
     return Promise.reject(err)
