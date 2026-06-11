@@ -1,0 +1,505 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ThemeToggle from '../../components/ThemeToggle.astro';
+---
+
+<Layout title="Agendar Asesoría - UT Care">
+    <header class="navbar">
+        <div class="logo">Psicopedagogía</div>
+        <nav>
+            <a href="/" class="home-btn">Inicio</a>
+            <button id="logout-btn" class="logout-btn hidden">Cerrar Sesión</button>
+            <ThemeToggle />
+        </nav>
+    </header>
+
+    <main class="booking-page">
+        <!-- Bloque de carga mientras se valida la sesión -->
+        <div id="session-loading" class="session-loading">
+            <div class="spinner"></div>
+            <p>Validando tu sesión...</p>
+        </div>
+
+        <div id="booking-container" class="booking-container hidden">
+            <div class="form-header">
+                <span class="badge">UT Care Agenda</span>
+                <h1>Solicitar Apoyo</h1>
+                <p>Estás dando un gran paso para cuidar de ti. Completa esta solicitud confidencial.</p>
+            </div>
+
+            <!-- Alerta visual de error -->
+            <div id="booking-alert" class="status-alert error"></div>
+            
+            <form id="booking-form" class="booking-form">
+                <!-- Información personal pre-cargada -->
+                <div class="confidential-fields">
+                    <p class="section-title">🔒 Información Confidencial (Pre-cargada)</p>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="display-name">Identificador / Nombre</label>
+                            <input type="text" id="display-name" readonly disabled class="readonly-input">
+                        </div>
+                        <div class="input-group">
+                            <label for="display-email">Correo de Contacto</label>
+                            <input type="email" id="display-email" readonly disabled class="readonly-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selección de departamento y motivo -->
+                <div class="input-group">
+                    <label for="department">¿Con qué departamento deseas agendar?</label>
+                    <div class="select-wrapper">
+                        <select id="department" name="department" required>
+                            <option value="psicologia" selected>Psicología (Salud Mental y Emocional)</option>
+                            <option value="enfermeria">Enfermería (Salud Física y Primeros Auxilios)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="reason">¿Cómo te sientes hoy o cuál es el motivo de tu cita? (Opcional)</label>
+                    <textarea id="reason" name="reason" rows="4" placeholder="Escribe aquí de forma libre lo que te gustaría compartir..."></textarea>
+                    <p class="helper-text">Solo el especialista asignado podrá leer esta información.</p>
+                </div>
+
+                <button type="submit" id="submit-btn" class="submit-button">
+                    <span class="btn-text">Confirmar Solicitud de Cita</span>
+                    <div class="btn-spinner"></div>
+                </button>
+            </form>
+        </div>
+    </main>
+</Layout>
+
+<script>
+    import { API_BASE_URL } from '../../utils/api';
+
+    const checkSession = () => {
+        const token = localStorage.getItem('token');
+        const userJson = localStorage.getItem('user');
+        const loadingBox = document.getElementById('session-loading');
+        const bookingBox = document.getElementById('booking-container');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        if (!token || !userJson) {
+            // No hay sesión activa, redirigir a login
+            window.location.href = '/login?redirect=/agendar';
+            return;
+        }
+
+        const user = JSON.parse(userJson);
+        
+        // Rellenar campos pre-cargados
+        const nameField = document.getElementById('display-name') as HTMLInputElement;
+        const emailField = document.getElementById('display-email') as HTMLInputElement;
+
+        if (nameField) {
+            if (user.firstName === 'Anónimo') {
+                nameField.value = `Anónimo (${user.lastName})`; // Muestra "Anónimo (alias)"
+            } else {
+                nameField.value = `${user.firstName} ${user.lastName}`;
+            }
+        }
+
+        if (emailField) {
+            emailField.value = user.email;
+        }
+
+        // Mostrar el formulario
+        if (loadingBox) loadingBox.classList.add('hidden');
+        if (bookingBox) bookingBox.classList.remove('hidden');
+        if (logoutBtn) {
+            logoutBtn.classList.remove('hidden');
+            logoutBtn.addEventListener('click', () => {
+                localStorage.clear();
+                window.location.href = '/';
+            });
+        }
+    };
+
+    const setupBooking = () => {
+        const form = document.getElementById('booking-form');
+        const alertBox = document.getElementById('booking-alert');
+        const submitBtn = document.getElementById('submit-btn');
+
+        if (!form) return;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!alertBox || !submitBtn) return;
+
+            // Reset alert and start loader
+            alertBox.style.display = 'none';
+            alertBox.textContent = '';
+            submitBtn.classList.add('loading');
+
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const formData = new FormData(form as HTMLFormElement);
+            const department = formData.get('department') as string;
+            const reason = formData.get('reason') as string;
+
+            try {
+                // Hacemos el POST al endpoint de la fila virtual pública
+                const response = await fetch(`${API_BASE_URL}/appointments/queue/join`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        firstName: user.firstName || 'Anónimo',
+                        lastName: user.lastName || 'Usuario',
+                        email: user.email,
+                        phone: user.phone || '8110000000',
+                        department,
+                        reason
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Error al solicitar la cita');
+                }
+
+                // Guardar éxito en sessionStorage
+                sessionStorage.setItem('bookingSuccess', 'true');
+
+                // Redirigir al inicio para que el EmpatheticWidget muestre la alerta
+                window.location.href = '/?bookingSuccess=true';
+
+            } catch (error) {
+                console.error(error);
+                alertBox.style.display = 'block';
+                alertBox.textContent = error.message || 'Error al conectar con el servidor.';
+                submitBtn.classList.remove('loading');
+            }
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        checkSession();
+        setupBooking();
+    });
+
+    document.addEventListener('astro:after-swap', () => {
+        checkSession();
+        setupBooking();
+    });
+</script>
+
+<style>
+    /* Navbar Styles */
+    .navbar {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        background-color: var(--navbar-bg);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 30px;
+        box-sizing: border-box;
+        z-index: 1000;
+        border-bottom: 1px solid var(--navbar-border);
+        height: 70px;
+    }
+
+    .logo {
+        color: var(--logo-color);
+        font-size: 1.5rem;
+        font-weight: bold;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .navbar nav {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .navbar nav a {
+        color: var(--nav-link-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s;
+    }
+
+    .navbar nav a:hover {
+        color: var(--nav-link-hover);
+    }
+
+    .logout-btn {
+        background-color: transparent;
+        border: 1px solid #ff5e57;
+        color: #ff5e57;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+        background-color: #ff5e57;
+        color: white;
+    }
+
+    /* Booking Page Styles */
+    .booking-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 70px);
+        background-color: var(--bg-color);
+        padding: 3rem 1rem;
+        box-sizing: border-box;
+    }
+
+    .session-loading {
+        text-align: center;
+        color: var(--body-text-color);
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid var(--navbar-border);
+        border-top-color: #A2D9CE;
+        border-radius: 50%;
+        animation: spin 1s infinite linear;
+        margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .booking-container {
+        background-color: var(--card-bg);
+        padding: 3rem;
+        border-radius: 30px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+        width: 100%;
+        max-width: 600px;
+        border: 1px solid var(--navbar-border);
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .badge {
+        background-color: #e6f4f1;
+        color: #1e3a34;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        margin-bottom: 0.8rem;
+    }
+
+    .form-header h1 {
+        font-size: 2.4rem;
+        color: var(--heading-color);
+        margin: 0 0 0.5rem 0;
+    }
+
+    .form-header p {
+        color: var(--body-text-color);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    .status-alert {
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        display: none;
+        text-align: center;
+    }
+
+    .status-alert.error {
+        background-color: #fce8e6;
+        color: #a80700;
+        border: 1px solid #fbc4c0;
+    }
+
+    .booking-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .confidential-fields {
+        background-color: var(--bg-color);
+        padding: 1.2rem;
+        border-radius: 16px;
+        border: 1px dashed var(--navbar-border);
+    }
+
+    .section-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #1e3a34;
+        margin: 0 0 1rem 0;
+        letter-spacing: 0.5px;
+    }
+
+    :root.dark .section-title {
+        color: #A2D9CE;
+    }
+
+    .input-row {
+        display: flex;
+        gap: 15px;
+        width: 100%;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        flex: 1;
+    }
+
+    .input-group label {
+        font-weight: 700;
+        color: var(--heading-color);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-group input,
+    .select-wrapper select,
+    .input-group textarea {
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        border: 2px solid var(--navbar-border);
+        border-radius: 14px;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+        transition: all 0.3s;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: inherit;
+    }
+
+    .readonly-input {
+        background-color: rgba(0, 0, 0, 0.02) !important;
+        border-style: solid;
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+
+    :root.dark .readonly-input {
+        background-color: rgba(255, 255, 255, 0.02) !important;
+    }
+
+    .select-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .select-wrapper select {
+        appearance: none;
+    }
+
+    .select-wrapper::after {
+        content: '▼';
+        font-size: 0.7rem;
+        color: #A2D9CE;
+        position: absolute;
+        right: 1.2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .input-group input:focus,
+    .select-wrapper select:focus,
+    .input-group textarea:focus {
+        border-color: #A2D9CE;
+        background-color: var(--card-bg);
+        box-shadow: 0 0 0 4px rgba(162, 217, 206, 0.2);
+        outline: none;
+    }
+
+    .helper-text {
+        font-size: 0.8rem;
+        color: var(--body-text-color);
+        margin: 2px 0 0 0;
+    }
+
+    .submit-button {
+        width: 100%;
+        padding: 1.1rem;
+        background-color: #2C3E50;
+        color: white;
+        border: none;
+        border-radius: 14px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .submit-button:hover {
+        background-color: #34495e;
+        transform: translateY(-2px);
+    }
+
+    .submit-button.loading .btn-text {
+        visibility: hidden;
+        opacity: 0;
+    }
+
+    .submit-button.loading .btn-spinner {
+        display: block;
+    }
+
+    .btn-spinner {
+        display: none;
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.8s infinite linear;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    @media (max-width: 768px) {
+        .booking-container {
+            padding: 2rem 1.5rem;
+        }
+        .input-row {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+    }
+</style>

@@ -102,6 +102,8 @@ export class AuthService {
     phone?: string;
     role: string;
     enrollmentNumber?: string;
+    careerId?: string;
+    patientType?: string;
   }) {
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
@@ -114,29 +116,69 @@ export class AuthService {
     const username = await generateUniqueUsername(data.firstName, data.lastName);
     const passwordHash = await hashPassword(data.password);
 
-    const user = await prisma.user.create({
-      data: {
-        email: data.email,
-        username,
-        passwordHash,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        dateOfBirth: data.dateOfBirth,
-        phone: data.phone,
-        role: data.role,
-        enrollmentNumber: data.enrollmentNumber,
-        isConfirmed: true,
-        mustChangePassword: false,
-      },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-      },
-    });
+    let user;
+    if (data.role === 'patient') {
+      const result = await prisma.$transaction(async (tx) => {
+        const createdUser = await tx.user.create({
+          data: {
+            email: data.email,
+            username,
+            passwordHash,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            dateOfBirth: data.dateOfBirth,
+            phone: data.phone,
+            role: data.role,
+            enrollmentNumber: data.enrollmentNumber,
+            isConfirmed: true,
+            mustChangePassword: false,
+          },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          },
+        });
+
+        await tx.patient.create({
+          data: {
+            userId: createdUser.id,
+            patientType: data.patientType || 'estudiante',
+            careerId: data.careerId || null,
+          },
+        });
+
+        return createdUser;
+      });
+      user = result;
+    } else {
+      user = await prisma.user.create({
+        data: {
+          email: data.email,
+          username,
+          passwordHash,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          dateOfBirth: data.dateOfBirth,
+          phone: data.phone,
+          role: data.role,
+          enrollmentNumber: data.enrollmentNumber,
+          isConfirmed: true,
+          mustChangePassword: false,
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+        },
+      });
+    }
 
     const accessToken = generateAccessToken({
       userId: user.id,

@@ -1,0 +1,279 @@
+---
+// Kiosko/src/components/EmpatheticWidget.astro
+---
+<div class="empathy-container">
+    <!-- Banner de frases de apoyo rotativas -->
+    <div id="empathy-banner" class="empathy-banner">
+        <div class="banner-content">
+            <span class="icon">✨</span>
+            <div class="phrase-container">
+                <p id="empathy-phrase" class="phrase">No estás solo(a) en esto. Tu bienestar es nuestra prioridad.</p>
+            </div>
+            <a href="/agendar" id="agenda-trigger" class="agenda-button">
+                Hablar con alguien <span class="arrow">→</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Notificación / Toast flotante de agendado exitoso -->
+    <div id="success-toast" class="success-toast">
+        <div class="toast-icon">😊</div>
+        <div class="toast-body">
+            <h4>¡Excelente decisión!</h4>
+            <p>En breve un psicólogo se pondrá en contacto contigo. Mantente muy al pendiente de tu WhatsApp o de tu correo electrónico. No estás solo(a).</p>
+        </div>
+        <button id="close-toast" class="close-toast-btn">&times;</button>
+    </div>
+</div>
+
+<script>
+    const phrases = [
+        "No estás solo(a) en esto. Tu bienestar es nuestra prioridad.",
+        "Dar el primer paso es el más difícil, pero estamos aquí para acompañarte.",
+        "Hablar de lo que sientes es de valientes. Agenda una cita con nosotros.",
+        "Cuidar de tu mente es tan importante como cuidar de tu cuerpo.",
+        "Un espacio seguro y confidencial te espera para escucharte.",
+        "La salud mental importa tanto como la física. Permítete recibir apoyo."
+    ];
+
+    let currentPhraseIdx = 0;
+    const phraseElement = document.getElementById('empathy-phrase');
+
+    // Cambiar frase con transición de desvanecimiento
+    if (phraseElement) {
+        setInterval(() => {
+            phraseElement.style.opacity = '0';
+            setTimeout(() => {
+                currentPhraseIdx = (currentPhraseIdx + 1) % phrases.length;
+                phraseElement.textContent = phrases[currentPhraseIdx];
+                phraseElement.style.opacity = '1';
+            }, 500);
+        }, 6000);
+    }
+
+    // Manejar el Toast de Agendado Exitoso
+    const checkBookingSuccess = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const toast = document.getElementById('success-toast');
+        const closeBtn = document.getElementById('close-toast');
+
+        // Mostrar si hay query param bookingSuccess o si está en sessionStorage
+        if (urlParams.get('bookingSuccess') === 'true' || sessionStorage.getItem('bookingSuccess') === 'true') {
+            if (toast) {
+                toast.classList.add('show');
+                sessionStorage.removeItem('bookingSuccess');
+                
+                // Limpiar la URL sin recargar para quitar el query param
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+            }
+        }
+
+        if (closeBtn && toast) {
+            closeBtn.addEventListener('click', () => {
+                toast.classList.remove('show');
+            });
+        }
+    };
+
+    // Validar redirección inteligente para agendar
+    const setupAgendaRedirect = () => {
+        const trigger = document.getElementById('agenda-trigger');
+        if (trigger) {
+            trigger.addEventListener('click', (e) => {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    e.preventDefault();
+                    // Guardar redirección
+                    window.location.href = '/login?redirect=/agendar';
+                }
+            });
+        }
+    };
+
+    // Ejecutar lógica del lado del cliente
+    document.addEventListener('DOMContentLoaded', () => {
+        checkBookingSuccess();
+        setupAgendaRedirect();
+    });
+
+    document.addEventListener('astro:after-swap', () => {
+        checkBookingSuccess();
+        setupAgendaRedirect();
+    });
+</script>
+
+<style>
+    .empathy-container {
+        width: 100%;
+        max-width: 1100px;
+        margin: 1.5rem auto 0;
+        padding: 0 2rem;
+        box-sizing: border-box;
+    }
+
+    .empathy-banner {
+        background: linear-gradient(135deg, #e6f4f1 0%, #f3e6f4 100%);
+        border: 1px solid var(--navbar-border);
+        border-radius: 20px;
+        padding: 1.2rem 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: transform 0.3s ease;
+    }
+
+    .empathy-banner:hover {
+        transform: translateY(-2px);
+    }
+
+    .banner-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 2rem;
+    }
+
+    .icon {
+        font-size: 1.5rem;
+        animation: pulse 2s infinite;
+    }
+
+    .phrase-container {
+        flex-grow: 1;
+        overflow: hidden;
+    }
+
+    .phrase {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #2C3E50;
+        margin: 0;
+        transition: opacity 0.5s ease;
+        line-height: 1.4;
+    }
+
+    :root.dark .phrase {
+        color: #1a2e40;
+    }
+
+    .agenda-button {
+        background-color: #2C3E50;
+        color: white;
+        text-decoration: none;
+        padding: 10px 24px;
+        border-radius: 30px;
+        font-size: 0.95rem;
+        font-weight: bold;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(44, 62, 80, 0.2);
+    }
+
+    .agenda-button:hover {
+        background-color: #34495e;
+        transform: translateX(3px);
+    }
+
+    .arrow {
+        transition: transform 0.3s ease;
+    }
+
+    .agenda-button:hover .arrow {
+        transform: translateX(4px);
+    }
+
+    /* Success Toast Styles */
+    .success-toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background-color: var(--card-bg);
+        border: 1px solid var(--navbar-border);
+        border-left: 6px solid #A2D9CE;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: start;
+        gap: 1.2rem;
+        max-width: 450px;
+        z-index: 9999;
+        transform: translateY(100px) scale(0.9);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .success-toast.show {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .toast-icon {
+        font-size: 2.5rem;
+        line-height: 1;
+    }
+
+    .toast-body h4 {
+        margin: 0 0 0.4rem 0;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        color: var(--heading-color);
+    }
+
+    .toast-body p {
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--body-text-color);
+    }
+
+    .close-toast-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--body-text-color);
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .close-toast-btn:hover {
+        color: #ff5e57;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    @media (max-width: 768px) {
+        .empathy-banner {
+            padding: 1.2rem 1.5rem;
+        }
+        .banner-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        .agenda-button {
+            width: 100%;
+            justify-content: center;
+        }
+        .success-toast {
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            max-width: none;
+        }
+    }
+</style>

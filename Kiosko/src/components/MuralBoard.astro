@@ -1,0 +1,611 @@
+---
+// Kiosko/src/components/MuralBoard.astro
+---
+<section id="mural" class="mural-section">
+    <div class="container">
+        <div class="mural-header text-center">
+            <span class="badge">Mural UT Care</span>
+            <h2>Consejos, Eventos e Historias de Salud</h2>
+            <p class="subtitle">Creado por nuestro equipo de psicólogos y enfermeros para ti.</p>
+            <div class="divider"></div>
+        </div>
+
+        <!-- Filtros de categoría -->
+        <div class="filter-container">
+            <button class="filter-btn active" data-category="all">Todos</button>
+            <button class="filter-btn" data-category="Salud Mental">Salud Mental</button>
+            <button class="filter-btn" data-category="Salud Física">Salud Física</button>
+            <button class="filter-btn" data-category="Evento">Eventos</button>
+            <button class="filter-btn" data-category="Día Especial">Días Especiales</button>
+        </div>
+
+        <!-- Grid de publicaciones -->
+        <div id="mural-grid" class="mural-grid">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Cargando publicaciones...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerta sutil flotante para notificaciones -->
+    <div id="mural-toast" class="mural-toast">
+        <span id="mural-toast-text"></span>
+    </div>
+</section>
+
+<script>
+    import { API_BASE_URL } from '../utils/api';
+
+    let blogPosts = [];
+
+    const categoryColors = {
+        'Salud Mental': 'mint-card',
+        'Salud Física': 'peach-card',
+        'Evento': 'lavender-card',
+        'Día Especial': 'blue-card'
+    };
+
+    const getCardClass = (category) => {
+        return categoryColors[category] || 'mint-card';
+    };
+
+    const formatDate = (dateString) => {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString('es-ES', options);
+    };
+
+    // Renderizar posts en el DOM
+    const renderPosts = (filter = 'all') => {
+        const grid = document.getElementById('mural-grid');
+        if (!grid) return;
+
+        const filtered = filter === 'all' 
+            ? blogPosts 
+            : blogPosts.filter(post => post.category === filter);
+
+        if (filtered.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <p>No hay publicaciones disponibles en esta categoría por el momento.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Obtener likes del localStorage
+        const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+
+        grid.innerHTML = filtered.map(post => {
+            const isLiked = likedPosts.includes(post.id);
+            const cardClass = getCardClass(post.category);
+            const authorName = post.author 
+                ? `Psic. ${post.author.firstName} ${post.author.lastName}`
+                : 'Departamento de Psicología';
+
+            return `
+                <article id="post-${post.id}" class="mural-card ${cardClass} reveal-card">
+                    ${post.imageUrl ? `
+                        <div class="card-image-wrapper">
+                            <img src="${post.imageUrl}" alt="${post.title}" class="card-image" loading="lazy" />
+                        </div>
+                    ` : ''}
+                    <div class="card-content">
+                        <div class="card-meta">
+                            <span class="card-category">${post.category}</span>
+                            <span class="card-date">${formatDate(post.createdAt)}</span>
+                        </div>
+                        <h3 class="card-title">${post.title}</h3>
+                        <p class="card-body-text">${post.content}</p>
+                        
+                        <div class="card-footer">
+                            <span class="card-author">${authorName}</span>
+                            <div class="card-actions">
+                                <button class="like-btn ${isLiked ? 'liked' : ''}" data-id="${post.id}" title="${isLiked ? 'Ya te gusta' : 'Dar me gusta'}">
+                                    <svg class="heart-icon" viewBox="0 0 24 24">
+                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                    </svg>
+                                    <span class="likes-count">${post.likes}</span>
+                                </button>
+                                <button class="share-btn" data-id="${post.id}" data-title="${post.title}" title="Compartir publicación">
+                                    <svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="18" cy="5" r="3"></circle>
+                                        <circle cx="6" cy="12" r="3"></circle>
+                                        <circle cx="18" cy="19" r="3"></circle>
+                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }).join('');
+
+        setupCardInteractions();
+    };
+
+    // Alertas Toast sutiles
+    const showToast = (message) => {
+        const toast = document.getElementById('mural-toast');
+        const text = document.getElementById('mural-toast-text');
+        if (toast && text) {
+            text.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    };
+
+    // Configurar interacciones de Likes y Compartir
+    const setupCardInteractions = () => {
+        // Likes
+        document.querySelectorAll('.like-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const btn = e.currentTarget;
+                const postId = btn.getAttribute('data-id');
+                const likesCountSpan = btn.querySelector('.likes-count');
+                
+                let likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+                
+                if (likedPosts.includes(postId)) {
+                    showToast('Ya has reaccionado a esta publicación 😊');
+                    return;
+                }
+
+                // Animación local
+                btn.classList.add('liked', 'animating');
+                setTimeout(() => btn.classList.remove('animating'), 600);
+
+                try {
+                    // Llamada a la API
+                    const response = await fetch(`${API_BASE_URL}/blogs/${postId}/like`, {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        const updatedPost = await response.json();
+                        if (likesCountSpan) {
+                            likesCountSpan.textContent = updatedPost.likes;
+                        }
+                        
+                        // Guardar en localStorage
+                        likedPosts.push(postId);
+                        localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
+                        
+                        // Actualizar en memoria local
+                        const postIndex = blogPosts.findIndex(p => p.id === postId);
+                        if (postIndex !== -1) {
+                            blogPosts[postIndex].likes = updatedPost.likes;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error al dar like:', error);
+                    showToast('Error de conexión al guardar tu reacción.');
+                }
+            });
+        });
+
+        // Compartir
+        document.querySelectorAll('.share-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const btn = e.currentTarget;
+                const postId = btn.getAttribute('data-id');
+                const postTitle = btn.getAttribute('data-title');
+                const shareUrl = `${window.location.origin}${window.location.pathname}#post-${postId}`;
+
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: postTitle,
+                            text: `Mira este consejo de salud de UT Care: ${postTitle}`,
+                            url: shareUrl
+                        });
+                    } catch (err) {
+                        // Ignorar errores del menú cancelar del Web Share
+                    }
+                } else {
+                    // Fallback portapapeles
+                    try {
+                        await navigator.clipboard.writeText(shareUrl);
+                        showToast('Enlace copiado al portapapeles 📋');
+                    } catch (err) {
+                        showToast('No se pudo copiar el enlace.');
+                    }
+                }
+            });
+        });
+    };
+
+    // Manejar filtros
+    const setupFilters = () => {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                const filter = e.currentTarget.getAttribute('data-category');
+                e.currentTarget.classList.add('active');
+                renderPosts(filter);
+            });
+        });
+    };
+
+    // Lógica de Scroll y Resaltado Suave en Hash
+    const handleHashHighlight = () => {
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#post-')) {
+            const targetElement = document.querySelector(hash);
+            if (targetElement) {
+                setTimeout(() => {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetElement.classList.add('highlight-glow');
+                    setTimeout(() => {
+                        targetElement.classList.remove('highlight-glow');
+                    }, 3000);
+                }, 800); // Dar un breve tiempo para renderizar
+            }
+        }
+    };
+
+    // Cargar posts del API
+    const loadBlogs = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/blogs`);
+            if (response.ok) {
+                blogPosts = await response.json();
+                renderPosts();
+                handleHashHighlight();
+            } else {
+                throw new Error('Error cargando posts');
+            }
+        } catch (error) {
+            console.error('Error fetching blogs:', error);
+            const grid = document.getElementById('mural-grid');
+            if (grid) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <p>No pudimos cargar las publicaciones del mural. Por favor, intenta de nuevo más tarde.</p>
+                    </div>
+                `;
+            }
+        }
+    };
+
+    // Iniciar scripts en el cliente
+    document.addEventListener('DOMContentLoaded', () => {
+        loadBlogs();
+        setupFilters();
+    });
+
+    document.addEventListener('astro:after-swap', () => {
+        loadBlogs();
+        setupFilters();
+    });
+</script>
+
+<style>
+    .mural-section {
+        padding: 5rem 2rem;
+        background-color: var(--bg-color);
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .mural-header {
+        margin-bottom: 3rem;
+    }
+
+    .mural-header h2 {
+        font-size: 2.8rem;
+        margin: 0.5rem 0 1rem;
+        color: var(--heading-color);
+        font-family: 'Playfair Display', serif;
+    }
+
+    .subtitle {
+        color: var(--body-text-color);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .divider {
+        width: 80px;
+        height: 4px;
+        background-color: #A2D9CE;
+        margin: 1.5rem auto 0;
+        border-radius: 2px;
+    }
+
+    .filter-container {
+        display: flex;
+        justify-content: center;
+        gap: 0.8rem;
+        margin-bottom: 3rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        background: var(--card-bg);
+        border: 1px solid var(--navbar-border);
+        padding: 8px 20px;
+        border-radius: 30px;
+        color: var(--text-color);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+        background-color: #2C3E50;
+        color: white;
+        border-color: #2C3E50;
+        transform: translateY(-2px);
+    }
+
+    .mural-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2.5rem;
+        min-height: 200px;
+    }
+
+    .mural-card {
+        background: var(--card-bg);
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid var(--navbar-border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s;
+    }
+
+    .mural-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Clases de colores pastel premium para las tarjetas */
+    .mint-card {
+        border-top: 6px solid #A2D9CE;
+    }
+    .peach-card {
+        border-top: 6px solid #FAD7A0;
+    }
+    .lavender-card {
+        border-top: 6px solid #D7BDE2;
+    }
+    .blue-card {
+        border-top: 6px solid #AED6F1;
+    }
+
+    .card-image-wrapper {
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .mural-card:hover .card-image {
+        transform: scale(1.05);
+    }
+
+    .card-content {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .card-category {
+        color: #2C3E50;
+    }
+
+    :root.dark .card-category {
+        color: #A2D9CE;
+    }
+
+    .card-date {
+        color: var(--body-text-color);
+        font-weight: 400;
+    }
+
+    .card-title {
+        font-size: 1.4rem;
+        margin: 0 0 1rem 0;
+        color: var(--heading-color);
+        line-height: 1.3;
+    }
+
+    .card-body-text {
+        font-size: 0.95rem;
+        color: var(--body-text-color);
+        line-height: 1.6;
+        margin: 0 0 2rem 0;
+        flex-grow: 1;
+        white-space: pre-wrap;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--navbar-border);
+        padding-top: 1.2rem;
+        margin-top: auto;
+    }
+
+    .card-author {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--heading-color);
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+    }
+
+    /* Botón de Likes (Corazón) */
+    .like-btn, .share-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--body-text-color);
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .like-btn:hover {
+        background-color: rgba(255, 94, 87, 0.1);
+        color: #ff5e57;
+    }
+
+    .share-btn:hover {
+        background-color: rgba(162, 217, 206, 0.15);
+        color: #2C3E50;
+    }
+
+    :root.dark .share-btn:hover {
+        color: #A2D9CE;
+    }
+
+    .heart-icon {
+        width: 20px;
+        height: 20px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .like-btn.liked {
+        color: #ff5e57;
+    }
+
+    .like-btn.liked .heart-icon {
+        fill: #ff5e57;
+        stroke: #ff5e57;
+    }
+
+    .likes-count {
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .share-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Animación de pulso al dar like */
+    @keyframes heartBeat {
+        0% { transform: scale(1); }
+        25% { transform: scale(1.3); }
+        50% { transform: scale(1.1); }
+        75% { transform: scale(1.4); }
+        100% { transform: scale(1); }
+    }
+
+    .like-btn.animating .heart-icon {
+        animation: heartBeat 0.6s ease;
+    }
+
+    /* Efecto de resaltado visual del post */
+    @keyframes highlightFlash {
+        0% { border-color: var(--navbar-border); box-shadow: 0 0 0 rgba(162, 217, 206, 0); }
+        20% { border-color: #A2D9CE; box-shadow: 0 0 25px rgba(162, 217, 206, 0.5); }
+        80% { border-color: #A2D9CE; box-shadow: 0 0 25px rgba(162, 217, 206, 0.5); }
+        100% { border-color: var(--navbar-border); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03); }
+    }
+
+    .mural-card.highlight-glow {
+        animation: highlightFlash 3s ease;
+    }
+
+    /* Estados de Carga y Vacío */
+    .loading-state, .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--body-text-color);
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid var(--navbar-border);
+        border-top-color: #A2D9CE;
+        border-radius: 50%;
+        animation: spin 1s infinite linear;
+        margin: 0 auto 1.5rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Mural Toast Styles */
+    .mural-toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translate(-50%, 100px);
+        background-color: #2C3E50;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        z-index: 10000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .mural-toast.show {
+        transform: translate(-50%, 0);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    @media (max-width: 768px) {
+        .mural-section {
+            padding: 3rem 1rem;
+        }
+        .mural-header h2 {
+            font-size: 2.2rem;
+        }
+    }
+</style>

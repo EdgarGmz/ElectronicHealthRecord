@@ -22,6 +22,7 @@ import auditLogRoutes from './audit-log.routes';
 import notificationRoutes from './notification.routes';
 import dashboardRoutes from './dashboard.routes';
 import coordinatorPsychologyRoutes from './coordinator-psychology.routes';
+import blogRoutes from './blog.routes';
 
 const router = Router();
 
@@ -49,5 +50,6 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/coordinator-psychology', coordinatorPsychologyRoutes);
 router.use('/audit-logs', auditLogRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/blogs', blogRoutes);
 
 export default router;

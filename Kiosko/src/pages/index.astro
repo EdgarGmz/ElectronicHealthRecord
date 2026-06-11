@@ -7,26 +7,58 @@ import Violentometro from '../components/Violentometro.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import NursingSection from '../components/NursingSection.astro';
 import PsychologySection from '../components/PsychologySection.astro';
+import EmpatheticWidget from '../components/EmpatheticWidget.astro';
+import ProjectStory from '../components/ProjectStory.astro';
+import MuralBoard from '../components/MuralBoard.astro';
 ---
 
-<Layout title="EHR">
+<Layout title="UT Care - Kiosko de Autoservicio">
 	<header class="navbar">
 		<div class="logo">Psicopedagogía</div>
 		<nav>
-			<a href="/login" class="login-btn">Agendar cita</a>
+			<a href="#welcome">Inicio</a>
+			<a href="#nuestra-historia">Nuestra Historia</a>
+			<a href="#mural">Mural</a>
+			<a href="/agendar" class="login-btn" id="nav-agenda-btn">Agendar cita</a>
 			<ThemeToggle />
 		</nav>
 	</header>
 
 	<main>
+		<EmpatheticWidget />
 		<Welcome />
+		<ProjectStory />
 		<Roulette />
 		<NursingSection />
 		<PsychologySection />
+		<MuralBoard />
 		<MentalHealthInfo />
 		<Violentometro />
 	</main>
+
+	<!-- Enlace oculto para la administración del mural -->
+	<div class="secret-admin-trigger">
+		<a href="/mural-admin" title="Administración del Mural" class="admin-link">🔒</a>
+	</div>
 </Layout>
+
+<script>
+	// Agregar redirección inteligente al botón de la navbar
+	const setupNavbar = () => {
+		const btn = document.getElementById('nav-agenda-btn');
+		if (btn) {
+			btn.addEventListener('click', (e) => {
+				const token = localStorage.getItem('token');
+				if (!token) {
+					e.preventDefault();
+					window.location.href = '/login?redirect=/agendar';
+				}
+			});
+		}
+	};
+	document.addEventListener('DOMContentLoaded', setupNavbar);
+	document.addEventListener('astro:after-swap', setupNavbar);
+</script>
 
 <style>
 	.navbar {
@@ -103,5 +135,25 @@ import PsychologySection from '../components/PsychologySection.astro';
 		.navbar nav {
 			margin-top: 10px;
 		}
+	}
+
+	.secret-admin-trigger {
+		position: fixed;
+		bottom: 15px;
+		left: 15px;
+		z-index: 999;
+		opacity: 0.1;
+		transition: opacity 0.3s ease;
+	}
+
+	.secret-admin-trigger:hover {
+		opacity: 0.8;
+	}
+
+	.admin-link {
+		text-decoration: none;
+		font-size: 0.9rem;
+		color: var(--body-text-color);
+		cursor: default;
 	}
 </style>
