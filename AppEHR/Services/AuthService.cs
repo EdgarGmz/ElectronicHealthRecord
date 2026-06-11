@@ -57,11 +57,11 @@ namespace AppEHR.Services
             }
         }
 
-        public async Task<(bool Success, string Message)> LoginAsync(string email, string password)
+        public async Task<(bool Success, string Message)> LoginAsync(string username, string password)
         {
             try
             {
-                var credentials = new { email, password };
+                var credentials = new { username, password };
                 var response = await _apiService.PostAsync("auth/login", credentials);
                 var content = await response.Content.ReadAsStringAsync();
 
@@ -106,6 +106,26 @@ namespace AppEHR.Services
                 }
 
                 return (true, "Inicio de sesión exitoso");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error de conexión: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool Success, string Message)> ForgotPasswordAsync(string email)
+        {
+            try
+            {
+                var payload = new { email };
+                var response = await _apiService.PostAsync("auth/forgot-password", payload);
+                var content = await response.Content.ReadAsStringAsync();
+
+                using var doc = JsonDocument.Parse(content);
+                var success = doc.RootElement.GetProperty("success").GetBoolean();
+                var message = doc.RootElement.GetProperty("message").GetString() ?? string.Empty;
+
+                return (success, message);
             }
             catch (Exception ex)
             {

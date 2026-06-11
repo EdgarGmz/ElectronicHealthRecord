@@ -55,9 +55,9 @@
 
                     <VerticalStackLayout Spacing="16">
                         
-                        <!-- Email Input -->
+                        <!-- Username Input -->
                         <VerticalStackLayout Spacing="6">
-                            <Label Text="Correo Institucional" 
+                            <Label Text="Nombre de Usuario" 
                                    FontSize="12" 
                                    FontAttributes="Bold" 
                                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
@@ -67,9 +67,9 @@
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="8" />
                                 </Border.StrokeShape>
-                                <Entry Text="{Binding Email}" 
-                                       Placeholder="nombre@institucion.edu.mx" 
-                                       Keyboard="Email" 
+                                <Entry Text="{Binding Username}" 
+                                       Placeholder="Introduce tu usuario" 
+                                       Keyboard="Default" 
                                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
                                        PlaceholderColor="Gray"
                                        Margin="6,0"
@@ -125,6 +125,18 @@
                                 FontAttributes="Bold"
                                 HeightRequest="48"
                                 Margin="0,8,0,0"/>
+
+                        <!-- Forgot Password Link -->
+                        <Button Text="¿Olvidaste tu contraseña?"
+                                Command="{Binding ForgotPasswordCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="{StaticResource BrandPrimary}"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                HorizontalOptions="Center"
+                                HeightRequest="38"
+                                Padding="0"
+                                Margin="0,4,0,0"/>
 
                         <!-- Loading Indicator -->
                         <ActivityIndicator IsRunning="{Binding IsBusy}" 

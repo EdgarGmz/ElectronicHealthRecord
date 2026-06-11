@@ -9,7 +9,7 @@ namespace AppEHR.ViewModels
     public class LoginViewModel : BaseViewModel
     {
         private readonly AuthService _authService;
-        private string _email = string.Empty;
+        private string _username = string.Empty;
         private string _password = string.Empty;
         private string _errorMessage = string.Empty;
         private bool _rememberMe;
@@ -19,12 +19,13 @@ namespace AppEHR.ViewModels
             _authService = authService;
             Title = "Iniciar Sesión";
             LoginCommand = new Command(async () => await ExecuteLoginCommandAsync(), () => !IsBusy);
+            ForgotPasswordCommand = new Command(async () => await ExecuteForgotPasswordCommandAsync());
         }
 
-        public string Email
+        public string Username
         {
-            get => _email;
-            set => SetProperty(ref _email, value);
+            get => _username;
+            set => SetProperty(ref _username, value);
         }
 
         public string Password
@@ -45,15 +46,29 @@ namespace AppEHR.ViewModels
             set => SetProperty(ref _rememberMe, value);
         }
 
+        public new bool IsBusy
+        {
+            get => base.IsBusy;
+            set
+            {
+                if (base.IsBusy != value)
+                {
+                    base.IsBusy = value;
+                    ((Command)LoginCommand).ChangeCanExecute();
+                }
+            }
+        }
+
         public ICommand LoginCommand { get; }
+        public ICommand ForgotPasswordCommand { get; }
 
         private async Task ExecuteLoginCommandAsync()
         {
             if (IsBusy) return;
 
-            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+            if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
             {
-                ErrorMessage = "Ingresa correo y contraseña";
+                ErrorMessage = "Ingresa usuario y contraseña";
                 return;
             }
 
@@ -62,7 +77,7 @@ namespace AppEHR.ViewModels
 
             try
             {
-                var result = await _authService.LoginAsync(Email.Trim(), Password);
+                var result = await _authService.LoginAsync(Username.Trim(), Password);
                 if (result.Success)
                 {
                     try
@@ -84,7 +99,56 @@ namespace AppEHR.ViewModels
             }
             catch (System.Exception ex)
             {
-                ErrorMessage = $"Error: {ex.Message}";
+                ErrorMessage = $"Error de conexión: {ex.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private async Task ExecuteForgotPasswordCommandAsync()
+        {
+            if (IsBusy) return;
+
+            string email = await Shell.Current.DisplayPromptAsync(
+                "Restablecer Contraseña",
+                "Ingresa tu correo electrónico registrado:",
+                "Enviar",
+                "Cancelar",
+                "correo@ejemplo.com",
+                -1,
+                Keyboard.Email
+            );
+
+            if (string.IsNullOrWhiteSpace(email)) return;
+
+            IsBusy = true;
+            ErrorMessage = string.Empty;
+
+            try
+            {
+                var result = await _authService.ForgotPasswordAsync(email.Trim());
+                if (result.Success)
+                {
+                    await Shell.Current.DisplayAlert(
+                        "Correo Enviado",
+                        result.Message ?? "Se ha enviado un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada.",
+                        "Aceptar"
+                    );
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert(
+                        "Error",
+                        result.Message ?? "No se pudo enviar el correo de restablecimiento.",
+                        "Aceptar"
+                    );
+                }
+            }
+            catch (System.Exception ex)
+            {
+                await Shell.Current.DisplayAlert("Error", $"Error de conexión: {ex.Message}", "Aceptar");
             }
             finally
             {
