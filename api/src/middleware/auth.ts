@@ -30,7 +30,7 @@ export const authenticateToken = (
     next();
   } catch (error) {
     logger.error('Authentication error:', error);
-    res.status(403).json({
+    res.status(401).json({
       success: false,
       message: 'Invalid or expired token',
     });
