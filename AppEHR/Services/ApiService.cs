@@ -18,25 +18,7 @@ namespace AppEHR.Services
         public ApiService()
         {
             _client = new HttpClient();
-            // Adaptar la dirección local según el dispositivo y entorno
-            try
-            {
-                if (DeviceInfo.Platform == DevicePlatform.Android)
-                {
-                    // Si es un emulador usa 10.0.2.2. Si es un dispositivo físico usa localhost (requiere adb reverse)
-                    _baseUrl = DeviceInfo.DeviceType == DeviceType.Virtual
-                        ? "http://10.0.2.2:5000/api"
-                        : "http://localhost:5000/api";
-                }
-                else
-                {
-                    _baseUrl = "http://localhost:5000/api";
-                }
-            }
-            catch
-            {
-                _baseUrl = "http://localhost:5000/api";
-            }
+            _baseUrl = "https://ehr-api-prod.onrender.com/api";
         }
 
         private async Task ApplyAuthHeaderAsync()
