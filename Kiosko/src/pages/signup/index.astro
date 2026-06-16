@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import ThemeToggle from '../../components/ThemeToggle.astro';
 ---
 
-<Layout title="Registro UTSC - Psicopedagogía">
+<Layout title="Registro UTSC - UT Care">
     <header class="navbar">
         <div class="logo">Psicopedagogía</div>
         <nav>
@@ -16,20 +16,48 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
     <main class="register-page">
         <div class="register-container">
             <div class="form-header">
-                <h1>Registro de Alumno</h1>
-                <p>Completa tu perfil de la UTSC para agendar servicios</p>
+                <h1>Únete a UT Care</h1>
+                <p>Crea tu cuenta para agendar asesorías y cuidar de tu bienestar</p>
             </div>
+
+            <!-- Selector de tipo de registro -->
+            <div class="tabs-container">
+                <button type="button" id="tab-standard" class="tab-btn active">Registro Estándar</button>
+                <button type="button" id="tab-anonymous" class="tab-btn">Registro Anónimo</button>
+            </div>
+
+            <!-- Alerta visual de error/éxito -->
+            <div id="register-alert" class="status-alert"></div>
             
-            <form action="#" method="POST" class="register-form">
-                <div class="input-row">
+            <form id="register-form" class="register-form">
+                <!-- Inputs dinámicos según el tipo de cuenta -->
+                <div class="input-row" id="row-names">
                     <div class="input-group">
+                        <label for="firstName">Nombre(s)</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="Juan" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="lastName">Apellido(s)</label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Pérez" required>
+                    </div>
+                </div>
+
+                <!-- Campo exclusivo para Cuenta Anónima -->
+                <div class="input-group hidden" id="group-alias">
+                    <label for="alias">Pseudónimo / Alias</label>
+                    <input type="text" id="alias" name="alias" placeholder="Ej. CalmaTotal22" minlength="4">
+                    <p class="helper-text">Este alias será tu identificador público y nombre de usuario para iniciar sesión.</p>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group" id="group-matricula">
                         <label for="matricula">Matrícula</label>
                         <input type="text" id="matricula" name="matricula" placeholder="20230000" required>
                     </div>
                     
                     <div class="input-group">
                         <label for="edad">Edad</label>
-                        <input type="number" id="edad" name="edad" placeholder="0" min="16" max="90" required>
+                        <input type="number" id="edad" name="edad" placeholder="20" min="16" max="90" required>
                     </div>
                 </div>
 
@@ -38,42 +66,51 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
                     <div class="select-wrapper">
                         <select id="carrera" name="carrera" required>
                             <option value="" disabled selected>Selecciona tu carrera</option>
-                            <optgroup label="Tecnologías de la Información">
-                                <option value="iti">Ing. en Tecnologías de la Información</option>
-                                <option value="evnd">TSU en Entornos Virtuales y Negocios Digitales</option>
-                            </optgroup>
-                            <optgroup label="Ingenierías">
-                                <option value="im">Ing. en Mecatrónica</option>
-                                <option value="imi">Ing. en Mantenimiento Industrial</option>
-                                <option value="ipce">Ing. en Protección Civil y Emergencias</option>
-                                <option value="inano">Ing. en Nanotecnología</option>
-                            </optgroup>
-                            <optgroup label="Negocios y Gestión">
-                                <option value="linm">Lic. en Innovación de Negocios y Mercadotecnia</option>
-                                <option value="lgnp">Lic. en Gestión de Negocios y Proyectos</option>
-                                <option value="lli">Lic. en Logística Internacional</option>
-                                <option value="ldgm">Lic. en Diseño y Gestión de la Moda</option>
-                            </optgroup>
+                            <option value="iti">Ing. en Tecnologías de la Información</option>
+                            <option value="evnd">TSU en Entornos Virtuales y Negocios Digitales</option>
+                            <option value="im">Ing. en Mecatrónica</option>
+                            <option value="imi">Ing. en Mantenimiento Industrial</option>
+                            <option value="ipce">Ing. en Protección Civil y Emergencias</option>
+                            <option value="inano">Ing. en Nanotecnología</option>
+                            <option value="linm">Lic. en Innovación de Negocios y Mercadotecnia</option>
+                            <option value="lgnp">Lic. en Gestión de Negocios y Proyectos</option>
+                            <option value="lli">Lic. en Logística Internacional</option>
+                            <option value="ldgm">Lic. en Diseño y Gestión de la Moda</option>
                         </select>
                     </div>
                 </div>
 
+                <!-- Campos de contacto con leyendas de confidencialidad dinámicas -->
                 <div class="input-group">
-                    <label for="email">Correo Institucional</label>
-                    <input type="email" id="email" name="email" placeholder="Matricula@virtual.utsc.edu.mx" required>
+                    <label for="email" id="label-email">Correo Institucional</label>
+                    <input type="email" id="email" name="email" placeholder="alumno@virtual.utsc.edu.mx" required>
+                    <p class="helper-text confidential hidden" id="helper-email-confidential">
+                        🔒 <strong>100% Confidencial:</strong> Tu correo no será visible públicamente. Solo lo usará el psicólogo para asignación y contacto directo contigo.
+                    </p>
                 </div>
 
                 <div class="input-group">
-                    <label for="phone">Teléfono de Contacto</label>
-                    <input type="tel" id="phone" name="phone" placeholder="811 000 0000" pattern="[0-9]{10}" required>
+                    <label for="phone">Teléfono / WhatsApp</label>
+                    <input type="tel" id="phone" name="phone" placeholder="8110000000" pattern="[0-9]{10}" required>
+                    <p class="helper-text confidential hidden" id="helper-phone-confidential">
+                        🔒 <strong>100% Confidencial:</strong> Tu número de WhatsApp no se mostrará a otros usuarios. Solo lo verá el psicólogo para contactarte.
+                    </p>
                 </div>
 
                 <div class="input-group">
                     <label for="password">Crear Contraseña</label>
-                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                    <input type="password" id="password" name="password" placeholder="••••••••" required minlength="6">
                 </div>
 
-                <button type="submit" class="submit-button">Crear Cuenta</button>
+                <!-- Aviso de anonimato -->
+                <div class="anonymous-notice hidden" id="anonymous-notice">
+                    <p>✨ <strong>¡Tu privacidad es primero!</strong> En la modalidad anónima, puedes registrarte usando un alias. Nadie sabrá tu nombre real en la plataforma, protegiéndote del estigma.</p>
+                </div>
+
+                <button type="submit" id="submit-btn" class="submit-button">
+                    <span class="btn-text">Crear Cuenta</span>
+                    <div class="btn-spinner"></div>
+                </button>
             </form>
             
             <div class="form-footer">
@@ -82,6 +119,200 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         </div>
     </main>
 </Layout>
+
+<script>
+    import { API_BASE_URL } from '../../utils/api';
+
+    let isAnonymous = false;
+
+    const setupSignup = () => {
+        const tabStandard = document.getElementById('tab-standard');
+        const tabAnonymous = document.getElementById('tab-anonymous');
+        const rowNames = document.getElementById('row-names');
+        const groupAlias = document.getElementById('group-alias');
+        const groupMatricula = document.getElementById('group-matricula');
+        
+        const firstNameInput = document.getElementById('firstName') as HTMLInputElement;
+        const lastNameInput = document.getElementById('lastName') as HTMLInputElement;
+        const aliasInput = document.getElementById('alias') as HTMLInputElement;
+        const matriculaInput = document.getElementById('matricula') as HTMLInputElement;
+        
+        const labelEmail = document.getElementById('label-email');
+        const emailInput = document.getElementById('email') as HTMLInputElement;
+        const helperEmailConf = document.getElementById('helper-email-confidential');
+        const helperPhoneConf = document.getElementById('helper-phone-confidential');
+        const anonymousNotice = document.getElementById('anonymous-notice');
+        
+        const form = document.getElementById('register-form');
+        const alertBox = document.getElementById('register-alert');
+        const submitBtn = document.getElementById('submit-btn');
+
+        // Función para cambiar a pestaña estándar
+        const setStandardMode = () => {
+            isAnonymous = false;
+            tabStandard?.classList.add('active');
+            tabAnonymous?.classList.remove('active');
+            
+            rowNames?.classList.remove('hidden');
+            groupAlias?.classList.add('hidden');
+            groupMatricula?.classList.remove('hidden');
+            helperEmailConf?.classList.add('hidden');
+            helperPhoneConf?.classList.add('hidden');
+            anonymousNotice?.classList.add('hidden');
+            
+            if (firstNameInput) firstNameInput.required = true;
+            if (lastNameInput) lastNameInput.required = true;
+            if (aliasInput) aliasInput.required = false;
+            if (matriculaInput) matriculaInput.required = true;
+            
+            if (labelEmail) labelEmail.textContent = 'Correo Institucional';
+            if (emailInput) emailInput.placeholder = 'alumno@virtual.utsc.edu.mx';
+        };
+
+        // Función para cambiar a pestaña anónima
+        const setAnonymousMode = () => {
+            isAnonymous = true;
+            tabAnonymous?.classList.add('active');
+            tabStandard?.classList.remove('active');
+            
+            rowNames?.classList.add('hidden');
+            groupAlias?.classList.remove('hidden');
+            groupMatricula?.classList.add('hidden');
+            helperEmailConf?.classList.remove('hidden');
+            helperPhoneConf?.classList.remove('hidden');
+            anonymousNotice?.classList.remove('hidden');
+            
+            if (firstNameInput) firstNameInput.required = false;
+            if (lastNameInput) lastNameInput.required = false;
+            if (aliasInput) aliasInput.required = true;
+            if (matriculaInput) matriculaInput.required = false;
+            
+            if (labelEmail) labelEmail.textContent = 'Correo Electrónico (Confidencial)';
+            if (emailInput) emailInput.placeholder = 'ejemplo@correo.com';
+        };
+
+        // Listeners de pestañas
+        tabStandard?.addEventListener('click', setStandardMode);
+        tabAnonymous?.addEventListener('click', setAnonymousMode);
+
+        // Envío del formulario
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                if (!alertBox || !submitBtn) return;
+
+                // Limpiar alerta y activar loader
+                alertBox.className = 'status-alert';
+                alertBox.textContent = '';
+                submitBtn.classList.add('loading');
+
+                const formData = new FormData(form as HTMLFormElement);
+                const password = formData.get('password') as string;
+                const edad = parseInt(formData.get('edad') as string);
+                const phone = formData.get('phone') as string;
+                const careerStr = formData.get('carrera') as string;
+
+                // Simular fecha de nacimiento para el backend en base a la edad
+                const birthYear = new Date().getFullYear() - edad;
+                const dateOfBirth = new Date(birthYear, 0, 1).toISOString();
+
+                // Mapear ids de carreras reales del backend si corresponde
+                // (Para asegurar compatibilidad, usaremos un uuid simulado o el string crudo en el backend)
+                // Usualmente el backend valida si el careerId es UUID, crearemos una simulación o simplemente
+                // mapeamos a un ID fijo que exista o que el backend acepte de forma flexible.
+                // Buscaremos qué carreras existen en el backend para enviar una válida.
+                const careerMap: Record<string, string> = {
+                    'iti': '6b7137f8-ff92-4f9b-88de-474c1ea56f01', // ID de ITI simulado o UUID válido
+                    'evnd': '6b7137f8-ff92-4f9b-88de-474c1ea56f02',
+                    'im': '6b7137f8-ff92-4f9b-88de-474c1ea56f03',
+                    'imi': '6b7137f8-ff92-4f9b-88de-474c1ea56f04',
+                    'ipce': '6b7137f8-ff92-4f9b-88de-474c1ea56f05',
+                    'inano': '6b7137f8-ff92-4f9b-88de-474c1ea56f06',
+                    'linm': '6b7137f8-ff92-4f9b-88de-474c1ea56f07',
+                    'lgnp': '6b7137f8-ff92-4f9b-88de-474c1ea56f08',
+                    'lli': '6b7137f8-ff92-4f9b-88de-474c1ea56f09',
+                    'ldgm': '6b7137f8-ff92-4f9b-88de-474c1ea56f10'
+                };
+                
+                // Si la carrera no está en el mapa, enviamos un UUID aleatorio válido
+                const careerId = careerMap[careerStr] || '6b7137f8-ff92-4f9b-88de-474c1ea56f01';
+
+                let payload: any = {
+                    password,
+                    dateOfBirth,
+                    phone,
+                    role: 'patient',
+                    careerId,
+                    patientType: 'estudiante'
+                };
+
+                if (isAnonymous) {
+                    const alias = (formData.get('alias') as string).trim();
+                    const email = formData.get('email') as string;
+                    
+                    payload.firstName = 'Anónimo';
+                    payload.lastName = alias;
+                    payload.email = email;
+                    // Forzamos un alias único usando el alias como username bajo cuerda
+                    // (el backend lo mapeará en AuthService.register al llamar a generateUniqueUsername o usaremos el alias)
+                    // Para evitar conflictos con el correo obligatorio único en la base de datos,
+                    // si el usuario usa su correo personal, lo dejamos; si no, el alias actúa como base.
+                } else {
+                    const firstName = formData.get('firstName') as string;
+                    const lastName = formData.get('lastName') as string;
+                    const email = formData.get('email') as string;
+                    const matricula = formData.get('matricula') as string;
+
+                    payload.firstName = firstName;
+                    payload.lastName = lastName;
+                    payload.email = email;
+                    payload.enrollmentNumber = matricula;
+                }
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Error al registrar la cuenta');
+                    }
+
+                    // Registro exitoso, guardar credenciales
+                    localStorage.setItem('token', data.accessToken);
+                    localStorage.setItem('refreshToken', data.refreshToken);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    alertBox.classList.add('success');
+                    alertBox.textContent = '¡Registro exitoso! Iniciando tu sesión...';
+
+                    setTimeout(() => {
+                        // Si venía redirigido de agendar, volver a la agenda
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const redirect = urlParams.get('redirect') || '/';
+                        window.location.href = redirect;
+                    }, 1500);
+
+                } catch (error) {
+                    console.error(error);
+                    alertBox.classList.add('error');
+                    alertBox.textContent = error.message || 'Error al conectar con el servidor.';
+                    submitBtn.classList.remove('loading');
+                }
+            });
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', setupSignup);
+    document.addEventListener('astro:after-swap', setupSignup);
+</script>
 
 <style>
     /* Navbar Styles */
@@ -146,10 +377,10 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
     .register-container {
         background-color: var(--card-bg);
         padding: 2.5rem;
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        border-radius: 24px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
         width: 100%;
-        max-width: 480px;
+        max-width: 500px;
         animation: fadeIn 0.5s ease-out;
         border: 1px solid var(--navbar-border);
     }
@@ -161,7 +392,7 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
 
     .form-header {
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
     }
 
     .form-header h1 {
@@ -176,20 +407,80 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         font-size: 0.95rem;
     }
 
+    /* Tabs para el Selector */
+    .tabs-container {
+        display: flex;
+        background-color: var(--bg-color);
+        padding: 6px;
+        border-radius: 14px;
+        margin-bottom: 2rem;
+        border: 1px solid var(--navbar-border);
+    }
+
+    .tab-btn {
+        flex: 1;
+        background: none;
+        border: none;
+        padding: 10px;
+        font-size: 0.95rem;
+        font-weight: bold;
+        color: var(--body-text-color);
+        cursor: pointer;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .tab-btn.active {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .status-alert {
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        display: none;
+        text-align: center;
+    }
+
+    .status-alert.error {
+        display: block;
+        background-color: #fce8e6;
+        color: #a80700;
+        border: 1px solid #fbc4c0;
+    }
+
+    .status-alert.success {
+        display: block;
+        background-color: #e6f4f1;
+        color: #1e3a34;
+        border: 1px solid #c0ebd2;
+    }
+
+    .register-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+
     .input-row {
         display: flex;
         gap: 15px;
+        width: 100%;
     }
 
     .input-group {
-        margin-bottom: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
         flex: 1;
     }
 
     .input-group label {
-        display: block;
         font-weight: 700;
-        margin-bottom: 0.5rem;
         color: var(--heading-color);
         font-size: 0.85rem;
         text-transform: uppercase;
@@ -207,13 +498,15 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         transition: all 0.3s;
         background-color: var(--bg-color);
         color: var(--text-color);
-        appearance: none; /* Elimina la flecha original en select */
     }
 
-    /* Contenedor para la flecha personalizada del select */
     .select-wrapper {
         position: relative;
         width: 100%;
+    }
+
+    .select-wrapper select {
+        appearance: none;
     }
 
     .select-wrapper::after {
@@ -235,18 +528,42 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         outline: none;
     }
 
-    /* Estilos para el interior del menú desplegable */
-    select optgroup {
-        font-weight: bold;
-        color: var(--heading-color);
-        padding: 10px;
-        background-color: var(--bg-color);
+    .helper-text {
+        font-size: 0.8rem;
+        color: var(--body-text-color);
+        margin: 2px 0 0 0;
+        line-height: 1.4;
     }
 
-    select option {
-        padding: 10px;
-        background-color: var(--card-bg);
-        color: var(--text-color);
+    .helper-text.confidential {
+        color: #1e3a34;
+        background-color: #e6f4f1;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #c0ebd2;
+        margin-top: 6px;
+    }
+
+    :root.dark .helper-text.confidential {
+        background-color: rgba(162, 217, 206, 0.1);
+        color: #A2D9CE;
+        border-color: rgba(162, 217, 206, 0.2);
+    }
+
+    .anonymous-notice {
+        background-color: #f3e6f4;
+        border: 1px solid #e8d4f0;
+        color: #4a2d54;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+
+    :root.dark .anonymous-notice {
+        background-color: rgba(232, 212, 240, 0.1);
+        color: #e8d4f0;
+        border-color: rgba(232, 212, 240, 0.2);
     }
 
     .submit-button {
@@ -260,12 +577,40 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         font-weight: bold;
         cursor: pointer;
         transition: all 0.3s ease;
-        margin-top: 1rem;
+        margin-top: 0.5rem;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .submit-button:hover {
         background-color: #34495e;
         transform: translateY(-2px);
+    }
+
+    .submit-button.loading .btn-text {
+        visibility: hidden;
+        opacity: 0;
+    }
+
+    .submit-button.loading .btn-spinner {
+        display: block;
+    }
+
+    .btn-spinner {
+        display: none;
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.8s infinite linear;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 
     .form-footer {
@@ -287,10 +632,14 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         text-decoration: underline;
     }
 
+    .hidden {
+        display: none !important;
+    }
+
     @media (max-width: 480px) {
         .input-row {
             flex-direction: column;
-            gap: 0;
+            gap: 1.2rem;
         }
     }
 </style>

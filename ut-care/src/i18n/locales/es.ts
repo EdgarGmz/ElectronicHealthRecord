@@ -224,6 +224,7 @@ export const es = {
   },
   dashboard: {
     title: 'Panel de control',
+    description: 'Visualiza las estadísticas, accesos directos y un resumen de las actividades del sistema.',
     welcome: 'Bienvenido',
     welcomeToSystem: 'Bienvenido al Sistema de Registro de Salud Electrónico',
     welcomeMessage: 'Has iniciado sesión correctamente. Usa el menú lateral para acceder a pacientes, citas, sesiones y el resto de módulos.',
@@ -366,6 +367,7 @@ export const es = {
   },
   sessions: {
     title: 'Sesiones de terapia',
+    description: 'Registra y consulta las notas de evolución, estados de ánimo y el seguimiento de las sesiones de terapia.',
     list: 'Lista de sesiones',
     newSession: 'Nueva sesión',
     newSessionDescription: 'Registre los datos de la sesión de terapia. Los campos marcados con * son obligatorios.',
@@ -428,6 +430,7 @@ export const es = {
   },
   appointments: {
     title: 'Citas',
+    description: 'Programa y gestiona las citas médicas y psicológicas del sistema, monitoreando su estado y asignación.',
     list: 'Lista de citas',
     newAppointment: 'Nueva cita',
     patient: 'Paciente',
@@ -473,6 +476,7 @@ export const es = {
   },
   patients: {
     title: 'Pacientes',
+    description: 'Administra el listado de pacientes registrados, sus expedientes clínicos y antecedentes.',
     list: 'Lista de pacientes',
     newPatient: 'Nuevo paciente',
     searchPlaceholder: 'Buscar por nombre, correo o matrícula...',
@@ -597,6 +601,7 @@ export const es = {
   },
   interconsultations: {
     title: 'Interconsultas',
+    description: 'Gestiona y responde a las solicitudes de interconsulta entre los diferentes departamentos.',
     list: 'Lista de interconsultas',
     newInterconsultation: 'Nueva interconsulta',
     patient: 'Paciente',
@@ -635,6 +640,7 @@ export const es = {
   },
   procedures: {
     title: 'Procedimientos',
+    description: 'Registra y monitorea los procedimientos de enfermería realizados a los pacientes.',
     list: 'Lista de procedimientos',
     newProcedure: 'Nuevo procedimiento',
     searchPlaceholder: 'Buscar por tipo, descripción o paciente...',
@@ -648,7 +654,7 @@ export const es = {
       ivAdministration: 'Administración intravenosa',
     },
     procedureDate: 'Fecha',
-    description: 'Descripción',
+    descriptionLabel: 'Descripción',
     materialsUsed: 'Materiales utilizados',
     observations: 'Observaciones',
     performedBy: 'Realizado por',
@@ -689,9 +695,11 @@ export const es = {
     attentionListTab: 'Listado de atenciones',
     noAttentions: 'No hay atenciones registradas.',
     attentionDetail: 'Detalle de la atención',
+    attentionFormIntro: 'Busca al paciente y registra o consulta las atenciones de enfermería.',
   },
   medications: {
     title: 'Medicamentos',
+    description: 'Administra el catálogo de medicamentos e inventario del departamento de enfermería.',
     list: 'Lista de medicamentos',
     newMedication: 'Nuevo medicamento',
     searchPlaceholder: 'Buscar por nombre o nombre genérico...',
@@ -724,6 +732,7 @@ export const es = {
   },
   notifications: {
     title: 'Notificaciones',
+    description: 'Revisa y gestiona las notificaciones, alertas y avisos del sistema.',
     list: 'Lista de notificaciones',
     newNotification: 'Nueva notificación',
     unread: 'No leídas',
@@ -751,6 +760,7 @@ export const es = {
   },
   evaluations: {
     title: 'Evaluaciones psicométricas',
+    description: 'Aplica, registra e interpreta las evaluaciones psicométricas de los pacientes.',
     list: 'Lista de evaluaciones',
     newEvaluation: 'Nueva evaluación',
     newEvaluationDescription: 'Seleccione el paciente y registre los datos de la evaluación. Los campos marcados con * son obligatorios.',
@@ -792,6 +802,7 @@ export const es = {
   },
   reports: {
     title: 'Reportes',
+    description: 'Genera, analiza y exporta los reportes estadísticos y clínicos del sistema.',
     periodStart: 'Fecha inicio',
     periodEnd: 'Fecha fin',
     department: 'Departamento',
@@ -840,6 +851,7 @@ export const es = {
   },
   auditLogs: {
     title: 'Bitácora del sistema',
+    description: 'Consulta la bitácora de movimientos, auditoría de accesos y registro de acciones de usuarios.',
     subtitle: 'Solo el administrador puede ver todos los movimientos.',
     filterRole: 'Rol / Departamento',
     filterAction: 'Acción',
@@ -872,6 +884,7 @@ export const es = {
   },
   profilePage: {
     title: 'Mi perfil',
+    description: 'Administra tu información personal, datos de contacto y preferencias de tu cuenta en el sistema.',
     editProfile: 'Editar perfil',
     viewProfile: 'Ver perfil',
     firstName: 'Nombre',
@@ -995,8 +1008,17 @@ export const es = {
     coordinador_psicologia: 'Coord. Psicología',
     coordinador_enfermeria: 'Coord. Enfermería',
   },
+  users: {
+    title: 'Usuarios del sistema',
+    description: 'Administra los usuarios con acceso al sistema, sus roles y permisos correspondientes.',
+  },
+  settings: {
+    title: 'Ajustes del sistema',
+    description: 'Configura el tema visual, idioma, tamaño de letra y preferencias de visualización del sistema.',
+  },
   careers: {
     title: 'Carreras Universitarias',
+    description: 'Administra el catálogo de carreras universitarias y monitorea el número de alumnos registrados en cada una.',
     addNew: 'Agregar carrera',
     editCareer: 'Editar carrera',
     deleteCareer: 'Eliminar carrera',

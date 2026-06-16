@@ -55,6 +55,7 @@ model User {
   notifications         Notification[]
   // Notificaciones enviadas/creadas por este usuario (autor) para Notification.fromUser
   notificationsFrom     Notification[] @relation("NotificationFrom")
+  blogPosts             BlogPost[]
 
   @@map("users")
 }
@@ -565,3 +566,20 @@ model Notification {
   @@index([userId, createdAt])
   @@map("notifications")
 }
+
+model BlogPost {
+  id        String   @id @default(uuid()) @db.Uuid
+  title     String   @db.VarChar(200)
+  content   String   @db.Text
+  category  String   @db.VarChar(50) // "Salud Mental", "Salud Física", "Evento", "Día Especial"
+  authorId  String?  @map("author_id") @db.Uuid // Nullable en caso de crearse por contraseña maestra sin iniciar sesión
+  imageUrl  String?  @map("image_url") @db.VarChar(500)
+  likes     Int      @default(0) @db.Integer
+  createdAt DateTime @map("created_at") @default(now())
+  updatedAt DateTime @map("updated_at") @default(now())
+
+  author    User?    @relation(fields: [authorId], references: [id])
+
+  @@map("blog_posts")
+}
+

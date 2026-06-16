@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { User } from 'lucide-react'
 import { EmailLink } from '@/components/atoms/EmailLink'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { PhoneWhatsAppLink } from '@/components/atoms/PhoneWhatsAppLink'
@@ -119,8 +120,19 @@ export function ProfilePage() {
     .toUpperCase() || '?'
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 pb-8">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <LoadingModal open={loading || submitting} message={t('common.loading')} />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <User className="text-[var(--color-primary)]" size={28} />
+            {t('profilePage.title')}
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            {t('profilePage.description')}
+          </p>
+        </div>
+      </div>
       <ErrorModal open={!!error} message={error || undefined} onClose={() => setError('')} />
       <SuccessModal open={!!success} message={success} onClose={() => setSuccess('')} />
       {!profile && !loading && (
@@ -262,7 +274,7 @@ export function ProfilePage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-6 pt-4 border-t border-[var(--border)]">
+                <div className="mt-6 pt-4 border-t border-[var(--border)] flex justify-start">
                   <GlassButton
                     type="button"
                     onClick={() => setEditing(true)}

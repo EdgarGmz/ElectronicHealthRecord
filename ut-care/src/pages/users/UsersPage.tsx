@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Pencil, Eye, Mail, KeyRound } from 'lucide-react'
+import { Plus, Pencil, Eye, Mail, KeyRound, Users } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
@@ -411,7 +411,7 @@ export function UsersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <LoadingModal open={loading || busy} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
 
@@ -426,16 +426,27 @@ export function UsersPage() {
         busy={busy}
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
-        <GlassButton
-          type="button"
-          variant="primary"
-          className="inline-flex items-center gap-2"
-          onClick={() => setCreatingOpen(true)}
-        >
-          <Plus size={18} />
-          Crear usuario
-        </GlassButton>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <Users className="text-[var(--color-primary)]" size={28} />
+            {t('users.title')}
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            {t('users.description')}
+          </p>
+        </div>
+        <div>
+          <GlassButton
+            type="button"
+            variant="primary"
+            className="inline-flex items-center gap-2"
+            onClick={() => setCreatingOpen(true)}
+          >
+            <Plus size={18} />
+            Crear usuario
+          </GlassButton>
+        </div>
       </div>
 
       <GlassCard>

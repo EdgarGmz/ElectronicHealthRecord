@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import ThemeToggle from '../../components/ThemeToggle.astro';
 ---
 
-<Layout title="Iniciar Sesión - Psicopedagogía">
+<Layout title="Acceso - UT Care">
     <header class="navbar">
         <div class="logo">Psicopedagogía</div>
         <nav>
@@ -14,16 +14,20 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
     </header>
 
     <main class="login-page">
-        <div class="login-container">
+        <!-- VISTA 1: FORMULARIO DE INICIO DE SESIÓN -->
+        <div id="login-view" class="login-container">
             <div class="form-header">
                 <h1>Iniciar Sesión</h1>
-                <p>Ingresa tus credenciales para agendar tu cita</p>
+                <p>Ingresa tu Alias o Matrícula para acceder a UT Care</p>
             </div>
+
+            <!-- Alerta visual de error/éxito -->
+            <div id="login-alert" class="status-alert"></div>
             
-            <form action="#" method="POST" class="login-form">
+            <form id="login-form" class="login-form">
                 <div class="input-group">
-                    <label for="matricula">Matrícula</label>
-                    <input type="text" id="matricula" name="matricula" placeholder="00000" required>
+                    <label for="username">Usuario, Alias o Matrícula</label>
+                    <input type="text" id="username" name="username" placeholder="Ej. CalmaTotal22 o 20230000" required>
                 </div>
 
                 <div class="input-group">
@@ -31,15 +35,327 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
                     <input type="password" id="password" name="password" placeholder="••••••••" required>
                 </div>
 
-                <button type="submit" class="submit-button">Entrar</button>
+                <button type="submit" id="submit-btn" class="submit-button">
+                    <span class="btn-text">Entrar</span>
+                    <div class="btn-spinner"></div>
+                </button>
             </form>
             
             <div class="form-footer">
-                <p>¿Aún no tienes cuenta? <a href="/signup">Regístrate como alumno UTSC</a></p>
+                <p>¿Prefieres agendar directamente? <a href="#" id="go-to-booking">Registra tu cita aquí</a></p>
+                <p style="margin-top: 10px;">¿Aún no tienes cuenta? <a href="/signup">Regístrate como alumno UTSC</a></p>
+            </div>
+        </div>
+
+        <!-- VISTA 2: FORMULARIO DE AGENDADO DIRECTO (FILA VIRTUAL) -->
+        <div id="booking-view" class="login-container hidden">
+            <div class="form-header">
+                <span class="badge">UT Care Agenda Rápida</span>
+                <h1>Agendar Asesoría</h1>
+                <p>Completa esta solicitud confidencial para recibir apoyo en breve.</p>
+            </div>
+
+            <!-- Selector de Modalidad (Cita Estándar vs Anónima) -->
+            <div class="tabs-container">
+                <button type="button" id="tab-book-standard" class="tab-btn active">Cita Estándar</button>
+                <button type="button" id="tab-book-anonymous" class="tab-btn">Cita Anónima</button>
+            </div>
+
+            <!-- Alerta visual de error -->
+            <div id="booking-alert" class="status-alert"></div>
+            
+            <form id="booking-form" class="login-form">
+                <!-- Inputs de Identificación Estándar -->
+                <div class="input-row" id="row-book-names">
+                    <div class="input-group">
+                        <label for="firstName">Nombre(s)</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="Juan" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="lastName">Apellido(s)</label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Pérez" required>
+                    </div>
+                </div>
+
+                <!-- Input de Identificación Anónima -->
+                <div class="input-group hidden" id="group-book-alias">
+                    <label for="alias">Alias / Pseudónimo</label>
+                    <input type="text" id="alias" name="alias" placeholder="Ej. CalmaTotal22">
+                    <p class="helper-text">Tu nombre real no se registrará en la solicitud de cita.</p>
+                </div>
+
+                <!-- Datos obligatorios de contacto y carrera -->
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="edad">Edad</label>
+                        <input type="number" id="edad" name="edad" placeholder="20" min="16" max="90" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="carrera">Carrera</label>
+                        <div class="select-wrapper">
+                            <select id="carrera" name="carrera" required>
+                                <option value="" disabled selected>Selecciona</option>
+                                <option value="iti">ITI</option>
+                                <option value="evnd">EVND</option>
+                                <option value="im">Mecatrónica</option>
+                                <option value="imi">Mantenimiento</option>
+                                <option value="ipce">Protección Civil</option>
+                                <option value="inano">Nanotecnología</option>
+                                <option value="linm">Mercadotecnia</option>
+                                <option value="lgnp">Negocios</option>
+                                <option value="lli">Logística</option>
+                                <option value="ldgm">Moda</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="email">Correo de Contacto</label>
+                    <input type="email" id="email" name="email" placeholder="correo@ejemplo.com" required>
+                    <p class="helper-text confidential-label">🔒 Confidencial: Solo el especialista asignado lo verá.</p>
+                </div>
+
+                <div class="input-group">
+                    <label for="phone">Teléfono / WhatsApp</label>
+                    <input type="tel" id="phone" name="phone" placeholder="8110000000" pattern="[0-9]{10}" required>
+                    <p class="helper-text confidential-label">🔒 Confidencial: Solo el especialista asignado lo verá.</p>
+                </div>
+
+                <div class="input-group">
+                    <label for="department">Departamento de Atención</label>
+                    <div class="select-wrapper">
+                        <select id="book-department" name="department" required>
+                            <option value="psicologia" selected>Psicología (Salud Mental)</option>
+                            <option value="enfermeria">Enfermería (Salud Física)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="reason">¿Cómo te sientes o cuál es el motivo de tu consulta? (Opcional)</label>
+                    <textarea id="reason" name="reason" rows="3" placeholder="Escribe aquí si deseas detallar algo..."></textarea>
+                </div>
+
+                <button type="submit" id="book-submit-btn" class="submit-button">
+                    <span class="btn-text">Confirmar Cita Rápida</span>
+                    <div class="btn-spinner"></div>
+                </button>
+            </form>
+            
+            <div class="form-footer">
+                <p>¿Prefieres iniciar sesión primero? <a href="#" id="go-to-login">Iniciar Sesión aquí</a></p>
             </div>
         </div>
     </main>
 </Layout>
+
+<script>
+    import { API_BASE_URL } from '../../utils/api';
+
+    let isBookingAnonymous = false;
+
+    const setupAuthAndBooking = () => {
+        // Vistas
+        const loginView = document.getElementById('login-view');
+        const bookingView = document.getElementById('booking-view');
+        
+        // Triggers de cambio de vista
+        const goToBooking = document.getElementById('go-to-booking');
+        const goToLogin = document.getElementById('go-to-login');
+
+        // Pestañas de agendado rápido
+        const tabBookStandard = document.getElementById('tab-book-standard');
+        const tabBookAnonymous = document.getElementById('tab-book-anonymous');
+        const rowBookNames = document.getElementById('row-book-names');
+        const groupBookAlias = document.getElementById('group-book-alias');
+
+        // Inputs agendado
+        const firstNameInput = document.getElementById('firstName') as HTMLInputElement;
+        const lastNameInput = document.getElementById('lastName') as HTMLInputElement;
+        const aliasInput = document.getElementById('alias') as HTMLInputElement;
+
+        // Formularios y alertas
+        const loginForm = document.getElementById('login-form');
+        const loginAlert = document.getElementById('login-alert');
+        const loginSubmit = document.getElementById('submit-btn');
+
+        const bookingForm = document.getElementById('booking-form');
+        const bookingAlert = document.getElementById('booking-alert');
+        const bookingSubmit = document.getElementById('book-submit-btn');
+
+        // 1. DETERMINAR VISTA INICIAL SEGÚN LA URL (redirect=/agendar)
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasRedirectToAgenda = urlParams.get('redirect') === '/agendar';
+
+        if (hasRedirectToAgenda && loginView && bookingView) {
+            loginView.classList.add('hidden');
+            bookingView.classList.remove('hidden');
+        }
+
+        // 2. LOGICA DE CAMBIO ENTRE VISTAS MANUAL
+        goToBooking?.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginView?.classList.add('hidden');
+            bookingView?.classList.remove('hidden');
+            // Cambiar parámetro en URL
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?redirect=/agendar";
+            window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+        });
+
+        goToLogin?.addEventListener('click', (e) => {
+            e.preventDefault();
+            bookingView?.classList.add('hidden');
+            loginView?.classList.remove('hidden');
+            // Quitar parámetro de URL
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+        });
+
+        // 3. LOGICA DE PESTAÑAS DENTRO DEL AGENDADO DIRECTO
+        tabBookStandard?.addEventListener('click', () => {
+            isBookingAnonymous = false;
+            tabBookStandard.classList.add('active');
+            tabBookAnonymous?.classList.remove('active');
+            rowBookNames?.classList.remove('hidden');
+            groupBookAlias?.classList.add('hidden');
+            if (firstNameInput) firstNameInput.required = true;
+            if (lastNameInput) lastNameInput.required = true;
+            if (aliasInput) aliasInput.required = false;
+        });
+
+        tabBookAnonymous?.addEventListener('click', () => {
+            isBookingAnonymous = true;
+            tabBookAnonymous.classList.add('active');
+            tabBookStandard?.classList.remove('active');
+            rowBookNames?.classList.add('hidden');
+            groupBookAlias?.classList.remove('hidden');
+            if (firstNameInput) firstNameInput.required = false;
+            if (lastNameInput) lastNameInput.required = false;
+            if (aliasInput) aliasInput.required = true;
+        });
+
+        // 4. ENVÍO DEL FORMULARIO DE LOGIN
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!loginAlert || !loginSubmit) return;
+
+                loginAlert.className = 'status-alert';
+                loginAlert.textContent = '';
+                loginSubmit.classList.add('loading');
+
+                const formData = new FormData(loginForm as HTMLFormElement);
+                const username = formData.get('username') as string;
+                const password = formData.get('password') as string;
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Credenciales inválidas');
+                    }
+
+                    localStorage.setItem('token', data.accessToken);
+                    localStorage.setItem('refreshToken', data.refreshToken);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    loginAlert.classList.add('success');
+                    loginAlert.textContent = '¡Sesión iniciada con éxito! Redirigiendo...';
+
+                    setTimeout(() => {
+                        window.location.href = '/agendar'; // Como inició sesión con éxito, va a la agenda formal
+                    }, 1500);
+
+                } catch (error) {
+                    console.error(error);
+                    loginAlert.classList.add('error');
+                    loginAlert.textContent = error.message || 'Error al conectar con el servidor.';
+                    loginSubmit.classList.remove('loading');
+                }
+            });
+        }
+
+        // 5. ENVÍO DEL FORMULARIO DE AGENDADO DIRECTO
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!bookingAlert || !bookingSubmit) return;
+
+                bookingAlert.className = 'status-alert';
+                bookingAlert.textContent = '';
+                bookingSubmit.classList.add('loading');
+
+                const formData = new FormData(bookingForm as HTMLFormElement);
+                const email = formData.get('email') as string;
+                const phone = formData.get('phone') as string;
+                const department = formData.get('department') as string;
+                const reason = formData.get('reason') as string;
+                const age = parseInt(formData.get('edad') as string);
+                
+                let firstName = '';
+                let lastName = '';
+
+                if (isBookingAnonymous) {
+                    const alias = (formData.get('alias') as string).trim();
+                    firstName = 'Anónimo';
+                    lastName = alias;
+                } else {
+                    firstName = (formData.get('firstName') as string).trim();
+                    lastName = (formData.get('lastName') as string).trim();
+                }
+
+                try {
+                    // LLamada al endpoint público de la fila de espera
+                    const response = await fetch(`${API_BASE_URL}/appointments/queue/join`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            firstName,
+                            lastName,
+                            email,
+                            phone,
+                            age,
+                            department,
+                            reason
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Error al solicitar la cita rápida');
+                    }
+
+                    // Guardar éxito en sessionStorage
+                    sessionStorage.setItem('bookingSuccess', 'true');
+
+                    bookingAlert.classList.add('success');
+                    bookingAlert.textContent = '¡Solicitud registrada correctamente! Redirigiendo...';
+
+                    setTimeout(() => {
+                        window.location.href = '/?bookingSuccess=true';
+                    }, 1500);
+
+                } catch (error) {
+                    console.error(error);
+                    bookingAlert.classList.add('error');
+                    bookingAlert.textContent = error.message || 'Error al conectar con el servidor.';
+                    bookingSubmit.classList.remove('loading');
+                }
+            });
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', setupAuthAndBooking);
+    document.addEventListener('astro:after-swap', setupAuthAndBooking);
+</script>
 
 <style>
     /* Navbar Styles */
@@ -90,26 +406,27 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         transition: all 0.3s ease;
     }
 
-    /* Login Page Styles */
+    /* Page Layout */
     .login-page {
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: calc(100vh - 70px);
         background-color: var(--bg-color);
-        padding: 2rem 1rem;
+        padding: 3rem 1rem;
         box-sizing: border-box;
     }
 
     .login-container {
         background-color: var(--card-bg);
         padding: 3rem;
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        border-radius: 24px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
         width: 100%;
-        max-width: 400px;
+        max-width: 480px;
         animation: fadeIn 0.5s ease-out;
         border: 1px solid var(--navbar-border);
+        box-sizing: border-box;
     }
 
     @keyframes fadeIn {
@@ -120,6 +437,19 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
     .form-header {
         text-align: center;
         margin-bottom: 2rem;
+    }
+
+    .badge {
+        background-color: #e6f4f1;
+        color: #1e3a34;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        margin-bottom: 0.8rem;
     }
 
     .form-header h1 {
@@ -134,37 +464,148 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         font-size: 0.9rem;
     }
 
-    .input-group {
+    /* Tabs para Agendado */
+    .tabs-container {
+        display: flex;
+        background-color: var(--bg-color);
+        padding: 6px;
+        border-radius: 14px;
         margin-bottom: 1.5rem;
+        border: 1px solid var(--navbar-border);
+    }
+
+    .tab-btn {
+        flex: 1;
+        background: none;
+        border: none;
+        padding: 10px;
+        font-size: 0.95rem;
+        font-weight: bold;
+        color: var(--body-text-color);
+        cursor: pointer;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .tab-btn.active {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .status-alert {
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        display: none;
+        text-align: center;
+    }
+
+    .status-alert.error {
+        display: block;
+        background-color: #fce8e6;
+        color: #a80700;
+        border: 1px solid #fbc4c0;
+    }
+
+    .status-alert.success {
+        display: block;
+        background-color: #e6f4f1;
+        color: #1e3a34;
+        border: 1px solid #c0ebd2;
+    }
+
+    .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+
+    .input-row {
+        display: flex;
+        gap: 15px;
+        width: 100%;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        flex: 1;
     }
 
     .input-group label {
-        display: block;
         font-weight: 700;
-        margin-bottom: 0.6rem;
         color: var(--heading-color);
         font-size: 0.85rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
 
-    .input-group input {
+    .input-group input,
+    .select-wrapper select,
+    .input-group textarea {
         width: 100%;
-        padding: 0.9rem 1.2rem;
+        padding: 0.85rem 1.1rem;
         border: 2px solid var(--navbar-border);
         border-radius: 12px;
-        font-size: 1rem;
+        font-size: 0.95rem;
         box-sizing: border-box;
         transition: all 0.3s;
         background-color: var(--bg-color);
         color: var(--text-color);
+        font-family: inherit;
     }
 
-    .input-group input:focus {
+    .select-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .select-wrapper select {
+        appearance: none;
+    }
+
+    .select-wrapper::after {
+        content: '▼';
+        font-size: 0.7rem;
+        color: #A2D9CE;
+        position: absolute;
+        right: 1.2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .input-group input:focus,
+    .select-wrapper select:focus,
+    .input-group textarea:focus {
         border-color: #A2D9CE;
         background-color: var(--card-bg);
         box-shadow: 0 0 0 4px rgba(162, 217, 206, 0.2);
         outline: none;
+    }
+
+    .helper-text {
+        font-size: 0.8rem;
+        color: var(--body-text-color);
+        margin: 2px 0 0 0;
+    }
+
+    .confidential-label {
+        background-color: #e6f4f1;
+        padding: 4px 8px;
+        border-radius: 6px;
+        color: #1e3a34;
+        display: inline-block;
+        margin-top: 2px;
+    }
+
+    :root.dark .confidential-label {
+        background-color: rgba(162, 217, 206, 0.1);
+        color: #A2D9CE;
     }
 
     .submit-button {
@@ -178,12 +619,40 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         font-weight: bold;
         cursor: pointer;
         transition: all 0.3s ease;
-        margin-top: 1rem;
+        margin-top: 0.5rem;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .submit-button:hover {
         background-color: #34495e;
         transform: translateY(-2px);
+    }
+
+    .submit-button.loading .btn-text {
+        visibility: hidden;
+        opacity: 0;
+    }
+
+    .submit-button.loading .btn-spinner {
+        display: block;
+    }
+
+    .btn-spinner {
+        display: none;
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.8s infinite linear;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 
     .form-footer {
@@ -193,6 +662,9 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         padding-top: 1.5rem;
         font-size: 0.9rem;
         color: var(--body-text-color);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
     .form-footer a {
@@ -203,5 +675,16 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
 
     .form-footer a:hover {
         text-decoration: underline;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    @media (max-width: 480px) {
+        .input-row {
+            flex-direction: column;
+            gap: 1.2rem;
+        }
     }
 </style>

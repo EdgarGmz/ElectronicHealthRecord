@@ -1,0 +1,198 @@
+---
+// Kiosko/src/components/ProjectStory.astro
+---
+<section id="nuestra-historia" class="story-section">
+    <div class="container">
+        <div class="story-header text-center">
+            <span class="badge">Nuestra Inspiración</span>
+            <h2>Cómo nació este espacio: UT Care</h2>
+            <div class="divider"></div>
+        </div>
+
+        <div class="story-grid">
+            <div class="story-text reveal">
+                <p class="highlight">
+                    "Al principio creía que la psicología era solo para personas 'locas' o en situaciones extremas. Sentía vergüenza y duda."
+                </p>
+                <p>
+                    Hace un tiempo, atravesando por un momento difícil de lucha interna, tristeza profunda y confusión, nos dimos cuenta de la barrera invisible que nos detiene para buscar ayuda: el estigma, el miedo a ser juzgados y la complejidad de los procesos administrativos tradicionales.
+                </p>
+                <p>
+                    Buscar apoyo psicológico en la universidad no debía ser un camino difuso ni vergonzoso, sino un acto de valentía y reconciliación con uno mismo. Así nació la idea de unificar el bienestar en un solo lugar.
+                </p>
+            </div>
+            
+            <div class="story-features reveal">
+                <div class="feature-card mental">
+                    <div class="icon-wrap">🧠</div>
+                    <h3>Salud Mental</h3>
+                    <p>Acceso confidencial, cálido y sin barreras para platicar con un psicólogo en un entorno seguro.</p>
+                </div>
+                <div class="feature-card physical">
+                    <div class="icon-wrap">🩺</div>
+                    <h3>Salud Física</h3>
+                    <p>Integración con el área de Enfermería para cuidar de tu cuerpo mientras sanas tu mente.</p>
+                </div>
+                <div class="feature-card union">
+                    <div class="icon-wrap">🤝</div>
+                    <h3>Atención Unificada</h3>
+                    <p>Kiosko y UT Care nacieron para recordarte que cuidar de ti es el primer paso hacia una vida plena.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .story-section {
+        padding: 6rem 2rem;
+        background: linear-gradient(135deg, rgba(230, 244, 241, 0.4) 0%, rgba(243, 230, 244, 0.4) 100%);
+        border-radius: 40px;
+        margin: 4rem 2rem;
+        box-sizing: border-box;
+        border: 1px solid var(--navbar-border);
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .story-header {
+        margin-bottom: 3.5rem;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .badge {
+        background-color: #A2D9CE;
+        color: #1e3a34;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .story-header h2 {
+        font-size: 2.8rem;
+        margin: 0.5rem 0;
+        color: var(--heading-color);
+        font-family: 'Playfair Display', serif;
+    }
+
+    .divider {
+        width: 80px;
+        height: 4px;
+        background-color: #E8D4F0;
+        margin: 1.5rem auto 0;
+        border-radius: 2px;
+    }
+
+    .story-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 4rem;
+        align-items: center;
+    }
+
+    .story-text {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--body-text-color);
+    }
+
+    .highlight {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        line-height: 1.5;
+        color: #2C3E50;
+        border-left: 4px solid #A2D9CE;
+        padding-left: 1.5rem;
+        margin-bottom: 2rem;
+        font-style: italic;
+    }
+
+    :root.dark .highlight {
+        color: #e0e0e0;
+    }
+
+    .story-text p {
+        margin-bottom: 1.5rem;
+    }
+
+    .story-features {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .feature-card {
+        background: var(--card-bg);
+        padding: 1.8rem;
+        border-radius: 24px;
+        border: 1px solid var(--navbar-border);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+        display: grid;
+        grid-template-columns: 60px 1fr;
+        gap: 1.2rem;
+        align-items: start;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+    }
+
+    .icon-wrap {
+        font-size: 2rem;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+    }
+
+    .feature-card.mental .icon-wrap {
+        background-color: #e6f4f1;
+    }
+    .feature-card.physical .icon-wrap {
+        background-color: #f3e6f4;
+    }
+    .feature-card.union .icon-wrap {
+        background-color: #fff4e6;
+    }
+
+    .feature-card h3 {
+        font-size: 1.3rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--heading-color);
+        grid-column: 2;
+    }
+
+    .feature-card p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--body-text-color);
+        line-height: 1.5;
+        grid-column: 2;
+    }
+
+    @media (max-width: 992px) {
+        .story-grid {
+            grid-template-columns: 1fr;
+            gap: 3rem;
+        }
+        .story-section {
+            margin: 3rem 1rem;
+            padding: 4rem 1.5rem;
+        }
+    }
+</style>

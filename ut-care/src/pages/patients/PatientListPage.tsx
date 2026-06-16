@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { UserPlus, FileText, Pencil, Trash2 } from 'lucide-react'
+import { UserPlus, FileText, Pencil, Trash2, Users } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { ROLES, ROLES_CAN_CREATE_PATIENT, ROLES_CAN_EDIT_PATIENT, ROLES_CAN_DELETE_PATIENTS, canAccessExpedient } from '@/constants/roles'
@@ -180,7 +180,7 @@ export function PatientListPage() {
   const filters = [...baseFilters, ...careerFilter]
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
       <ConfirmModal
@@ -203,16 +203,26 @@ export function PatientListPage() {
           {t('patients.psychologistScopeHint')}
         </p>
       )}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-bold text-[var(--text-primary)]">{t('nav.patients')}</h1>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <Users className="text-[var(--color-primary)]" size={28} />
+            {t('patients.title')}
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            {t('patients.description')}
+          </p>
+        </div>
         {canCreatePatient && (
-          <Link
-            to="/patients/new"
-            className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium transition-transform hover:scale-[1.02]"
-          >
-            <UserPlus size={18} />
-            {t('patients.newPatient')}
-          </Link>
+          <div>
+            <Link
+              to="/patients/new"
+              className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium transition-transform hover:scale-[1.02]"
+            >
+              <UserPlus size={18} />
+              {t('patients.newPatient')}
+            </Link>
+          </div>
         )}
       </div>
       <GlassCard className="rounded-2xl overflow-hidden transition-shadow hover:shadow-lg">

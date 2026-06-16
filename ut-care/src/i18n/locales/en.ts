@@ -224,6 +224,7 @@ export const en = {
   },
   dashboard: {
     title: 'Dashboard',
+    description: 'View statistics, quick access shortcuts, and a summary of system activities.',
     welcome: 'Welcome',
     welcomeToSystem: 'Welcome to the Electronic Health Record System',
     welcomeMessage: 'You have logged in successfully. Use the sidebar to access patients, appointments, sessions and other modules.',
@@ -366,6 +367,7 @@ export const en = {
   },
   sessions: {
     title: 'Therapy sessions',
+    description: 'Record and review progress notes, mood states, and follow-ups for therapy sessions.',
     list: 'Session list',
     newSession: 'New session',
     newSessionDescription: 'Record the therapy session data. Fields marked with * are required.',
@@ -428,6 +430,7 @@ export const en = {
   },
   appointments: {
     title: 'Appointments',
+    description: 'Schedule and manage medical and psychological appointments in the system, monitoring their status and assignment.',
     list: 'Appointment list',
     newAppointment: 'New appointment',
     patient: 'Patient',
@@ -473,6 +476,7 @@ export const en = {
   },
   patients: {
     title: 'Patients',
+    description: 'Manage the list of registered patients, their clinical records, and background history.',
     list: 'Patient list',
     newPatient: 'New patient',
     searchPlaceholder: 'Search by name, email or enrollment...',
@@ -597,6 +601,7 @@ export const en = {
   },
   interconsultations: {
     title: 'Interconsultations',
+    description: 'Manage and respond to interconsultation requests between different departments.',
     list: 'Interconsultation list',
     newInterconsultation: 'New interconsultation',
     patient: 'Patient',
@@ -635,6 +640,7 @@ export const en = {
   },
   procedures: {
     title: 'Procedures',
+    description: 'Record and monitor nursing procedures performed on patients.',
     list: 'Procedure list',
     newProcedure: 'New procedure',
     searchPlaceholder: 'Search by type, description or patient...',
@@ -648,7 +654,7 @@ export const en = {
       ivAdministration: 'IV Administration',
     },
     procedureDate: 'Date',
-    description: 'Description',
+    descriptionLabel: 'Description',
     materialsUsed: 'Materials used',
     observations: 'Observations',
     performedBy: 'Performed by',
@@ -689,9 +695,11 @@ export const en = {
     attentionListTab: 'Attention list',
     noAttentions: 'No attentions registered.',
     attentionDetail: 'Attention detail',
+    attentionFormIntro: 'Search for the patient and register or query nursing attentions.',
   },
   medications: {
     title: 'Medications',
+    description: 'Manage the medication catalog and inventory of the nursing department.',
     list: 'Medication list',
     newMedication: 'New medication',
     searchPlaceholder: 'Search by name or generic name...',
@@ -724,6 +732,7 @@ export const en = {
   },
   notifications: {
     title: 'Notifications',
+    description: 'Review and manage system notifications, alerts, and warnings.',
     list: 'Notification list',
     newNotification: 'New notification',
     unread: 'Unread',
@@ -751,6 +760,7 @@ export const en = {
   },
   evaluations: {
     title: 'Psychometric evaluations',
+    description: 'Apply, record, and interpret psychometric evaluations for patients.',
     list: 'Evaluation list',
     newEvaluation: 'New evaluation',
     newEvaluationDescription: 'Select the patient and enter the evaluation data. Fields marked with * are required.',
@@ -792,6 +802,7 @@ export const en = {
   },
   reports: {
     title: 'Reports',
+    description: 'Generate, analyze, and export statistical and clinical reports in the system.',
     periodStart: 'Start date',
     periodEnd: 'End date',
     department: 'Department',
@@ -840,6 +851,7 @@ export const en = {
   },
   auditLogs: {
     title: 'System audit log',
+    description: 'View the system log of activity, access auditing, and user actions log.',
     subtitle: 'Only the administrator can view all system activity.',
     filterRole: 'Role / Department',
     filterAction: 'Action',
@@ -872,6 +884,7 @@ export const en = {
   },
   profilePage: {
     title: 'My profile',
+    description: 'Manage your personal information, contact details, and account preferences in the system.',
     editProfile: 'Edit profile',
     viewProfile: 'View profile',
     firstName: 'First name',
@@ -995,8 +1008,17 @@ export const en = {
     coordinador_psicologia: 'Psychology Coord.',
     coordinador_enfermeria: 'Nursing Coord.',
   },
+  users: {
+    title: 'System Users',
+    description: 'Manage users with system access, their corresponding roles, and permissions.',
+  },
+  settings: {
+    title: 'System Settings',
+    description: 'Configure the visual theme, language, font size, and system display preferences.',
+  },
   careers: {
     title: 'University Careers',
+    description: 'Manage the catalog of university careers and monitor the number of registered students in each.',
     addNew: 'Add Career',
     editCareer: 'Edit Career',
     deleteCareer: 'Delete Career',

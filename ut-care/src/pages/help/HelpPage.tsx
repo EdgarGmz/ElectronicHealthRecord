@@ -56,7 +56,7 @@ export function HelpPage() {
   })
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 pb-10">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       {/* Hero intro */}
       <div className="opacity-0 help-animate-in help-stagger-0 flex items-start gap-4 rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--color-primary)]/5 via-transparent to-[var(--mesh-3)] p-6 transition-shadow hover:shadow-lg">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-primary)]/15">

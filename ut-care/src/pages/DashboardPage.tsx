@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Users, Calendar, Clock } from 'lucide-react'
+import { Users, Calendar, Clock, LayoutDashboard } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
@@ -70,8 +70,19 @@ export function DashboardPage() {
   const restOfCards = visibleCards.filter((id) => id !== 'appointmentsToday' && id !== 'pending')
 
   return (
-    <div className="space-y-6" data-testid="dashboard-page">
+    <div className="container mx-auto px-4 py-6 space-y-6" data-testid="dashboard-page">
       <LoadingModal open={loading} message={t('common.loading')} />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <LayoutDashboard className="text-[var(--color-primary)]" size={28} />
+            {t('dashboard.title')}
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            {t('dashboard.description')}
+          </p>
+        </div>
+      </div>
       {/* Tarjetas KPI principales */}
       {restOfCards.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

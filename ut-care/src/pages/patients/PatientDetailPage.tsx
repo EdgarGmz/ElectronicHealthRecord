@@ -805,7 +805,7 @@ export function PatientDetailPage() {
               <div className="mt-4 space-y-3 text-sm">
                 <DetailRow label={t('procedures.procedureType')} value={detailProcedure.procedureType} />
                 <DetailRow label={t('procedures.procedureDate')} value={new Date(detailProcedure.procedureDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })} />
-                <DetailRow label={t('procedures.description')} value={detailProcedure.description} />
+                <DetailRow label={t('procedures.descriptionLabel')} value={detailProcedure.description} />
                 {detailProcedure.materialsUsed && <DetailRow label={t('procedures.materialsUsed')} value={detailProcedure.materialsUsed} />}
                 {detailProcedure.observations && <DetailRow label={t('procedures.observations')} value={detailProcedure.observations} />}
                 {detailProcedure.performedByUser && (
