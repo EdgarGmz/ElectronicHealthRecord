@@ -224,6 +224,7 @@ export const es = {
   },
   dashboard: {
     title: 'Panel de control',
+    description: 'Visualiza las estadísticas, accesos directos y un resumen de las actividades del sistema.',
     welcome: 'Bienvenido',
     welcomeToSystem: 'Bienvenido al Sistema de Registro de Salud Electrónico',
     welcomeMessage: 'Has iniciado sesión correctamente. Usa el menú lateral para acceder a pacientes, citas, sesiones y el resto de módulos.',
@@ -882,6 +883,7 @@ export const es = {
   },
   profilePage: {
     title: 'Mi perfil',
+    description: 'Administra tu información personal, datos de contacto y preferencias de tu cuenta en el sistema.',
     editProfile: 'Editar perfil',
     viewProfile: 'Ver perfil',
     firstName: 'Nombre',
@@ -1008,6 +1010,10 @@ export const es = {
   users: {
     title: 'Usuarios del sistema',
     description: 'Administra los usuarios con acceso al sistema, sus roles y permisos correspondientes.',
+  },
+  settings: {
+    title: 'Ajustes del sistema',
+    description: 'Configura el tema visual, idioma, tamaño de letra y preferencias de visualización del sistema.',
   },
   careers: {
     title: 'Carreras Universitarias',

@@ -220,7 +220,7 @@ export function SessionListPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">

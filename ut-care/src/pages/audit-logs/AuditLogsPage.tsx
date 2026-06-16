@@ -120,7 +120,7 @@ export function AuditLogsPage() {
   const pagination = data?.pagination ?? { page: 1, limit, total: 0, totalPages: 0 }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
       <div className="flex flex-col gap-4 mb-6">

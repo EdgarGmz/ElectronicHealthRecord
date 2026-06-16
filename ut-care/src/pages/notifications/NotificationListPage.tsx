@@ -140,7 +140,7 @@ export function NotificationListPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <LoadingModal open={loading || deleting} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
       <ConfirmModal
@@ -154,22 +154,24 @@ export function NotificationListPage() {
         variant="danger"
         confirming={deleting}
       />
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {unreadCount > 0 ? (
-          <p className="text-sm text-[var(--text-muted)]">
-            {unreadCount} {t('notifications.unread')}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <Bell className="text-[var(--color-primary)]" size={28} />
+            {t('notifications.title')}
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            {t('notifications.description')}
           </p>
-        ) : (
-          <span />
-        )}
-        <div className="flex flex-wrap gap-2">
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
           {unreadCount > 0 && (
-            <GlassButton onClick={handleMarkAllRead} className="inline-flex items-center gap-2">
+            <GlassButton onClick={handleMarkAllRead} className="inline-flex items-center gap-2 transition-transform hover:scale-[1.02]">
               <CheckCheck size={18} />
               {t('notifications.markAllRead')}
             </GlassButton>
           )}
-          <Link to="/notifications/new" className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium">
+          <Link to="/notifications/new" className="glass-button inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium transition-transform hover:scale-[1.02]">
             <Plus size={18} />
             {t('notifications.newNotification')}
           </Link>

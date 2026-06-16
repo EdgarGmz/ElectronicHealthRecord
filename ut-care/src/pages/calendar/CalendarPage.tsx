@@ -21,7 +21,7 @@ export function CalendarPage() {
 
   if (!user) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
+      <div className="container mx-auto px-4 py-6 flex min-h-[400px] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-primary)] border-t-transparent" />
       </div>
     )
@@ -32,11 +32,13 @@ export function CalendarPage() {
   }
 
   return (
-    <GlassCard>
-      <p className="text-[var(--text-secondary)]">
-        {t('calendar.noAccess')}
-      </p>
-    </GlassCard>
+    <div className="container mx-auto px-4 py-6">
+      <GlassCard>
+        <p className="text-[var(--text-secondary)]">
+          {t('calendar.noAccess')}
+        </p>
+      </GlassCard>
+    </div>
   )
 }
 
@@ -102,7 +104,7 @@ function PsychologistCalendarView() {
   }, [user?.id, weekBoundsKey])
 
   return (
-    <div className="min-h-[500px] space-y-6">
+    <div className="container mx-auto px-4 py-6 min-h-[500px] space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
           <Calendar className="text-[var(--color-primary)]" size={28} />

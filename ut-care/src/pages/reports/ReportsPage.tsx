@@ -159,7 +159,18 @@ export function ReportsPage() {
         : 'CSV'
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <BarChart3 className="text-[var(--color-primary)]" size={28} />
+            {t('reports.title')}
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            {t('reports.description')}
+          </p>
+        </div>
+      </div>
       <ConfirmModal
         open={exportModalOpen}
         onClose={() => setExportModalOpen(false)}

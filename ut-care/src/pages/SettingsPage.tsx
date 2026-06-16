@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Sun, Moon, Monitor, Clock, Languages, Type, List, PanelTop } from 'lucide-react'
+import { ArrowLeft, Sun, Moon, Monitor, Clock, Languages, Type, List, PanelTop, Settings } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { useThemeStore, type ThemeMode } from '@/store/theme.store'
 import { useFontSizeStore, type FontSizeMode } from '@/store/fontSize.store'
@@ -31,17 +31,27 @@ export function SettingsPage() {
   const currentLang = i18n.language.startsWith('es') ? 'es' : 'en'
 
   return (
-    <div className="mx-auto flex min-h-0 w-[90%] max-w-4xl flex-col items-center px-2 py-4 sm:px-4">
-      <div className="w-full space-y-8">
-        <header className="flex justify-start">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-[var(--color-primary)] transition-colors hover:underline"
-          >
-            <ArrowLeft size={18} />
-            {t('nav.dashboard')}
-          </Link>
-        </header>
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="flex justify-start">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-[var(--color-primary)] transition-colors hover:underline"
+        >
+          <ArrowLeft size={18} />
+          {t('nav.dashboard')}
+        </Link>
+      </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <Settings className="text-[var(--color-primary)]" size={28} />
+            {t('settings.title')}
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            {t('settings.description')}
+          </p>
+        </div>
+      </div>
 
         <div className="grid w-full gap-6 md:grid-cols-2">
           <GlassCard className="flex flex-col border-[var(--border)] shadow-lg transition-shadow hover:shadow-xl">
@@ -337,7 +347,6 @@ export function SettingsPage() {
             </div>
           </div>
         </GlassCard>
-        </div>
       </div>
     </div>
   )

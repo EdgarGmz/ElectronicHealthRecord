@@ -224,6 +224,7 @@ export const en = {
   },
   dashboard: {
     title: 'Dashboard',
+    description: 'View statistics, quick access shortcuts, and a summary of system activities.',
     welcome: 'Welcome',
     welcomeToSystem: 'Welcome to the Electronic Health Record System',
     welcomeMessage: 'You have logged in successfully. Use the sidebar to access patients, appointments, sessions and other modules.',
@@ -882,6 +883,7 @@ export const en = {
   },
   profilePage: {
     title: 'My profile',
+    description: 'Manage your personal information, contact details, and account preferences in the system.',
     editProfile: 'Edit profile',
     viewProfile: 'View profile',
     firstName: 'First name',
@@ -1008,6 +1010,10 @@ export const en = {
   users: {
     title: 'System Users',
     description: 'Manage users with system access, their corresponding roles, and permissions.',
+  },
+  settings: {
+    title: 'System Settings',
+    description: 'Configure the visual theme, language, font size, and system display preferences.',
   },
   careers: {
     title: 'University Careers',
