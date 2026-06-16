@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { History } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
@@ -122,7 +123,17 @@ export function AuditLogsPage() {
     <div className="space-y-6">
       <LoadingModal open={loading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? undefined} onClose={() => setError(null)} />
-      <p className="text-sm text-[var(--text-muted)]">{t('auditLogs.subtitle')}</p>
+      <div className="flex flex-col gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <History className="text-[var(--color-primary)]" size={28} />
+            {t('auditLogs.title')}
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            {t('auditLogs.description')}
+          </p>
+        </div>
+      </div>
 
       <GlassCard>
         <DataTable

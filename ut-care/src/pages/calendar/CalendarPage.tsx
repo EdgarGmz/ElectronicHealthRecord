@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Calendar } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { ROLES } from '@/constants/roles'
 import { GlassCard } from '@/components/atoms/GlassCard'
@@ -103,7 +104,8 @@ function PsychologistCalendarView() {
   return (
     <div className="min-h-[500px] space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <Calendar className="text-[var(--color-primary)]" size={28} />
           {t('nav.calendar')}
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">

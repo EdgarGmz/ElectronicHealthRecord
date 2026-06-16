@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Search, FileText } from 'lucide-react'
+import { Search, FileText, Activity } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { getPatients, createPatient } from '@/services/patient.service'
@@ -123,14 +123,14 @@ function ProcedureForm({
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-[var(--text-muted)]">
-            {t('procedures.description')} *
+            {t('procedures.descriptionLabel')} *
           </label>
           <textarea
             value={formDescription}
             onChange={(e) => setFormDescription(e.target.value)}
             rows={3}
             className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]"
-            placeholder={t('procedures.description')}
+            placeholder={t('procedures.descriptionLabel')}
           />
         </div>
         <div>
@@ -352,11 +352,16 @@ export function ProcedureListPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('procedures.title')}</h1>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">
-          {t('procedures.newProcedureFromConsultation', 'Busca al paciente y accede al expediente para registrar procedimientos.')}
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <Activity className="text-[var(--color-primary)]" size={28} />
+            {t('procedures.title')}
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            {t('procedures.description')}
+          </p>
+        </div>
       </div>
 
       <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-1 text-xs">
@@ -672,7 +677,7 @@ export function ProcedureListPage() {
                     timeStyle: 'short',
                   })}
                 />
-                <DetailRow label={t('procedures.description')} value={detailProcedure.description} />
+                <DetailRow label={t('procedures.descriptionLabel')} value={detailProcedure.description} />
                 {detailProcedure.materialsUsed && (
                   <DetailRow label={t('procedures.materialsUsed')} value={detailProcedure.materialsUsed} />
                 )}

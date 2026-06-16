@@ -95,7 +95,7 @@ export function ProcedureDetailPage() {
       <GlassCard>
         <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
           <FileText size={18} />
-          {t('procedures.description')}
+          {t('procedures.descriptionLabel')}
         </h2>
         <p className="whitespace-pre-wrap text-[var(--text-secondary)]">{procedure.description}</p>
       </GlassCard>

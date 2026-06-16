@@ -344,7 +344,7 @@ export function CareersPage() {
             {t('careers.title')}
           </h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
-            Administra el catálogo de carreras universitarias y monitorea el número de alumnos registrados en cada una.
+            {t('careers.description')}
           </p>
         </div>
         <div>
