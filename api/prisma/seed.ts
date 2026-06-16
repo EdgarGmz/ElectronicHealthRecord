@@ -1138,7 +1138,61 @@ async function seedClean() {
     },
   });
   console.log('✅ Admin user created successfully!');
-  console.log('✅ Seed CLEAN completed. Only admin user and careers exist.');
+
+  console.log('👤 Seeding additional staff users...');
+  const staffToCreate = [
+    {
+      email: 'coord.psico@ehr-system.com',
+      username: 'OrlandoCOP',
+      firstName: 'Orlando',
+      lastName: 'Casas',
+      role: 'coordinador_psicologia' as const,
+      enrollmentNumber: 'COP001',
+    },
+    {
+      email: 'coord.enfer@ehr-system.com',
+      username: 'IvanCOE',
+      firstName: 'Ivan',
+      lastName: 'Trevino',
+      role: 'coordinador_enfermeria' as const,
+      enrollmentNumber: 'COE001',
+    },
+    {
+      email: 'psicologo@ehr-system.com',
+      username: 'CarlosPSI',
+      firstName: 'Carlos',
+      lastName: 'Rodriguez',
+      role: 'psicologo' as const,
+      enrollmentNumber: 'PSI001',
+    },
+    {
+      email: 'enfermero@ehr-system.com',
+      username: 'DanielaENF',
+      firstName: 'Daniela',
+      lastName: 'Guevara',
+      role: 'enfermero' as const,
+      enrollmentNumber: 'ENF001',
+    },
+  ];
+
+  for (const s of staffToCreate) {
+    await prisma.user.create({
+      data: {
+        email: s.email,
+        username: s.username,
+        passwordHash: defaultPasswordHash,
+        firstName: s.firstName,
+        lastName: s.lastName,
+        dateOfBirth: new Date('1990-01-15'),
+        role: s.role,
+        enrollmentNumber: s.enrollmentNumber,
+        isConfirmed: true,
+        mustChangePassword: false,
+      },
+    });
+  }
+  console.log('✅ Additional staff users created successfully!');
+  console.log('✅ Seed CLEAN completed. Admin and all staff role users exist.');
 }
 
 // Main seed function
