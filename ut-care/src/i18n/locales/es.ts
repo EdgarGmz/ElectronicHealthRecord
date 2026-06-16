@@ -695,6 +695,7 @@ export const es = {
     attentionListTab: 'Listado de atenciones',
     noAttentions: 'No hay atenciones registradas.',
     attentionDetail: 'Detalle de la atención',
+    attentionFormIntro: 'Busca al paciente y registra o consulta las atenciones de enfermería.',
   },
   medications: {
     title: 'Medicamentos',

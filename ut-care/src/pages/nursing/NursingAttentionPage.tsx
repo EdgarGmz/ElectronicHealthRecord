@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Search, FileText, Eye } from 'lucide-react'
+import { Search, FileText, Eye, Stethoscope } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { getPatients, createPatient } from '@/services/patient.service'
 import type { Patient } from '@/types/patient'
@@ -238,17 +238,17 @@ export function NursingAttentionPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          {t('nav.nursingAttention', 'Atención de enfermería')}
-        </h1>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">
-          {t(
-            'procedures.attentionFormIntro',
-            'Busca al paciente y registra o consulta las atenciones de enfermería.'
-          )}
-        </p>
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <Stethoscope className="text-[var(--color-primary)]" size={28} />
+            {t('nav.nursingAttention', 'Atención rápida')}
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            {t('procedures.attentionFormIntro')}
+          </p>
+        </div>
       </div>
 
       {/* Tabs */}
