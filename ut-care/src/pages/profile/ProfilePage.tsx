@@ -120,7 +120,7 @@ export function ProfilePage() {
     .toUpperCase() || '?'
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6 max-w-2xl">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <LoadingModal open={loading || submitting} message={t('common.loading')} />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -274,7 +274,7 @@ export function ProfilePage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-6 pt-4 border-t border-[var(--border)]">
+                <div className="mt-6 pt-4 border-t border-[var(--border)] flex justify-start">
                   <GlassButton
                     type="button"
                     onClick={() => setEditing(true)}
