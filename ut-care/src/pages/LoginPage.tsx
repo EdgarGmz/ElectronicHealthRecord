@@ -10,8 +10,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { PasswordInput } from '@/components/atoms/PasswordInput'
-import { ThemeToggle } from '@/components/molecules/ThemeToggle'
-import { LanguageSwitcher } from '@/components/molecules/LanguageSwitcher'
+import { GlobalSettingsDropdown } from '@/components/molecules/GlobalSettingsDropdown'
 
 const schema = z.object({
   username: z.string().min(1, 'Username required'),
@@ -101,8 +100,7 @@ export function LoginPage() {
           {t('app.name')}
         </span>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <LanguageSwitcher />
+          <GlobalSettingsDropdown />
         </div>
       </header>
 
