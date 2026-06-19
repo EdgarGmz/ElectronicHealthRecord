@@ -81,7 +81,7 @@ export function LoginPage() {
     try {
       const res = await api.post<{ success: boolean; message: string }>('/auth/forgot-password', { email: forgotEmail })
       setForgotMessage(res.data.message)
-    } catch (err: unknown) {
+    } catch {
       // In case of error, still show the generic success message to prevent email harvesting
       setForgotMessage('Notificación enviada, por favor verifica tu correo')
     }
