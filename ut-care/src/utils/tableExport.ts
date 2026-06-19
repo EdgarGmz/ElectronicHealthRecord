@@ -1,6 +1,6 @@
-import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import { applyPlugin, autoTable } from 'jspdf-autotable'
+import { exportRowsToXlsx } from '@/utils/xlsxExport'
 
 applyPlugin(jsPDF)
 
@@ -42,10 +42,7 @@ export function exportTableToXlsx(
   filename: string,
   sheetName = 'Datos'
 ): void {
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, sheetName)
-  XLSX.writeFile(wb, `${filename}.xlsx`)
+  exportRowsToXlsx([headers, ...rows], `${filename}.xlsx`, sheetName)
 }
 
 /**
