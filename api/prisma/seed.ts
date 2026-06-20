@@ -12,6 +12,7 @@ const STUDENTS_PER_CAREER = 50;
 
 // Default password for all seeded users (dev and prod). Documented in README.
 const DEFAULT_SEED_PASSWORD = 'Password123!';
+const ROBUST_MIN_PER_TABLE = 100;
 
 // Helper function to hash passwords
 async function hashPassword(password: string): Promise<string> {
@@ -931,6 +932,484 @@ async function seedNotifications(users: any[]) {
   console.log(`✅ Created ${totalNotifications} notifications`);
 }
 
+async function ensureMinimumCareers(target: number) {
+  let count = await prisma.career.count();
+  let cursor = count + 1;
+  while (count < target) {
+    const suffix = String(cursor).padStart(3, '0');
+    const name = `Carrera Semilla ${suffix}`;
+    const code = `SEM-${suffix}`;
+    await prisma.career.upsert({
+      where: { name },
+      update: {},
+      create: {
+        name,
+        code,
+        isActive: true,
+      },
+    });
+    cursor += 1;
+    count = await prisma.career.count();
+  }
+}
+
+async function ensureMinimumMoods(target: number) {
+  let count = await prisma.mood.count();
+  let cursor = count + 1;
+  const categories = ['very_common', 'common', 'positive', 'less_common', 'rare'];
+  while (count < target) {
+    const suffix = String(cursor).padStart(3, '0');
+    const code = `seed_mood_${suffix}`;
+    await prisma.mood.upsert({
+      where: { code },
+      update: {},
+      create: {
+        code,
+        name: `Estado de animo ${suffix}`,
+        emoji: '🙂',
+        category: randomElement(categories),
+        displayOrder: cursor,
+      },
+    });
+    cursor += 1;
+    count = await prisma.mood.count();
+  }
+}
+
+async function ensureMinimumMedications(target: number) {
+  let count = await prisma.medication.count();
+  let cursor = count + 1;
+  const categories = ['Analgesic', 'Antibiotic', 'Antihypertensive', 'Antidepressant', 'Supplement'];
+  const forms = ['Tablet', 'Capsule', 'Syrup', 'Injectable'];
+  const routes = ['Oral', 'Intramuscular', 'Intravenous', 'Topical'];
+
+  while (count < target) {
+    const suffix = String(cursor).padStart(3, '0');
+    const genericName = `Componente Seed ${suffix}`;
+    const name = `Medicamento Seed ${suffix}`;
+
+    await prisma.medication.create({
+      data: {
+        name,
+        genericName,
+        category: categories[cursor % categories.length],
+        dosageForms: forms[cursor % forms.length],
+        commonDosages: `${100 + (cursor % 6) * 50}mg`,
+        administrationRoutes: routes[cursor % routes.length],
+        contraindications: Math.random() > 0.5 ? faker.lorem.sentence() : null,
+        sideEffects: Math.random() > 0.5 ? faker.lorem.sentence() : null,
+        isActive: true,
+        stock: 5 + Math.floor(Math.random() * 120),
+      },
+    });
+
+    cursor += 1;
+    count = await prisma.medication.count();
+  }
+}
+
+async function ensureMinimumRoleUsers(role: 'psicologo' | 'enfermero', target: number, passwordHash: string) {
+  let count = await prisma.user.count({ where: { role } });
+  let cursor = count + 1;
+  while (count < target) {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+    const username = generateUniqueUsername(firstName, lastName);
+    const suffix = String(cursor).padStart(3, '0');
+    await prisma.user.create({
+      data: {
+        email: `${role}.${suffix}@utcare.local`,
+        username,
+        passwordHash,
+        firstName,
+        lastName,
+        dateOfBirth: faker.date.birthdate({ min: 24, max: 62, mode: 'age' }),
+        role,
+        enrollmentNumber: `${role === 'psicologo' ? 'PSI' : 'ENF'}${suffix}`,
+        sex: Math.random() < 0.5 ? 'male' : 'female',
+        phone: faker.string.numeric(10),
+        isConfirmed: true,
+        mustChangePassword: false,
+      },
+    });
+    cursor += 1;
+    count = await prisma.user.count({ where: { role } });
+  }
+}
+
+async function ensureMinimumPsychologistCareers(target: number) {
+  const careers = await prisma.career.findMany({ select: { id: true } });
+  const psychologists = await prisma.user.findMany({ where: { role: 'psicologo' }, select: { id: true } });
+  let count = await prisma.psychologistCareer.count();
+  if (careers.length === 0 || psychologists.length === 0) return;
+
+  for (const psychologist of psychologists) {
+    for (const career of careers) {
+      if (count >= target) return;
+      await prisma.psychologistCareer.upsert({
+        where: {
+          psychologistId_careerId: {
+            psychologistId: psychologist.id,
+            careerId: career.id,
+          },
+        },
+        update: {},
+        create: {
+          psychologistId: psychologist.id,
+          careerId: career.id,
+        },
+      });
+      count = await prisma.psychologistCareer.count();
+    }
+  }
+}
+
+async function ensureMinimumAppointmentReminders(target: number) {
+  const appointments = await prisma.appointment.findMany({ select: { id: true, scheduledDate: true } });
+  if (appointments.length === 0) return;
+
+  const reminderTypes = ['email', 'sms', 'push'];
+  const statuses = ['pending', 'sent', 'failed'];
+  let count = await prisma.appointmentReminder.count();
+  let cursor = 0;
+  while (count < target) {
+    const appointment = appointments[cursor % appointments.length];
+    const base = new Date(appointment.scheduledDate);
+    base.setHours(base.getHours() - 24);
+    await prisma.appointmentReminder.create({
+      data: {
+        appointmentId: appointment.id,
+        reminderType: reminderTypes[cursor % reminderTypes.length],
+        scheduledFor: base,
+        sentAt: Math.random() > 0.3 ? faker.date.recent({ days: 15 }) : null,
+        status: statuses[cursor % statuses.length],
+      },
+    });
+    cursor += 1;
+    count = await prisma.appointmentReminder.count();
+  }
+}
+
+async function ensureMinimumWaitingList(target: number) {
+  const patients = await prisma.patient.findMany({ select: { id: true } });
+  const professionals = await prisma.user.findMany({
+    where: { role: { in: ['psicologo', 'enfermero'] } },
+    select: { id: true },
+  });
+  if (patients.length === 0) return;
+
+  const priorities = ['low', 'medium', 'high'];
+  const statuses = ['waiting', 'contacted', 'scheduled'];
+  let count = await prisma.waitingList.count();
+  let cursor = 0;
+  while (count < target) {
+    const patient = patients[cursor % patients.length];
+    await prisma.waitingList.create({
+      data: {
+        patientId: patient.id,
+        department: cursor % 2 === 0 ? 'psychology' : 'nursing',
+        preferredProfessionalId: professionals.length > 0 ? randomElement(professionals).id : null,
+        requestedDate: faker.date.recent({ days: 40 }),
+        priority: priorities[cursor % priorities.length],
+        reason: faker.lorem.sentence(),
+        status: statuses[cursor % statuses.length],
+      },
+    });
+    cursor += 1;
+    count = await prisma.waitingList.count();
+  }
+}
+
+async function ensureMinimumNursingAttentions(target: number) {
+  const patients = await prisma.patient.findMany({ select: { id: true } });
+  const nurses = await prisma.user.findMany({ where: { role: 'enfermero' }, select: { id: true } });
+  if (patients.length === 0 || nurses.length === 0) return;
+
+  let count = await prisma.nursingAttention.count();
+  let cursor = 0;
+  while (count < target) {
+    const patient = patients[cursor % patients.length];
+    const nurse = nurses[cursor % nurses.length];
+    await prisma.nursingAttention.create({
+      data: {
+        patientId: patient.id,
+        nurseId: nurse.id,
+        motive: faker.lorem.sentence(),
+        vitalSigns: {
+          temperature: Number((36 + Math.random() * 2.2).toFixed(1)),
+          heartRate: 60 + Math.floor(Math.random() * 45),
+          bloodPressure: `${100 + Math.floor(Math.random() * 35)}/${60 + Math.floor(Math.random() * 20)}`,
+        },
+        lightningDiagnosis: Math.random() > 0.4 ? faker.lorem.words(4) : null,
+        treatment: faker.lorem.sentence(),
+        observations: Math.random() > 0.5 ? faker.lorem.sentence() : null,
+        disposition: randomElement(['home', 'observation', 'referred']),
+      },
+    });
+    cursor += 1;
+    count = await prisma.nursingAttention.count();
+  }
+}
+
+async function ensureMinimumPrescriptionAdministrations(target: number) {
+  const prescriptions = await prisma.prescription.findMany({ select: { id: true } });
+  const administrations = await prisma.medicationAdministration.findMany({ select: { id: true } });
+  if (prescriptions.length === 0 || administrations.length === 0) return;
+
+  let count = await prisma.prescriptionAdministration.count();
+  let cursor = 0;
+  const maxAttempts = target * 20;
+
+  while (count < target && cursor < maxAttempts) {
+    const prescription = prescriptions[cursor % prescriptions.length];
+    const administration = administrations[(cursor * 7) % administrations.length];
+    try {
+      await prisma.prescriptionAdministration.create({
+        data: {
+          prescriptionId: prescription.id,
+          medicationAdministrationId: administration.id,
+        },
+      });
+      count = await prisma.prescriptionAdministration.count();
+    } catch {
+      // ignore duplicate unique pairs and continue trying
+    }
+    cursor += 1;
+  }
+}
+
+async function ensureMinimumAuditLogs(target: number) {
+  const users = await prisma.user.findMany({ select: { id: true } });
+  if (users.length === 0) return;
+
+  const actions = ['LOGIN', 'CREATE', 'UPDATE', 'VIEW_RECORD', 'EXPORT', 'LOGOUT'];
+  const tables = ['users', 'patients', 'appointments', 'therapy_sessions', 'nursing_consultations'];
+  let count = await prisma.auditLog.count();
+  let cursor = 0;
+  while (count < target) {
+    await prisma.auditLog.create({
+      data: {
+        userId: users[cursor % users.length].id,
+        action: actions[cursor % actions.length],
+        tableName: tables[cursor % tables.length],
+        recordId: faker.string.uuid(),
+        oldValues: Math.random() > 0.5 ? { status: 'old' } : undefined,
+        newValues: { status: 'new', idx: cursor },
+        ipAddress: faker.internet.ipv4(),
+        userAgent: `seed-agent/${cursor % 5}`,
+      },
+    });
+    cursor += 1;
+    count = await prisma.auditLog.count();
+  }
+}
+
+async function ensureMinimumReports(target: number) {
+  const users = await prisma.user.findMany({
+    where: { role: { in: ['admin', 'coordinador_psicologia', 'coordinador_enfermeria'] } },
+    select: { id: true },
+  });
+  if (users.length === 0) return;
+
+  const types = ['statistics', 'consultations', 'diagnoses', 'attendance', 'inventory'];
+  const departments = ['psychology', 'nursing'];
+  let count = await prisma.report.count();
+  let cursor = 0;
+  while (count < target) {
+    const periodStart = faker.date.past({ years: 1 });
+    const periodEnd = faker.date.future({ years: 1, refDate: periodStart });
+    await prisma.report.create({
+      data: {
+        reportType: types[cursor % types.length],
+        department: departments[cursor % departments.length],
+        periodStart,
+        periodEnd,
+        filters: { generatedBySeed: true, index: cursor },
+        generatedBy: users[cursor % users.length].id,
+        fileUrl: `/reports/seed-report-${String(cursor).padStart(3, '0')}.pdf`,
+      },
+    });
+    cursor += 1;
+    count = await prisma.report.count();
+  }
+}
+
+async function ensureMinimumSystemSettings(target: number) {
+  const users = await prisma.user.findMany({ where: { role: 'admin' }, select: { id: true } });
+  let count = await prisma.systemSetting.count();
+  let cursor = count + 1;
+  while (count < target) {
+    const key = `seed.setting.${String(cursor).padStart(3, '0')}`;
+    await prisma.systemSetting.create({
+      data: {
+        settingKey: key,
+        settingValue: faker.lorem.words(3),
+        description: faker.lorem.sentence(),
+        updatedBy: users.length > 0 ? users[0].id : null,
+      },
+    });
+    cursor += 1;
+    count = await prisma.systemSetting.count();
+  }
+}
+
+async function ensureMinimumBlogPosts(target: number) {
+  const users = await prisma.user.findMany({
+    where: { role: { in: ['admin', 'psicologo', 'enfermero'] } },
+    select: { id: true },
+  });
+  const categories = ['Salud Mental', 'Salud Fisica', 'Evento', 'Dia Especial'];
+  let count = await prisma.blogPost.count();
+  let cursor = 0;
+  while (count < target) {
+    await prisma.blogPost.create({
+      data: {
+        title: faker.lorem.sentence({ min: 4, max: 8 }),
+        content: faker.lorem.paragraphs(3),
+        category: categories[cursor % categories.length],
+        authorId: users.length > 0 ? users[cursor % users.length].id : null,
+        imageUrl: Math.random() > 0.5 ? `https://picsum.photos/seed/blog-${cursor}/800/400` : null,
+        likes: Math.floor(Math.random() * 450),
+      },
+    });
+    cursor += 1;
+    count = await prisma.blogPost.count();
+  }
+}
+
+async function ensureMinimumProfessionalSchedules(target: number) {
+  const professionals = await prisma.user.findMany({
+    where: { role: { in: ['psicologo', 'enfermero'] } },
+    select: { id: true },
+  });
+  if (professionals.length === 0) return;
+
+  let count = await prisma.professionalSchedule.count();
+  let cursor = 0;
+  while (count < target) {
+    const pro = professionals[cursor % professionals.length];
+    const startHour = 7 + (cursor % 4);
+    const endHour = startHour + 8;
+    await prisma.professionalSchedule.create({
+      data: {
+        professionalId: pro.id,
+        dayOfWeek: (cursor % 7) + 1,
+        startTime: new Date(`2000-01-01T${String(startHour).padStart(2, '0')}:00:00`),
+        endTime: new Date(`2000-01-01T${String(endHour).padStart(2, '0')}:00:00`),
+        isActive: true,
+      },
+    });
+    cursor += 1;
+    count = await prisma.professionalSchedule.count();
+  }
+}
+
+async function ensureMinimumInterconsultations(target: number) {
+  const patients = await prisma.patient.findMany({ select: { id: true } });
+  const psychologists = await prisma.user.findMany({ where: { role: 'psicologo' }, select: { id: true } });
+  const nurses = await prisma.user.findMany({ where: { role: 'enfermero' }, select: { id: true } });
+  if (patients.length === 0 || psychologists.length === 0 || nurses.length === 0) return;
+
+  const urgencies = ['routine', 'urgent', 'emergency'];
+  const statuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+  let count = await prisma.interconsultation.count();
+  let cursor = 0;
+  while (count < target) {
+    const fromPsych = cursor % 2 === 0;
+    const fromProfessional = fromPsych ? psychologists[cursor % psychologists.length] : nurses[cursor % nurses.length];
+    const toProfessional = fromPsych ? nurses[cursor % nurses.length] : psychologists[cursor % psychologists.length];
+    const status = statuses[cursor % statuses.length];
+    const responded = status === 'completed' || status === 'in_progress';
+
+    await prisma.interconsultation.create({
+      data: {
+        patientId: patients[cursor % patients.length].id,
+        fromDepartment: fromPsych ? 'psychology' : 'nursing',
+        toDepartment: fromPsych ? 'nursing' : 'psychology',
+        fromProfessionalId: fromProfessional.id,
+        toProfessionalId: toProfessional.id,
+        reason: faker.lorem.sentence(),
+        relevantInformation: faker.lorem.paragraph(),
+        urgency: urgencies[cursor % urgencies.length],
+        status,
+        response: responded ? faker.lorem.paragraph() : null,
+        respondedBy: responded ? toProfessional.id : null,
+        respondedAt: responded ? faker.date.recent({ days: 10 }) : null,
+      },
+    });
+    cursor += 1;
+    count = await prisma.interconsultation.count();
+  }
+}
+
+async function ensureRobustMinimums(target = ROBUST_MIN_PER_TABLE) {
+  console.log(`📈 Ensuring robust minimum dataset (${target} rows per table when feasible)...`);
+
+  const passwordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
+
+  await ensureMinimumCareers(target);
+  await ensureMinimumMoods(target);
+  await ensureMinimumMedications(target);
+  await ensureMinimumRoleUsers('psicologo', 12, passwordHash);
+  await ensureMinimumRoleUsers('enfermero', 12, passwordHash);
+
+  await ensureMinimumPsychologistCareers(target);
+  await ensureMinimumAppointmentReminders(target);
+  await ensureMinimumWaitingList(target);
+  await ensureMinimumNursingAttentions(target);
+  await ensureMinimumPrescriptionAdministrations(target);
+  await ensureMinimumProfessionalSchedules(target);
+  await ensureMinimumInterconsultations(target);
+  await ensureMinimumAuditLogs(target);
+  await ensureMinimumReports(target);
+  await ensureMinimumSystemSettings(target);
+  await ensureMinimumBlogPosts(target);
+
+  console.log('✅ Robust minimum dataset ensured');
+}
+
+async function printTableCounts() {
+  const counts = {
+    users: await prisma.user.count(),
+    careers: await prisma.career.count(),
+    patients: await prisma.patient.count(),
+    psychologistCareers: await prisma.psychologistCareer.count(),
+    emergencyContacts: await prisma.emergencyContact.count(),
+    medicalRecords: await prisma.medicalRecord.count(),
+    psychologyRecords: await prisma.psychologyRecord.count(),
+    psychometricEvaluations: await prisma.psychometricEvaluation.count(),
+    moods: await prisma.mood.count(),
+    therapySessions: await prisma.therapySession.count(),
+    treatmentPlans: await prisma.treatmentPlan.count(),
+    nursingConsultations: await prisma.nursingConsultation.count(),
+    nursingAttentions: await prisma.nursingAttention.count(),
+    nursingProcedures: await prisma.nursingProcedure.count(),
+    medications: await prisma.medication.count(),
+    prescriptions: await prisma.prescription.count(),
+    prescriptionAdministrations: await prisma.prescriptionAdministration.count(),
+    medicationAdministrations: await prisma.medicationAdministration.count(),
+    appointments: await prisma.appointment.count(),
+    appointmentReminders: await prisma.appointmentReminder.count(),
+    waitingList: await prisma.waitingList.count(),
+    professionalSchedules: await prisma.professionalSchedule.count(),
+    interconsultations: await prisma.interconsultation.count(),
+    auditLogs: await prisma.auditLog.count(),
+    reports: await prisma.report.count(),
+    systemSettings: await prisma.systemSetting.count(),
+    notifications: await prisma.notification.count(),
+    blogPosts: await prisma.blogPost.count(),
+  };
+  console.log('📊 Table counts:', counts);
+}
+
+async function seedRobust() {
+  await clearDatabase();
+  await seedDev();
+  await ensureRobustMinimums(ROBUST_MIN_PER_TABLE);
+  await printTableCounts();
+  console.log('✅ Seed ROBUST completed. All users have password: ' + DEFAULT_SEED_PASSWORD);
+}
+
 // ---------- Seed DEV: datos de prueba (usuarios fijos + 500 alumnos + datos relacionados) ----------
 async function seedDev() {
   const careers = await seedCareers();
@@ -1094,6 +1573,7 @@ async function clearDatabase() {
   await prisma.waitingList.deleteMany();
   await prisma.appointmentReminder.deleteMany();
   await prisma.appointment.deleteMany();
+  await prisma.prescriptionAdministration.deleteMany();
   await prisma.medicationAdministration.deleteMany();
   await prisma.prescription.deleteMany();
   await prisma.medication.deleteMany();
@@ -1203,6 +1683,8 @@ async function main() {
     const target = process.env.SEED_TARGET || 'clean';
     if (target === 'prod') {
       await seedProd();
+    } else if (target === 'robust') {
+      await seedRobust();
     } else if (target === 'dev') {
       await seedDev();
     } else {
