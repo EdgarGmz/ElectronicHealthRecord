@@ -62,3 +62,5 @@ x86/
 *.DotSettings.user
 project.lock.json
 project.fragment.lock.json
+
+api/prisma/migrations/20260619231935_init/migration.sql

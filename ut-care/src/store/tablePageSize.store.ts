@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export const TABLE_PAGE_SIZE_OPTIONS = [5, 10, 15, 20] as const
+export const TABLE_PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const
 export type TablePageSize = (typeof TABLE_PAGE_SIZE_OPTIONS)[number]
 
 function isValidPageSize(n: number): n is TablePageSize {

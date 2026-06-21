@@ -94,7 +94,7 @@ export interface DataTableProps<T> {
   }
 }
 
-const PAGE_SIZE_OPTIONS = [5, 10, 15, 20] as const
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const
 const DEFAULT_SEARCH_DEBOUNCE_MS = 350
 
 function hasActiveFilters(filterValues: Record<string, string>): boolean {
@@ -193,7 +193,7 @@ export function DataTable<T>({
 
   const handleConfirmExport = async () => {
     if (!pendingFormat) return
-    if (!currentUser?.email) {
+    if (!currentUser?.username) {
       setExportPasswordError('No hay usuario en sesión')
       return
     }
@@ -206,7 +206,7 @@ export function DataTable<T>({
     try {
       // Validar credenciales antes de exportar
       await api.post('/auth/login', {
-        email: currentUser.email,
+        username: currentUser.username,
         password: exportPassword,
       })
       handleExport(pendingFormat)
@@ -263,6 +263,7 @@ export function DataTable<T>({
                 setExportPasswordError(null)
               }}
               placeholder="********"
+              autoFocus
             />
             {exportPasswordError && (
               <p className="text-xs text-[var(--color-error)]">{exportPasswordError}</p>
@@ -490,7 +491,7 @@ export function DataTable<T>({
                       value={pagination.limit}
                       onChange={(e) => {
                         const val = Number(e.target.value)
-                        if (PAGE_SIZE_OPTIONS.includes(val as 5 | 10 | 15 | 20)) onLimitChange(val)
+                        if (PAGE_SIZE_OPTIONS.includes(val as 10 | 20 | 50 | 100)) onLimitChange(val)
                       }}
                       className="glass-input w-16 px-2 py-1.5 text-sm"
                     >

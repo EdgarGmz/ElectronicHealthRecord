@@ -111,7 +111,7 @@ export function ReportsPage() {
   }
 
   const handleConfirmExport = async () => {
-    if (!currentUser?.email) {
+    if (!currentUser?.username) {
       setExportPasswordError(t('auth.invalidCredentials'))
       return
     }
@@ -124,7 +124,7 @@ export function ReportsPage() {
     try {
       // Reautenticar antes de permitir la descarga
       await api.post('/auth/login', {
-        email: currentUser.email,
+        username: currentUser.username,
         password: exportPassword,
       })
 
@@ -192,6 +192,7 @@ export function ReportsPage() {
                 setExportPasswordError(null)
               }}
               placeholder="********"
+              autoFocus
             />
             {exportPasswordError && (
               <p className="text-xs text-[var(--color-error)]">{exportPasswordError}</p>
