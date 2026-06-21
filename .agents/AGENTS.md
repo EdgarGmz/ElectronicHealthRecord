@@ -37,7 +37,7 @@ El desarrollo y la interacción con el usuario se rigen por el siguiente flujo d
     3. Un mensaje de commit descriptivo y atómico (siguiendo la convención de [Conventional Commits](https://www.conventionalcommits.org/) y redactado en español).
 
 ### 4. Regla Crítica de Build Pre-Push (CI/CD Safety)
-*   **Acción:** Antes de sugerir `git push` o la creación de un Pull Request, el agente **debe recordar obligatoriamente al usuario correr un build** (`npm run build` o `npx tsc --noEmit`) en los componentes modificados (ej: `ut-care`, `api`, `Kiosko`, `AppEHR`) para asegurar que no haya fallas de compilación en los jobs de integración continua (CI/CD).
+*   **Acción:** Antes de sugerir `git push` o la creación de un Pull Request, el agente **debe recordar obligatoriamente al usuario correr un build** (`npm run build` o `npx tsc --noEmit`) en los componentes modificados (ej: `ut-care`, `api`, `AppEHR`) para asegurar que no haya fallas de compilación en los jobs de integración continua (CI/CD).
 
 ---
 
@@ -55,7 +55,7 @@ El repositorio está organizado en tres componentes clave, cada uno con sus resp
     *   Respetar las políticas de control de acceso basado en roles (RBAC) declaradas en `roles.ts`.
     *   Asegurar que los seeds (`prisma/seed.ts`) reflejen siempre las credenciales fijas y datos de prueba necesarios para el entorno de desarrollo y staging.
 
-### 2. Clientes Web (React Frontend) - Carpetas `/ut-care` y `/Kiosko`
+### 2. Cliente Web (React Frontend) - Carpeta `/ut-care`
 *   **Tecnologías:** React, TypeScript, React Router, Vite.
 *   **Estilo Visual:** Consistencia estética basada en el tema **Crystal Glass (Glassmorphism)** (translúcidos, degradados suaves, bordes refinados).
 *   **Validación de Rutas:** Protección de accesos a nivel de frontend (`canAccessPath` y `canAccessExpedient`) basados en el token JWT y el rol del usuario decodificado.
