@@ -223,7 +223,12 @@ export function SettingsPage() {
           <div className="mt-auto flex flex-wrap gap-2 rounded-xl bg-black/5 p-1.5 dark:bg-white/5">
             {HEADER_BAR_MODES.map((value) => {
               const selected = headerBarMode === value
-              const labelKey = value === 'always' ? 'statusBar.alwaysVisible' : 'statusBar.hideOnScroll'
+              const labelKey =
+                value === 'always'
+                  ? 'statusBar.alwaysVisible'
+                  : value === 'always-hidden'
+                  ? 'statusBar.alwaysHidden'
+                  : 'statusBar.hideOnScroll'
               return (
                 <button
                   key={value}
@@ -231,7 +236,7 @@ export function SettingsPage() {
                   aria-label={t(labelKey)}
                   aria-pressed={selected}
                   onClick={() => setHeaderBarMode(value as HeaderBarMode)}
-                  className={`flex flex-1 min-w-[calc(50%-0.25rem)] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+                  className={`flex flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-[calc(33.33%-0.5rem)] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
                     selected
                       ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)] shadow-sm'
                       : 'text-[var(--text-secondary)] hover:bg-black/5 hover:text-[var(--text-primary)] dark:hover:bg-white/5'
@@ -304,6 +309,24 @@ export function SettingsPage() {
                   className="h-4 w-4 rounded border-[var(--border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
                 {t('statusBar.showTemperature')}
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text-primary)]">
+                <input
+                  type="checkbox"
+                  checked={statusBarElements.showWeatherCondition}
+                  onChange={(e) => statusBarElements.setShowWeatherCondition(e.target.checked)}
+                  className="h-4 w-4 rounded border-[var(--border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                />
+                {t('statusBar.showWeatherCondition')}
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text-primary)]">
+                <input
+                  type="checkbox"
+                  checked={statusBarElements.showWeatherIcon}
+                  onChange={(e) => statusBarElements.setShowWeatherIcon(e.target.checked)}
+                  className="h-4 w-4 rounded border-[var(--border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                />
+                {t('statusBar.showWeatherIcon')}
               </label>
               <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text-primary)]">
                 <input

@@ -235,7 +235,12 @@ export function MainLayout() {
   }, [toastOpen])
 
   const hideOnScroll = headerBarMode === 'hide-on-scroll'
-  const effectiveVisible = hideOnScroll ? headerVisible : true
+  const effectiveVisible =
+    headerBarMode === 'always'
+      ? true
+      : headerBarMode === 'always-hidden'
+      ? false
+      : headerVisible
 
   useEffect(() => {
     if (!hideOnScroll) return
@@ -263,6 +268,16 @@ export function MainLayout() {
         unreadCount={unreadCount}
         interconsultationsCount={interconsultationsCount}
       />
+      {!effectiveVisible && (
+        <button
+          type="button"
+          onClick={() => setSidebarOpen((o) => !o)}
+          className="fixed left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--glass-bg)]/80 text-[var(--text-secondary)] shadow-lg backdrop-blur-sm hover:bg-black/5 hover:text-[var(--text-primary)] lg:hidden"
+          aria-label={t('nav.menu')}
+        >
+          <Menu size={20} />
+        </button>
+      )}
       <main
         className={`min-h-screen pl-0 transition-[padding-left] duration-300 ease-in-out ${
           sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
