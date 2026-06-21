@@ -1182,17 +1182,37 @@ async function ensureMinimumAuditLogs(target: number) {
   const users = await prisma.user.findMany({ select: { id: true } });
   if (users.length === 0) return;
 
+  const patients = await prisma.patient.findMany({ select: { id: true } });
+  const appointments = await prisma.appointment.findMany({ select: { id: true } });
+  const therapySessions = await prisma.therapySession.findMany({ select: { id: true } });
+  const nursingConsultations = await prisma.nursingConsultation.findMany({ select: { id: true } });
+
   const actions = ['LOGIN', 'CREATE', 'UPDATE', 'VIEW_RECORD', 'EXPORT', 'LOGOUT'];
   const tables = ['users', 'patients', 'appointments', 'therapy_sessions', 'nursing_consultations'];
   let count = await prisma.auditLog.count();
   let cursor = 0;
   while (count < target) {
+    const table = tables[cursor % tables.length];
+    let recordId = faker.string.uuid();
+
+    if (table === 'users' && users.length > 0) {
+      recordId = users[cursor % users.length].id;
+    } else if (table === 'patients' && patients.length > 0) {
+      recordId = patients[cursor % patients.length].id;
+    } else if (table === 'appointments' && appointments.length > 0) {
+      recordId = appointments[cursor % appointments.length].id;
+    } else if (table === 'therapy_sessions' && therapySessions.length > 0) {
+      recordId = therapySessions[cursor % therapySessions.length].id;
+    } else if (table === 'nursing_consultations' && nursingConsultations.length > 0) {
+      recordId = nursingConsultations[cursor % nursingConsultations.length].id;
+    }
+
     await prisma.auditLog.create({
       data: {
         userId: users[cursor % users.length].id,
         action: actions[cursor % actions.length],
-        tableName: tables[cursor % tables.length],
-        recordId: faker.string.uuid(),
+        tableName: table,
+        recordId,
         oldValues: Math.random() > 0.5 ? { status: 'old' } : undefined,
         newValues: { status: 'new', idx: cursor },
         ipAddress: faker.internet.ipv4(),
@@ -1416,11 +1436,11 @@ async function seedDev() {
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
 
   const staffDev = [
-    { firstName: 'Xochilt Clara', lastName: 'Villar Diego', email: 'admin@ehr-system.com', role: 'admin' as const, enrollmentNumber: 'ADM001' },
-    { firstName: 'Edgar Tiburcio', lastName: 'Gomez Moran', email: 'edgar.tiburcio@ehr-system.com', role: 'coordinador_enfermeria' as const, enrollmentNumber: 'COE001' },
-    { firstName: 'Orlando de Jesus', lastName: 'Casas Davila', email: 'orlando.casas@ehr-system.com', role: 'coordinador_psicologia' as const, enrollmentNumber: 'COP001' },
-    { firstName: 'Carlos Alexis', lastName: 'Rodriguez Garcia', email: 'carlos.rodriguez@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI001' },
-    { firstName: 'Daniela Mayte', lastName: 'Guevara Castillo', email: 'daniela.guevara@ehr-system.com', role: 'enfermero' as const, enrollmentNumber: 'ENF001' },
+    { firstName: 'Xochilt Clara', lastName: 'Villar Diego', email: 'admin@ehr-system.com', role: 'admin' as const, enrollmentNumber: 'ADM001', sex: 'female' },
+    { firstName: 'Edgar Tiburcio', lastName: 'Gomez Moran', email: 'edgar.tiburcio@ehr-system.com', role: 'coordinador_enfermeria' as const, enrollmentNumber: 'COE001', sex: 'male' },
+    { firstName: 'Orlando de Jesus', lastName: 'Casas Davila', email: 'orlando.casas@ehr-system.com', role: 'coordinador_psicologia' as const, enrollmentNumber: 'COP001', sex: 'male' },
+    { firstName: 'Carlos Alexis', lastName: 'Rodriguez Garcia', email: 'carlos.rodriguez@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI001', sex: 'male' },
+    { firstName: 'Daniela Mayte', lastName: 'Guevara Castillo', email: 'daniela.guevara@ehr-system.com', role: 'enfermero' as const, enrollmentNumber: 'ENF001', sex: 'female' },
   ];
 
   console.log('👤 Seeding DEV staff users (with password)...');
@@ -1434,6 +1454,7 @@ async function seedDev() {
         username,
         isConfirmed: true,
         mustChangePassword: false,
+        sex: s.sex,
       },
       create: {
         email: s.email,
@@ -1444,7 +1465,7 @@ async function seedDev() {
         dateOfBirth: new Date('1990-01-15'),
         role: s.role,
         enrollmentNumber: s.enrollmentNumber,
-        sex: Math.random() < 0.5 ? 'male' : 'female',
+        sex: s.sex,
         phone: faker.string.numeric(10),
         isConfirmed: true,
         mustChangePassword: false,

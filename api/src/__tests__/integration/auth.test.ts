@@ -1,16 +1,26 @@
 import request from 'supertest';
 import app from '../../app';
+import prisma from '../../config/database';
 
 describe('Auth API (Integration & Black Box)', () => {
-  const loginData = {
-    username: 'EdgarGMZ',
-    password: 'Password123!'
-  };
+  let adminUsername = 'EdgarGMZ';
+
+  beforeAll(async () => {
+    const admin = await prisma.user.findFirst({
+      where: { email: 'admin@ehr-system.com' }
+    });
+    if (admin) {
+      adminUsername = admin.username;
+    }
+  });
 
   it('should login successfully with correct credentials', async () => {
     const res = await request(app)
       .post('/api/auth/login')
-      .send(loginData);
+      .send({
+        username: adminUsername,
+        password: 'Password123!'
+      });
 
     expect(res.statusCode).toEqual(200);
     expect(res.body.success).toBe(true);
@@ -23,7 +33,7 @@ describe('Auth API (Integration & Black Box)', () => {
     const res = await request(app)
       .post('/api/auth/login')
       .send({
-        username: 'EdgarGMZ',
+        username: adminUsername,
         password: 'wrongPassword'
       });
 
@@ -43,3 +53,4 @@ describe('Auth API (Integration & Black Box)', () => {
     expect(res.statusCode).toEqual(401);
   });
 });
+
