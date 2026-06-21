@@ -97,26 +97,48 @@ export class UserService {
     return user;
   }
 
-  async getAll(page: number = 1, limit: number = 10, search?: string, roleFilterParam?: string) {
+  async getAll(
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+    roleFilterParam?: string,
+    status?: string,
+    excludeDeactivated: boolean = false
+  ) {
     const skip = (page - 1) * limit;
 
-    const roleFilter = roleFilterParam
-      ? { role: roleFilterParam }
-      : { role: { in: [...ROLES_VISIBLE_IN_USERS] } };
-    const where = search?.trim()
-      ? {
-          AND: [
-            roleFilter,
-            {
-              OR: [
-                { email: { contains: search.trim(), mode: 'insensitive' as const } },
-                { firstName: { contains: search.trim(), mode: 'insensitive' as const } },
-                { lastName: { contains: search.trim(), mode: 'insensitive' as const } },
-              ],
-            },
-          ],
-        }
-      : roleFilter;
+    const conditions: any[] = [];
+
+    // Role filter
+    if (roleFilterParam) {
+      conditions.push({ role: roleFilterParam });
+    } else {
+      conditions.push({ role: { in: [...ROLES_VISIBLE_IN_USERS] } });
+    }
+
+    // Status filter
+    if (status === 'active') {
+      conditions.push({ isActive: true, isConfirmed: true });
+    } else if (status === 'inactive') {
+      conditions.push({ isActive: false });
+    } else if (status === 'unconfirmed') {
+      conditions.push({ isConfirmed: false });
+    } else if (excludeDeactivated) {
+      conditions.push({ isActive: true });
+    }
+
+    // Search filter
+    if (search?.trim()) {
+      conditions.push({
+        OR: [
+          { email: { contains: search.trim(), mode: 'insensitive' as const } },
+          { firstName: { contains: search.trim(), mode: 'insensitive' as const } },
+          { lastName: { contains: search.trim(), mode: 'insensitive' as const } },
+        ],
+      });
+    }
+
+    const where = { AND: conditions };
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -256,25 +278,87 @@ export class UserService {
     if (user.role === ROLES.ADMIN) {
       throw new AppError('El administrador del sistema no puede ser eliminado', 403);
     }
-    if (user.role !== ROLES.PSICOLOGO) {
-      throw new AppError('Solo se puede eliminar permanentemente a usuarios con rol psicólogo', 403);
+
+    // Condición: el usuario debe estar desactivado (isActive === false) o no confirmado (isConfirmed === false)
+    if (user.isActive && user.isConfirmed) {
+      throw new AppError('Solo se pueden eliminar permanentemente usuarios desactivados o no confirmados', 400);
     }
-    const [sessionsCount, appointmentsCount, schedulesCount] = await Promise.all([
+
+    const [
+      sessionsCount,
+      appointmentsCount,
+      schedulesCount,
+      nursingConsultationsCount,
+      nursingProceduresCount,
+      medicationAdminsCount,
+      prescriptionsCount,
+      interconsultsCount,
+      auditLogsCount,
+      reportsCount,
+      notificationsCount,
+      blogPostsCount
+    ] = await Promise.all([
       prisma.therapySession.count({ where: { therapistId: id } }),
-      prisma.appointment.count({ where: { professionalId: id } }),
+      prisma.appointment.count({
+        where: {
+          OR: [
+            { professionalId: id },
+            { createdBy: id }
+          ]
+        }
+      }),
       prisma.professionalSchedule.count({ where: { professionalId: id } }),
+      prisma.nursingConsultation.count({ where: { nurseId: id } }),
+      prisma.nursingProcedure.count({ where: { performedBy: id } }),
+      prisma.medicationAdministration.count({ where: { administeredBy: id } }),
+      prisma.prescription.count({ where: { prescribedBy: id } }),
+      prisma.interconsultation.count({
+        where: {
+          OR: [
+            { fromProfessionalId: id },
+            { toProfessionalId: id },
+            { respondedBy: id }
+          ]
+        }
+      }),
+      prisma.auditLog.count({ where: { userId: id } }),
+      prisma.report.count({ where: { generatedBy: id } }),
+      prisma.notification.count({
+        where: {
+          OR: [
+            { userId: id },
+            { fromUserId: id }
+          ]
+        }
+      }),
+      prisma.blogPost.count({ where: { authorId: id } }),
     ]);
-    if (sessionsCount > 0 || appointmentsCount > 0 || schedulesCount > 0) {
+
+    if (
+      sessionsCount > 0 ||
+      appointmentsCount > 0 ||
+      schedulesCount > 0 ||
+      nursingConsultationsCount > 0 ||
+      nursingProceduresCount > 0 ||
+      medicationAdminsCount > 0 ||
+      prescriptionsCount > 0 ||
+      interconsultsCount > 0 ||
+      auditLogsCount > 0 ||
+      reportsCount > 0 ||
+      notificationsCount > 0 ||
+      blogPostsCount > 0
+    ) {
       throw new AppError(
-        'No se puede eliminar: el psicólogo tiene sesiones, citas o horarios asignados. Desasigne o elimine esos registros primero.',
+        'No se puede eliminar permanentemente el usuario porque tiene registros de actividad asociados en el sistema (por ejemplo, consultas, citas, bitácoras, etc.).',
         400
       );
     }
+
     await prisma.$transaction([
       prisma.psychologistCareer.deleteMany({ where: { psychologistId: id } }),
       prisma.user.delete({ where: { id } }),
     ]);
-    return { message: 'Psicólogo eliminado permanentemente' };
+    return { message: 'Usuario eliminado permanentemente' };
   }
 
   async changePassword(userId: string, data: { currentPassword?: string; newPassword?: string }) {
