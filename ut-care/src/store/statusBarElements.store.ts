@@ -10,6 +10,8 @@ export interface StatusBarElementsState {
   showTime: boolean
   showDate: boolean
   showTemperature: boolean
+  showWeatherCondition: boolean
+  showWeatherIcon: boolean
   showSettings: boolean
   dateFormat: StatusBarDateFormat
   setShowUserName: (v: boolean) => void
@@ -17,6 +19,8 @@ export interface StatusBarElementsState {
   setShowTime: (v: boolean) => void
   setShowDate: (v: boolean) => void
   setShowTemperature: (v: boolean) => void
+  setShowWeatherCondition: (v: boolean) => void
+  setShowWeatherIcon: (v: boolean) => void
   setShowSettings: (v: boolean) => void
   setDateFormat: (v: StatusBarDateFormat) => void
 }
@@ -27,6 +31,8 @@ const defaultState = {
   showTime: true,
   showDate: true,
   showTemperature: true,
+  showWeatherCondition: true,
+  showWeatherIcon: true,
   showSettings: true,
   dateFormat: 'medium' as StatusBarDateFormat,
 }
@@ -40,6 +46,8 @@ export const useStatusBarElementsStore = create<StatusBarElementsState>()(
       setShowTime: (v) => set({ showTime: v }),
       setShowDate: (v) => set({ showDate: v }),
       setShowTemperature: (v) => set({ showTemperature: v }),
+      setShowWeatherCondition: (v) => set({ showWeatherCondition: v }),
+      setShowWeatherIcon: (v) => set({ showWeatherIcon: v }),
       setShowSettings: (v) => set({ showSettings: v }),
       setDateFormat: (v) => set({ dateFormat: v }),
     }),

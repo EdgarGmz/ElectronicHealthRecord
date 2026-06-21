@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export const HEADER_BAR_MODES = ['always', 'hide-on-scroll'] as const
+export const HEADER_BAR_MODES = ['always', 'hide-on-scroll', 'always-hidden'] as const
 export type HeaderBarMode = (typeof HEADER_BAR_MODES)[number]
 
 function isValidMode(m: string): m is HeaderBarMode {
