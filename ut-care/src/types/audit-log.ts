@@ -18,6 +18,7 @@ export interface AuditLog {
   userAgent: string | null
   createdAt: string
   user: AuditLogUser
+  eventDetail?: string
 }
 
 export interface AuditLogsResponse {
