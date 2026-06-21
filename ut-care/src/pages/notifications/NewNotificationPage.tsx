@@ -141,8 +141,9 @@ export function NewNotificationPage() {
         if (cancelled) return
         setRecipientCandidates([])
       } finally {
-        if (cancelled) return
-        setRecipientLoading(false)
+        if (!cancelled) {
+          setRecipientLoading(false)
+        }
       }
     }
 

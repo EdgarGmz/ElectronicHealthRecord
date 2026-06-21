@@ -12,7 +12,7 @@ const validatePasscode = (req: Request) => {
 };
 
 export class BlogController {
-  async getAll(req: Request, res: Response, next: NextFunction) {
+  async getAll(_req: Request, res: Response, next: NextFunction) {
     try {
       const blogs = await blogService.getAllBlogs();
       res.json(blogs);

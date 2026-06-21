@@ -75,7 +75,7 @@ export const useAuthStore = create<AuthState>()(
       isSessionExpired: false,
       _hasHydrated: false,
       setAuth: (token, refreshToken, user, rememberMe) =>
-        set((_) => ({ token, refreshToken, user, ...(rememberMe !== undefined ? { rememberMe } : {}) })),
+        set(() => ({ token, refreshToken, user, ...(rememberMe !== undefined ? { rememberMe } : {}) })),
       setUser: (user) => set({ user }),
       setRememberMe: (value) => set({ rememberMe: value }),
       setHasHydrated: (value) => set({ _hasHydrated: value }),

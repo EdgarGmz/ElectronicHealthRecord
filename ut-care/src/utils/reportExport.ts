@@ -1,6 +1,6 @@
-import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import { applyPlugin, autoTable } from 'jspdf-autotable'
+import { exportRowsToXlsx } from '@/utils/xlsxExport'
 
 applyPlugin(jsPDF)
 import type {
@@ -49,10 +49,7 @@ export function exportStatisticsToExcel(
       rows.push([item.type, item.count])
     })
   }
-  const ws = XLSX.utils.aoa_to_sheet(rows)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, 'Estadísticas')
-  XLSX.writeFile(wb, `${filenameBase}_estadisticas.xlsx`)
+  exportRowsToXlsx(rows, `${filenameBase}_estadisticas.xlsx`, 'Estadísticas')
 }
 
 /** Export statistics report to CSV */
@@ -145,10 +142,7 @@ export function exportConsultationsToExcel(
     c.status,
     formatDate(c.createdAt),
   ])
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...body])
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, 'Interconsultas')
-  XLSX.writeFile(wb, `${filenameBase}_interconsultas.xlsx`)
+  exportRowsToXlsx([headers, ...body], `${filenameBase}_interconsultas.xlsx`, 'Interconsultas')
 }
 
 /** Export consultations report to CSV */
@@ -206,10 +200,7 @@ export function exportDiagnosesToExcel(
     r.sessionCount,
     formatDate(r.createdAt),
   ])
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...body])
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, 'Diagnósticos')
-  XLSX.writeFile(wb, `${filenameBase}_diagnosticos.xlsx`)
+  exportRowsToXlsx([headers, ...body], `${filenameBase}_diagnosticos.xlsx`, 'Diagnósticos')
 }
 
 /** Export diagnoses report to CSV */
