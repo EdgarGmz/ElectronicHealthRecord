@@ -27,6 +27,9 @@ Al recibir una nueva solicitud o iniciar cualquier actividad, el agente debe seg
     2. El comando de consola de Git recomendado para agregarlos.
     3. Un mensaje de commit descriptivo y atómico (siguiendo la convención de [Conventional Commits](https://www.conventionalcommits.org/)).
 
+### 3. Regla Crítica de Build Pre-Push (CI/CD Safety)
+*   **Acción:** Antes de sugerir `git push` o la creación de un Pull Request, el agente **debe recordar obligatoriamente al usuario correr un build** (`npm run build` o `npx tsc --noEmit`) en los componentes modificados (ej: `ut-care`, `api`, `Kiosko`, `AppEHR`) para asegurar que no haya fallas de compilación en los jobs de integración continua (CI/CD).
+
 ---
 
 ## 🏗️ Especificaciones Técnicas por Módulo

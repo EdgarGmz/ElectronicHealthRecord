@@ -24,7 +24,7 @@ function formatDate(value: string | null | undefined): string {
 
 export function ProfilePage() {
   const { t } = useTranslation()
-  const { setUser } = useAuthStore()
+  const { user, setUser } = useAuthStore()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -86,14 +86,16 @@ export function ProfilePage() {
       if (form.dateOfBirth?.trim()) payload.dateOfBirth = form.dateOfBirth.trim()
       const updated = await updateMyProfile(payload)
       setProfile(updated)
-      setUser({
-        id: updated.id,
-        email: updated.email,
-        firstName: updated.firstName,
-        lastName: updated.lastName,
-        role: updated.role,
-        isActive: updated.isActive,
-      })
+      if (user) {
+        setUser({
+          ...user,
+          email: updated.email,
+          firstName: updated.firstName,
+          lastName: updated.lastName,
+          role: updated.role,
+          isActive: updated.isActive,
+        })
+      }
       setForm({
         firstName: updated.firstName ?? '',
         lastName: updated.lastName ?? '',

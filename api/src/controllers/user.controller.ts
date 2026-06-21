@@ -67,8 +67,11 @@ export class UserController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const search = req.query.search as string;
+      const role = req.query.role as string;
+      const status = req.query.status as string;
+      const excludeDeactivated = req.query.excludeDeactivated === 'true';
 
-      const result = await userService.getAll(page, limit, search);
+      const result = await userService.getAll(page, limit, search, role, status, excludeDeactivated);
 
       res.status(200).json({
         success: true,
@@ -236,6 +239,45 @@ export class UserController {
       }
 
       const result = await userService.delete(id);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deletePermanently(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const adminId = req.user?.userId;
+      const adminPassword = (req.headers['x-admin-password'] as string) || req.body.adminPassword;
+
+      if (!adminId) {
+        res.status(401).json({ success: false, message: 'No autenticado' });
+        return;
+      }
+
+      if (!adminPassword) {
+        res.status(400).json({ success: false, message: 'Se requiere la contraseña del administrador para confirmar esta acción' });
+        return;
+      }
+
+      const admin = await prisma.user.findUnique({ where: { id: adminId } });
+      if (!admin) {
+        res.status(404).json({ success: false, message: 'Administrador no encontrado' });
+        return;
+      }
+
+      const isPasswordValid = await comparePassword(adminPassword, admin.passwordHash);
+      if (!isPasswordValid) {
+        res.status(401).json({ success: false, message: 'Contraseña de administrador incorrecta' });
+        return;
+      }
+
+      const result = await userService.deletePermanently(id);
 
       res.status(200).json({
         success: true,

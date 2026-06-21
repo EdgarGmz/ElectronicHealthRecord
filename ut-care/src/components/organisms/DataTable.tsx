@@ -283,7 +283,7 @@ export function DataTable<T>({
                 <select
                   value={filterValues[f.key] ?? ''}
                   onChange={(e) => onFilterChange(f.key, e.target.value)}
-                  className="glass-input w-full min-w-[140px] px-3 py-2 text-sm sm:w-auto"
+                  className="glass-input w-full min-w-[140px] px-4 py-2.5 text-sm sm:w-auto h-[46px]"
                 >
                   <option value="">{t.all ?? 'Todos'}</option>
                   {(f.options ?? []).map((opt) => (
@@ -297,14 +297,14 @@ export function DataTable<T>({
                   type="date"
                   value={filterValues[f.key] ?? ''}
                   onChange={(e) => onFilterChange(f.key, e.target.value)}
-                  className="glass-input w-full min-w-[140px] px-3 py-2 text-sm sm:w-auto"
+                  className="glass-input w-full min-w-[140px] px-4 py-2.5 text-sm sm:w-auto h-[46px]"
                 />
               ) : (
                 <div className="relative flex min-w-[200px] items-center sm:w-auto">
                   {f.searchIcon && (
                     <Search
                       size={16}
-                      className="absolute left-3 pointer-events-none text-[var(--text-muted)]"
+                      className="absolute left-3.5 pointer-events-none text-[var(--text-muted)]"
                       aria-hidden
                     />
                   )}
@@ -319,14 +319,17 @@ export function DataTable<T>({
                       )
                     }
                     placeholder={f.placeholder}
-                    className={`glass-input w-full py-2 text-sm pr-9 ${f.searchIcon ? 'pl-9' : 'pl-3'}`}
+                    className={`glass-input w-full py-2.5 text-sm pr-10 h-[46px] ${f.searchIcon ? 'pl-10' : 'pl-4'}`}
                     aria-label={f.label}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
                   />
                   {((localTextValues[f.key] ?? filterValues[f.key] ?? '') as string).trim() !== '' && (
                     <button
                       type="button"
                       onClick={() => handleTextFilterChange(f.key, '', f.debounceMs)}
-                      className="absolute right-2 flex h-6 w-6 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--border)] hover:text-[var(--text-primary)]"
+                      className="absolute right-3 flex h-6 w-6 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--border)] hover:text-[var(--text-primary)]"
                       title={t.clearFilters ?? 'Limpiar'}
                       aria-label={t.clearFilters ?? 'Limpiar'}
                     >
