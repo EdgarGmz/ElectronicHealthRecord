@@ -4,6 +4,7 @@ import { RoleGuard } from '@/components/RoleGuard'
 import { MainLayout } from '@/layouts/MainLayout'
 import { LoginPage } from '@/pages/LoginPage'
 import { ConfirmAccountPage } from '@/pages/ConfirmAccountPage'
+import { ConfirmEmailPage } from '@/pages/ConfirmEmailPage'
 import { ChangePasswordPage } from '@/pages/ChangePasswordPage'
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { DashboardPage } from '@/pages/DashboardPage'
@@ -61,6 +62,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/confirm-account" element={<ConfirmAccountPage />} />
+        <Route path="/confirm-email" element={<ConfirmEmailPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/"
