@@ -77,6 +77,23 @@ Asegúrate de que la API backend esté ejecutándose en tu PC en el puerto `5000
         ```bash
         dotnet build -t:Run -f net10.0-windows10.0.19041.0
         ```
+    *   **En macOS con Simulador iOS (iPhone virtual):**
+        1. Abre el simulador desde Xcode:
+           ```bash
+           open -a Simulator
+           ```
+        2. (Opcional) Lista simuladores disponibles para elegir un modelo:
+           ```bash
+           xcrun simctl list devices
+           ```
+        3. Ejecuta la app en el simulador activo:
+           ```bash
+           dotnet build -t:Run -f net10.0-ios
+           ```
+        *También puedes seleccionar un simulador específico por nombre:*
+        ```bash
+        dotnet build -t:Run -f net10.0-ios -p:_DeviceName=":v2:udid=UDID_DEL_SIMULADOR"
+        ```
     *   **En Emulador Android (con emulador encendido):**
         ```bash
         dotnet build -t:Run -f net10.0-android
@@ -103,6 +120,46 @@ Dado que un celular físico no puede resolver el alias `10.0.2.2`, el constructo
     ```
     *(Si tienes `adb` configurado en tu PATH, puedes escribir simplemente: `adb reverse tcp:5000 tcp:5000`)*
 *   El comando confirmará imprimiendo `5000`. Listo, ahora las solicitudes HTTP de la app se redirigirán a la API de tu computadora.
+
+---
+
+## 🍎 Depuración en Dispositivo iPhone Físico
+
+Para ejecutar la app en un iPhone real (no simulador), necesitas preparar firma, confianza del equipo y modo desarrollador del dispositivo.
+
+### 1. Requisitos previos en Mac
+*   macOS con **Xcode** instalado y abierto al menos una vez.
+*   Herramientas de línea de comandos de Xcode configuradas:
+     ```bash
+     xcode-select --install
+     ```
+*   Cuenta de Apple iniciada en Xcode (**Settings > Accounts**).
+
+### 2. Preparar el iPhone
+*   Conecta el iPhone por cable USB al Mac.
+*   En el iPhone, acepta **Trust This Computer**.
+*   Activa **Developer Mode** en iOS (Ajustes > Privacidad y seguridad > Developer Mode).
+*   Mantén el dispositivo desbloqueado durante el primer despliegue.
+
+### 3. Configurar firma (Code Signing)
+*   Usa firma automática con tu Team de Apple en el proyecto.
+*   Verifica que el identificador de paquete sea único en tu cuenta Apple (actualmente: `com.companyname.appehr`).
+*   Si aparece error de provisioning, abre Xcode y deja que cree los perfiles automáticamente para el dispositivo.
+
+### 4. Ejecutar en iPhone físico desde CLI
+1. Lista dispositivos conectados y copia el UDID del iPhone:
+    ```bash
+    xcrun xctrace list devices
+    ```
+2. Ejecuta la app en iPhone físico con ese UDID:
+    ```bash
+    dotnet build -t:Run -f net10.0-ios -p:RuntimeIdentifier=ios-arm64 -p:_DeviceName=:v2:udid=TU_UDID
+    ```
+
+### 5. Backend local durante pruebas en iPhone
+*   El iPhone **no** usa `10.0.2.2` (ese alias es solo para emulador Android).
+*   Para pruebas reales, usa la IP LAN de tu computadora (ejemplo: `http://192.168.1.20:5000/api`) y asegúrate de que iPhone y Mac estén en la misma red.
+*   Si usas HTTP sin TLS en desarrollo, confirma que tu configuración de iOS permita tráfico inseguro temporalmente para esa IP/host.
 
 ---
 
