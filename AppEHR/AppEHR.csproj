@@ -74,4 +74,10 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>
 
+	<!-- Disable code signing for iOS and MacCatalyst in Debug configuration -->
+	<PropertyGroup Condition="'$(Configuration)'=='Debug' AND ('$(TargetFramework)'=='net10.0-ios' OR '$(TargetFramework)'=='net10.0-maccatalyst')">
+		<CodesignKey></CodesignKey>
+		<CodesignProvision></CodesignProvision>
+	</PropertyGroup>
+
 </Project>

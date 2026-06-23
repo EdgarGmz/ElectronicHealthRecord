@@ -131,7 +131,7 @@ namespace AppEHR.ViewModels
                 var result = await _authService.ForgotPasswordAsync(email.Trim());
                 if (result.Success)
                 {
-                    await Shell.Current.DisplayAlert(
+                    await Shell.Current.DisplayAlertAsync(
                         "Correo Enviado",
                         result.Message ?? "Se ha enviado un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada.",
                         "Aceptar"
@@ -139,7 +139,7 @@ namespace AppEHR.ViewModels
                 }
                 else
                 {
-                    await Shell.Current.DisplayAlert(
+                    await Shell.Current.DisplayAlertAsync(
                         "Error",
                         result.Message ?? "No se pudo enviar el correo de restablecimiento.",
                         "Aceptar"
@@ -148,7 +148,7 @@ namespace AppEHR.ViewModels
             }
             catch (System.Exception ex)
             {
-                await Shell.Current.DisplayAlert("Error", $"Error de conexión: {ex.Message}", "Aceptar");
+                await Shell.Current.DisplayAlertAsync("Error", $"Error de conexión: {ex.Message}", "Aceptar");
             }
             finally
             {
