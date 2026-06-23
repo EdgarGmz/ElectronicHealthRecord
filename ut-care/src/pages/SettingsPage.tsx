@@ -1,7 +1,9 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useBlocker } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Sun, Moon, Monitor, Clock, Languages, Type, List, PanelTop, Settings } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
+import { SuccessModal } from '@/components/molecules/SuccessModal'
 import { useThemeStore, type ThemeMode } from '@/store/theme.store'
 import { useFontSizeStore, type FontSizeMode } from '@/store/fontSize.store'
 import { useTablePageSizeStore, TABLE_PAGE_SIZE_OPTIONS, type TablePageSize } from '@/store/tablePageSize.store'
@@ -11,6 +13,7 @@ import {
   DATE_FORMAT_OPTIONS,
   type StatusBarDateFormat,
 } from '@/store/statusBarElements.store'
+import { useQuickSettingsStore } from '@/store/quickSettings.store'
 
 const THEME_OPTIONS: { value: ThemeMode; icon: typeof Sun; labelKey: string }[] = [
   { value: 'light', icon: Sun, labelKey: 'theme.light' },
@@ -28,7 +31,147 @@ export function SettingsPage() {
   const { defaultLimit: tablePageSize, setDefaultLimit: setTablePageSize } = useTablePageSizeStore()
   const { mode: headerBarMode, setMode: setHeaderBarMode } = useHeaderBarStore()
   const statusBarElements = useStatusBarElementsStore()
+  const quickSettings = useQuickSettingsStore()
   const currentLang = i18n.language.startsWith('es') ? 'es' : 'en'
+
+  const [originalSettings, setOriginalSettings] = useState<SavedSettings | null>(null)
+  const [success, setSuccess] = useState('')
+
+  interface SavedSettings {
+    themeMode: ThemeMode
+    fontSizeMode: FontSizeMode
+    tablePageSize: TablePageSize
+    headerBarMode: HeaderBarMode
+    statusBar: {
+      showUserName: boolean
+      showRole: boolean
+      showTime: boolean
+      showDate: boolean
+      showTemperature: boolean
+      showWeatherCondition: boolean
+      showWeatherIcon: boolean
+      showSettings: boolean
+      dateFormat: StatusBarDateFormat
+    }
+    language: string
+    quickSettings: {
+      showTheme: boolean
+      showLanguage: boolean
+      showFontSize: boolean
+      showHeaderBarMode: boolean
+    }
+  }
+
+  useEffect(() => {
+    const quickSettingsState = useQuickSettingsStore.getState()
+    setOriginalSettings({
+      themeMode: mode,
+      fontSizeMode: fontSizeMode,
+      tablePageSize: tablePageSize,
+      headerBarMode: headerBarMode,
+      statusBar: {
+        showUserName: statusBarElements.showUserName,
+        showRole: statusBarElements.showRole,
+        showTime: statusBarElements.showTime,
+        showDate: statusBarElements.showDate,
+        showTemperature: statusBarElements.showTemperature,
+        showWeatherCondition: statusBarElements.showWeatherCondition,
+        showWeatherIcon: statusBarElements.showWeatherIcon,
+        showSettings: statusBarElements.showSettings,
+        dateFormat: statusBarElements.dateFormat,
+      },
+      language: currentLang,
+      quickSettings: {
+        showTheme: quickSettingsState.showTheme,
+        showLanguage: quickSettingsState.showLanguage,
+        showFontSize: quickSettingsState.showFontSize,
+        showHeaderBarMode: quickSettingsState.showHeaderBarMode,
+      },
+    })
+  }, [])
+
+  const currentSettings: SavedSettings | null = originalSettings
+    ? {
+        themeMode: mode,
+        fontSizeMode: fontSizeMode,
+        tablePageSize: tablePageSize,
+        headerBarMode: headerBarMode,
+        statusBar: {
+          showUserName: statusBarElements.showUserName,
+          showRole: statusBarElements.showRole,
+          showTime: statusBarElements.showTime,
+          showDate: statusBarElements.showDate,
+          showTemperature: statusBarElements.showTemperature,
+          showWeatherCondition: statusBarElements.showWeatherCondition,
+          showWeatherIcon: statusBarElements.showWeatherIcon,
+          showSettings: statusBarElements.showSettings,
+          dateFormat: statusBarElements.dateFormat,
+        },
+        language: currentLang,
+        quickSettings: {
+          showTheme: quickSettings.showTheme,
+          showLanguage: quickSettings.showLanguage,
+          showFontSize: quickSettings.showFontSize,
+          showHeaderBarMode: quickSettings.showHeaderBarMode,
+        },
+      }
+    : null
+
+  const isDirty = originalSettings && currentSettings
+    ? JSON.stringify(originalSettings) !== JSON.stringify(currentSettings)
+    : false
+
+  const handleSave = (proceedBlocker?: () => void) => {
+    if (currentSettings) {
+      setOriginalSettings(currentSettings)
+      setSuccess(t('settings.saveSuccess', 'Los ajustes se han guardado con éxito.'))
+      if (proceedBlocker) {
+        setTimeout(() => {
+          proceedBlocker()
+        }, 800)
+      }
+    }
+  }
+
+  const handleRevert = () => {
+    if (originalSettings) {
+      useThemeStore.setState({ mode: originalSettings.themeMode })
+      useThemeStore.getState().apply()
+
+      useFontSizeStore.setState({ mode: originalSettings.fontSizeMode })
+      useFontSizeStore.getState().apply()
+
+      useTablePageSizeStore.setState({ defaultLimit: originalSettings.tablePageSize })
+
+      useHeaderBarStore.setState({ mode: originalSettings.headerBarMode })
+
+      useStatusBarElementsStore.setState({
+        showUserName: originalSettings.statusBar.showUserName,
+        showRole: originalSettings.statusBar.showRole,
+        showTime: originalSettings.statusBar.showTime,
+        showDate: originalSettings.statusBar.showDate,
+        showTemperature: originalSettings.statusBar.showTemperature,
+        showWeatherCondition: originalSettings.statusBar.showWeatherCondition,
+        showWeatherIcon: originalSettings.statusBar.showWeatherIcon,
+        showSettings: originalSettings.statusBar.showSettings,
+        dateFormat: originalSettings.statusBar.dateFormat,
+      })
+
+      useQuickSettingsStore.setState({
+        showTheme: originalSettings.quickSettings.showTheme,
+        showLanguage: originalSettings.quickSettings.showLanguage,
+        showFontSize: originalSettings.quickSettings.showFontSize,
+        showHeaderBarMode: originalSettings.quickSettings.showHeaderBarMode,
+      })
+
+      i18n.changeLanguage(originalSettings.language)
+    }
+  }
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty && currentLocation.pathname !== nextLocation.pathname
+  )
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
@@ -41,7 +184,7 @@ export function SettingsPage() {
           {t('nav.dashboard')}
         </Link>
       </div>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <Settings className="text-[var(--color-primary)]" size={28} />
@@ -50,6 +193,26 @@ export function SettingsPage() {
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             {t('settings.description')}
           </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {isDirty && (
+            <span className="text-xs text-[var(--color-error)] font-medium bg-[var(--color-error)]/10 px-3 py-1.5 rounded-full">
+              {t('settings.pendingChangesAlert', 'Tienes cambios sin guardar')}
+            </span>
+          )}
+          <button
+            type="button"
+            data-testid="save-settings-btn"
+            disabled={!isDirty}
+            onClick={() => handleSave()}
+            className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-md ${
+              isDirty
+                ? 'bg-[var(--color-primary)] text-white hover:brightness-110 active:scale-95'
+                : 'bg-black/5 dark:bg-white/5 text-[var(--text-muted)] cursor-not-allowed'
+            }`}
+          >
+            {t('settings.saveBtn', 'Guardar cambios')}
+          </button>
         </div>
       </div>
 
@@ -370,7 +533,136 @@ export function SettingsPage() {
             </div>
           </div>
         </GlassCard>
+
+        {/* Quick Settings Configuration Card */}
+        <GlassCard className="flex flex-col border-[var(--border)] shadow-lg transition-shadow hover:shadow-xl md:col-span-2">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/15 text-[var(--color-primary)]">
+              <Settings size={22} />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                {t('settings.quickSettingsTitle', 'Configuración de Ajustes Rápidos')}
+              </h2>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                {t('settings.quickSettingsDescription', 'Elige qué tipos de cambio deseas tener disponibles en el menú de acceso rápido (icono de engranaje ⚙️) en la barra de estado.')}
+              </p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-3">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text-primary)]">
+                <input
+                  type="checkbox"
+                  checked={quickSettings.showTheme}
+                  onChange={(e) => quickSettings.setShowTheme(e.target.checked)}
+                  className="h-4 w-4 rounded border-[var(--border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                />
+                {t('theme.title')}
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text-primary)]">
+                <input
+                  type="checkbox"
+                  checked={quickSettings.showLanguage}
+                  onChange={(e) => quickSettings.setShowLanguage(e.target.checked)}
+                  className="h-4 w-4 rounded border-[var(--border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                />
+                {t('language.title')}
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text-primary)]">
+                <input
+                  type="checkbox"
+                  checked={quickSettings.showFontSize}
+                  onChange={(e) => quickSettings.setShowFontSize(e.target.checked)}
+                  className="h-4 w-4 rounded border-[var(--border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                />
+                {t('fontSize.title')}
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text-primary)]">
+                <input
+                  type="checkbox"
+                  checked={quickSettings.showHeaderBarMode}
+                  onChange={(e) => quickSettings.setShowHeaderBarMode(e.target.checked)}
+                  className="h-4 w-4 rounded border-[var(--border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                />
+                {t('statusBar.title')}
+              </label>
+            </div>
+          </div>
+        </GlassCard>
       </div>
+
+      {blocker.state === 'blocked' && (
+        <div
+          className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="unsaved-modal-title"
+          aria-describedby="unsaved-modal-desc"
+        >
+          <div
+            className="glass-card flex w-full max-w-md flex-col gap-6 rounded-2xl p-6 shadow-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-center animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 flex items-center justify-center text-[var(--color-error)]">
+                <Settings size={24} className="animate-spin-slow text-[var(--color-error)]" />
+              </div>
+              <h2
+                id="unsaved-modal-title"
+                className="text-lg font-bold text-[var(--text-primary)]"
+              >
+                {t('settings.unsavedModalTitle', '¿Desea salir sin guardar los cambios?')}
+              </h2>
+              <p
+                id="unsaved-modal-desc"
+                className="text-sm text-[var(--text-secondary)]"
+              >
+                {t('settings.unsavedModalDesc', 'Has realizado cambios en la configuración que se perderán si abandonas esta página.')}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                data-testid="modal-save-changes-btn"
+                onClick={() => {
+                  handleSave(() => blocker.proceed?.())
+                }}
+                className="w-full py-2.5 rounded-xl font-semibold text-sm bg-[var(--color-primary)] text-white hover:brightness-110 active:scale-95 transition-all shadow-md"
+              >
+                {t('settings.unsavedModalSave', 'Guardar cambios')}
+              </button>
+              <button
+                type="button"
+                data-testid="modal-exit-without-saving-btn"
+                onClick={() => {
+                  handleRevert()
+                  setTimeout(() => {
+                    blocker.proceed?.()
+                  }, 10)
+                }}
+                className="w-full py-2.5 rounded-xl font-semibold text-sm text-[var(--color-error)] hover:bg-[var(--color-error)]/10 active:scale-95 transition-all"
+              >
+                {t('settings.unsavedModalConfirmExit', 'Sí, salir sin guardar')}
+              </button>
+              <button
+                type="button"
+                data-testid="modal-cancel-btn"
+                onClick={() => blocker.reset?.()}
+                className="w-full py-2.5 rounded-xl font-semibold text-sm text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all"
+              >
+                {t('settings.unsavedModalCancel', 'Cancelar')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <SuccessModal
+        open={!!success}
+        message={success}
+        onClose={() => setSuccess('')}
+      />
     </div>
   )
 }

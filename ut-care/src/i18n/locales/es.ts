@@ -1039,6 +1039,17 @@ export const es = {
   settings: {
     title: 'Ajustes del sistema',
     description: 'Configura el tema visual, idioma, tamaño de letra y preferencias de visualización del sistema.',
+    unsavedModalTitle: '¿Desea salir sin guardar los cambios?',
+    unsavedModalDesc: 'Has realizado cambios en la configuración que se perderán si abandonas esta página.',
+    unsavedModalConfirmExit: 'Sí, salir sin guardar',
+    unsavedModalSave: 'Guardar cambios',
+    unsavedModalCancel: 'Cancelar',
+    saveSuccess: 'Los ajustes se han guardado con éxito.',
+    saveBtn: 'Guardar cambios',
+    pendingChangesAlert: 'Tienes cambios sin guardar',
+    quickSettingsTitle: 'Configuración de Ajustes Rápidos',
+    quickSettingsDescription: 'Elige qué tipos de cambio deseas tener disponibles en el menú de acceso rápido (icono de engranaje ⚙️) en la barra de estado.',
+    quickSettingsEmpty: 'No hay ajustes rápidos habilitados',
   },
   careers: {
     title: 'Carreras Universitarias',

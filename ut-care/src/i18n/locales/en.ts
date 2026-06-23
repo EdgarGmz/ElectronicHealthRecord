@@ -1039,6 +1039,17 @@ export const en = {
   settings: {
     title: 'System Settings',
     description: 'Configure the visual theme, language, font size, and system display preferences.',
+    unsavedModalTitle: 'Do you want to leave without saving changes?',
+    unsavedModalDesc: 'You have unsaved configuration changes that will be lost if you leave this page.',
+    unsavedModalConfirmExit: 'Yes, leave without saving',
+    unsavedModalSave: 'Save changes',
+    unsavedModalCancel: 'Cancel',
+    saveSuccess: 'Settings saved successfully.',
+    saveBtn: 'Save changes',
+    pendingChangesAlert: 'You have unsaved changes',
+    quickSettingsTitle: 'Quick Settings Configuration',
+    quickSettingsDescription: 'Choose which type of changes you want to be available in the quick access menu (gear icon ⚙️) on the status bar.',
+    quickSettingsEmpty: 'No quick settings enabled',
   },
   careers: {
     title: 'University Careers',
