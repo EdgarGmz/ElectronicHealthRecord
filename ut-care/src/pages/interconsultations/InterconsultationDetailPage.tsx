@@ -83,13 +83,29 @@ export function InterconsultationDetailPage() {
   const isPending = interconsultation?.status === 'Pendiente'
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <LoadingModal open={loading || submittingResponse} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error ?? t('interconsultations.noInterconsultations')} onClose={() => setError(null)} />
-      <Link to="/interconsultations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-        <ArrowLeft size={18} />
-        {t('interconsultations.list')}
-      </Link>
+      
+      <div className="flex flex-col gap-4">
+        <Link to="/interconsultations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline w-fit">
+          <ArrowLeft size={18} />
+          {t('interconsultations.list')}
+        </Link>
+        
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+          <div>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+              <MessageSquare className="text-[var(--color-primary)]" size={28} />
+              {t('interconsultations.detailTitle')}
+            </h1>
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
+              {t('interconsultations.detailDescription')}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {!interconsultation && !loading && (
         <GlassCard>
           <p className="text-[var(--text-secondary)]">{t('interconsultations.noInterconsultations')}</p>
@@ -103,9 +119,9 @@ export function InterconsultationDetailPage() {
             <MessageSquare className="text-[var(--color-primary)]" size={28} />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">
               {interconsultation.fromDepartment} → {interconsultation.toDepartment}
-            </h1>
+            </h2>
             <p className="mt-1 text-[var(--text-secondary)]">
               {t(`interconsultations.${STATUS_KEY[interconsultation.status] || interconsultation.status}`)} · {t(`interconsultations.${URGENCY_KEY[interconsultation.urgency] || interconsultation.urgency}`)}
             </p>

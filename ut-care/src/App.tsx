@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { RoleGuard } from '@/components/RoleGuard'
 import { MainLayout } from '@/layouts/MainLayout'
 import { LoginPage } from '@/pages/LoginPage'
 import { ConfirmAccountPage } from '@/pages/ConfirmAccountPage'
+import { ConfirmEmailPage } from '@/pages/ConfirmEmailPage'
 import { ChangePasswordPage } from '@/pages/ChangePasswordPage'
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { DashboardPage } from '@/pages/DashboardPage'
@@ -51,74 +52,81 @@ import { NursingAttentionPage } from '@/pages/nursing/NursingAttentionPage'
 import { useAuthStore } from '@/store/auth.store'
 import { SessionExpiredModal } from '@/components/molecules/SessionExpiredModal'
 
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/confirm-account" element={<ConfirmAccountPage />} />
+      <Route path="/confirm-email" element={<ConfirmEmailPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<DashboardPage />} />
+        <Route path="change-password" element={<ChangePasswordPage />} />
+        <Route path="calendar" element={<RoleGuard><CalendarPage /></RoleGuard>} />
+        <Route path="supervision" element={<RoleGuard><SupervisionLayout /></RoleGuard>}>
+          <Route index element={<Navigate to="/supervision/psychologists" replace />} />
+          <Route path="psychologists" element={<SupervisionPsychologistsPage />} />
+          <Route path="progress" element={<SupervisionProgressPage />} />
+          <Route path="calendar" element={<SupervisionCalendarPage />} />
+          <Route path="analytics" element={<SupervisionAnalyticsPage />} />
+        </Route>
+        <Route path="patients" element={<RoleGuard><PatientListPage /></RoleGuard>} />
+        <Route path="patients/new" element={<RoleGuard><NewPatientPage /></RoleGuard>} />
+        <Route path="patients/:id/edit" element={<RoleGuard><EditPatientPage /></RoleGuard>} />
+        <Route path="patients/:id" element={<RoleGuard><PatientDetailPage /></RoleGuard>} />
+        <Route path="patients/:id/expedient" element={<RoleGuard><PatientExpedientPage /></RoleGuard>} />
+        <Route path="appointments" element={<RoleGuard><AppointmentListPage /></RoleGuard>} />
+        <Route path="appointments/new" element={<RoleGuard><NewAppointmentPage /></RoleGuard>} />
+        <Route path="appointments/:id" element={<RoleGuard><AppointmentDetailPage /></RoleGuard>} />
+        <Route path="sessions" element={<RoleGuard><SessionListPage /></RoleGuard>} />
+        <Route path="sessions/new" element={<RoleGuard><NewSessionPage /></RoleGuard>} />
+        <Route path="sessions/:id" element={<RoleGuard><SessionDetailPage /></RoleGuard>} />
+        <Route path="medications" element={<RoleGuard><MedicationListPage /></RoleGuard>} />
+        <Route path="medications/new" element={<RoleGuard><NewMedicationPage /></RoleGuard>} />
+        <Route path="medications/:id/edit" element={<RoleGuard><EditMedicationPage /></RoleGuard>} />
+        <Route path="medications/:id" element={<MedicationDetailPage />} />
+        <Route path="procedures" element={<RoleGuard><ProcedureListPage /></RoleGuard>} />
+        <Route path="procedures/new" element={<RoleGuard><NewProcedurePage /></RoleGuard>} />
+        <Route path="procedures/:id" element={<RoleGuard><ProcedureDetailPage /></RoleGuard>} />
+        <Route path="interconsultations" element={<InterconsultationListPage />} />
+        <Route path="interconsultations/new" element={<NewInterconsultationPage />} />
+        <Route path="interconsultations/:id" element={<InterconsultationDetailPage />} />
+        <Route path="reports" element={<ReportsPage />} />
+        <Route path="evaluations" element={<RoleGuard><EvaluationListPage /></RoleGuard>} />
+        <Route path="evaluations/new" element={<RoleGuard><NewEvaluationPage /></RoleGuard>} />
+        <Route path="evaluations/:id" element={<RoleGuard><EvaluationDetailPage /></RoleGuard>} />
+        <Route path="nursing-attention" element={<RoleGuard><NursingAttentionPage /></RoleGuard>} />
+        <Route path="notifications" element={<NotificationListPage />} />
+        <Route path="notifications/new" element={<NewNotificationPage />} />
+        <Route path="notifications/:id" element={<NotificationDetailPage />} />
+        <Route path="users" element={<RoleGuard><UsersPage /></RoleGuard>} />
+        <Route path="careers" element={<RoleGuard><CareersPage /></RoleGuard>} />
+        <Route path="audit-logs" element={<RoleGuard><AuditLogsPage /></RoleGuard>} />
+        <Route path="admin" element={<SettingsPage />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="help" element={<HelpPage />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </>
+  )
+)
+
 function App() {
   const isSessionExpired = useAuthStore((s) => s.isSessionExpired)
   const logout = useAuthStore((s) => s.logout)
 
   return (
-    <BrowserRouter>
+    <>
       <SessionExpiredModal open={isSessionExpired} onConfirm={logout} />
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/confirm-account" element={<ConfirmAccountPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<DashboardPage />} />
-          <Route path="change-password" element={<ChangePasswordPage />} />
-          <Route path="calendar" element={<RoleGuard><CalendarPage /></RoleGuard>} />
-          <Route path="supervision" element={<RoleGuard><SupervisionLayout /></RoleGuard>}>
-            <Route index element={<Navigate to="/supervision/psychologists" replace />} />
-            <Route path="psychologists" element={<SupervisionPsychologistsPage />} />
-            <Route path="progress" element={<SupervisionProgressPage />} />
-            <Route path="calendar" element={<SupervisionCalendarPage />} />
-            <Route path="analytics" element={<SupervisionAnalyticsPage />} />
-          </Route>
-          <Route path="patients" element={<RoleGuard><PatientListPage /></RoleGuard>} />
-          <Route path="patients/new" element={<RoleGuard><NewPatientPage /></RoleGuard>} />
-          <Route path="patients/:id/edit" element={<RoleGuard><EditPatientPage /></RoleGuard>} />
-          <Route path="patients/:id" element={<RoleGuard><PatientDetailPage /></RoleGuard>} />
-          <Route path="patients/:id/expedient" element={<RoleGuard><PatientExpedientPage /></RoleGuard>} />
-          <Route path="appointments" element={<RoleGuard><AppointmentListPage /></RoleGuard>} />
-          <Route path="appointments/new" element={<RoleGuard><NewAppointmentPage /></RoleGuard>} />
-          <Route path="appointments/:id" element={<RoleGuard><AppointmentDetailPage /></RoleGuard>} />
-          <Route path="sessions" element={<RoleGuard><SessionListPage /></RoleGuard>} />
-          <Route path="sessions/new" element={<RoleGuard><NewSessionPage /></RoleGuard>} />
-          <Route path="sessions/:id" element={<RoleGuard><SessionDetailPage /></RoleGuard>} />
-          <Route path="medications" element={<RoleGuard><MedicationListPage /></RoleGuard>} />
-          <Route path="medications/new" element={<RoleGuard><NewMedicationPage /></RoleGuard>} />
-          <Route path="medications/:id/edit" element={<RoleGuard><EditMedicationPage /></RoleGuard>} />
-          <Route path="medications/:id" element={<RoleGuard><MedicationDetailPage /></RoleGuard>} />
-          <Route path="procedures" element={<RoleGuard><ProcedureListPage /></RoleGuard>} />
-          <Route path="procedures/new" element={<RoleGuard><NewProcedurePage /></RoleGuard>} />
-          <Route path="procedures/:id" element={<RoleGuard><ProcedureDetailPage /></RoleGuard>} />
-          <Route path="interconsultations" element={<InterconsultationListPage />} />
-          <Route path="interconsultations/new" element={<NewInterconsultationPage />} />
-          <Route path="interconsultations/:id" element={<InterconsultationDetailPage />} />
-          <Route path="reports" element={<ReportsPage />} />
-          <Route path="evaluations" element={<RoleGuard><EvaluationListPage /></RoleGuard>} />
-          <Route path="evaluations/new" element={<RoleGuard><NewEvaluationPage /></RoleGuard>} />
-          <Route path="evaluations/:id" element={<RoleGuard><EvaluationDetailPage /></RoleGuard>} />
-          <Route path="nursing-attention" element={<RoleGuard><NursingAttentionPage /></RoleGuard>} />
-          <Route path="notifications" element={<NotificationListPage />} />
-          <Route path="notifications/new" element={<NewNotificationPage />} />
-          <Route path="notifications/:id" element={<NotificationDetailPage />} />
-          <Route path="users" element={<RoleGuard><UsersPage /></RoleGuard>} />
-          <Route path="careers" element={<RoleGuard><CareersPage /></RoleGuard>} />
-          <Route path="audit-logs" element={<RoleGuard><AuditLogsPage /></RoleGuard>} />
-          <Route path="admin" element={<SettingsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="help" element={<HelpPage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+      <RouterProvider router={router} />
+    </>
   )
 }
 

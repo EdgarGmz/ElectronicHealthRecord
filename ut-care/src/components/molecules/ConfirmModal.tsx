@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { HelpCircle } from 'lucide-react'
@@ -42,6 +42,11 @@ export function ConfirmModal({
   const { t } = useTranslation()
   if (!open) return null
 
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    onConfirm()
+  }
+
   const modal = (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
@@ -51,7 +56,8 @@ export function ConfirmModal({
       aria-describedby="confirm-modal-desc"
       onClick={onClose}
     >
-      <div
+      <form
+        onSubmit={handleSubmit}
         className="glass-card flex w-full max-w-md flex-col items-center gap-5 rounded-2xl px-8 py-8 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -62,7 +68,7 @@ export function ConfirmModal({
             aria-hidden
           />
         </div>
-        <div className="flex flex-col items-center gap-1 text-center">
+        <div className="flex flex-col items-center gap-1 text-center w-full">
           <h2
             id="confirm-modal-title"
             className="text-lg font-semibold text-[var(--text-primary)]"
@@ -83,16 +89,15 @@ export function ConfirmModal({
             {cancelLabel ?? t('common.cancel')}
           </GlassButton>
           <GlassButton
-            type="button"
+            type="submit"
             variant="primary"
-            onClick={onConfirm}
             disabled={confirming}
             className={variant === 'danger' ? '!bg-[var(--color-error)] hover:!opacity-90' : ''}
           >
             {confirming ? '…' : (confirmLabel ?? t('common.confirm'))}
           </GlassButton>
         </div>
-      </div>
+      </form>
     </div>
   )
 

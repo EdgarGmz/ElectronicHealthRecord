@@ -5,10 +5,16 @@ export async function getUsers(params: {
   page?: number
   limit?: number
   search?: string
+  role?: string
+  status?: string
+  excludeDeactivated?: boolean
 } = {}): Promise<UsersResponse> {
-  const { page = 1, limit = 10, search } = params
+  const { page = 1, limit = 10, search, role, status, excludeDeactivated } = params
   const sp = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (search?.trim()) sp.set('search', search.trim())
+  if (role) sp.set('role', role)
+  if (status) sp.set('status', status)
+  if (excludeDeactivated) sp.set('excludeDeactivated', 'true')
   const { data } = await api.get<{ success: boolean; data: UsersResponse }>(`/users?${sp}`)
   return data.data
 }
@@ -53,5 +59,10 @@ export async function resendConfirmation(id: string): Promise<void> {
 
 export async function resetPasswordByAdmin(id: string): Promise<void> {
   await api.post(`/users/${id}/reset-password-admin`)
+}
+
+export async function deleteUserPermanently(id: string, adminPassword?: string): Promise<void> {
+  const config = adminPassword ? { headers: { 'x-admin-password': adminPassword } } : undefined
+  await api.delete(`/users/${id}/permanent`, config)
 }
 

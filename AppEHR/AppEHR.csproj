@@ -74,4 +74,18 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>
 
+	<!-- Disable code signing for iOS and MacCatalyst in Debug configuration -->
+	<PropertyGroup Condition="'$(Configuration)'=='Debug' AND ('$(TargetFramework)'=='net10.0-ios' OR '$(TargetFramework)'=='net10.0-maccatalyst')">
+		<EnableCodeSigning>false</EnableCodeSigning>
+		<CodesignKey></CodesignKey>
+		<CodesignProvision></CodesignProvision>
+	</PropertyGroup>
+
+	<!-- Remove macOS extended attributes that can break codesign in test/build -->
+	<Target Name="StripAppleXattrsBeforeCodesign"
+			BeforeTargets="_CodesignAppBundle"
+			Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' OR $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
+		<Exec Command="if [ -d &quot;$(AppBundleDir)&quot; ]; then xattr -rc &quot;$(AppBundleDir)&quot;; fi" />
+	</Target>
+
 </Project>

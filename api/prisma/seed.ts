@@ -1182,17 +1182,37 @@ async function ensureMinimumAuditLogs(target: number) {
   const users = await prisma.user.findMany({ select: { id: true } });
   if (users.length === 0) return;
 
+  const patients = await prisma.patient.findMany({ select: { id: true } });
+  const appointments = await prisma.appointment.findMany({ select: { id: true } });
+  const therapySessions = await prisma.therapySession.findMany({ select: { id: true } });
+  const nursingConsultations = await prisma.nursingConsultation.findMany({ select: { id: true } });
+
   const actions = ['LOGIN', 'CREATE', 'UPDATE', 'VIEW_RECORD', 'EXPORT', 'LOGOUT'];
   const tables = ['users', 'patients', 'appointments', 'therapy_sessions', 'nursing_consultations'];
   let count = await prisma.auditLog.count();
   let cursor = 0;
   while (count < target) {
+    const table = tables[cursor % tables.length];
+    let recordId = faker.string.uuid();
+
+    if (table === 'users' && users.length > 0) {
+      recordId = users[cursor % users.length].id;
+    } else if (table === 'patients' && patients.length > 0) {
+      recordId = patients[cursor % patients.length].id;
+    } else if (table === 'appointments' && appointments.length > 0) {
+      recordId = appointments[cursor % appointments.length].id;
+    } else if (table === 'therapy_sessions' && therapySessions.length > 0) {
+      recordId = therapySessions[cursor % therapySessions.length].id;
+    } else if (table === 'nursing_consultations' && nursingConsultations.length > 0) {
+      recordId = nursingConsultations[cursor % nursingConsultations.length].id;
+    }
+
     await prisma.auditLog.create({
       data: {
         userId: users[cursor % users.length].id,
         action: actions[cursor % actions.length],
-        tableName: tables[cursor % tables.length],
-        recordId: faker.string.uuid(),
+        tableName: table,
+        recordId,
         oldValues: Math.random() > 0.5 ? { status: 'old' } : undefined,
         newValues: { status: 'new', idx: cursor },
         ipAddress: faker.internet.ipv4(),
@@ -1407,6 +1427,28 @@ async function seedRobust() {
   await seedDev();
   await ensureRobustMinimums(ROBUST_MIN_PER_TABLE);
   await printTableCounts();
+
+  const robustStaff = await prisma.user.findMany({
+    where: {
+      role: {
+        not: 'patient',
+      },
+    },
+    orderBy: {
+      role: 'asc',
+    },
+  });
+
+  console.log('\n🔑 TODOS LOS USUARIOS ADMINISTRATIVOS/CLÍNICOS EN ROBUST - CONTRASEÑA: ' + DEFAULT_SEED_PASSWORD);
+  console.table(
+    robustStaff.map((u) => ({
+      'Nombre Completo': `${u.firstName} ${u.lastName}`,
+      'Nombre de Usuario (Username)': u.username,
+      'Correo Electrónico': u.email,
+      'Rol': u.role,
+    }))
+  );
+
   console.log('✅ Seed ROBUST completed. All users have password: ' + DEFAULT_SEED_PASSWORD);
 }
 
@@ -1416,11 +1458,7 @@ async function seedDev() {
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
 
   const staffDev = [
-    { firstName: 'Xochilt Clara', lastName: 'Villar Diego', email: 'admin@ehr-system.com', role: 'admin' as const, enrollmentNumber: 'ADM001' },
-    { firstName: 'Edgar Tiburcio', lastName: 'Gomez Moran', email: 'edgar.tiburcio@ehr-system.com', role: 'coordinador_enfermeria' as const, enrollmentNumber: 'COE001' },
-    { firstName: 'Orlando de Jesus', lastName: 'Casas Davila', email: 'orlando.casas@ehr-system.com', role: 'coordinador_psicologia' as const, enrollmentNumber: 'COP001' },
-    { firstName: 'Carlos Alexis', lastName: 'Rodriguez Garcia', email: 'carlos.rodriguez@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI001' },
-    { firstName: 'Daniela Mayte', lastName: 'Guevara Castillo', email: 'daniela.guevara@ehr-system.com', role: 'enfermero' as const, enrollmentNumber: 'ENF001' },
+    { firstName: 'Edgar Tiburcio', lastName: 'Gomez Moran', email: '22038@virtual.utsc.edu.mx', role: 'admin' as const, enrollmentNumber: '22038', sex: 'male' },
   ];
 
   console.log('👤 Seeding DEV staff users (with password)...');
@@ -1434,6 +1472,7 @@ async function seedDev() {
         username,
         isConfirmed: true,
         mustChangePassword: false,
+        sex: s.sex,
       },
       create: {
         email: s.email,
@@ -1444,7 +1483,7 @@ async function seedDev() {
         dateOfBirth: new Date('1990-01-15'),
         role: s.role,
         enrollmentNumber: s.enrollmentNumber,
-        sex: Math.random() < 0.5 ? 'male' : 'female',
+        sex: s.sex,
         phone: faker.string.numeric(10),
         isConfirmed: true,
         mustChangePassword: false,
@@ -1512,6 +1551,17 @@ async function seedDev() {
   await seedInterconsultations(patients, psychologists, nurses);
   await seedNotifications([...staffUsers, ...patientUsers]);
 
+  console.log('\n🔑 USUARIOS CREADOS (SEED: DEV) - CONTRASEÑA: ' + DEFAULT_SEED_PASSWORD);
+  console.table(
+    staffUsers.map((u) => ({
+      'Nombre Completo': `${u.firstName} ${u.lastName}`,
+      'Nombre de Usuario (Username)': u.username,
+      'Correo Electrónico': u.email,
+      'Rol': u.role
+    }))
+  );
+  console.log(`\n👥 ALUMNOS (PACIENTES) CREADOS: 500 usuarios generados (ejemplo: ${patientUsers[0].username}, ${patientUsers[1].username}, etc.).`);
+
   console.log('✅ Seed DEV completed. All users have password: ' + DEFAULT_SEED_PASSWORD);
 }
 
@@ -1521,27 +1571,35 @@ async function seedProd() {
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
 
   const staffProd = [
-    { firstName: 'Sergio David', lastName: 'Elizondo Saldivar', email: 'sergio.elizondo@ehr-system.com', role: 'coordinador_psicologia' as const },
-    { firstName: 'Aida Nohemi', lastName: 'Quintero Sanchez', email: 'aida.quintero@ehr-system.com', role: 'psicologo' as const },
-    { firstName: 'Maria Teresa Guadalupe', lastName: 'del Angel Monte Mayor', email: 'maria.delangel@ehr-system.com', role: 'psicologo' as const },
-    { firstName: 'Carlos Osiel', lastName: 'Dominguez Fuentes', email: 'carlos.dominguez@ehr-system.com', role: 'psicologo' as const },
-    { firstName: 'Silvia', lastName: 'Treviño', email: 'silvia.trevino@ehr-system.com', role: 'psicologo' as const },
-    { firstName: 'Daniela', lastName: 'Tellez Lozano', email: 'daniela.tellez@ehr-system.com', role: 'psicologo' as const },
-    { firstName: 'Alma Patricia', lastName: 'Montoya Valdez', email: 'alma.montoya@ehr-system.com', role: 'enfermero' as const },
-    { firstName: 'Jazmin Alejandra', lastName: 'Parroquin Luna', email: 'jazmin.parroquin@ehr-system.com', role: 'enfermero' as const },
-    { firstName: 'Ivan Javier', lastName: 'Treviño Hernandez', email: 'ivan.trevino@ehr-system.com', role: 'coordinador_enfermeria' as const },
+    { firstName: 'Edgar Tiburcio', lastName: 'Gomez Moran', email: '22038@virtual.utsc.edu.mx', role: 'admin' as const, enrollmentNumber: '22038', sex: 'male' },
+    { firstName: 'Orlando De Jesus', lastName: 'Casas Davila', email: '22034@virtual.utsc.edu.mx', role: 'coordinador_psicologia' as const, enrollmentNumber: '22034', sex: 'male' },
+    { firstName: 'Juan Enrique', lastName: 'Castillo Ontiveros', email: '22035@virtual.utsc.edu.mx', role: 'coordinador_enfermeria' as const, enrollmentNumber: '22035', sex: 'male' },
+    { firstName: 'Carlos Alexis', lastName: 'Rodriguez Garcia', email: '22051@virtual.utsc.edu.mx', role: 'psicologo' as const, enrollmentNumber: '22051', sex: 'male' },
+    { firstName: 'Daniela Mayte', lastName: 'Guevara Castillo', email: '20651@virtual.utsc.edu.mx', role: 'enfermero' as const, enrollmentNumber: '20651', sex: 'female' },
+
+    { firstName: 'Sergio David', lastName: 'Elizondo Saldivar', email: 'sergio.elizondo@ehr-system.com', role: 'coordinador_psicologia' as const, enrollmentNumber: 'COP002', sex: 'male' },
+    { firstName: 'Aida Nohemi', lastName: 'Quintero Sanchez', email: 'aida.quintero@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI002', sex: 'female' },
+    { firstName: 'Maria Teresa Guadalupe', lastName: 'del Angel Monte Mayor', email: 'maria.delangel@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI003', sex: 'female' },
+    { firstName: 'Carlos Osiel', lastName: 'Dominguez Fuentes', email: 'carlos.dominguez@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI004', sex: 'male' },
+    { firstName: 'Silvia', lastName: 'Treviño', email: 'silvia.trevino@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI005', sex: 'female' },
+    { firstName: 'Daniela', lastName: 'Tellez Lozano', email: 'daniela.tellez@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI006', sex: 'female' },
+    { firstName: 'Alma Patricia', lastName: 'Montoya Valdez', email: 'alma.montoya@ehr-system.com', role: 'enfermero' as const, enrollmentNumber: 'ENF002', sex: 'female' },
+    { firstName: 'Jazmin Alejandra', lastName: 'Parroquin Luna', email: 'jazmin.parroquin@ehr-system.com', role: 'enfermero' as const, enrollmentNumber: 'ENF003', sex: 'female' },
+    { firstName: 'Ivan Javier', lastName: 'Treviño Hernandez', email: 'ivan.trevino@ehr-system.com', role: 'coordinador_enfermeria' as const, enrollmentNumber: 'COE002', sex: 'male' },
   ];
 
   console.log('👤 Seeding PROD staff users (with password)...');
+  const createdProdUsers: any[] = [];
   for (const s of staffProd) {
     const username = generateUniqueUsername(s.firstName, s.lastName);
-    await prisma.user.upsert({
+    const user = await prisma.user.upsert({
       where: { email: s.email },
       update: {
         passwordHash: defaultPasswordHash,
         username,
         isConfirmed: true,
         mustChangePassword: false,
+        sex: s.sex || undefined,
       },
       create: {
         email: s.email,
@@ -1551,13 +1609,26 @@ async function seedProd() {
         lastName: s.lastName,
         dateOfBirth: new Date('1985-06-01'),
         role: s.role,
-        sex: Math.random() < 0.5 ? 'male' : 'female',
+        enrollmentNumber: s.enrollmentNumber || null,
+        sex: s.sex || (Math.random() < 0.5 ? 'male' : 'female'),
         isConfirmed: true,
         mustChangePassword: false,
       },
     });
+    createdProdUsers.push(user);
   }
   console.log(`✅ Created/updated ${staffProd.length} PROD staff users`);
+
+  console.log('\n🔑 USUARIOS CREADOS (SEED: PROD) - CONTRASEÑA: ' + DEFAULT_SEED_PASSWORD);
+  console.table(
+    createdProdUsers.map((u) => ({
+      'Nombre Completo': `${u.firstName} ${u.lastName}`,
+      'Nombre de Usuario (Username)': u.username,
+      'Correo Electrónico': u.email,
+      'Rol': u.role
+    }))
+  );
+
   console.log('✅ Seed PROD completed. All users have password: ' + DEFAULT_SEED_PASSWORD);
 }
 
@@ -1598,80 +1669,46 @@ async function seedClean() {
   await seedCareers();
 
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
-  const adminFirstName = 'Edgar';
-  const adminLastName = 'Gomez';
-  const adminEmail = 'admin@ehr-system.com';
-  const adminUsername = 'EdgarGMZ';
 
-  console.log('👤 Seeding admin user...');
-  await prisma.user.create({
-    data: {
-      email: adminEmail,
-      username: adminUsername,
-      passwordHash: defaultPasswordHash,
-      firstName: adminFirstName,
-      lastName: adminLastName,
-      dateOfBirth: new Date('1990-01-15'),
-      role: 'admin',
-      isConfirmed: true,
-      mustChangePassword: false,
-    },
-  });
-  console.log('✅ Admin user created successfully!');
-
-  console.log('👤 Seeding additional staff users...');
   const staffToCreate = [
-    {
-      email: 'coord.psico@ehr-system.com',
-      username: 'OrlandoCOP',
-      firstName: 'Orlando',
-      lastName: 'Casas',
-      role: 'coordinador_psicologia' as const,
-      enrollmentNumber: 'COP001',
-    },
-    {
-      email: 'coord.enfer@ehr-system.com',
-      username: 'IvanCOE',
-      firstName: 'Ivan',
-      lastName: 'Trevino',
-      role: 'coordinador_enfermeria' as const,
-      enrollmentNumber: 'COE001',
-    },
-    {
-      email: 'psicologo@ehr-system.com',
-      username: 'CarlosPSI',
-      firstName: 'Carlos',
-      lastName: 'Rodriguez',
-      role: 'psicologo' as const,
-      enrollmentNumber: 'PSI001',
-    },
-    {
-      email: 'enfermero@ehr-system.com',
-      username: 'DanielaENF',
-      firstName: 'Daniela',
-      lastName: 'Guevara',
-      role: 'enfermero' as const,
-      enrollmentNumber: 'ENF001',
-    },
+    { firstName: 'Edgar Tiburcio', lastName: 'Gomez Moran', email: '22038@virtual.utsc.edu.mx', role: 'admin' as const, enrollmentNumber: '22038', sex: 'male' },
+    { firstName: 'Orlando De Jesus', lastName: 'Casas Davila', email: '22034@virtual.utsc.edu.mx', role: 'coordinador_psicologia' as const, enrollmentNumber: '22034', sex: 'male' },
+    { firstName: 'Juan Enrique', lastName: 'Castillo Ontiveros', email: '22035@virtual.utsc.edu.mx', role: 'coordinador_enfermeria' as const, enrollmentNumber: '22035', sex: 'male' },
+    { firstName: 'Carlos Alexis', lastName: 'Rodriguez Garcia', email: '22051@virtual.utsc.edu.mx', role: 'psicologo' as const, enrollmentNumber: '22051', sex: 'male' },
+    { firstName: 'Daniela Mayte', lastName: 'Guevara Castillo', email: '20651@virtual.utsc.edu.mx', role: 'enfermero' as const, enrollmentNumber: '20651', sex: 'female' }
   ];
 
+  console.log('👤 Seeding staff users for CLEAN...');
+  const createdCleanUsers = [];
   for (const s of staffToCreate) {
-    await prisma.user.create({
+    const username = generateUniqueUsername(s.firstName, s.lastName);
+    const user = await prisma.user.create({
       data: {
         email: s.email,
-        username: s.username,
+        username,
         passwordHash: defaultPasswordHash,
         firstName: s.firstName,
         lastName: s.lastName,
         dateOfBirth: new Date('1990-01-15'),
         role: s.role,
         enrollmentNumber: s.enrollmentNumber,
+        sex: s.sex,
         isConfirmed: true,
         mustChangePassword: false,
       },
     });
+    createdCleanUsers.push(user);
   }
-  console.log('✅ Additional staff users created successfully!');
+  console.log('✅ Staff users created successfully!');
+  console.log('\n🔑 USUARIOS CREADOS (SEED: CLEAN) - CONTRASEÑA: ' + DEFAULT_SEED_PASSWORD);
+  console.table(
+    createdCleanUsers.map((s) => ({
+      'Nombre Completo': `${s.firstName} ${s.lastName}`,
+      'Nombre de Usuario (Username)': s.username,
+      'Correo Electrónico': s.email,
+      'Rol': s.role
+    }))
+  );
   console.log('✅ Seed CLEAN completed. Admin and all staff role users exist.');
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Pencil, Eye, Mail, KeyRound, Users } from 'lucide-react'
+import { Plus, Pencil, Eye, Mail, KeyRound, Users, Trash2 } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
@@ -8,7 +8,7 @@ import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { DataTable } from '@/components/organisms/DataTable'
 import type { DataTableColumn } from '@/components/organisms/DataTable'
 import type { User, CreateUserInput, UpdateUserInput } from '@/types/user'
-import { createUser, deactivateUser, getUsers, updateUser, resendConfirmation, resetPasswordByAdmin } from '@/services/user.service'
+import { createUser, deactivateUser, getUsers, updateUser, resendConfirmation, resetPasswordByAdmin, deleteUserPermanently } from '@/services/user.service'
 import { getDefaultTableLimit } from '@/store/tablePageSize.store'
 import { ROLES, ROLES_VISIBLE_IN_USERS } from '@/constants/roles'
 import { EmailLink } from '@/components/atoms/EmailLink'
@@ -180,13 +180,17 @@ export function UsersPage() {
   const load = () => {
     setLoading(true)
     setError(null)
-    getUsers({ page, limit, search: search || undefined })
+    const excludeDeactivated = status === '';
+    getUsers({
+      page,
+      limit,
+      search: search || undefined,
+      role: role || undefined,
+      status: status || undefined,
+      excludeDeactivated,
+    })
       .then((r) => {
-        let list = r.users
-        if (role) list = list.filter((u) => u.role === role)
-        if (status === 'active') list = list.filter((u) => u.isActive)
-        if (status === 'inactive') list = list.filter((u) => !u.isActive)
-        setUsers(list)
+        setUsers(r.users)
         setPagination(r.pagination)
       })
       .catch(() => setError(t('common.error')))
@@ -410,6 +414,37 @@ export function UsersPage() {
     })
   }
 
+  const doDeletePermanently = async (id: string, password: string) => {
+    setBusy(true)
+    setError(null)
+    try {
+      await deleteUserPermanently(id, password)
+      setPasswordPrompt((p) => ({ ...p, open: false }))
+      load()
+    } catch (e: unknown) {
+      const msg =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : null
+      setPasswordPrompt((p) => ({ ...p, open: false }))
+      setError(msg || t('common.error'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleDeletePermanentlyClick = (u: User) => {
+    setPasswordPrompt({
+      open: true,
+      title: 'Eliminar permanentemente',
+      message: `Se eliminará permanentemente a ${fullName(u)}. Esta acción es irreversible y requiere ingresar su contraseña de administrador para confirmar:`,
+      confirmLabel: 'Eliminar permanentemente',
+      variant: 'danger',
+      onConfirm: (pwd) => doDeletePermanently(u.id, pwd),
+    })
+  }
+
+
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       <LoadingModal open={loading || busy} message={t('common.loading')} />
@@ -476,6 +511,7 @@ export function UsersPage() {
               options: [
                 { value: 'active', label: 'Activo' },
                 { value: 'inactive', label: 'Inactivo' },
+                { value: 'unconfirmed', label: 'No confirmado' },
               ],
             },
           ]}
@@ -561,6 +597,17 @@ export function UsersPage() {
                     />
                   </button>
                 )
+              )}
+              {(!row.isConfirmed || !row.isActive) && row.role !== 'admin' && (
+                <button
+                  type="button"
+                  onClick={() => handleDeletePermanentlyClick(row)}
+                  className="inline-flex items-center gap-1 text-[var(--color-error)] hover:underline"
+                  title="Eliminar permanentemente"
+                >
+                  <Trash2 size={16} />
+                  Eliminar
+                </button>
               )}
             </div>
           )}

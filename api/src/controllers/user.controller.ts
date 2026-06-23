@@ -32,6 +32,8 @@ export const updateMeValidation = [
   body('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),
   body('phone').optional().isMobilePhone('any').withMessage('Invalid phone number'),
   body('dateOfBirth').optional().isISO8601().withMessage('Invalid date of birth'),
+  body('username').optional().isLength({ min: 3, max: 50 }).withMessage('El nombre de usuario debe tener entre 3 y 50 caracteres'),
+  body('email').optional().isEmail().withMessage('Correo electrónico inválido'),
 ];
 
 export const changePasswordValidation = [
@@ -67,8 +69,11 @@ export class UserController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const search = req.query.search as string;
+      const role = req.query.role as string;
+      const status = req.query.status as string;
+      const excludeDeactivated = req.query.excludeDeactivated === 'true';
 
-      const result = await userService.getAll(page, limit, search);
+      const result = await userService.getAll(page, limit, search, role, status, excludeDeactivated);
 
       res.status(200).json({
         success: true,
@@ -111,10 +116,13 @@ export class UserController {
         ...req.body,
         dateOfBirth: req.body.dateOfBirth ? new Date(req.body.dateOfBirth) : undefined,
       };
-      const user = await userService.update(userId, data);
+      const user = await userService.update(userId, data, true);
+      const emailChangePending = (user as any).emailChangePending || false;
       res.status(200).json({
         success: true,
-        message: 'Profile updated successfully',
+        message: emailChangePending
+          ? 'Perfil actualizado. Por seguridad, se ha enviado un correo de confirmación a tu nueva dirección de correo para confirmar el cambio.'
+          : 'Profile updated successfully',
         data: user,
       });
     } catch (error) {
@@ -236,6 +244,45 @@ export class UserController {
       }
 
       const result = await userService.delete(id);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deletePermanently(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const adminId = req.user?.userId;
+      const adminPassword = (req.headers['x-admin-password'] as string) || req.body.adminPassword;
+
+      if (!adminId) {
+        res.status(401).json({ success: false, message: 'No autenticado' });
+        return;
+      }
+
+      if (!adminPassword) {
+        res.status(400).json({ success: false, message: 'Se requiere la contraseña del administrador para confirmar esta acción' });
+        return;
+      }
+
+      const admin = await prisma.user.findUnique({ where: { id: adminId } });
+      if (!admin) {
+        res.status(404).json({ success: false, message: 'Administrador no encontrado' });
+        return;
+      }
+
+      const isPasswordValid = await comparePassword(adminPassword, admin.passwordHash);
+      if (!isPasswordValid) {
+        res.status(401).json({ success: false, message: 'Contraseña de administrador incorrecta' });
+        return;
+      }
+
+      const result = await userService.deletePermanently(id);
 
       res.status(200).json({
         success: true,

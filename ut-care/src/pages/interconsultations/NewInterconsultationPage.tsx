@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, User } from 'lucide-react'
+import { ArrowLeft, User, MessageSquare } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
 import { LoadingModal } from '@/components/molecules/LoadingModal'
@@ -106,15 +106,30 @@ export function NewInterconsultationPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <LoadingModal open={submitting || patientsLoading} message={t('common.loading')} />
       <ErrorModal open={!!error} message={error || undefined} onClose={() => setError('')} />
       <SuccessModal open={showSuccess} onClose={() => { setShowSuccess(false); if (createdId) navigate(`/interconsultations/${createdId}`, { replace: true }); setCreatedId(null) }} message={t('common.successSaved')} />
-      <Link to="/interconsultations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline">
-        <ArrowLeft size={18} />
-        {t('interconsultations.list')}
-      </Link>
-      <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('interconsultations.newInterconsultation')}</h1>
+      
+      <div className="flex flex-col gap-4">
+        <Link to="/interconsultations" className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline w-fit">
+          <ArrowLeft size={18} />
+          {t('interconsultations.list')}
+        </Link>
+        
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+          <div>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+              <MessageSquare className="text-[var(--color-primary)]" size={28} />
+              {t('interconsultations.newInterconsultation')}
+            </h1>
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
+              {t('interconsultations.newDescription')}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <GlassCard>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -122,7 +137,7 @@ export function NewInterconsultationPage() {
             <select
               value={form.patientId}
               onChange={(e) => update('patientId', e.target.value)}
-              className="glass-input w-full px-4 py-2.5"
+              className="glass-input w-full px-4 py-2.5 h-[46px]"
               required
               disabled={patientsLoading}
             >
@@ -138,7 +153,7 @@ export function NewInterconsultationPage() {
               <select
                 value={form.fromDepartment}
                 onChange={(e) => update('fromDepartment', e.target.value)}
-                className="glass-input w-full px-4 py-2.5"
+                className="glass-input w-full px-4 py-2.5 h-[46px]"
                 required
               >
                 {DEPARTMENT_VALUES.map((v) => (
@@ -151,7 +166,7 @@ export function NewInterconsultationPage() {
               <select
                 value={form.toDepartment}
                 onChange={(e) => update('toDepartment', e.target.value)}
-                className="glass-input w-full px-4 py-2.5"
+                className="glass-input w-full px-4 py-2.5 h-[46px]"
                 required
               >
                 {DEPARTMENT_VALUES.map((v) => (
@@ -165,7 +180,7 @@ export function NewInterconsultationPage() {
             <select
               value={form.urgency}
               onChange={(e) => update('urgency', e.target.value)}
-              className="glass-input w-full px-4 py-2.5"
+              className="glass-input w-full px-4 py-2.5 h-[46px]"
               required
             >
               {URGENCY_VALUES.map((v) => (
@@ -200,7 +215,7 @@ export function NewInterconsultationPage() {
             <select
               value={form.toProfessionalId}
               onChange={(e) => handleSelectProfessionalId(e.target.value)}
-              className="glass-input w-full px-4 py-2.5"
+              className="glass-input w-full px-4 py-2.5 h-[46px]"
               disabled={professionalsLoading}
             >
               <option value="">

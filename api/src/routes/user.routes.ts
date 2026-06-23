@@ -25,6 +25,7 @@ router.get('/', authorizeRoles(...ROLES_USER_CRUD), userController.getAll.bind(u
 router.get('/:id', authorizeRoles(...ROLES_USER_CRUD), validate([param('id').isUUID()]), userController.getById.bind(userController));
 router.put('/:id', authorizeRoles(...ROLES_USER_CRUD), validate(updateUserValidation), userController.update.bind(userController));
 router.delete('/:id', authorizeRoles(...ROLES_USER_CRUD), validate([param('id').isUUID()]), userController.delete.bind(userController));
+router.delete('/:id/permanent', authorizeRoles(ROLES.ADMIN), validate([param('id').isUUID()]), userController.deletePermanently.bind(userController));
 
 // Crear usuarios: solo admin
 router.post(

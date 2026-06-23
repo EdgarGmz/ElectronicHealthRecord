@@ -29,6 +29,10 @@ export const confirmAccountValidation = [
   body('token').notEmpty().withMessage('Token is required'),
 ];
 
+export const confirmEmailValidation = [
+  body('token').notEmpty().withMessage('Token is required'),
+];
+
 export const forgotPasswordValidation = [
   body('email').isEmail().withMessage('Valid email is required'),
 ];
@@ -159,6 +163,19 @@ export class AuthController {
     try {
       const { token, newPassword } = req.body;
       const result = await authService.resetPassword(token, newPassword);
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async confirmEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { token } = req.body;
+      const result = await authService.confirmEmail(token, req);
       res.status(200).json({
         success: true,
         message: result.message,

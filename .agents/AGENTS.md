@@ -20,12 +20,24 @@ Al recibir una nueva solicitud o iniciar cualquier actividad, el agente debe seg
 *   **Acción:** Lo primero que debe hacer el agente al comenzar una tarea es ejecutar un comando `git log -n <N>` en el repositorio.
 *   **Propósito:** Comprender los últimos avances, evitar hacer tareas repetitivas y mantenerse alineado con el historial de cambios real.
 
-### 2. Política de Commits Atómicos (Anti-Commits Gigantes)
-*   **Acción:** Al concluir cualquier sub-tarea, refactorización o actividad delimitada, el agente **debe indicar explícitamente al usuario que realice un commit**.
+### 2. Ciclo de Diagnóstico, Cambio y Pruebas Locales (Flujo de Desarrollo)
+El desarrollo y la interacción con el usuario se rigen por el siguiente flujo de fases sucesivas:
+1.  **Detección:** El usuario encuentra el problema y lo documenta.
+2.  **Análisis e Implementación:** El usuario envía el prompt. El agente analiza el problema, propone un plan o solución, y realiza los cambios en el código de forma rápida y concisa.
+3.  **Pruebas Locales:** El usuario realiza pruebas y verificaciones en local.
+4.  **Aprobación/Rechazo:** Si el usuario **no aprueba** los cambios, se regresa al paso 2 para corregir o refinar la solución.
+5.  **Sugerencia de Commits:** Una vez que los cambios son validados y **el usuario confirme la aprobación de las pruebas en local**, el agente sugerirá los mensajes para el commit. *Regla Crítica:* No sugerir mensajes de commits hasta que el usuario indique que terminó las pruebas locales.
+6.  **Commit y Push:** El usuario realiza los commits sugeridos y los sube a la rama `develop` para dejar todo listo para la creación del Pull Request hacia la rama `main` (producción).
+
+### 3. Política de Commits Atómicos (Anti-Commits Gigantes)
+*   **Acción:** Al concluir cualquier sub-tarea aprobada y en la fase correspondiente del flujo, el agente sugerirá los commits correspondientes.
 *   **Formato de Sugerencia:** El agente proporcionará:
     1. La lista de archivos específicos modificados o creados.
     2. El comando de consola de Git recomendado para agregarlos.
-    3. Un mensaje de commit descriptivo y atómico (siguiendo la convención de [Conventional Commits](https://www.conventionalcommits.org/)).
+    3. Un mensaje de commit descriptivo y atómico (siguiendo la convención de [Conventional Commits](https://www.conventionalcommits.org/) y redactado en español).
+
+### 4. Regla Crítica de Build Pre-Push (CI/CD Safety)
+*   **Acción:** Antes de sugerir `git push` o la creación de un Pull Request, el agente **debe recordar obligatoriamente al usuario correr un build** (`npm run build` o `npx tsc --noEmit`) en los componentes modificados (ej: `ut-care`, `api`, `AppEHR`) para asegurar que no haya fallas de compilación en los jobs de integración continua (CI/CD).
 
 ---
 
@@ -43,7 +55,7 @@ El repositorio está organizado en tres componentes clave, cada uno con sus resp
     *   Respetar las políticas de control de acceso basado en roles (RBAC) declaradas en `roles.ts`.
     *   Asegurar que los seeds (`prisma/seed.ts`) reflejen siempre las credenciales fijas y datos de prueba necesarios para el entorno de desarrollo y staging.
 
-### 2. Clientes Web (React Frontend) - Carpetas `/ut-care` y `/Kiosko`
+### 2. Cliente Web (React Frontend) - Carpeta `/ut-care`
 *   **Tecnologías:** React, TypeScript, React Router, Vite.
 *   **Estilo Visual:** Consistencia estética basada en el tema **Crystal Glass (Glassmorphism)** (translúcidos, degradados suaves, bordes refinados).
 *   **Validación de Rutas:** Protección de accesos a nivel de frontend (`canAccessPath` y `canAccessExpedient`) basados en el token JWT y el rol del usuario decodificado.

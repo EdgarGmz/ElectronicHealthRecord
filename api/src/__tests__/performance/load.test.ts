@@ -1,17 +1,27 @@
 import request from 'supertest';
 import app from '../../app';
+import prisma from '../../config/database';
 
 describe('Performance & Stress Testing', () => {
-  const loginData = {
-    username: 'EdgarGMZ',
-    password: 'Password123!'
-  };
+  let adminUsername = 'EdgarGMZ';
+
+  beforeAll(async () => {
+    const admin = await prisma.user.findFirst({
+      where: { role: 'admin' }
+    });
+    if (admin) {
+      adminUsername = admin.username;
+    }
+  });
 
   it('Performance: login should respond within 500ms under normal conditions', async () => {
     const start = Date.now();
     const res = await request(app)
       .post('/api/auth/login')
-      .send(loginData);
+      .send({
+        username: adminUsername,
+        password: 'Password123!'
+      });
     const end = Date.now();
     const duration = end - start;
 
@@ -23,7 +33,10 @@ describe('Performance & Stress Testing', () => {
   it('Stress: handle 50 concurrent login attempts', async () => {
     const concurrentRequests = 50;
     const requests = Array.from({ length: concurrentRequests }, () => 
-      request(app).post('/api/auth/login').send(loginData)
+      request(app).post('/api/auth/login').send({
+        username: adminUsername,
+        password: 'Password123!'
+      })
     );
 
     const start = Date.now();
