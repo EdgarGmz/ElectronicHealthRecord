@@ -83,6 +83,8 @@ export class UserService {
         isActive: true,
         isConfirmed: true,
         enrollmentNumber: true,
+        lastUsernameChange: true,
+        pendingEmail: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -158,6 +160,8 @@ export class UserService {
           isActive: true,
           isConfirmed: true,
           enrollmentNumber: true,
+          lastUsernameChange: true,
+          pendingEmail: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -193,6 +197,8 @@ export class UserService {
         isActive: true,
         isConfirmed: true,
         enrollmentNumber: true,
+        lastUsernameChange: true,
+        pendingEmail: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -205,14 +211,21 @@ export class UserService {
     return user;
   }
 
-  async update(id: string, data: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    dateOfBirth?: Date;
-    role?: string;
-    isActive?: boolean;
-  }) {
+  async update(
+    id: string,
+    data: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+      dateOfBirth?: Date;
+      role?: string;
+      isActive?: boolean;
+      username?: string;
+      lastUsernameChange?: Date;
+    },
+    isSelfUpdate?: boolean
+  ) {
     const user = await prisma.user.findUnique({ where: { id } });
 
     if (!user) {
@@ -223,6 +236,70 @@ export class UserService {
     if (user.role === 'admin') {
       if (data.isActive === false) throw new AppError('El administrador del sistema no puede ser desactivado', 403);
       if (data.role && data.role !== 'admin') throw new AppError('El rol del administrador no puede ser modificado', 403);
+    }
+
+    let emailChangePending = false;
+    if (data.email && data.email.trim().toLowerCase() !== user.email.toLowerCase()) {
+      const newEmail = data.email.trim().toLowerCase();
+      // Check if email already exists
+      const existing = await prisma.user.findUnique({ where: { email: newEmail } });
+      if (existing && existing.id !== id) {
+        throw new AppError('El correo electrónico ya está en uso', 409);
+      }
+
+      if (isSelfUpdate) {
+        const emailToken = crypto.randomBytes(32).toString('hex');
+        const emailTokenExpires = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours
+
+        await prisma.user.update({
+          where: { id },
+          data: {
+            pendingEmail: newEmail,
+            emailConfirmationToken: emailToken,
+            emailConfirmationTokenExpires: emailTokenExpires,
+          },
+        });
+
+        // Send verification/authorization email to the current (old) address
+        emailService.sendEmailChangeVerificationEmail(user.email, user.firstName, newEmail, emailToken)
+          .catch((err) => {
+            logger.error(`Error sending email change verification to ${user.email}:`, err);
+          });
+
+        // Send alert/informative email to the new address
+        emailService.sendEmailChangeAlertEmail(newEmail, user.firstName)
+          .catch((err) => {
+            logger.error(`Error sending email change alert to ${newEmail}:`, err);
+          });
+
+        delete data.email;
+        emailChangePending = true;
+      }
+    }
+
+    if (data.username && data.username !== user.username) {
+      // Check for duplication
+      const existing = await prisma.user.findUnique({ where: { username: data.username } });
+      if (existing && existing.id !== id) {
+        throw new AppError('El nombre de usuario ya está en uso', 409);
+      }
+
+      if (isSelfUpdate) {
+        // Enforce 6-month cooldown
+        if (user.lastUsernameChange) {
+          const lastChange = new Date(user.lastUsernameChange);
+          const nextAllowed = new Date(lastChange);
+          nextAllowed.setMonth(nextAllowed.getMonth() + 6);
+
+          if (new Date() < nextAllowed) {
+            throw new AppError(
+              `Solo puedes cambiar tu nombre de usuario una vez cada 6 meses. Estará disponible nuevamente el ${nextAllowed.toLocaleDateString('es-ES')}`,
+              400
+            );
+          }
+        }
+        data.lastUsernameChange = new Date();
+      }
     }
 
     const updatedUser = await prisma.user.update({
@@ -243,11 +320,16 @@ export class UserService {
         isActive: true,
         isConfirmed: true,
         enrollmentNumber: true,
+        lastUsernameChange: true,
+        pendingEmail: true,
         updatedAt: true,
       },
     });
 
-    return updatedUser;
+    return {
+      ...updatedUser,
+      emailChangePending,
+    };
   }
 
   async delete(id: string) {

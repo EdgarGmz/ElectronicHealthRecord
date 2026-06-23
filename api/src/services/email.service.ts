@@ -199,6 +199,46 @@ export class EmailService {
 
     await this.sendMail(email, subject, html, simulationLog);
   }
+
+  async sendEmailChangeVerificationEmail(email: string, firstName: string, newEmail: string, token: string) {
+    const confirmUrl = `${this.frontendUrl}/confirm-email?token=${token}`;
+    const subject = 'Autorización de cambio de correo electrónico - UT Care';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+          <h2 style="color: #2b6cb0;">Autorización de cambio de correo</h2>
+          <p>Hola ${firstName},</p>
+          <p>Hemos recibido una solicitud para cambiar tu dirección de correo electrónico registrada en UT Care a: <strong>${newEmail}</strong>.</p>
+          <p>Para autorizar y consolidar este cambio, haz clic en el siguiente botón:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${confirmUrl}" style="background-color: #3182ce; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Autorizar Cambio de Correo</a>
+          </div>
+          <p style="color: #718096; font-size: 12px;">Este enlace es válido por 2 horas. Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
+          <p style="color: #718096; font-size: 12px; word-break: break-all;">${confirmUrl}</p>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+          <p style="color: #e53e3e; font-size: 12px;"><strong>¿No solicitaste este cambio?</strong> Si tú no iniciaste esta solicitud, por favor NO hagas clic en el enlace, cambia tu contraseña inmediatamente y contacta al administrador, ya que tu cuenta podría estar comprometida.</p>
+        </div>
+    `;
+    const simulationLog = `[Email simulation] Email change authorization email sent to current email ${email} for ${firstName}. Link: ${confirmUrl}`;
+
+    await this.sendMail(email, subject, html, simulationLog);
+  }
+
+  async sendEmailChangeAlertEmail(email: string, firstName: string) {
+    const subject = 'Solicitud de vinculación de correo electrónico - UT Care';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+          <h2 style="color: #3182ce;">Solicitud de nuevo correo electrónico</h2>
+          <p>Hola ${firstName},</p>
+          <p>Te informamos que se ha solicitado registrar esta dirección de correo electrónico en tu cuenta de UT Care.</p>
+          <p>Por seguridad, el cambio se aplicará únicamente una vez que sea autorizado haciendo clic en el enlace de confirmación enviado a la dirección de correo electrónico actual vinculada a la cuenta.</p>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+          <p style="color: #718096; font-size: 12px;">Si tú no iniciaste esta solicitud, puedes ignorar este correo de forma segura.</p>
+        </div>
+    `;
+    const simulationLog = `[Email simulation] Email change alert email sent to new email ${email} for ${firstName}.`;
+
+    await this.sendMail(email, subject, html, simulationLog);
+  }
 }
 
 export default new EmailService();

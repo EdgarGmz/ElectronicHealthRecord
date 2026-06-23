@@ -1,10 +1,12 @@
 import prisma from '../config/database';
+import { Request } from 'express';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt';
 import { AppError } from '../middleware/errorHandler';
 import crypto from 'crypto';
 import emailService from './email.service';
 import logger from '../utils/logger';
+import { createAuditLog, AUDIT_ACTIONS, AUDIT_TABLES } from '../utils/audit';
 
 async function generateUniqueUsername(firstName: string, lastName: string): Promise<string> {
   const cleanName = firstName.trim().split(' ')[0].normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -308,6 +310,55 @@ export class AuthService {
     });
 
     return { message: 'Contraseña restablecida con éxito. Ya puedes iniciar sesión con tu nueva contraseña.' };
+  }
+
+  async confirmEmail(token: string, req?: Request) {
+    const user = await prisma.user.findFirst({
+      where: {
+        emailConfirmationToken: token,
+        emailConfirmationTokenExpires: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      throw new AppError('El enlace de confirmación es inválido o ha expirado.', 400);
+    }
+
+    const oldEmail = user.email;
+    const newEmail = user.pendingEmail;
+
+    if (!newEmail) {
+      throw new AppError('No hay ninguna solicitud de cambio de correo electrónico pendiente.', 400);
+    }
+
+    // Verify duplication again to be safe
+    const existing = await prisma.user.findUnique({ where: { email: newEmail } });
+    if (existing && existing.id !== user.id) {
+      throw new AppError('El correo electrónico ya está en uso por otro usuario.', 409);
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        email: newEmail,
+        pendingEmail: null,
+        emailConfirmationToken: null,
+        emailConfirmationTokenExpires: null,
+      },
+    });
+
+    // Write manual audit log entry
+    await createAuditLog({
+      userId: user.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      tableName: AUDIT_TABLES.USER,
+      recordId: user.id,
+      oldValues: { email: oldEmail },
+      newValues: { email: newEmail },
+      req,
+    });
+
+    return { message: 'Correo electrónico cambiado y confirmado con éxito.' };
   }
 }
 

@@ -32,6 +32,8 @@ export const updateMeValidation = [
   body('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),
   body('phone').optional().isMobilePhone('any').withMessage('Invalid phone number'),
   body('dateOfBirth').optional().isISO8601().withMessage('Invalid date of birth'),
+  body('username').optional().isLength({ min: 3, max: 50 }).withMessage('El nombre de usuario debe tener entre 3 y 50 caracteres'),
+  body('email').optional().isEmail().withMessage('Correo electrónico inválido'),
 ];
 
 export const changePasswordValidation = [
@@ -114,10 +116,13 @@ export class UserController {
         ...req.body,
         dateOfBirth: req.body.dateOfBirth ? new Date(req.body.dateOfBirth) : undefined,
       };
-      const user = await userService.update(userId, data);
+      const user = await userService.update(userId, data, true);
+      const emailChangePending = (user as any).emailChangePending || false;
       res.status(200).json({
         success: true,
-        message: 'Profile updated successfully',
+        message: emailChangePending
+          ? 'Perfil actualizado. Por seguridad, se ha enviado un correo de confirmación a tu nueva dirección de correo para confirmar el cambio.'
+          : 'Profile updated successfully',
         data: user,
       });
     } catch (error) {

@@ -231,6 +231,12 @@ async function resolveLogDetail(log: any): Promise<string> {
         return `${actorWithTitle} creó al usuario ${targetName}.`;
       }
       if (action === 'UPDATE') {
+        if (oldVals.username && newVals.username && oldVals.username !== newVals.username) {
+          return `El usuario ${actorName} cambió su nombre de usuario de '${oldVals.username}' a '${newVals.username}'.`;
+        }
+        if (oldVals.email && newVals.email && oldVals.email !== newVals.email) {
+          return `El usuario ${actorName} cambió su correo electrónico de '${oldVals.email}' a '${newVals.email}'.`;
+        }
         if (log.userId === log.recordId) {
           return `${actorWithTitle} actualizó su perfil.`;
         }

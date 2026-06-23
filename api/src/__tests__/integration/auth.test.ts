@@ -3,14 +3,16 @@ import app from '../../app';
 import prisma from '../../config/database';
 
 describe('Auth API (Integration & Black Box)', () => {
-  let adminUsername = 'EdgarGMZ';
+  let adminUsername = 'JuanCST';
+  let adminEmail = '22035@virtual.utsc.edu.mx';
 
   beforeAll(async () => {
     const admin = await prisma.user.findFirst({
-      where: { email: 'admin@ehr-system.com' }
+      where: { role: 'admin' }
     });
     if (admin) {
       adminUsername = admin.username;
+      adminEmail = admin.email;
     }
   });
 
@@ -26,7 +28,7 @@ describe('Auth API (Integration & Black Box)', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data).toHaveProperty('accessToken');
     expect(res.body.data).toHaveProperty('user');
-    expect(res.body.data.user.email).toEqual('admin@ehr-system.com');
+    expect(res.body.data.user.email).toEqual(adminEmail);
   });
 
   it('should fail with invalid credentials', async () => {
