@@ -108,3 +108,10 @@ export async function getQueue(): Promise<WaitingListEntry[]> {
   const { data } = await api.get<{ success: boolean; data: WaitingListEntry[] }>('/appointments/queue')
   return data.data
 }
+
+export async function updateWaitingListStatus(id: string, status: string): Promise<WaitingListEntry> {
+  const { data } = await api.put<{ success: boolean; data: WaitingListEntry }>(`/appointments/queue/${id}/status`, {
+    status,
+  })
+  return data.data
+}

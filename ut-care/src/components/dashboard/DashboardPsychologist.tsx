@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import {
@@ -15,6 +15,10 @@ import {
   CalendarPlus,
   X,
   Users,
+  Cake,
+  Sparkles,
+  Mail,
+  MessageCircle,
 } from 'lucide-react'
 import { canSeeNavItem } from '@/constants/roles'
 import {
@@ -28,18 +32,35 @@ import {
 } from 'recharts'
 import { useAuthStore } from '@/store/auth.store'
 import { GlassCard } from '@/components/atoms/GlassCard'
-import { GlassButton } from '@/components/atoms/GlassButton'
+
 import { ConfirmModal } from '@/components/molecules/ConfirmModal'
-import { cancelAppointment, getAppointments, rescheduleAppointment, getQueue, type WaitingListEntry } from '@/services/appointment.service'
+import { cancelAppointment, getAppointments, rescheduleAppointment, getQueue, createAppointment, updateWaitingListStatus, type WaitingListEntry } from '@/services/appointment.service'
+import { getPatients } from '@/services/patient.service'
 import { getTherapySessions } from '@/services/therapy-session.service'
 import { getNotifications, getUnreadCount } from '@/services/notification.service'
+import { getMyProfile } from '@/services/profile.service'
 import type { Appointment } from '@/types/appointment'
 import type { TherapySession } from '@/types/therapy-session'
 import type { Notification } from '@/types/notification'
+import type { Patient } from '@/types/patient'
+import { HOLIDAYS_MM_DD } from '@/utils/calendarActivities'
 import { APPOINTMENT_STATUS, DEPARTMENT_KEYS } from '@/types/appointment'
-import { getStatusBadgeClass, getTableRowClass } from '@/utils/tableRowColors'
+import { getStatusBadgeClass } from '@/utils/tableRowColors'
 
 const PSY_COLOR = '#8b5cf6'
+
+const MOTIVATIONAL_PHRASES = [
+  '¡Tu empatía y escucha cambian vidas hoy! 🧠✨',
+  'Cada sesión es una oportunidad para sanar y crecer. 🤝🌱',
+  'Tu dedicación marca la diferencia en el bienestar de cada estudiante. 💡💙',
+  'Escuchar con el corazón es tu mayor superpoder. 💖🗣️',
+  'Hoy es un gran día para guiar a alguien hacia su paz interior. 🌅🧘',
+  'El camino al bienestar comienza con un paso, gracias por guiar ese camino. 👣⭐',
+  'Tu presencia y escucha atenta son el mejor refugio para quien lo necesita. 🏡🌟',
+  'Acompañar y comprender es un arte, y hoy harás una gran diferencia. 🎨❤️',
+  'Con tu apoyo y guía, cada obstáculo se convierte en aprendizaje. 🚀🌱',
+  'Tu dedicación y calidez construyen un espacio seguro y lleno de esperanza. 🛡️✨',
+]
 
 function getTodayRange(): { startDate: string; endDate: string } {
   const now = new Date()
@@ -98,9 +119,16 @@ export function DashboardPsychologist() {
   const [reminders, setReminders] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState<number>(0)
   const [queue, setQueue] = useState<WaitingListEntry[]>([])
+  const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null)
+
+  // Seleccionar frase motivacional aleatoria una sola vez al montar
+  const welcomePhrase = useMemo(() => {
+    const idx = Math.floor(Math.random() * MOTIVATIONAL_PHRASES.length)
+    return MOTIVATIONAL_PHRASES[idx]
+  }, [])
 
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false)
@@ -112,9 +140,25 @@ export function DashboardPsychologist() {
   const [cancelModalError, setCancelModalError] = useState<string | null>(null)
   const [rescheduleModalError, setRescheduleModalError] = useState<string | null>(null)
 
-  const [appointmentDetailModalOpen, setAppointmentDetailModalOpen] = useState(false)
-  const [appointmentDetail, setAppointmentDetail] = useState<Appointment | null>(null)
-  const appointmentDetailRef = useRef<Appointment | null>(null)
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null)
+
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false)
+  const [selectedQueueEntry, setSelectedQueueEntry] = useState<WaitingListEntry | null>(null)
+
+  const openScheduleModal = (entry: WaitingListEntry) => {
+    setSelectedQueueEntry(entry)
+    setScheduleModalOpen(true)
+  }
+
+  const handleScheduleSuccess = async () => {
+    await refreshAppointmentsToday()
+    const qList = await getQueue()
+    setQueue(qList)
+  }
+
+  const toggleExpand = (id: string) => {
+    setExpandedItemId((prev) => (prev === id ? null : id))
+  }
 
   const todayRange = useMemo(() => getTodayRange(), [])
   const next7Range = useMemo(() => getNextDaysRange(7), [])
@@ -168,8 +212,9 @@ export function DashboardPsychologist() {
         .then((r) => r.notifications),
       getUnreadCount().then((r) => r.count),
       getQueue().catch(() => [] as WaitingListEntry[]),
+      getPatients({ limit: 300 }).then((r) => r.patients).catch(() => [] as Patient[]),
     ])
-      .then(([today, upcoming, sess, notifs, totalUnread, qList]) => {
+      .then(([today, upcoming, sess, notifs, totalUnread, qList, pts]) => {
         if (cancelled) return
         setAppointmentsToday(today)
         setUpcomingAppointments(upcoming)
@@ -177,6 +222,7 @@ export function DashboardPsychologist() {
         setReminders(notifs)
         setUnreadCount(totalUnread)
         setQueue(qList)
+        setPatients(pts)
       })
       .catch(() => {
         if (!cancelled) setError(t('common.error'))
@@ -195,18 +241,7 @@ export function DashboardPsychologist() {
       endDate: todayRange.endDate,
     })
     setAppointmentsToday(r.appointments)
-
-    // Mantener la modal sincronizada con el estatus más reciente.
-    const currentDetail = appointmentDetailRef.current
-    if (currentDetail) {
-      const updated = r.appointments.find((x) => x.id === currentDetail.id)
-      if (updated) setAppointmentDetail(updated)
-    }
   }
-
-  useEffect(() => {
-    appointmentDetailRef.current = appointmentDetail
-  }, [appointmentDetail])
 
   // Si la cita cambia de estado (ej. "completada") desde otras pantallas,
   // o se agregan alumnos a la fila virtual, necesitamos refrescar la tabla.
@@ -281,15 +316,7 @@ export function DashboardPsychologist() {
     }
   }
 
-  const openAppointmentDetailModal = (a: Appointment) => {
-    setAppointmentDetail(a)
-    setAppointmentDetailModalOpen(true)
-  }
 
-  const closeAppointmentDetailModal = () => {
-    setAppointmentDetailModalOpen(false)
-    setAppointmentDetail(null)
-  }
 
   const openCancelModal = (a: Appointment) => {
     setSelectedAppointment(a)
@@ -356,6 +383,43 @@ export function DashboardPsychologist() {
     month: 'long',
   })
 
+  const todayEvents = useMemo(() => {
+    const now = new Date()
+    const todayMonth = now.getMonth()
+    const todayDate = now.getDate()
+
+    // Filter patient birthdays for today
+    const birthdays = patients
+      .filter((p) => {
+        if (!p.user?.dateOfBirth) return false
+        const dob = new Date(p.user.dateOfBirth)
+        return dob.getMonth() === todayMonth && dob.getDate() === todayDate
+      })
+      .map((p) => ({
+        id: `bday-${p.id}`,
+        name: p.user ? `${p.user.firstName} ${p.user.lastName}` : 'Paciente',
+        type: 'birthday',
+        phone: p.user?.phone || null,
+        email: p.user?.email || null,
+      }))
+
+    // Filter holidays for today
+    const mm = String(todayMonth + 1).padStart(2, '0')
+    const dd = String(todayDate).padStart(2, '0')
+    const key = `${mm}-${dd}`
+    const holidays = HOLIDAYS_MM_DD
+      .filter((h) => h.key === key)
+      .map((h) => ({
+        id: `holiday-${h.key}`,
+        name: h.label,
+        type: 'holiday',
+        phone: null,
+        email: null,
+      }))
+
+    return [...birthdays, ...holidays]
+  }, [patients])
+
   if (loading && !appointmentsToday.length && !upcomingAppointments.length && !sessions.length) {
     return (
       <GlassCard>
@@ -379,13 +443,13 @@ export function DashboardPsychologist() {
     <div className="space-y-6">
       {/* Bienvenida al inicio */}
       <GlassCard className="border-l-4 border-l-[var(--color-primary)]">
-        <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-          {t('dashboard.psychologist.welcome')}, {firstName}
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+          {t('dashboard.psychologist.welcome')}, {firstName} 👋
         </h2>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">
-          {t('dashboard.psychologist.roleDescription')}
+        <p className="mt-1.5 text-sm text-[var(--text-secondary)] font-sans italic">
+          "{welcomePhrase}"
         </p>
-        <p className="mt-1 text-xs text-[var(--text-muted)]">{todayLabel}</p>
+        <p className="mt-2 text-xs text-[var(--text-muted)]">{todayLabel}</p>
       </GlassCard>
 
       {/* Fila Virtual (Lista de Espera) */}
@@ -404,51 +468,72 @@ export function DashboardPsychologist() {
             No hay alumnos en la fila virtual de tus carreras asignadas.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm font-sans">
-              <thead>
-                <tr className="border-b border-[var(--border)] text-left text-[var(--text-muted)]">
-                  <th className="pb-2 pr-2 font-medium">Alumno</th>
-                  <th className="pb-2 pr-2 font-medium">Carrera</th>
-                  <th className="pb-2 pr-2 font-medium">Motivo</th>
-                  <th className="pb-2 pr-2 font-medium">Hora de Registro</th>
-                  <th className="pb-2 font-medium text-right">Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                {queue.map((entry) => {
-                  const registerTime = new Date(entry.createdAt).toLocaleTimeString(undefined, {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  });
-                  return (
-                    <tr key={entry.id} className="border-b border-[var(--border)]/60 hover:bg-[var(--bg)]/10">
-                      <td className="py-2.5 pr-2 font-medium text-[var(--text-primary)] font-sans">
-                        {entry.patient?.user ? `${entry.patient.user.firstName} ${entry.patient.user.lastName}` : 'Anónimo'}
-                      </td>
-                      <td className="py-2.5 pr-2 text-[var(--text-secondary)] font-sans">
-                        {entry.patient?.career?.name || '—'}
-                      </td>
-                      <td className="py-2.5 pr-2 text-[var(--text-secondary)] max-w-xs truncate font-sans">
-                        {entry.reason || 'Sin motivo especificado'}
-                      </td>
-                      <td className="py-2.5 pr-2 text-[var(--text-muted)] font-sans">
-                        {registerTime}
-                      </td>
-                      <td className="py-2.5 text-right whitespace-nowrap">
-                        <Link
-                          to={`/sessions/new?patientId=${encodeURIComponent(entry.patient.id)}`}
-                          className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1 text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
-                        >
-                          <PlayCircle size={12} />
-                          Atender
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {queue.map((entry) => {
+              const registerTime = new Date(entry.createdAt).toLocaleTimeString(undefined, {
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+              const isExpanded = expandedItemId === `queue-${entry.id}`
+              const patientName = entry.patient?.user ? `${entry.patient.user.firstName} ${entry.patient.user.lastName}` : 'Alumno'
+              const careerName = entry.patient?.career?.name || '—'
+
+              return (
+                <div
+                  key={entry.id}
+                  onClick={() => toggleExpand(`queue-${entry.id}`)}
+                  className="group flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg)]/30 px-4 py-3 transition-all duration-300 hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)]/20 hover:scale-[1.01] cursor-pointer"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-[var(--text-primary)] truncate font-sans">
+                        {patientName}
+                      </p>
+                      <p className="text-xs text-[var(--text-muted)] font-sans mt-0.5">
+                        Reg: {registerTime} • {careerName}
+                      </p>
+                    </div>
+                    <div className="shrink-0 flex flex-col items-end gap-1">
+                      <span className="inline-flex items-center rounded-md bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-500 ring-1 ring-inset ring-amber-500/20">
+                        En espera
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={`flex flex-col gap-2.5 overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100 mt-2.5 pt-2.5 border-t border-[var(--border)]/40' : 'max-h-0 opacity-0 border-t-0 pt-0 mt-0 group-hover:max-h-96 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-2.5 group-hover:border-t group-hover:border-[var(--border)]/40'}`}>
+                    <div className="space-y-1 text-xs text-[var(--text-secondary)] font-sans">
+                      <p>
+                        <span className="font-semibold text-[var(--text-primary)] font-sans">Motivo:</span> {entry.reason || 'Sin motivo especificado'}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-[var(--text-primary)] font-sans">Prioridad:</span> {entry.priority}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                      <Link
+                        to={`/sessions/new?patientId=${encodeURIComponent(entry.patient.id)}`}
+                        className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
+                      >
+                        <PlayCircle size={13} />
+                        Atender
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => openScheduleModal(entry)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/10 px-2.5 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/20"
+                      >
+                        <CalendarPlus size={13} />
+                        Agendar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
       </GlassCard>
@@ -469,67 +554,187 @@ export function DashboardPsychologist() {
             {t('dashboard.psychologist.noAppointmentsToday')}
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--border)] text-left text-[var(--text-muted)]">
-                  <th className="pb-2 pr-2 font-medium">{t('dashboard.psychologist.dateTime')}</th>
-                  <th className="pb-2 pr-2 font-medium">{t('dashboard.psychologist.patient')}</th>
-                  <th className="pb-2 pr-2 font-medium">{t('dashboard.psychologist.type')}</th>
-                    <th className="pb-2 w-64 font-medium text-right">{t('dashboard.psychologist.status', 'Estatus')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {appointmentsToday.map((a) => {
-                  const effectiveStatus = getEffectiveAppointmentStatus(a)
-                  const effectiveVariant = getEffectiveStatusVariant(effectiveStatus)
-                  const rowClass = effectiveStatus === 'scheduled' ? getTableRowClass() : getTableRowClass(effectiveVariant)
-                  return (
-                    <tr
-                      key={a.id}
-                      className={`${rowClass} cursor-pointer`}
-                      onClick={() => openAppointmentDetailModal(a)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => e.key === 'Enter' && openAppointmentDetailModal(a)}
-                    >
-                    <td className="py-2.5 pr-2 text-[var(--text-primary)] whitespace-nowrap">
-                      {formatDate(a.scheduledDate)} {formatTime(a.scheduledDate)}
-                    </td>
-                    <td className="py-2.5 pr-2 text-[var(--text-primary)]">
-                      {a.patient?.user ? `${a.patient.user.firstName} ${a.patient.user.lastName}` : '—'}
-                    </td>
-                    <td className="py-2.5 pr-2 text-[var(--text-secondary)]">
-                      <span>{a.appointmentType || '—'}</span>
-                    </td>
-                    <td className="py-2.5 text-right">
-                      <div className="flex flex-col items-end gap-1">
-                        <span className={getStatusBadgeClass(effectiveVariant)}>{getEffectiveStatusLabel(effectiveStatus)}</span>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {appointmentsToday.map((a) => {
+              const effectiveStatus = getEffectiveAppointmentStatus(a)
+              const effectiveVariant = getEffectiveStatusVariant(effectiveStatus)
+              const isExpanded = expandedItemId === `appt-${a.id}`
+              const patientName = a.patient?.user ? `${a.patient.user.firstName} ${a.patient.user.lastName}` : 'Paciente'
+              const apptTypeLabel = a.appointmentType ? t(`calendar.types.${a.appointmentType}`, a.appointmentType) : 'Cita clínica'
 
-                        {effectiveStatus === 'cancelled' && a.cancellationReason && (
-                          <p className="text-xs text-[var(--text-secondary)] max-w-[18rem] whitespace-pre-wrap text-right">
-                            <span className="font-medium text-[var(--text-primary)]">
-                              {t('appointments.cancellationReason', 'Motivo de cancelación')}:
-                            </span>{' '}
-                            {a.cancellationReason}
+              return (
+                <div
+                  key={a.id}
+                  onClick={() => toggleExpand(`appt-${a.id}`)}
+                  className="group flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg)]/30 px-4 py-3 transition-all duration-300 hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)]/20 hover:scale-[1.01] cursor-pointer"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
+                      <Calendar className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-[var(--text-primary)] truncate font-sans">
+                        {patientName}
+                      </p>
+                      <p className="text-xs text-[var(--text-muted)] font-sans mt-0.5">
+                        {formatTime(a.scheduledDate)} • {apptTypeLabel}
+                      </p>
+                    </div>
+                    <div className="shrink-0 flex flex-col items-end gap-1">
+                      <span className={getStatusBadgeClass(effectiveVariant)}>
+                        {getEffectiveStatusLabel(effectiveStatus)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={`flex flex-col gap-2.5 overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100 mt-2.5 pt-2.5 border-t border-[var(--border)]/40' : 'max-h-0 opacity-0 border-t-0 pt-0 mt-0 group-hover:max-h-96 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-2.5 group-hover:border-t group-hover:border-[var(--border)]/40'}`}>
+                    <div className="space-y-1 text-xs text-[var(--text-secondary)] font-sans">
+                      <p>
+                        <span className="font-semibold text-[var(--text-primary)]">Fecha:</span> {formatDate(a.scheduledDate)} {formatTime(a.scheduledDate)}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-[var(--text-primary)]">Departamento:</span> {DEPARTMENT_KEYS[a.department] ? t(`appointments.${DEPARTMENT_KEYS[a.department]}`) : a.department}
+                      </p>
+                      {a.professional && (
+                        <p>
+                          <span className="font-semibold text-[var(--text-primary)]">Profesional:</span> {a.professional.firstName} {a.professional.lastName}
+                        </p>
+                      )}
+                      {a.notes && (
+                        <p className="whitespace-pre-wrap">
+                          <span className="font-semibold text-[var(--text-primary)]">Notas:</span> {a.notes}
+                        </p>
+                      )}
+                      {effectiveStatus === 'cancelled' && a.cancellationReason && (
+                        <p className="whitespace-pre-wrap text-[var(--color-error)]">
+                          <span className="font-semibold">Motivo de cancelación:</span> {a.cancellationReason}
+                        </p>
+                      )}
+                      {effectiveStatus === 'rescheduled' && a.rescheduleReason && (
+                        <p className="whitespace-pre-wrap text-amber-500">
+                          <span className="font-semibold">Motivo de reagendar:</span> {a.rescheduleReason}
+                        </p>
+                      )}
+                    </div>
+
+                    {effectiveStatus === 'scheduled' && (
+                      <div className="flex flex-wrap gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                        <Link
+                          to={`/sessions/new?patientId=${encodeURIComponent(a.patient.id)}&appointmentId=${encodeURIComponent(a.id)}`}
+                          className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
+                        >
+                          <PlayCircle size={13} />
+                          Iniciar
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => openRescheduleModal(a)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/10 px-2.5 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/20"
+                        >
+                          <CalendarPlus size={13} />
+                          Reagendar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openCancelModal(a)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-red-500/10 px-2.5 py-1.5 text-xs font-semibold text-red-500 transition-colors hover:bg-red-500/20"
+                        >
+                          <X size={13} />
+                          Cancelar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </GlassCard>
+
+      {/* Efemérides y Cumpleaños Hoy */}
+      <GlassCard>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-base font-semibold text-[var(--text-primary)] flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-[var(--color-primary)]" />
+            Efemérides y Cumpleaños Hoy
+          </h3>
+        </div>
+        {todayEvents.length === 0 ? (
+          <p className="py-6 text-center text-sm text-[var(--text-muted)] font-sans">
+            Hoy no hay efemérides ni cumpleaños programados. 🗓️
+          </p>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {todayEvents.map((evt) => {
+              const isExpanded = expandedItemId === evt.id
+              return (
+                <div
+                  key={evt.id}
+                  onClick={() => toggleExpand(evt.id)}
+                  className="group flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg)]/30 px-4 py-3 transition-all duration-300 hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)]/20 hover:scale-[1.01] cursor-pointer"
+                >
+                  <div className="flex items-center gap-3.5">
+                    {evt.type === 'birthday' ? (
+                      <>
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-500">
+                          <Cake className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-[var(--text-primary)] truncate font-sans">
+                            ¡Feliz Cumpleaños a {evt.name}! 🎉
                           </p>
+                          <p className="text-xs text-[var(--text-muted)] font-sans mt-0.5">
+                            Deseándole un excelente día.
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
+                          <Sparkles className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-[var(--text-primary)] truncate font-sans">
+                            {evt.name} 🇲🇽
+                          </p>
+                          <p className="text-xs text-[var(--text-muted)] font-sans mt-0.5">
+                            Efeméride / Conmemoración
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {evt.type === 'birthday' && (evt.phone || evt.email) && (
+                    <div className={`flex flex-col gap-2.5 overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-24 opacity-100 mt-2.5 pt-2.5 border-t border-[var(--border)]/40' : 'max-h-0 opacity-0 border-t-0 pt-0 mt-0 group-hover:max-h-24 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-2.5 group-hover:border-t group-hover:border-[var(--border)]/40'}`}>
+                      <div className="flex flex-wrap gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                        {evt.phone && (
+                          <a
+                            href={`https://wa.me/${evt.phone.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[#128c7e]/15 px-3 py-2 text-xs font-semibold text-[#128c7e] transition-colors hover:bg-[#128c7e]/25 font-sans"
+                          >
+                            <MessageCircle size={14} />
+                            WhatsApp
+                          </a>
                         )}
-
-                        {effectiveStatus === 'rescheduled' && a.rescheduleReason && (
-                          <p className="text-xs text-[var(--text-secondary)] max-w-[18rem] whitespace-pre-wrap text-right">
-                            <span className="font-medium text-[var(--text-primary)]">
-                              {t('sessions.rescheduleReason', 'Motivo de reagendar')}:
-                            </span>{' '}
-                            {a.rescheduleReason}
-                          </p>
+                        {evt.email && (
+                          <a
+                            href={`mailto:${evt.email}`}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb]/15 px-3 py-2 text-xs font-semibold text-[#2563eb] transition-colors hover:bg-[#2563eb]/25 font-sans"
+                          >
+                            <Mail size={14} />
+                            Correo
+                          </a>
                         )}
                       </div>
-                    </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
       </GlassCard>
@@ -615,162 +820,17 @@ export function DashboardPsychologist() {
         }
       />
 
-      {appointmentDetailModalOpen && appointmentDetail && (
-        <div
-          className="calendar-event-detail-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeAppointmentDetailModal()
-          }}
-        >
-          <div className="calendar-event-detail-modal-content">
-            <div className="calendar-event-detail-modal-header">
-              <div
-                className="calendar-event-detail-modal-icon-badge"
-                style={{
-                  background:
-                    getEffectiveStatusVariant(getEffectiveAppointmentStatus(appointmentDetail)) === 'success'
-                      ? 'rgba(16, 185, 129, 0.15)'
-                      : getEffectiveStatusVariant(getEffectiveAppointmentStatus(appointmentDetail)) === 'error'
-                        ? 'rgba(239, 68, 68, 0.15)'
-                        : 'rgba(245, 158, 11, 0.15)',
-                }}
-              >
-                <Calendar className="h-5 w-5 text-[var(--text-primary)]" />
-              </div>
+      <ScheduleQueueModal
+        entry={selectedQueueEntry}
+        isOpen={scheduleModalOpen}
+        onClose={() => {
+          setScheduleModalOpen(false)
+          setSelectedQueueEntry(null)
+        }}
+        onSuccess={() => void handleScheduleSuccess()}
+      />
 
-              <div className="flex-1">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h4 className="text-base font-semibold text-[var(--text-primary)]">
-                      {appointmentDetail.appointmentType || t('appointments.list')}
-                    </h4>
-                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                      {appointmentDetail.patient?.user
-                        ? `${appointmentDetail.patient.user.firstName} ${appointmentDetail.patient.user.lastName}`
-                        : '—'}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="calendar-event-detail-modal-close"
-                    onClick={closeAppointmentDetailModal}
-                    aria-label={t('common.close')}
-                  >
-                    <X size={18} aria-hidden />
-                  </button>
-                </div>
 
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {(() => {
-                    const effectiveStatus = getEffectiveAppointmentStatus(appointmentDetail)
-                    const effectiveVariant = getEffectiveStatusVariant(effectiveStatus)
-                    return (
-                      <>
-                        <span className={getStatusBadgeClass(effectiveVariant)}>{getEffectiveStatusLabel(effectiveStatus)}</span>
-                        <span className="text-xs text-[var(--text-muted)]">
-                          {formatDate(appointmentDetail.scheduledDate)} {formatTime(appointmentDetail.scheduledDate)}
-                        </span>
-                      </>
-                    )
-                  })()}
-                </div>
-              </div>
-            </div>
-
-            <div className="calendar-event-detail-modal-body">
-              <div className="calendar-event-detail-modal-item space-y-1 text-sm">
-                <p className="text-[var(--text-secondary)]">
-                  <span className="font-medium text-[var(--text-primary)]">{t('appointments.department', 'Departamento')}:</span>{' '}
-                  {DEPARTMENT_KEYS[appointmentDetail.department]
-                    ? t(`appointments.${DEPARTMENT_KEYS[appointmentDetail.department]}`)
-                    : appointmentDetail.department}
-                </p>
-                <p className="text-[var(--text-secondary)]">
-                  <span className="font-medium text-[var(--text-primary)]">{t('appointments.professional', 'Profesional')}:</span>{' '}
-                  {appointmentDetail.professional
-                    ? `${appointmentDetail.professional.firstName} ${appointmentDetail.professional.lastName}`.trim()
-                    : '—'}
-                </p>
-                {appointmentDetail.notes && (
-                  <p className="whitespace-pre-wrap text-[var(--text-secondary)]">
-                    <span className="font-medium text-[var(--text-primary)]">{t('appointments.notes', 'Notas')}:</span>{' '}
-                    {appointmentDetail.notes}
-                  </p>
-                )}
-                {getEffectiveAppointmentStatus(appointmentDetail) === 'cancelled' && appointmentDetail.cancellationReason && (
-                  <p className="whitespace-pre-wrap text-[var(--text-secondary)]">
-                    <span className="font-medium text-[var(--text-primary)]">
-                      {t('appointments.cancellationReason', 'Motivo de cancelación')}:
-                    </span>{' '}
-                    {appointmentDetail.cancellationReason}
-                  </p>
-                )}
-                {getEffectiveAppointmentStatus(appointmentDetail) === 'rescheduled' && appointmentDetail.rescheduleReason && (
-                  <p className="whitespace-pre-wrap text-[var(--text-secondary)]">
-                    <span className="font-medium text-[var(--text-primary)]">{t('sessions.rescheduleReason', 'Motivo de reagendar')}:</span>{' '}
-                    {appointmentDetail.rescheduleReason}
-                  </p>
-                )}
-                <div className="pt-2">
-                  <Link
-                    to={`/appointments/${appointmentDetail.id}`}
-                    className="text-sm text-[var(--color-primary)] hover:underline"
-                  >
-                    {t('patients.viewRecord', 'Ver detalle')} →
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              {getEffectiveAppointmentStatus(appointmentDetail) === 'scheduled' && (
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                  <Link
-                        to={`/sessions/new?patientId=${encodeURIComponent(appointmentDetail.patient.id)}&appointmentId=${encodeURIComponent(appointmentDetail.id)}`}
-                    onClick={() => closeAppointmentDetailModal()}
-                    className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
-                  >
-                    <PlayCircle size={14} aria-hidden />
-                    {t('dashboard.psychologist.start')}
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      closeAppointmentDetailModal()
-                      openCancelModal(appointmentDetail)
-                    }}
-                    className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
-                  >
-                    <X size={14} aria-hidden />
-                    {t('sessions.cancel', 'Cancelar')}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      closeAppointmentDetailModal()
-                      openRescheduleModal(appointmentDetail)
-                    }}
-                    className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
-                  >
-                    <CalendarPlus size={14} aria-hidden />
-                    {t('sessions.reschedule', 'Reagendar')}
-                  </button>
-                </div>
-              )}
-
-              <div className="flex justify-end">
-                <GlassButton type="button" onClick={closeAppointmentDetailModal}>
-                  {t('common.close')}
-                </GlassButton>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Un solo bloque: Citas de hoy, Pendientes, Sesiones esta semana, Últimas sesiones + link calendario */}
       <GlassCard>
@@ -856,43 +916,100 @@ export function DashboardPsychologist() {
               {t('dashboard.psychologist.noUpcomingAppointments')}
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--border)] text-left text-[var(--text-muted)]">
-                    <th className="pb-2 pr-2 font-medium">{t('dashboard.psychologist.dateTime')}</th>
-                    <th className="pb-2 pr-2 font-medium">{t('dashboard.psychologist.patient')}</th>
-                    <th className="pb-2 font-medium">{t('dashboard.psychologist.type')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {appointmentsToday.map((a) => {
-                    const effectiveStatus = getEffectiveAppointmentStatus(a)
-                    const effectiveVariant = getEffectiveStatusVariant(effectiveStatus)
-                    const rowClass = effectiveStatus === 'scheduled' ? getTableRowClass() : getTableRowClass(effectiveVariant)
-                    return (
-                      <tr
-                        key={a.id}
-                        className={`${rowClass} cursor-pointer`}
-                        onClick={() => openAppointmentDetailModal(a)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => e.key === 'Enter' && openAppointmentDetailModal(a)}
-                      >
-                      <td className="py-2.5 pr-2 text-[var(--text-primary)] whitespace-nowrap">
-                        {formatDate(a.scheduledDate)} {formatTime(a.scheduledDate)}
-                      </td>
-                      <td className="py-2.5 pr-2 text-[var(--text-primary)]">
-                        {a.patient?.user ? `${a.patient.user.firstName} ${a.patient.user.lastName}` : '—'}
-                      </td>
-                      <td className="py-2.5 text-[var(--text-secondary)]">
-                        <span>{a.appointmentType || '—'}</span>
-                      </td>
-                    </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {appointmentsToday.map((a) => {
+                const effectiveStatus = getEffectiveAppointmentStatus(a)
+                const effectiveVariant = getEffectiveStatusVariant(effectiveStatus)
+                const isExpanded = expandedItemId === `appt-side-${a.id}`
+                const patientName = a.patient?.user ? `${a.patient.user.firstName} ${a.patient.user.lastName}` : 'Paciente'
+                const apptTypeLabel = a.appointmentType ? t(`calendar.types.${a.appointmentType}`, a.appointmentType) : 'Cita clínica'
+
+                return (
+                  <div
+                    key={a.id}
+                    onClick={() => toggleExpand(`appt-side-${a.id}`)}
+                    className="group flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg)]/30 px-4 py-3 transition-all duration-300 hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)]/20 hover:scale-[1.01] cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
+                        <Calendar className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-[var(--text-primary)] truncate font-sans">
+                          {patientName}
+                        </p>
+                        <p className="text-xs text-[var(--text-muted)] font-sans mt-0.5">
+                          {formatTime(a.scheduledDate)} • {apptTypeLabel}
+                        </p>
+                      </div>
+                      <div className="shrink-0 flex flex-col items-end gap-1">
+                        <span className={getStatusBadgeClass(effectiveVariant)}>
+                          {getEffectiveStatusLabel(effectiveStatus)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className={`flex flex-col gap-2.5 overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100 mt-2.5 pt-2.5 border-t border-[var(--border)]/40' : 'max-h-0 opacity-0 border-t-0 pt-0 mt-0 group-hover:max-h-96 group-hover:opacity-100 group-hover:mt-2.5 group-hover:pt-2.5 group-hover:border-t group-hover:border-[var(--border)]/40'}`}>
+                      <div className="space-y-1 text-xs text-[var(--text-secondary)] font-sans">
+                        <p>
+                          <span className="font-semibold text-[var(--text-primary)]">Fecha:</span> {formatDate(a.scheduledDate)} {formatTime(a.scheduledDate)}
+                        </p>
+                        <p>
+                          <span className="font-semibold text-[var(--text-primary)]">Departamento:</span> {DEPARTMENT_KEYS[a.department] ? t(`appointments.${DEPARTMENT_KEYS[a.department]}`) : a.department}
+                        </p>
+                        {a.professional && (
+                          <p>
+                            <span className="font-semibold text-[var(--text-primary)]">Profesional:</span> {a.professional.firstName} {a.professional.lastName}
+                          </p>
+                        )}
+                        {a.notes && (
+                          <p className="whitespace-pre-wrap">
+                            <span className="font-semibold text-[var(--text-primary)]">Notas:</span> {a.notes}
+                          </p>
+                        )}
+                        {effectiveStatus === 'cancelled' && a.cancellationReason && (
+                          <p className="whitespace-pre-wrap text-[var(--color-error)]">
+                            <span className="font-semibold">Motivo de cancelación:</span> {a.cancellationReason}
+                          </p>
+                        )}
+                        {effectiveStatus === 'rescheduled' && a.rescheduleReason && (
+                          <p className="whitespace-pre-wrap text-amber-500">
+                            <span className="font-semibold">Motivo de reagendar:</span> {a.rescheduleReason}
+                          </p>
+                        )}
+                      </div>
+
+                      {effectiveStatus === 'scheduled' && (
+                        <div className="flex flex-wrap gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                          <Link
+                            to={`/sessions/new?patientId=${encodeURIComponent(a.patient.id)}&appointmentId=${encodeURIComponent(a.id)}`}
+                            className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
+                          >
+                            <PlayCircle size={13} />
+                            Iniciar
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => openRescheduleModal(a)}
+                            className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/10 px-2.5 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/20"
+                          >
+                            <CalendarPlus size={13} />
+                            Reagendar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openCancelModal(a)}
+                            className="inline-flex items-center gap-1 rounded-lg bg-red-500/10 px-2.5 py-1.5 text-xs font-semibold text-red-500 transition-colors hover:bg-red-500/20"
+                          >
+                            <X size={13} />
+                            Cancelar
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </GlassCard>
@@ -988,7 +1105,7 @@ export function DashboardPsychologist() {
                       <td className="py-2.5 pr-2 text-[var(--text-primary)]">
                         {a.patient?.user ? `${a.patient.user.firstName} ${a.patient.user.lastName}` : '—'}
                       </td>
-                      <td className="py-2.5 text-[var(--text-secondary)]">{a.appointmentType || '—'}</td>
+                      <td className="py-2.5 text-[var(--text-secondary)]">{a.appointmentType ? t(`calendar.types.${a.appointmentType}`, a.appointmentType) : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1077,6 +1194,433 @@ export function DashboardPsychologist() {
           </div>
         )}
       </GlassCard>
+    </div>
+  )
+}
+
+interface ScheduleQueueModalProps {
+  entry: WaitingListEntry | null
+  isOpen: boolean
+  onClose: () => void
+  onSuccess: () => void
+}
+
+export function ScheduleQueueModal({ entry, isOpen, onClose, onSuccess }: ScheduleQueueModalProps) {
+  const { t } = useTranslation()
+  const user = useAuthStore((s) => s.user)
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date()
+    return d.toISOString().slice(0, 10)
+  })
+  const [selectedTime, setSelectedTime] = useState('')
+  const [appointmentType, setAppointmentType] = useState('initial_consultation')
+  const [notes, setNotes] = useState('')
+  const [patientPhone, setPatientPhone] = useState('')
+  const [patientEmail, setPatientEmail] = useState('')
+  const [therapistPhone, setTherapistPhone] = useState('')
+  const [therapistEmail, setTherapistEmail] = useState('')
+  const [dayAppointments, setDayAppointments] = useState<Appointment[]>([])
+  const [loadingAvailability, setLoadingAvailability] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [customMessage, setCustomMessage] = useState('')
+
+  useEffect(() => {
+    if (isOpen) {
+      getMyProfile()
+        .then((profile) => {
+          setTherapistPhone(profile.phone || '')
+          setTherapistEmail(profile.email || '')
+        })
+        .catch((err) => console.error('Error fetching therapist profile:', err))
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen && entry) {
+      const today = new Date().toISOString().slice(0, 10)
+      setSelectedDate(today)
+      setSelectedTime('')
+      setAppointmentType('initial_consultation')
+      setNotes(entry.reason || '')
+      setPatientPhone(entry.patient.user.phone || '')
+      setPatientEmail(entry.patient.user.email || '')
+      setSuccess(false)
+      setError(null)
+    }
+  }, [isOpen, entry])
+
+  useEffect(() => {
+    if (!isOpen || !selectedDate || !user?.id) return
+    let active = true
+    const fetchDayAppointments = async () => {
+      setLoadingAvailability(true)
+      try {
+        const startOfDay = new Date(`${selectedDate}T00:00:00`)
+        const endOfDay = new Date(`${selectedDate}T23:59:59`)
+        const res = await getAppointments({
+          startDate: startOfDay.toISOString(),
+          endDate: endOfDay.toISOString(),
+          limit: 100,
+        })
+        if (active) {
+          setDayAppointments(res.appointments)
+        }
+      } catch (err) {
+        console.error('Error fetching day appointments:', err)
+      } finally {
+        if (active) setLoadingAvailability(false)
+      }
+    }
+    void fetchDayAppointments()
+    return () => {
+      active = false
+    }
+  }, [isOpen, selectedDate, user?.id])
+
+  useEffect(() => {
+    if (entry && user) {
+      const timeStr = selectedTime ? ` a las ${selectedTime}` : ''
+      const dateObj = new Date(`${selectedDate}T12:00:00`)
+      const dateFormatted = dateObj.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
+      
+      const details = []
+      if (therapistEmail) details.push(`Correo: ${therapistEmail}`)
+      if (therapistPhone) details.push(`Teléfono: ${therapistPhone}`)
+      const contactInfo = details.join(' | ') || 'mis medios de contacto'
+
+      setCustomMessage(
+        `Hola, gracias por contactarme soy ${user.firstName} ${user.lastName} y yo seré tu psicólogo(a). Tu cita ha sido programada para el día ${dateFormatted}${timeStr}. No te preocupes, nosotros te apoyaremos en tu proceso, para cualquier duda o aclaración estos son mis medios de contacto: ${contactInfo}.`
+      )
+    }
+  }, [entry, user, selectedDate, selectedTime, therapistPhone, therapistEmail])
+
+  if (!isOpen || !entry) return null
+
+  const isSlotOccupied = (slotTime: string) => {
+    const [sh, sm] = slotTime.split(':').map(Number)
+    const slotStart = new Date(`${selectedDate}T${String(sh).padStart(2, '0')}:${String(sm).padStart(2, '0')}:00`)
+    const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000)
+
+    return dayAppointments.some((a) => {
+      if (a.status === APPOINTMENT_STATUS.CANCELLED) return false
+      const apptStart = new Date(a.scheduledDate)
+      const duration = Math.min(90, Math.max(45, a.durationMinutes || 60))
+      const apptEnd = new Date(apptStart.getTime() + duration * 60 * 1000)
+
+      return (
+        (slotStart >= apptStart && slotStart < apptEnd) ||
+        (slotEnd > apptStart && slotEnd <= apptEnd) ||
+        (slotStart <= apptStart && slotEnd >= apptEnd)
+      )
+    })
+  }
+
+  const timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']
+
+  const handleSchedule = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedTime) {
+      setError('Debes seleccionar un horario para la cita.')
+      return
+    }
+    setSubmitting(true)
+    setError(null)
+
+    const scheduledDateStr = `${selectedDate}T${selectedTime}:00`
+    const scheduledDate = new Date(scheduledDateStr)
+
+    try {
+      await createAppointment({
+        patientId: entry.patientId,
+        professionalId: user!.id,
+        appointmentType,
+        department: entry.department || 'psicologia',
+        scheduledDate: scheduledDate.toISOString(),
+        durationMinutes: 60,
+        notes,
+      })
+
+      await updateWaitingListStatus(entry.id, 'programada')
+      setSuccess(true)
+    } catch (err: any) {
+      const msg = err.response?.data?.message || t('common.error')
+      setError(msg)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const cleanPhone = patientPhone.replace(/\D/g, '')
+  const waPhone = cleanPhone.length === 10 ? '52' + cleanPhone : cleanPhone
+  const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(customMessage)}`
+  const mailUrl = `mailto:${patientEmail}?subject=${encodeURIComponent('Confirmación de Cita - UT Care')}&body=${encodeURIComponent(customMessage)}`
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="relative w-full max-w-xl rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6 shadow-2xl overflow-y-auto max-h-[90vh] font-sans">
+        
+        <div className="flex items-center justify-between border-b border-[var(--border)]/40 pb-4 mb-4">
+          <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+            {success ? '¡Cita Agendada con Éxito!' : 'Agendar Cita desde Fila Virtual'}
+          </h3>
+          <button
+            onClick={() => {
+              if (success) onSuccess()
+              onClose()
+            }}
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg transition-colors font-sans"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {!success ? (
+          <form onSubmit={handleSchedule} className="space-y-4">
+            <div className="p-3.5 rounded-xl bg-[var(--bg-secondary)]/50 border border-[var(--border)]/40 text-sm text-[var(--text-secondary)] space-y-1">
+              <p><span className="font-semibold text-[var(--text-primary)] font-sans">Alumno:</span> {entry.patient.user.firstName} {entry.patient.user.lastName}</p>
+              <p><span className="font-semibold text-[var(--text-primary)] font-sans">Carrera:</span> {entry.patient.career?.name || '—'}</p>
+              <p><span className="font-semibold text-[var(--text-primary)] font-sans">Motivo Kiosko:</span> {entry.reason || 'Sin motivo'}</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-1.5 font-sans">
+                Tipo de Cita
+              </label>
+              <select
+                value={appointmentType}
+                onChange={(e) => setAppointmentType(e.target.value)}
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] transition focus:ring-2 focus:ring-[var(--color-primary)] font-sans"
+              >
+                <option value="initial_consultation">{t('calendar.types.initial_consultation', 'Consulta inicial')}</option>
+                <option value="follow_up">{t('calendar.types.follow_up', 'Seguimiento')}</option>
+                <option value="emergency">{t('calendar.types.emergency', 'Urgencia')}</option>
+                <option value="routine">{t('calendar.types.routine', 'Rutina')}</option>
+              </select>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-1.5 font-sans">
+                  Fecha de Cita
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  min={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => {
+                    setSelectedDate(e.target.value)
+                    setSelectedTime('')
+                  }}
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] transition focus:ring-2 focus:ring-[var(--color-primary)] font-sans"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-1.5 font-sans">
+                  Hora Seleccionada
+                </label>
+                <input
+                  type="text"
+                  value={selectedTime ? `${selectedTime} hrs` : 'Selecciona abajo'}
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--glass-bg)]/40 px-3.5 py-2.5 text-sm text-[var(--text-muted)] font-sans"
+                  disabled
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-2 font-sans">
+                Agenda Visual de Disponibilidad (Bloques Ocupados)
+              </label>
+              {loadingAvailability ? (
+                <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] py-4 font-sans justify-center">
+                  <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
+                  <span>Cargando disponibilidad de la agenda...</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-5 gap-2">
+                  {timeSlots.map((time) => {
+                    const occupied = isSlotOccupied(time)
+                    const isSelected = selectedTime === time
+                    return (
+                      <button
+                        key={time}
+                        type="button"
+                        disabled={occupied}
+                        onClick={() => setSelectedTime(time)}
+                        className={`py-2 rounded-xl text-xs font-semibold transition-all flex flex-col items-center justify-center border font-sans ${
+                          occupied
+                            ? 'bg-red-500/10 border-red-500/20 text-red-400 cursor-not-allowed'
+                            : isSelected
+                            ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
+                            : 'bg-[var(--bg-secondary)]/50 border-[var(--border)]/40 text-[var(--text-secondary)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/5'
+                        }`}
+                      >
+                        <span>{time}</span>
+                        <span className="text-[9px] font-normal mt-0.5 opacity-80">
+                          {occupied ? 'Ocupado' : 'Libre'}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-1.5 font-sans">
+                Notas / Observaciones
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] transition focus:ring-2 focus:ring-[var(--color-primary)] font-sans"
+                rows={3}
+                placeholder="Ingresar notas clínicas o motivos específicos de la cita..."
+              />
+            </div>
+
+            {error && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-500 font-sans">
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 py-2.5 rounded-xl border border-[var(--border)] text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] transition font-sans"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={submitting || !selectedTime}
+                className="flex-1 py-2.5 rounded-xl bg-[var(--color-primary)] text-white text-sm font-semibold hover:bg-[var(--color-primary)]/95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2 font-sans"
+              >
+                {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                Agendar Cita
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="space-y-5 py-2">
+            <div className="flex flex-col items-center justify-center text-center space-y-2">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
+                <Sparkles className="h-6 w-6 animate-pulse" />
+              </div>
+              <h4 className="text-base font-semibold text-[var(--text-primary)]">
+                ¡Cita programada con éxito!
+              </h4>
+              <p className="text-xs text-[var(--text-muted)] max-w-sm font-sans">
+                La cita ha sido guardada y el paciente ha sido removido de la Fila Virtual. Notifica al paciente ahora.
+              </p>
+            </div>
+
+            <div className="space-y-3.5 border-t border-b border-[var(--border)]/40 py-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider font-sans mb-1">
+                    Correo Electrónico
+                  </label>
+                  <input
+                    type="email"
+                    value={patientEmail}
+                    onChange={(e) => setPatientEmail(e.target.value)}
+                    className="w-full rounded-lg border border-[var(--border)]/60 bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-primary)] font-sans"
+                    placeholder="correo@ejemplo.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider font-sans mb-1">
+                    Teléfono Celular
+                  </label>
+                  <input
+                    type="tel"
+                    value={patientPhone}
+                    onChange={(e) => setPatientPhone(e.target.value)}
+                    className="w-full rounded-lg border border-[var(--border)]/60 bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-primary)] font-sans"
+                    placeholder="Celular (10 dígitos)"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider font-sans mb-1">
+                  Mensaje de Confirmación a Enviar
+                </label>
+                <textarea
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  className="w-full resize-none rounded-xl border border-[var(--border)]/60 bg-[var(--bg-secondary)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] font-sans"
+                  rows={4}
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider font-sans mb-1">
+                    Tu Teléfono de Contacto
+                  </label>
+                  <input
+                    type="tel"
+                    value={therapistPhone}
+                    onChange={(e) => setTherapistPhone(e.target.value)}
+                    className="w-full rounded-lg border border-[var(--border)]/60 bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-primary)] font-sans"
+                    placeholder="Tu celular de contacto"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider font-sans mb-1">
+                    Tu Correo de Contacto
+                  </label>
+                  <input
+                    type="email"
+                    value={therapistEmail}
+                    onChange={(e) => setTherapistEmail(e.target.value)}
+                    className="w-full rounded-lg border border-[var(--border)]/60 bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-primary)] font-sans"
+                    placeholder="Tu correo de contacto"
+                    disabled
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-colors bg-[#128c7e] hover:bg-[#075e54] font-sans shadow-sm"
+              >
+                <MessageCircle size={18} />
+                Notificar vía WhatsApp
+              </a>
+              <a
+                href={mailUrl}
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-colors bg-[#2563eb] hover:bg-[#1d4ed8] font-sans shadow-sm"
+              >
+                <Mail size={18} />
+                Notificar vía Correo
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  onSuccess()
+                  onClose()
+                }}
+                className="w-full py-2 rounded-xl text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition font-sans"
+              >
+                Terminar sin enviar notificación
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
