@@ -106,10 +106,10 @@ Crea las carreras universitarias de la institución y el personal de salud míni
 | Nombre Completo | Nombre de Usuario | Correo Electrónico | Rol del Sistema | Descripción / Función |
 | :--- | :--- | :--- | :--- | :--- |
 | Edgar Tiburcio Gomez Moran | `EdgarGMZ` | `22038@virtual.utsc.edu.mx` | `admin` | Administrador general y auditor |
-| Orlando De Jesus Casas Davila | `OrlandoCSS` | `22034@virtual.utsc.edu.mx` | `coordinador_psicologia` | Coordinador de Psicología |
-| Juan Enrique Castillo Ontiveros | `JuanCST` | `22035@virtual.utsc.edu.mx` | `coordinador_enfermeria` | Coordinador de Enfermería |
-| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `22051@virtual.utsc.edu.mx` | `psicologo` | Psicólogo Clínico |
-| Daniela Mayte Guevara Castillo | `DanielaGVR` | `20651@virtual.utsc.edu.mx` | `enfermero` | Enfermero Operativo |
+| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `22051@virtual.utsc.edu.mx` | `coordinador_psicologia` | Coordinador de Psicología |
+| Orlando De Jesus Casas Davila | `OrlandoCSS` | `22034@virtual.utsc.edu.mx` | `coordinador_enfermeria` | Coordinador de Enfermería |
+| Daniela Mayte Guevara Castillo | `DanielaGVR` | `20651@virtual.utsc.edu.mx` | `psicologo` | Psicólogo Clínico |
+| Juan Enrique Castillo Ontiveros | `JuanCST` | `22035@virtual.utsc.edu.mx` | `enfermero` | Enfermero Operativo |
 
 > **Comando de ejecución:**
 > * Solo siembra: `npm run prisma:seed:clean`
@@ -118,11 +118,15 @@ Crea las carreras universitarias de la institución y el personal de salud míni
 ---
 
 ### 2. Seed `dev` (Datos de Prueba Completo - Desarrollo Local)
-Crea carreras, personal de salud administrativo, historiales clínicos y **500 alumnos ficticios** (de la matrícula `1000` a `1499`) para pruebas de rendimiento y paginación.
+Crea carreras, personal de salud administrativo, historiales clínicos y **500 alumnos ficticios** (de la matrícula `1000` a `1499`) para pruebas de rendimiento y paginación. Además, pre-carga la fila virtual (lista de espera de psicología) con exactamente **5 alumnos en espera por cada carrera** (60 registros de fila virtual en total) para facilitar las pruebas del dashboard.
 
 | Nombre Completo | Nombre de Usuario | Correo Electrónico | Rol del Sistema | Descripción / Función |
 | :--- | :--- | :--- | :--- | :--- |
 | Edgar Tiburcio Gomez Moran | `EdgarGMZ` | `22038@virtual.utsc.edu.mx` | `admin` | Administrador / Auditor |
+| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `22051@virtual.utsc.edu.mx` | `coordinador_psicologia` | Coordinador de Psicología |
+| Orlando De Jesus Casas Davila | `OrlandoCSS` | `22034@virtual.utsc.edu.mx` | `coordinador_enfermeria` | Coordinador de Enfermería |
+| Daniela Mayte Guevara Castillo | `DanielaGVR` | `20651@virtual.utsc.edu.mx` | `psicologo` | Psicólogo Clínico |
+| Juan Enrique Castillo Ontiveros | `JuanCST` | `22035@virtual.utsc.edu.mx` | `enfermero` | Enfermero Operativo |
 | Alumnos Genéricos | `Alumno[N]` | `alumno.[Matrícula]@utcare.local` | `patient` | Pacientes (Matrículas 1000-1499) |
 
 > **Comando de ejecución:**
@@ -137,19 +141,10 @@ Crea las carreras y los profesionales del personal clínico real de la instituci
 | Nombre Completo | Nombre de Usuario | Correo Electrónico | Rol del Sistema |
 | :--- | :--- | :--- | :--- |
 | Edgar Tiburcio Gomez Moran | `EdgarGMZ` | `22038@virtual.utsc.edu.mx` | `admin` |
-| Orlando De Jesus Casas Davila | `OrlandoCSS` | `22034@virtual.utsc.edu.mx` | `coordinador_psicologia` |
-| Juan Enrique Castillo Ontiveros | `JuanCST` | `22035@virtual.utsc.edu.mx` | `coordinador_enfermeria` |
-| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `22051@virtual.utsc.edu.mx` | `psicologo` |
-| Daniela Mayte Guevara Castillo | `DanielaGVR` | `20651@virtual.utsc.edu.mx` | `enfermero` |
-| Sergio David Elizondo Saldivar | `SergioLzn` | `sergio.elizondo@ehr-system.com` | `coordinador_psicologia` |
-| Aida Nohemi Quintero Sanchez | `AidaQnt` | `aida.quintero@ehr-system.com` | `psicologo` |
-| Maria Teresa Guadalupe del Angel | `MariaDln` | `maria.delangel@ehr-system.com` | `psicologo` |
-| Carlos Osiel Dominguez Fuentes | `CarlosDmn` | `carlos.dominguez@ehr-system.com` | `psicologo` |
-| Silvia Treviño | `SilviaTrv` | `silvia.trevino@ehr-system.com` | `psicologo` |
-| Daniela Tellez Lozano | `DanielaTlz` | `daniela.tellez@ehr-system.com` | `psicologo` |
-| Alma Patricia Montoya Valdez | `AlmaMnt` | `alma.montoya@ehr-system.com` | `enfermero` |
-| Jazmin Alejandra Parroquin Luna | `JazminPrr` | `jazmin.parroquin@ehr-system.com` | `enfermero` |
-| Ivan Javier Treviño Hernandez | `IvanTrv` | `ivan.trevino@ehr-system.com` | `coordinador_enfermeria` |
+| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `22051@virtual.utsc.edu.mx` | `coordinador_psicologia` |
+| Orlando De Jesus Casas Davila | `OrlandoCSS` | `22034@virtual.utsc.edu.mx` | `coordinador_enfermeria` |
+| Daniela Mayte Guevara Castillo | `DanielaGVR` | `20651@virtual.utsc.edu.mx` | `psicologo` |
+| Juan Enrique Castillo Ontiveros | `JuanCST` | `22035@virtual.utsc.edu.mx` | `enfermero` |
 
 > **Comando de ejecución:**
 > * Solo siembra: `npm run prisma:seed:prod`
@@ -265,7 +260,7 @@ Historias clínicas compartidas.
 | `POST` | `/api/medical-records/:id/diagnoses` | `psicologo` | Añade diagnósticos clínicos codificados (CIE-10 o DSM-5). |
 
 ### 📅 Módulo de Citas (`/api/appointments`)
-Control y agenda de consultas.
+Control y agenda de consultas, incluyendo el control de la fila virtual (lista de espera).
 
 | Método | Endpoint | Roles Permitidos | Descripción |
 | :--- | :--- | :--- | :--- |
@@ -274,6 +269,9 @@ Control y agenda de consultas.
 | `GET` | `/api/appointments/:id` | Personal Clínico | Obtiene el detalle de un cita específica. |
 | `PUT` | `/api/appointments/:id` | `psicologo`, `coordinador_psicologia` | Modifica la fecha, hora, estado o detalles de la cita. |
 | `DELETE`| `/api/appointments/:id` | `psicologo`, `coordinador_psicologia` | Cancela y elimina una cita médica. |
+| `GET` | `/api/appointments/queue` | Personal Clínico | Obtiene el listado de alumnos/pacientes en la fila virtual. |
+| `PUT` | `/api/appointments/queue/:id/status` | `psicologo`, `coordinador_psicologia` | Actualiza el estado de un registro de la fila virtual (ej. a `'programada'`). |
+| `POST` | `/api/appointments/queue/join` | Público | Registra a un alumno/paciente en la fila virtual (Kiosko). |
 
 ### 💊 Módulo de Medicamentos (`/api/medications`)
 Control de stock y farmacia interna.
