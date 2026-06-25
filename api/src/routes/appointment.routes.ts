@@ -44,6 +44,12 @@ router.put(
   appointmentController.updateAppointment
 );
 
+router.put(
+  '/queue/:id/status',
+  authorizeRoles(...ROLES_CAN_MANAGE_APPOINTMENTS),
+  appointmentController.updateWaitingListStatus
+);
+
 router.delete(
   '/:id',
   authorizeRoles(...ROLES_CAN_MANAGE_APPOINTMENTS),
