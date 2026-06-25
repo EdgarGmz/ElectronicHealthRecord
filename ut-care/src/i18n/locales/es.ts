@@ -99,6 +99,13 @@ export const es = {
     psychologistDescription: 'Actividades de la semana: citas, cumpleaños y festivos.',
     weeklyActivities: 'Actividades de la semana',
     shortcutTitle: 'Ir al calendario',
+    allDay: 'Todo el día',
+    types: {
+      initial_consultation: 'Consulta inicial',
+      follow_up: 'Seguimiento',
+      emergency: 'Urgencia',
+      routine: 'Rutina',
+    },
     eventModal: {
       typeAppointment: 'Cita',
       typeBirthday: 'Cumpleaños',

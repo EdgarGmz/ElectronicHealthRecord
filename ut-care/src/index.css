@@ -364,45 +364,156 @@
   }
   .weekly-activities-calendar .fc-theme-standard td,
   .weekly-activities-calendar .fc-theme-standard th {
-    border-color: var(--border);
+    border-color: var(--border) !important;
   }
   .weekly-activities-calendar .fc-scrollgrid {
     border-radius: 12px;
-    overflow: hidden;
+    border: 1px solid var(--border) !important;
   }
   .weekly-activities-calendar .fc-col-header-cell-cushion,
   .weekly-activities-calendar .fc-timegrid-slot-label-cushion {
     color: var(--text-secondary);
     font-size: 0.8125rem;
+    text-decoration: none !important;
   }
-  .weekly-activities-calendar .fc-event {
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 0.95rem;
-    line-height: 1.2;
-    white-space: normal;
+  
+  /* Scrollbar y Scroll del Calendario */
+  .weekly-activities-calendar .fc-scroller {
+    overflow-y: auto !important;
   }
+  .weekly-activities-calendar .fc-scroller::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .weekly-activities-calendar .fc-scroller::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .weekly-activities-calendar .fc-scroller::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+  .weekly-activities-calendar .fc-scroller::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+
+  /* Estilización de tarjetas de eventos estilo Google Calendar */
+  .weekly-activities-calendar .fc-event-custom {
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 3px 6px !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    font-size: 0.8125rem !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  }
+  .weekly-activities-calendar .fc-event-custom .fc-event-main,
+  .weekly-activities-calendar .fc-event-custom .fc-event-title,
+  .weekly-activities-calendar .fc-event-custom .fc-event-time {
+    color: inherit !important;
+  }
+  .weekly-activities-calendar .fc-event-custom:hover {
+    filter: brightness(0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-1px);
+  }
+  .dark .weekly-activities-calendar .fc-event-custom:hover {
+    filter: brightness(1.1);
+  }
+
+  /* Clases específicas por tipo de evento */
+  .weekly-activities-calendar .fc-event-appointment {
+    border-left: 4px solid #6366f1 !important;
+    background-color: rgba(99, 102, 241, 0.12) !important;
+    color: #4f46e5 !important;
+  }
+  .dark .weekly-activities-calendar .fc-event-appointment {
+    background-color: rgba(99, 102, 241, 0.2) !important;
+    color: #a5b4fc !important;
+  }
+
+  .weekly-activities-calendar .fc-event-meeting {
+    border-left: 4px solid #0ea5e9 !important;
+    background-color: rgba(14, 165, 233, 0.12) !important;
+    color: #0284c7 !important;
+  }
+  .dark .weekly-activities-calendar .fc-event-meeting {
+    background-color: rgba(14, 165, 233, 0.2) !important;
+    color: #7dd3fc !important;
+  }
+
+  .weekly-activities-calendar .fc-event-holiday {
+    border-left: 4px solid #64748b !important;
+    background-color: rgba(100, 116, 139, 0.12) !important;
+    color: #475569 !important;
+  }
+  .dark .weekly-activities-calendar .fc-event-holiday {
+    background-color: rgba(100, 116, 139, 0.2) !important;
+    color: #cbd5e1 !important;
+  }
+
+  .weekly-activities-calendar .fc-event-birthday {
+    border-left: 4px solid #a855f7 !important;
+    background-color: rgba(168, 85, 247, 0.12) !important;
+    color: #7c3aed !important;
+  }
+  .dark .weekly-activities-calendar .fc-event-birthday {
+    background-color: rgba(168, 85, 247, 0.2) !important;
+    color: #ddd6fe !important;
+  }
+
   .weekly-activities-calendar .fc-event-title {
-    font-weight: 600;
+    font-weight: 600 !important;
   }
   .weekly-activities-calendar .fc-toolbar-title {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-primary);
   }
+
+  /* Botones del Calendario con contraste correcto */
   .weekly-activities-calendar .fc-button {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-primary) !important;
     text-transform: capitalize;
     font-size: 0.875rem;
-    padding: 0.35em 0.65em;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px !important;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  }
+  .weekly-activities-calendar .fc-button:hover {
+    background-color: var(--bg-tertiary) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
   }
   .weekly-activities-calendar .fc-button-primary:not(:disabled):active,
   .weekly-activities-calendar .fc-button-primary:not(:disabled).fc-button-active {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: #fff;
+    background-color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+    color: #ffffff !important;
+  }
+  .weekly-activities-calendar .fc-button .fc-icon {
+    color: inherit !important;
   }
 
-  /* Transiciones suaves al cambiar día/semana/mes */
+  /* Suavizar líneas del grid semanal */
+  .weekly-activities-calendar .fc-timegrid-slot {
+    border-bottom: 1px solid rgba(229, 231, 235, 0.4) !important;
+  }
+  .dark .weekly-activities-calendar .fc-timegrid-slot {
+    border-bottom: 1px solid rgba(55, 65, 81, 0.4) !important;
+  }
+  .weekly-activities-calendar .fc-timegrid-slot-minor {
+    border-top-style: dashed !important;
+    border-top-color: rgba(229, 231, 235, 0.2) !important;
+  }
+  .dark .weekly-activities-calendar .fc-timegrid-slot-minor {
+    border-top-color: rgba(55, 65, 81, 0.2) !important;
+  }
+
+  /* Transiciones y Animaciones */
   .weekly-activities-calendar .fc-view-harness {
     transition: opacity 0.25s ease-out;
   }
@@ -566,6 +677,45 @@
 
 .calendar-event-detail-modal-item {
   animation: event-modal-item-in 0.35s ease-out both;
+}
+
+/* Enlaces de contacto: WhatsApp (verde) y Correo (azul) */
+.calendar-whatsapp-link {
+  color: #128c7e !important;
+  border-color: rgba(18, 140, 126, 0.25) !important;
+}
+.calendar-whatsapp-link:hover {
+  background-color: rgba(18, 140, 126, 0.05) !important;
+  border-color: #128c7e !important;
+  color: #075e54 !important;
+}
+.dark .calendar-whatsapp-link {
+  color: #25d366 !important;
+  border-color: rgba(37, 211, 102, 0.25) !important;
+}
+.dark .calendar-whatsapp-link:hover {
+  background-color: rgba(37, 211, 102, 0.1) !important;
+  border-color: #25d366 !important;
+  color: #25d366 !important;
+}
+
+.calendar-email-link {
+  color: #2563eb !important;
+  border-color: rgba(37, 99, 235, 0.25) !important;
+}
+.calendar-email-link:hover {
+  background-color: rgba(37, 99, 235, 0.05) !important;
+  border-color: #2563eb !important;
+  color: #1d4ed8 !important;
+}
+.dark .calendar-email-link {
+  color: #60a5fa !important;
+  border-color: rgba(96, 165, 250, 0.25) !important;
+}
+.dark .calendar-email-link:hover {
+  background-color: rgba(96, 165, 250, 0.1) !important;
+  border-color: #60a5fa !important;
+  color: #60a5fa !important;
 }
 
 .calendar-event-detail-modal-item:nth-child(1) { animation-delay: 0.08s; }
