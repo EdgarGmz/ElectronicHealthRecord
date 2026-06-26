@@ -33,6 +33,7 @@
     *   [📊 Módulo de Reportes (`/api/reports`)](#-módulo-de-reportes-apireports)
     *   [📋 Módulo de Bitácora de Auditoría (`/api/audit-logs`)](#-módulo-de-bitácora-de-auditoría-apiaudit-logs)
     *   [🔔 Módulo de Notificaciones (`/api/notifications`)](#-módulo-de-notificaciones-apinotifications)
+*   [🧪 Pruebas (Jest)](#-pruebas-jest)
 *   [🛠️ Scripts Disponibles en la API](#%EF%B8%8F-scripts-disponibles-en-la-api)
 
 ---
@@ -353,12 +354,74 @@ Centro de avisos del sistema.
 
 ---
 
+## 🧪 Pruebas (Jest)
+
+La API utiliza **Jest** + **ts-jest** + **Supertest** para tres niveles de pruebas.
+
+### Comandos de Testing
+
+| Comando | Descripción |
+| :--- | :--- |
+| `npm test` | Corre toda la suite de pruebas una sola vez |
+| `npm run test:watch` | Modo observación — re-ejecuta solo los tests afectados al guardar |
+| `npm run test:coverage` | Genera reporte de cobertura (HTML + lcov) en `/api/coverage/` |
+
+### Estructura de Tests (`src/__tests__/`)
+
+```
+src/__tests__/
+├── health.test.ts                          # Smoke test: GET /api/health
+│
+├── unit/
+│   ├── middleware/
+│   │   ├── auth.middleware.test.ts         # authenticateToken, optionalAuth, authorizeRoles + normalización RBAC
+│   │   └── errorHandler.test.ts            # AppError, errorHandler (prod/dev), notFoundHandler
+│   ├── utils/
+│   │   ├── jwt.test.ts                     # generate/verify AccessToken & RefreshToken, tokens inválidos
+│   │   ├── date-formatter.test.ts          # formatDateToSpanish, fechas límite y año bisiesto
+│   │   ├── audit-constants.test.ts         # AUDIT_ACTIONS, AUDIT_TABLES, createAuditLog + tolerancia a fallos
+│   │   └── password.test.ts               # hashPassword, comparePassword (bcrypt white-box)
+│
+├── integration/
+│   └── auth.test.ts                        # Login happy/sad path contra DB real
+│
+└── performance/
+    └── load.test.ts                        # Login <500ms + 50 requests concurrentes
+```
+
+### Cobertura Mínima Configurada
+
+El [`jest.config.js`](./jest.config.js) aplica umbrales mínimos que fallan el build de CI si no se cumplen:
+
+| Métrica | Umbral mínimo (Fase 1) | Meta (Fase 3) |
+| :--- | :---: | :---: |
+| Lines | 60% | 70% |
+| Functions | 60% | 70% |
+| Branches | 50% | 60% |
+| Statements | 60% | 70% |
+
+> **Nota:** Los tests de integración (`auth.test.ts`) y de rendimiento (`load.test.ts`) requieren que la base de datos PostgreSQL esté activa (`npm run db:up`) antes de ejecutarse.
+
+### Hoja de Ruta de Testing
+
+| Fase | Enfoque | Estado |
+| :--- | :--- | :---: |
+| **Fase 1** | Middleware de seguridad + utilidades base (JWT, audit, date-formatter) | ✅ Completo |
+| **Fase 2** | Unit tests de services con mock de Prisma (`auth`, `patient`, `user`) | 🔲 Pendiente |
+| **Fase 3** | Integration tests: `patient`, `medical-record`, `appointment`, `notification` | 🔲 Pendiente |
+| **Fase 4** | Tests RBAC por rol (enfermero, psicólogo, coordinador, paciente) | 🔲 Pendiente |
+| **Fase 5** | `coverageThreshold` ≥ 70% + reporte de cobertura en pipeline CI/CD | 🔲 Pendiente |
+
+---
+
 ## 🛠️ Scripts Disponibles en la API
 
 *   `npm run dev`: Inicia el servidor con hot-reload (desarrollo).
 *   `npm run setup`: Realiza la instalación inicial, corre las migraciones y ejecuta el seed de desarrollo.
 *   `npm run build`: Compila el código de TypeScript a JavaScript (`/dist`).
 *   `npm run start`: Inicia la API compilada en producción (requiere previo build).
-*   `npm test`: Ejecuta la suite de pruebas unitarias integradas con **Jest**.
+*   `npm test`: Corre toda la suite de pruebas con **Jest** (61 casos al 26-Jun-2026).
+*   `npm run test:watch`: Ejecuta Jest en modo observación para TDD.
+*   `npm run test:coverage`: Genera el reporte de cobertura HTML en `/api/coverage/`.
 *   `npm run db:up`: Levanta la base de datos PostgreSQL local en Docker.
 *   `npm run db:down`: Detiene y apaga el contenedor de base de datos local.
