@@ -39,8 +39,6 @@ module.exports = {
   testTimeout: 15000,
 
   // ── Variables de entorno para tests ──────────────────────────────────────
-  // Garantiza que NODE_ENV=test durante todos los tests
-  testEnvironmentOptions: {
-    NODE_ENV: 'test',
-  },
+  // Establece NODE_ENV=test antes de cada suite para silenciar el logger de winston
+  setupFiles: ['<rootDir>/src/__tests__/setup.ts'],
 };

@@ -44,6 +44,8 @@ const logger = winston.createLogger({
   level: config.log.level,
   format: logFormat,
   transports,
+  // Suprimir toda la salida de logs durante la ejecución de Jest
+  silent: config.env === 'test',
 });
 
 export default logger;
