@@ -35,6 +35,10 @@ jobs:
     permissions:
       contents: read
 
+    env:
+      DATABASE_URL: postgresql://admin:admin1234@localhost:5432/ehr_db
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -52,14 +56,10 @@ jobs:
 
       - name: Prisma generate & migrate
         working-directory: api
-        env:
-          DATABASE_URL: postgresql://admin:admin1234@localhost:5432/ehr_db
         run: npx prisma generate && npx prisma migrate deploy
 
       - name: Seed database
         working-directory: api
-        env:
-          DATABASE_URL: postgresql://admin:admin1234@localhost:5432/ehr_db
         run: npm run prisma:seed
 
       - name: Install Kiosko dependencies
