@@ -1523,6 +1523,7 @@ async function seedDev() {
 // ---------- Seed PROD: solo carreras + usuarios de staff (todos con contraseña) ----------
 async function seedProd() {
   await seedCareers();
+  await seedMoods();
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
   usedUsernames.clear();
 
@@ -1617,6 +1618,7 @@ async function clearDatabase() {
 async function seedClean() {
   await clearDatabase();
   await seedCareers();
+  await seedMoods();
 
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
   usedUsernames.clear();
