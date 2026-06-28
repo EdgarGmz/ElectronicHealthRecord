@@ -117,6 +117,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Unit tests (Vitest)
+        run: npm test
+
   # E2E instala api + ut-care aquí. Si el repo crece y esto se vuelve lento, valorar:
   # - needs: [api, ut-care] + actions/download-artifact con node_modules o carpetas de build
   #   generadas en esos jobs (y/o caché de npm más agresiva por lockfile).
