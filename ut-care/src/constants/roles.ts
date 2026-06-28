@@ -126,17 +126,57 @@ const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/careers': [ROLES.ADMIN],
 }
 
-/** Paths that require medical record access (expediente). Coordinators see only patient history, not full expedient. */
-const EXPEDIENT_PATH_PREFIX = '/patients/'
-const EXPEDIENT_ALLOWED_ROLES: readonly string[] = [
+/**
+ * Expediente PSICOLÓGICO — datos sensibles exclusivos del área de psicología.
+ * Solo psicólogo y coordinador de psicología pueden acceder.
+ * El admin, enfermero y coordinador de enfermería quedan excluidos.
+ */
+const EXPEDIENT_PSY_ROLES: readonly string[] = [
   ROLES.PSICOLOGO,
-  ROLES.ENFERMERO,
+  ROLES.COORDINADOR_PSICOLOGIA,
 ]
+
+/**
+ * Expediente MÉDICO (enfermería) — datos clínicos del área de enfermería.
+ * Solo enfermero y coordinador de enfermería pueden acceder.
+ */
+const EXPEDIENT_MED_ROLES: readonly string[] = [
+  ROLES.ENFERMERO,
+  ROLES.COORDINADOR_ENFERMERIA,
+]
+
+const EXPEDIENT_PATH_PREFIX = '/patients/'
+
+/**
+ * ¿El rol puede ver el expediente PSICOLÓGICO de un paciente?
+ * Usar en PatientDetailPage para la pestaña de psicología y en el click de fila.
+ */
+export function canAccessExpedient(role: string | undefined): boolean {
+  const r = normalizeRole(role)
+  return r ? EXPEDIENT_PSY_ROLES.includes(r) : false
+}
+
+/**
+ * ¿El rol puede ver el expediente MÉDICO (enfermería) de un paciente?
+ * Usar en PatientDetailPage para la pestaña médica.
+ */
+export function canAccessMedicalRecord(role: string | undefined): boolean {
+  const r = normalizeRole(role)
+  return r ? EXPEDIENT_MED_ROLES.includes(r) : false
+}
+
+/**
+ * ¿El rol puede acceder a ALGÚN tipo de expediente (psicológico O médico)?
+ * Controla la visibilidad del botón de expediente en la lista y la ruta /expedient.
+ */
+export function canAccessAnyExpedient(role: string | undefined): boolean {
+  return canAccessExpedient(role) || canAccessMedicalRecord(role)
+}
 
 /**
  * Returns whether the given role can see the nav item with path `to`.
  * If the path is not in NAV_VISIBILITY or the array is empty, all roles can see it.
- * Otherwise only the listed roles can see it (admin is excluded for sessions).
+ * Otherwise only the listed roles can see it.
  */
 export function canSeeNavItem(to: string, role: string | undefined): boolean {
   const r = normalizeRole(role)
@@ -145,22 +185,10 @@ export function canSeeNavItem(to: string, role: string | undefined): boolean {
   return allowed.includes(r)
 }
 
-/**
- * Returns whether the given role can access the given pathname (e.g. /sessions, /sessions/new, /sessions/123).
- * Used to show UnauthorizedPage when user navigates directly to a restricted route.
- */
-/**
- * Returns whether the given role can access patient expedient (medical record) pages.
- */
-export function canAccessExpedient(role: string | undefined): boolean {
-  const r = normalizeRole(role)
-  return r ? EXPEDIENT_ALLOWED_ROLES.includes(r) : false
-}
-
 export function canAccessPath(pathname: string, role: string | undefined): boolean {
   const normalized = pathname.replace(/\/$/, '') || '/'
   if (normalized.startsWith(EXPEDIENT_PATH_PREFIX) && normalized.includes('/expedient')) {
-    return canAccessExpedient(role)
+    return canAccessAnyExpedient(role)
   }
   // Solo coordinadores acceden a /patients/new
   if (normalized === '/patients/new') {

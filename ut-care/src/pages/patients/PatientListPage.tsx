@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { UserPlus, FileText, Pencil, Trash2, Users } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { getDefaultTableLimit } from '@/store/tablePageSize.store'
-import { ROLES, ROLES_CAN_CREATE_PATIENT, ROLES_CAN_EDIT_PATIENT, ROLES_CAN_DELETE_PATIENTS, canAccessExpedient } from '@/constants/roles'
+import { ROLES, ROLES_CAN_CREATE_PATIENT, ROLES_CAN_EDIT_PATIENT, ROLES_CAN_DELETE_PATIENTS, canAccessAnyExpedient } from '@/constants/roles'
 import { EmailLink } from '@/components/atoms/EmailLink'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { PhoneWhatsAppLink } from '@/components/atoms/PhoneWhatsAppLink'
@@ -25,10 +25,12 @@ const PATIENT_TYPES = ['student', 'faculty', 'administrative'] as const
 export function PatientListPage() {
   const { t } = useTranslation()
   const role = useAuthStore((s) => s.user?.role)
+  const navigate = useNavigate()
   const canCreatePatient = role ? ROLES_CAN_CREATE_PATIENT.includes(role) : false
   const canEditPatient = role ? ROLES_CAN_EDIT_PATIENT.includes(role) : false
   const canDeletePatient = role ? ROLES_CAN_DELETE_PATIENTS.includes(role) : false
-  const showExpedientLabel = canAccessExpedient(role)
+  const showExpedientLabel = canAccessAnyExpedient(role)
+  const canClickRow = canAccessAnyExpedient(role)
   const isPsychologist = role === ROLES.PSICOLOGO
 
   const [patients, setPatients] = useState<Patient[]>([])
@@ -242,6 +244,7 @@ export function PatientListPage() {
           onClearFilters={onClearFilters}
           sortState={sortState}
           onSort={(columnId, order) => setSortState({ columnId, order })}
+          onRowClick={canClickRow ? (row) => navigate(`/patients/${row.id}`) : undefined}
           renderActions={(row) => (
             <div className="flex flex-row flex-nowrap items-center gap-2">
               <Link

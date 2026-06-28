@@ -40,7 +40,7 @@ import type { NursingAttentionDetail } from '@/services/nursing-attention-list.s
 import { getNursingProcedures, getNursingProcedureById } from '@/services/nursing-procedure.service'
 import { getTherapySessionById } from '@/services/therapy-session.service'
 import { getAppointmentById } from '@/services/appointment.service'
-import { canAccessExpedient } from '@/constants/roles'
+import { canAccessAnyExpedient } from '@/constants/roles'
 import { useAuthStore } from '@/store/auth.store'
 import type { Patient } from '@/types/patient'
 import type { TherapySession } from '@/types/therapy-session'
@@ -148,7 +148,7 @@ export function PatientDetailPage() {
   const isCoordinatorNursing = role === ROLES.COORDINADOR_ENFERMERIA
   const isNurse = role === ROLES.ENFERMERO
   const isNursingRole = isCoordinatorNursing || isNurse
-  const showExpedient = canAccessExpedient(user?.role)
+  const showExpedient = canAccessAnyExpedient(user?.role)
   // Mostrar historial siempre que haya paciente cargado (la ruta /patients/:id ya está protegida por rol)
   const showHistory = !!id && !!patient
 

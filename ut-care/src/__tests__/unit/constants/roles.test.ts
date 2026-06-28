@@ -4,7 +4,9 @@
  * Cubre las funciones puras de control de acceso basado en roles (RBAC):
  *   - canSeeNavItem(to, role)
  *   - canAccessPath(pathname, role)
- *   - canAccessExpedient(role)
+ *   - canAccessExpedient(role)    — expediente psicológico
+ *   - canAccessMedicalRecord(role) — expediente médico (enfermería)
+ *   - canAccessAnyExpedient(role)  — expediente psicológico OR médico
  *   - getVisibleDashboardCards(role)
  *
  * No requiere DOM ni mocks de React — son funciones puras de TypeScript.
@@ -14,6 +16,8 @@ import {
   canSeeNavItem,
   canAccessPath,
   canAccessExpedient,
+  canAccessMedicalRecord,
+  canAccessAnyExpedient,
   getVisibleDashboardCards,
   ROLES,
 } from '@/constants/roles'
@@ -173,18 +177,18 @@ describe('canSeeNavItem', () => {
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
-// canAccessExpedient
+// canAccessExpedient (psicológico)
 // ─────────────────────────────────────────────────────────────────────────────
 describe('canAccessExpedient', () => {
-  it.each([ROLES.PSICOLOGO, ROLES.ENFERMERO])(
-    'rol %s puede acceder al expediente médico',
+  it.each([ROLES.PSICOLOGO, ROLES.COORDINADOR_PSICOLOGIA])(
+    'rol %s puede acceder al expediente PSICOLÓGICO',
     (role) => {
       expect(canAccessExpedient(role)).toBe(true)
     },
   )
 
-  it.each([ROLES.ADMIN, ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA])(
-    'rol %s NO puede acceder al expediente médico',
+  it.each([ROLES.ADMIN, ROLES.ENFERMERO, ROLES.COORDINADOR_ENFERMERIA])(
+    'rol %s NO puede acceder al expediente psicológico (datos sensibles)',
     (role) => {
       expect(canAccessExpedient(role)).toBe(false)
     },
@@ -196,6 +200,41 @@ describe('canAccessExpedient', () => {
 
   it('string vacío retorna false', () => {
     expect(canAccessExpedient('')).toBe(false)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// canAccessMedicalRecord (médico / enfermería)
+// ─────────────────────────────────────────────────────────────────────────────
+describe('canAccessMedicalRecord', () => {
+  it.each([ROLES.ENFERMERO, ROLES.COORDINADOR_ENFERMERIA])(
+    'rol %s puede acceder al expediente MÉDICO',
+    (role) => {
+      expect(canAccessMedicalRecord(role)).toBe(true)
+    },
+  )
+
+  it.each([ROLES.PSICOLOGO, ROLES.COORDINADOR_PSICOLOGIA, ROLES.ADMIN])(
+    'rol %s NO puede acceder al expediente médico de enfermería',
+    (role) => {
+      expect(canAccessMedicalRecord(role)).toBe(false)
+    },
+  )
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// canAccessAnyExpedient (psicológico OR médico)
+// ─────────────────────────────────────────────────────────────────────────────
+describe('canAccessAnyExpedient', () => {
+  it.each([ROLES.PSICOLOGO, ROLES.COORDINADOR_PSICOLOGIA, ROLES.ENFERMERO, ROLES.COORDINADOR_ENFERMERIA])(
+    'rol %s puede acceder a algún expediente',
+    (role) => {
+      expect(canAccessAnyExpedient(role)).toBe(true)
+    },
+  )
+
+  it('admin NO puede acceder a ningún expediente', () => {
+    expect(canAccessAnyExpedient(ROLES.ADMIN)).toBe(false)
   })
 })
 
@@ -231,17 +270,17 @@ describe('canAccessPath — /patients', () => {
     })
   })
 
-  describe('/patients/:id/expedient — solo psicólogo y enfermero', () => {
-    it.each([ROLES.PSICOLOGO, ROLES.ENFERMERO])('rol %s puede ver expediente', (role) => {
-      expect(canAccessPath('/patients/abc123/expedient', role)).toBe(true)
-    })
-
-    it.each([ROLES.ADMIN, ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA])(
-      'rol %s NO puede ver expediente',
+  describe('/patients/:id/expedient — psicólogos Y enfermería (canAccessAnyExpedient)', () => {
+    it.each([ROLES.PSICOLOGO, ROLES.COORDINADOR_PSICOLOGIA, ROLES.ENFERMERO, ROLES.COORDINADOR_ENFERMERIA])(
+      'rol %s puede ver expediente',
       (role) => {
-        expect(canAccessPath('/patients/abc123/expedient', role)).toBe(false)
+        expect(canAccessPath('/patients/abc123/expedient', role)).toBe(true)
       },
     )
+
+    it('admin NO puede ver ningún expediente', () => {
+      expect(canAccessPath('/patients/abc123/expedient', ROLES.ADMIN)).toBe(false)
+    })
   })
 
   describe('/patients/:id — detalle (acceso via canSeeNavItem)', () => {
