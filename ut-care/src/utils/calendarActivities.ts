@@ -12,7 +12,7 @@ export const CALENDAR_COLORS = {
 } as const
 
 /** Festivos (MM-DD) para marcar en el calendario */
-const HOLIDAYS_MM_DD: { key: string; label: string }[] = [
+export const HOLIDAYS_MM_DD: { key: string; label: string }[] = [
   { key: '01-01', label: 'Año Nuevo' },
   { key: '02-05', label: 'Día de la Constitución' },
   { key: '03-21', label: 'Natalicio de Benito Juárez' },
@@ -86,14 +86,15 @@ export function birthdaysToEvents(
     const dob = p.user?.dateOfBirth
     if (!dob) continue
     const d = new Date(dob)
-    const thisYearBirthday = new Date(startYear, d.getMonth(), d.getDate(), 8, 0, 0)
+    const thisYearBirthday = new Date(startYear, d.getMonth(), d.getDate(), 0, 0, 0)
     if (!isDateInWeek(thisYearBirthday, weekStart, weekEnd)) continue
+    const end = new Date(startYear, d.getMonth(), d.getDate(), 23, 59, 59)
     const name = p.user ? `${p.user.firstName} ${p.user.lastName}` : 'Paciente'
     events.push({
       id: `bday-${p.id}-${thisYearBirthday.getTime()}`,
       title: `Cumpleaños: ${name}`,
       start: thisYearBirthday.toISOString(),
-      end: new Date(thisYearBirthday.getTime() + 30 * 60 * 1000).toISOString(),
+      end: end.toISOString(),
       backgroundColor: CALENDAR_COLORS[CALENDAR_EVENT_TYPES.BIRTHDAY],
       borderColor: CALENDAR_COLORS[CALENDAR_EVENT_TYPES.BIRTHDAY],
       extendedProps: {
@@ -103,6 +104,7 @@ export function birthdaysToEvents(
         email: p.user?.email ?? undefined,
         phone: p.user?.phone ?? undefined,
       },
+      allDay: true,
     })
   }
   return events

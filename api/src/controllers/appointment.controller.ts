@@ -325,3 +325,34 @@ export const joinQueue = async (
     next(error);
   }
 };
+
+export const updateWaitingListStatus = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      res.status(400).json({ success: false, message: 'Status is required' });
+      return;
+    }
+
+    const updated = await appointmentService.updateWaitingListStatus(id, status);
+
+    res.status(200).json({
+      success: true,
+      message: 'Estado de la fila virtual actualizado con éxito',
+      data: updated,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -86,7 +86,6 @@ const router = createBrowserRouter(
         <Route path="appointments/new" element={<RoleGuard><NewAppointmentPage /></RoleGuard>} />
         <Route path="appointments/:id" element={<RoleGuard><AppointmentDetailPage /></RoleGuard>} />
         <Route path="sessions" element={<RoleGuard><SessionListPage /></RoleGuard>} />
-        <Route path="sessions/new" element={<RoleGuard><NewSessionPage /></RoleGuard>} />
         <Route path="sessions/:id" element={<RoleGuard><SessionDetailPage /></RoleGuard>} />
         <Route path="medications" element={<RoleGuard><MedicationListPage /></RoleGuard>} />
         <Route path="medications/new" element={<RoleGuard><NewMedicationPage /></RoleGuard>} />
@@ -113,6 +112,16 @@ const router = createBrowserRouter(
         <Route path="profile" element={<ProfilePage />} />
         <Route path="help" element={<HelpPage />} />
       </Route>
+      <Route
+        path="/sessions/new"
+        element={
+          <ProtectedRoute>
+            <RoleGuard>
+              <NewSessionPage />
+            </RoleGuard>
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </>
   )

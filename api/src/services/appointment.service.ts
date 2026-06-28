@@ -902,6 +902,22 @@ export class AppointmentService {
 
     return waitingEntry;
   }
+
+  async updateWaitingListStatus(id: string, status: string) {
+    const entry = await prisma.waitingList.findUnique({
+      where: { id },
+    });
+    if (!entry) {
+      throw new AppError('Waiting list entry not found', 404);
+    }
+    return prisma.waitingList.update({
+      where: { id },
+      data: {
+        status,
+        updatedAt: new Date(),
+      },
+    });
+  }
 }
 
 export default new AppointmentService();

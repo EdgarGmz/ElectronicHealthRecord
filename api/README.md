@@ -33,6 +33,7 @@
     *   [📊 Módulo de Reportes (`/api/reports`)](#-módulo-de-reportes-apireports)
     *   [📋 Módulo de Bitácora de Auditoría (`/api/audit-logs`)](#-módulo-de-bitácora-de-auditoría-apiaudit-logs)
     *   [🔔 Módulo de Notificaciones (`/api/notifications`)](#-módulo-de-notificaciones-apinotifications)
+*   [🧪 Pruebas (Jest)](#-pruebas-jest)
 *   [🛠️ Scripts Disponibles en la API](#%EF%B8%8F-scripts-disponibles-en-la-api)
 
 ---
@@ -106,10 +107,10 @@ Crea las carreras universitarias de la institución y el personal de salud míni
 | Nombre Completo | Nombre de Usuario | Correo Electrónico | Rol del Sistema | Descripción / Función |
 | :--- | :--- | :--- | :--- | :--- |
 | Edgar Tiburcio Gomez Moran | `EdgarGMZ` | `22038@virtual.utsc.edu.mx` | `admin` | Administrador general y auditor |
-| Orlando De Jesus Casas Davila | `OrlandoCSS` | `22034@virtual.utsc.edu.mx` | `coordinador_psicologia` | Coordinador de Psicología |
-| Juan Enrique Castillo Ontiveros | `JuanCST` | `22035@virtual.utsc.edu.mx` | `coordinador_enfermeria` | Coordinador de Enfermería |
-| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `22051@virtual.utsc.edu.mx` | `psicologo` | Psicólogo Clínico |
-| Daniela Mayte Guevara Castillo | `DanielaGVR` | `20651@virtual.utsc.edu.mx` | `enfermero` | Enfermero Operativo |
+| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `22051@virtual.utsc.edu.mx` | `coordinador_psicologia` | Coordinador de Psicología |
+| Orlando De Jesus Casas Davila | `OrlandoCSS` | `22034@virtual.utsc.edu.mx` | `coordinador_enfermeria` | Coordinador de Enfermería |
+| Daniela Mayte Guevara Castillo | `DanielaGVR` | `20651@virtual.utsc.edu.mx` | `psicologo` | Psicólogo Clínico |
+| Juan Enrique Castillo Ontiveros | `JuanCST` | `22035@virtual.utsc.edu.mx` | `enfermero` | Enfermero Operativo |
 
 > **Comando de ejecución:**
 > * Solo siembra: `npm run prisma:seed:clean`
@@ -118,11 +119,15 @@ Crea las carreras universitarias de la institución y el personal de salud míni
 ---
 
 ### 2. Seed `dev` (Datos de Prueba Completo - Desarrollo Local)
-Crea carreras, personal de salud administrativo, historiales clínicos y **500 alumnos ficticios** (de la matrícula `1000` a `1499`) para pruebas de rendimiento y paginación.
+Crea carreras, personal de salud administrativo, historiales clínicos y **500 alumnos ficticios** (de la matrícula `1000` a `1499`) para pruebas de rendimiento y paginación. Además, pre-carga la fila virtual (lista de espera de psicología) con exactamente **5 alumnos en espera por cada carrera** (60 registros de fila virtual en total) para facilitar las pruebas del dashboard.
 
 | Nombre Completo | Nombre de Usuario | Correo Electrónico | Rol del Sistema | Descripción / Función |
 | :--- | :--- | :--- | :--- | :--- |
 | Edgar Tiburcio Gomez Moran | `EdgarGMZ` | `22038@virtual.utsc.edu.mx` | `admin` | Administrador / Auditor |
+| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `22051@virtual.utsc.edu.mx` | `coordinador_psicologia` | Coordinador de Psicología |
+| Orlando De Jesus Casas Davila | `OrlandoCSS` | `22034@virtual.utsc.edu.mx` | `coordinador_enfermeria` | Coordinador de Enfermería |
+| Daniela Mayte Guevara Castillo | `DanielaGVR` | `20651@virtual.utsc.edu.mx` | `psicologo` | Psicólogo Clínico |
+| Juan Enrique Castillo Ontiveros | `JuanCST` | `22035@virtual.utsc.edu.mx` | `enfermero` | Enfermero Operativo |
 | Alumnos Genéricos | `Alumno[N]` | `alumno.[Matrícula]@utcare.local` | `patient` | Pacientes (Matrículas 1000-1499) |
 
 > **Comando de ejecución:**
@@ -137,19 +142,10 @@ Crea las carreras y los profesionales del personal clínico real de la instituci
 | Nombre Completo | Nombre de Usuario | Correo Electrónico | Rol del Sistema |
 | :--- | :--- | :--- | :--- |
 | Edgar Tiburcio Gomez Moran | `EdgarGMZ` | `22038@virtual.utsc.edu.mx` | `admin` |
-| Orlando De Jesus Casas Davila | `OrlandoCSS` | `22034@virtual.utsc.edu.mx` | `coordinador_psicologia` |
-| Juan Enrique Castillo Ontiveros | `JuanCST` | `22035@virtual.utsc.edu.mx` | `coordinador_enfermeria` |
-| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `22051@virtual.utsc.edu.mx` | `psicologo` |
-| Daniela Mayte Guevara Castillo | `DanielaGVR` | `20651@virtual.utsc.edu.mx` | `enfermero` |
-| Sergio David Elizondo Saldivar | `SergioLzn` | `sergio.elizondo@ehr-system.com` | `coordinador_psicologia` |
-| Aida Nohemi Quintero Sanchez | `AidaQnt` | `aida.quintero@ehr-system.com` | `psicologo` |
-| Maria Teresa Guadalupe del Angel | `MariaDln` | `maria.delangel@ehr-system.com` | `psicologo` |
-| Carlos Osiel Dominguez Fuentes | `CarlosDmn` | `carlos.dominguez@ehr-system.com` | `psicologo` |
-| Silvia Treviño | `SilviaTrv` | `silvia.trevino@ehr-system.com` | `psicologo` |
-| Daniela Tellez Lozano | `DanielaTlz` | `daniela.tellez@ehr-system.com` | `psicologo` |
-| Alma Patricia Montoya Valdez | `AlmaMnt` | `alma.montoya@ehr-system.com` | `enfermero` |
-| Jazmin Alejandra Parroquin Luna | `JazminPrr` | `jazmin.parroquin@ehr-system.com` | `enfermero` |
-| Ivan Javier Treviño Hernandez | `IvanTrv` | `ivan.trevino@ehr-system.com` | `coordinador_enfermeria` |
+| Carlos Alexis Rodriguez Garcia | `CarlosRDR` | `22051@virtual.utsc.edu.mx` | `coordinador_psicologia` |
+| Orlando De Jesus Casas Davila | `OrlandoCSS` | `22034@virtual.utsc.edu.mx` | `coordinador_enfermeria` |
+| Daniela Mayte Guevara Castillo | `DanielaGVR` | `20651@virtual.utsc.edu.mx` | `psicologo` |
+| Juan Enrique Castillo Ontiveros | `JuanCST` | `22035@virtual.utsc.edu.mx` | `enfermero` |
 
 > **Comando de ejecución:**
 > * Solo siembra: `npm run prisma:seed:prod`
@@ -265,7 +261,7 @@ Historias clínicas compartidas.
 | `POST` | `/api/medical-records/:id/diagnoses` | `psicologo` | Añade diagnósticos clínicos codificados (CIE-10 o DSM-5). |
 
 ### 📅 Módulo de Citas (`/api/appointments`)
-Control y agenda de consultas.
+Control y agenda de consultas, incluyendo el control de la fila virtual (lista de espera).
 
 | Método | Endpoint | Roles Permitidos | Descripción |
 | :--- | :--- | :--- | :--- |
@@ -274,6 +270,9 @@ Control y agenda de consultas.
 | `GET` | `/api/appointments/:id` | Personal Clínico | Obtiene el detalle de un cita específica. |
 | `PUT` | `/api/appointments/:id` | `psicologo`, `coordinador_psicologia` | Modifica la fecha, hora, estado o detalles de la cita. |
 | `DELETE`| `/api/appointments/:id` | `psicologo`, `coordinador_psicologia` | Cancela y elimina una cita médica. |
+| `GET` | `/api/appointments/queue` | Personal Clínico | Obtiene el listado de alumnos/pacientes en la fila virtual. |
+| `PUT` | `/api/appointments/queue/:id/status` | `psicologo`, `coordinador_psicologia` | Actualiza el estado de un registro de la fila virtual (ej. a `'programada'`). |
+| `POST` | `/api/appointments/queue/join` | Público | Registra a un alumno/paciente en la fila virtual (Kiosko). |
 
 ### 💊 Módulo de Medicamentos (`/api/medications`)
 Control de stock y farmacia interna.
@@ -355,12 +354,74 @@ Centro de avisos del sistema.
 
 ---
 
+## 🧪 Pruebas (Jest)
+
+La API utiliza **Jest** + **ts-jest** + **Supertest** para tres niveles de pruebas.
+
+### Comandos de Testing
+
+| Comando | Descripción |
+| :--- | :--- |
+| `npm test` | Corre toda la suite de pruebas una sola vez |
+| `npm run test:watch` | Modo observación — re-ejecuta solo los tests afectados al guardar |
+| `npm run test:coverage` | Genera reporte de cobertura (HTML + lcov) en `/api/coverage/` |
+
+### Estructura de Tests (`src/__tests__/`)
+
+```
+src/__tests__/
+├── health.test.ts                          # Smoke test: GET /api/health
+│
+├── unit/
+│   ├── middleware/
+│   │   ├── auth.middleware.test.ts         # authenticateToken, optionalAuth, authorizeRoles + normalización RBAC
+│   │   └── errorHandler.test.ts            # AppError, errorHandler (prod/dev), notFoundHandler
+│   ├── utils/
+│   │   ├── jwt.test.ts                     # generate/verify AccessToken & RefreshToken, tokens inválidos
+│   │   ├── date-formatter.test.ts          # formatDateToSpanish, fechas límite y año bisiesto
+│   │   ├── audit-constants.test.ts         # AUDIT_ACTIONS, AUDIT_TABLES, createAuditLog + tolerancia a fallos
+│   │   └── password.test.ts               # hashPassword, comparePassword (bcrypt white-box)
+│
+├── integration/
+│   └── auth.test.ts                        # Login happy/sad path contra DB real
+│
+└── performance/
+    └── load.test.ts                        # Login <500ms + 50 requests concurrentes
+```
+
+### Cobertura Mínima Configurada
+
+El [`jest.config.js`](./jest.config.js) aplica umbrales mínimos que fallan el build de CI si no se cumplen:
+
+| Métrica | Umbral mínimo (Fase 1) | Meta (Fase 3) |
+| :--- | :---: | :---: |
+| Lines | 60% | 70% |
+| Functions | 60% | 70% |
+| Branches | 50% | 60% |
+| Statements | 60% | 70% |
+
+> **Nota:** Los tests de integración (`auth.test.ts`) y de rendimiento (`load.test.ts`) requieren que la base de datos PostgreSQL esté activa (`npm run db:up`) antes de ejecutarse.
+
+### Hoja de Ruta de Testing
+
+| Fase | Enfoque | Estado |
+| :--- | :--- | :---: |
+| **Fase 1** | Middleware de seguridad + utilidades base (JWT, audit, date-formatter) | ✅ Completo |
+| **Fase 2** | Unit tests de services con mock de Prisma (`auth`, `patient`, `user`) | 🔲 Pendiente |
+| **Fase 3** | Integration tests: `patient`, `medical-record`, `appointment`, `notification` | 🔲 Pendiente |
+| **Fase 4** | Tests RBAC por rol (enfermero, psicólogo, coordinador, paciente) | 🔲 Pendiente |
+| **Fase 5** | `coverageThreshold` ≥ 70% + reporte de cobertura en pipeline CI/CD | 🔲 Pendiente |
+
+---
+
 ## 🛠️ Scripts Disponibles en la API
 
 *   `npm run dev`: Inicia el servidor con hot-reload (desarrollo).
 *   `npm run setup`: Realiza la instalación inicial, corre las migraciones y ejecuta el seed de desarrollo.
 *   `npm run build`: Compila el código de TypeScript a JavaScript (`/dist`).
 *   `npm run start`: Inicia la API compilada en producción (requiere previo build).
-*   `npm test`: Ejecuta la suite de pruebas unitarias integradas con **Jest**.
+*   `npm test`: Corre toda la suite de pruebas con **Jest** (61 casos al 26-Jun-2026).
+*   `npm run test:watch`: Ejecuta Jest en modo observación para TDD.
+*   `npm run test:coverage`: Genera el reporte de cobertura HTML en `/api/coverage/`.
 *   `npm run db:up`: Levanta la base de datos PostgreSQL local en Docker.
 *   `npm run db:down`: Detiene y apaga el contenedor de base de datos local.

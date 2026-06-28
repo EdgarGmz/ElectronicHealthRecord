@@ -104,6 +104,7 @@ export function WeeklyActivitiesCalendar({
               slotMaxTime="23:59:00"
               slotDuration="00:30:00"
               allDaySlot={true}
+              allDayText={t('calendar.allDay', 'Todo el día')}
               height={500}
               headerToolbar={{
                 left: 'prev,next today',
@@ -118,11 +119,15 @@ export function WeeklyActivitiesCalendar({
               datesSet={handleDatesSet}
               eventClick={handleEventClick}
               eventDisplay="block"
-              dayHeaderFormat={{ weekday: 'short', day: 'numeric', month: 'short' }}
+              dayHeaderFormat={{ weekday: 'short', day: 'numeric' }}
               slotLabelFormat={{
                 hour: '2-digit',
                 minute: '2-digit',
               }}
+              eventClassNames={(arg) => [
+                'fc-event-custom',
+                `fc-event-${arg.event.extendedProps.type || 'appointment'}`
+              ]}
             />
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-4 border-t border-[var(--border)] pt-3 text-xs text-[var(--text-muted)]">
@@ -201,7 +206,9 @@ export function WeeklyActivitiesCalendar({
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg)] text-[var(--text-muted)]" aria-hidden>
                         <Calendar size={18} />
                       </span>
-                      <p className="text-sm text-[var(--text-secondary)] pt-0.5">{detailModal.description}</p>
+                      <p className="text-sm text-[var(--text-secondary)] pt-0.5">
+                        {t(`calendar.types.${detailModal.description}`, detailModal.description)}
+                      </p>
                     </div>
                   )}
                   {detailModal.resourceId && (
@@ -232,7 +239,7 @@ export function WeeklyActivitiesCalendar({
                     {detailModal.email && (
                       <a
                         href={`mailto:${detailModal.email}`}
-                        className="calendar-event-detail-modal-item inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-2.5 text-sm text-[var(--text-primary)] transition-colors hover:border-[var(--color-primary)]/50 hover:scale-[1.02]"
+                        className="calendar-event-detail-modal-item calendar-email-link inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-2.5 text-sm transition-colors hover:scale-[1.02]"
                       >
                         <Mail size={18} />
                         {t('calendar.eventModal.sendEmail')}
@@ -243,7 +250,7 @@ export function WeeklyActivitiesCalendar({
                         href={`https://wa.me/52${detailModal.phone.replace(/\D/g, '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="calendar-event-detail-modal-item inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-2.5 text-sm text-[var(--text-primary)] transition-colors hover:border-[var(--color-primary)]/50 hover:scale-[1.02]"
+                        className="calendar-event-detail-modal-item calendar-whatsapp-link inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-2.5 text-sm transition-colors hover:scale-[1.02]"
                       >
                         <MessageCircle size={18} />
                         WhatsApp

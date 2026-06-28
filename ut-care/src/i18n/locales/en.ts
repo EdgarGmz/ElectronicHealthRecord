@@ -99,6 +99,13 @@ export const en = {
     psychologistDescription: 'Weekly activities: appointments, birthdays and holidays.',
     weeklyActivities: 'Weekly activities',
     shortcutTitle: 'Go to calendar',
+    allDay: 'All day',
+    types: {
+      initial_consultation: 'Initial consultation',
+      follow_up: 'Follow-up',
+      emergency: 'Emergency',
+      routine: 'Routine',
+    },
     eventModal: {
       typeAppointment: 'Appointment',
       typeBirthday: 'Birthday',

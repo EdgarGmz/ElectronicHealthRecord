@@ -14,6 +14,14 @@ const STUDENTS_PER_CAREER = 50;
 const DEFAULT_SEED_PASSWORD = 'Password123!';
 const ROBUST_MIN_PER_TABLE = 100;
 
+const STAFF_SEED_DATA = [
+  { firstName: 'Edgar Tiburcio', lastName: 'Gomez Moran', email: '22038@virtual.utsc.edu.mx', role: 'admin' as const, enrollmentNumber: '22038', sex: 'male' },
+  { firstName: 'Carlos Alexis', lastName: 'Rodriguez Garcia', email: '22051@virtual.utsc.edu.mx', role: 'coordinador_psicologia' as const, enrollmentNumber: '22051', sex: 'male' },
+  { firstName: 'Orlando De Jesus', lastName: 'Casas Davila', email: '22034@virtual.utsc.edu.mx', role: 'coordinador_enfermeria' as const, enrollmentNumber: '22034', sex: 'male' },
+  { firstName: 'Daniela Mayte', lastName: 'Guevara Castillo', email: '20651@virtual.utsc.edu.mx', role: 'psicologo' as const, enrollmentNumber: '20651', sex: 'female' },
+  { firstName: 'Juan Enrique', lastName: 'Castillo Ontiveros', email: '22035@virtual.utsc.edu.mx', role: 'enfermero' as const, enrollmentNumber: '22035', sex: 'male' }
+] as const;
+
 // Helper function to hash passwords
 async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, SALT_ROUNDS);
@@ -932,27 +940,6 @@ async function seedNotifications(users: any[]) {
   console.log(`✅ Created ${totalNotifications} notifications`);
 }
 
-async function ensureMinimumCareers(target: number) {
-  let count = await prisma.career.count();
-  let cursor = count + 1;
-  while (count < target) {
-    const suffix = String(cursor).padStart(3, '0');
-    const name = `Carrera Semilla ${suffix}`;
-    const code = `SEM-${suffix}`;
-    await prisma.career.upsert({
-      where: { name },
-      update: {},
-      create: {
-        name,
-        code,
-        isActive: true,
-      },
-    });
-    cursor += 1;
-    count = await prisma.career.count();
-  }
-}
-
 async function ensureMinimumMoods(target: number) {
   let count = await prisma.mood.count();
   let cursor = count + 1;
@@ -973,67 +960,6 @@ async function ensureMinimumMoods(target: number) {
     });
     cursor += 1;
     count = await prisma.mood.count();
-  }
-}
-
-async function ensureMinimumMedications(target: number) {
-  let count = await prisma.medication.count();
-  let cursor = count + 1;
-  const categories = ['Analgesic', 'Antibiotic', 'Antihypertensive', 'Antidepressant', 'Supplement'];
-  const forms = ['Tablet', 'Capsule', 'Syrup', 'Injectable'];
-  const routes = ['Oral', 'Intramuscular', 'Intravenous', 'Topical'];
-
-  while (count < target) {
-    const suffix = String(cursor).padStart(3, '0');
-    const genericName = `Componente Seed ${suffix}`;
-    const name = `Medicamento Seed ${suffix}`;
-
-    await prisma.medication.create({
-      data: {
-        name,
-        genericName,
-        category: categories[cursor % categories.length],
-        dosageForms: forms[cursor % forms.length],
-        commonDosages: `${100 + (cursor % 6) * 50}mg`,
-        administrationRoutes: routes[cursor % routes.length],
-        contraindications: Math.random() > 0.5 ? faker.lorem.sentence() : null,
-        sideEffects: Math.random() > 0.5 ? faker.lorem.sentence() : null,
-        isActive: true,
-        stock: 5 + Math.floor(Math.random() * 120),
-      },
-    });
-
-    cursor += 1;
-    count = await prisma.medication.count();
-  }
-}
-
-async function ensureMinimumRoleUsers(role: 'psicologo' | 'enfermero', target: number, passwordHash: string) {
-  let count = await prisma.user.count({ where: { role } });
-  let cursor = count + 1;
-  while (count < target) {
-    const firstName = faker.person.firstName();
-    const lastName = faker.person.lastName();
-    const username = generateUniqueUsername(firstName, lastName);
-    const suffix = String(cursor).padStart(3, '0');
-    await prisma.user.create({
-      data: {
-        email: `${role}.${suffix}@utcare.local`,
-        username,
-        passwordHash,
-        firstName,
-        lastName,
-        dateOfBirth: faker.date.birthdate({ min: 24, max: 62, mode: 'age' }),
-        role,
-        enrollmentNumber: `${role === 'psicologo' ? 'PSI' : 'ENF'}${suffix}`,
-        sex: Math.random() < 0.5 ? 'male' : 'female',
-        phone: faker.string.numeric(10),
-        isConfirmed: true,
-        mustChangePassword: false,
-      },
-    });
-    cursor += 1;
-    count = await prisma.user.count({ where: { role } });
   }
 }
 
@@ -1118,6 +1044,41 @@ async function ensureMinimumWaitingList(target: number) {
     cursor += 1;
     count = await prisma.waitingList.count();
   }
+}
+
+async function seedWaitingListDev(patients: any[], careers: any[], psychologists: any[]) {
+  console.log('👥 Seeding Waiting List for DEV (5 per career)...');
+  let count = 0;
+  
+  for (let careerIndex = 0; careerIndex < careers.length; careerIndex++) {
+    const career = careers[careerIndex];
+    const careerPatients = patients.filter((p) => p.careerId === career.id);
+    const targetPatients = careerPatients.slice(0, 5);
+    
+    for (const patient of targetPatients) {
+      const psychologist = psychologists.length > 0 ? randomElement(psychologists) : null;
+      await prisma.waitingList.create({
+        data: {
+          patientId: patient.id,
+          department: 'psicologia',
+          preferredProfessionalId: psychologist ? psychologist.id : null,
+          requestedDate: faker.date.recent({ days: 5 }),
+          priority: 'media',
+          status: 'espera',
+          reason: `El alumno solicita agendar cita desde el Kiosko para ${randomElement([
+            'consulta por estrés académico',
+            'apoyo por problemas personales',
+            'orientación vocacional',
+            'ansiedad ante exámenes',
+            'seguimiento de proceso anterior',
+          ])}`,
+          createdAt: faker.date.recent({ days: 5 }),
+        },
+      });
+      count++;
+    }
+  }
+  console.log(`✅ Created ${count} waiting list entries (5 per career)`);
 }
 
 async function ensureMinimumNursingAttentions(target: number) {
@@ -1365,14 +1326,7 @@ async function ensureMinimumInterconsultations(target: number) {
 async function ensureRobustMinimums(target = ROBUST_MIN_PER_TABLE) {
   console.log(`📈 Ensuring robust minimum dataset (${target} rows per table when feasible)...`);
 
-  const passwordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
-
-  await ensureMinimumCareers(target);
   await ensureMinimumMoods(target);
-  await ensureMinimumMedications(target);
-  await ensureMinimumRoleUsers('psicologo', 12, passwordHash);
-  await ensureMinimumRoleUsers('enfermero', 12, passwordHash);
-
   await ensureMinimumPsychologistCareers(target);
   await ensureMinimumAppointmentReminders(target);
   await ensureMinimumWaitingList(target);
@@ -1456,10 +1410,9 @@ async function seedRobust() {
 async function seedDev() {
   const careers = await seedCareers();
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
+  usedUsernames.clear();
 
-  const staffDev = [
-    { firstName: 'Edgar Tiburcio', lastName: 'Gomez Moran', email: '22038@virtual.utsc.edu.mx', role: 'admin' as const, enrollmentNumber: '22038', sex: 'male' },
-  ];
+  const staffDev = STAFF_SEED_DATA;
 
   console.log('👤 Seeding DEV staff users (with password)...');
   const staffUsers: any[] = [];
@@ -1473,6 +1426,7 @@ async function seedDev() {
         isConfirmed: true,
         mustChangePassword: false,
         sex: s.sex,
+        role: s.role,
       },
       create: {
         email: s.email,
@@ -1548,6 +1502,7 @@ async function seedDev() {
   await seedMedicationAdministration(consultations, medications, nurses);
   await seedAppointments(patients, [...psychologists, ...nurses], nurses);
   await seedProfessionalSchedules(psychologists, nurses);
+  await seedWaitingListDev(patients, careers, psychologists);
   await seedInterconsultations(patients, psychologists, nurses);
   await seedNotifications([...staffUsers, ...patientUsers]);
 
@@ -1569,24 +1524,18 @@ async function seedDev() {
 async function seedProd() {
   await seedCareers();
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
+  usedUsernames.clear();
 
-  const staffProd = [
-    { firstName: 'Edgar Tiburcio', lastName: 'Gomez Moran', email: '22038@virtual.utsc.edu.mx', role: 'admin' as const, enrollmentNumber: '22038', sex: 'male' },
-    { firstName: 'Orlando De Jesus', lastName: 'Casas Davila', email: '22034@virtual.utsc.edu.mx', role: 'coordinador_psicologia' as const, enrollmentNumber: '22034', sex: 'male' },
-    { firstName: 'Juan Enrique', lastName: 'Castillo Ontiveros', email: '22035@virtual.utsc.edu.mx', role: 'coordinador_enfermeria' as const, enrollmentNumber: '22035', sex: 'male' },
-    { firstName: 'Carlos Alexis', lastName: 'Rodriguez Garcia', email: '22051@virtual.utsc.edu.mx', role: 'psicologo' as const, enrollmentNumber: '22051', sex: 'male' },
-    { firstName: 'Daniela Mayte', lastName: 'Guevara Castillo', email: '20651@virtual.utsc.edu.mx', role: 'enfermero' as const, enrollmentNumber: '20651', sex: 'female' },
+  const staffProd = STAFF_SEED_DATA;
 
-    { firstName: 'Sergio David', lastName: 'Elizondo Saldivar', email: 'sergio.elizondo@ehr-system.com', role: 'coordinador_psicologia' as const, enrollmentNumber: 'COP002', sex: 'male' },
-    { firstName: 'Aida Nohemi', lastName: 'Quintero Sanchez', email: 'aida.quintero@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI002', sex: 'female' },
-    { firstName: 'Maria Teresa Guadalupe', lastName: 'del Angel Monte Mayor', email: 'maria.delangel@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI003', sex: 'female' },
-    { firstName: 'Carlos Osiel', lastName: 'Dominguez Fuentes', email: 'carlos.dominguez@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI004', sex: 'male' },
-    { firstName: 'Silvia', lastName: 'Treviño', email: 'silvia.trevino@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI005', sex: 'female' },
-    { firstName: 'Daniela', lastName: 'Tellez Lozano', email: 'daniela.tellez@ehr-system.com', role: 'psicologo' as const, enrollmentNumber: 'PSI006', sex: 'female' },
-    { firstName: 'Alma Patricia', lastName: 'Montoya Valdez', email: 'alma.montoya@ehr-system.com', role: 'enfermero' as const, enrollmentNumber: 'ENF002', sex: 'female' },
-    { firstName: 'Jazmin Alejandra', lastName: 'Parroquin Luna', email: 'jazmin.parroquin@ehr-system.com', role: 'enfermero' as const, enrollmentNumber: 'ENF003', sex: 'female' },
-    { firstName: 'Ivan Javier', lastName: 'Treviño Hernandez', email: 'ivan.trevino@ehr-system.com', role: 'coordinador_enfermeria' as const, enrollmentNumber: 'COE002', sex: 'male' },
-  ];
+  // Eliminar cualquier usuario del personal anterior que no esté en la lista oficial
+  const officialEmails = staffProd.map(s => s.email);
+  await prisma.user.deleteMany({
+    where: {
+      email: { notIn: officialEmails },
+      role: { not: 'patient' }
+    }
+  });
 
   console.log('👤 Seeding PROD staff users (with password)...');
   const createdProdUsers: any[] = [];
@@ -1599,7 +1548,8 @@ async function seedProd() {
         username,
         isConfirmed: true,
         mustChangePassword: false,
-        sex: s.sex || undefined,
+        sex: s.sex,
+        role: s.role,
       },
       create: {
         email: s.email,
@@ -1669,14 +1619,9 @@ async function seedClean() {
   await seedCareers();
 
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
+  usedUsernames.clear();
 
-  const staffToCreate = [
-    { firstName: 'Edgar Tiburcio', lastName: 'Gomez Moran', email: '22038@virtual.utsc.edu.mx', role: 'admin' as const, enrollmentNumber: '22038', sex: 'male' },
-    { firstName: 'Orlando De Jesus', lastName: 'Casas Davila', email: '22034@virtual.utsc.edu.mx', role: 'coordinador_psicologia' as const, enrollmentNumber: '22034', sex: 'male' },
-    { firstName: 'Juan Enrique', lastName: 'Castillo Ontiveros', email: '22035@virtual.utsc.edu.mx', role: 'coordinador_enfermeria' as const, enrollmentNumber: '22035', sex: 'male' },
-    { firstName: 'Carlos Alexis', lastName: 'Rodriguez Garcia', email: '22051@virtual.utsc.edu.mx', role: 'psicologo' as const, enrollmentNumber: '22051', sex: 'male' },
-    { firstName: 'Daniela Mayte', lastName: 'Guevara Castillo', email: '20651@virtual.utsc.edu.mx', role: 'enfermero' as const, enrollmentNumber: '20651', sex: 'female' }
-  ];
+  const staffToCreate = STAFF_SEED_DATA;
 
   console.log('👤 Seeding staff users for CLEAN...');
   const createdCleanUsers = [];
