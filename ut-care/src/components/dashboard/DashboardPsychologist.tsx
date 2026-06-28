@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import {
@@ -19,6 +20,7 @@ import {
   Sparkles,
   Mail,
   MessageCircle,
+  ChevronDown,
 } from 'lucide-react'
 import { canSeeNavItem } from '@/constants/roles'
 import {
@@ -154,6 +156,44 @@ export function DashboardPsychologist() {
     await refreshAppointmentsToday()
     const qList = await getQueue()
     setQueue(qList)
+  }
+
+  const [attendQueueConfirmOpen, setAttendQueueConfirmOpen] = useState(false)
+  const [selectedQueueEntryForAttend, setSelectedQueueEntryForAttend] = useState<WaitingListEntry | null>(null)
+  const [attendingQueue, setAttendingQueue] = useState(false)
+  const [attendError, setAttendError] = useState<string | null>(null)
+
+  const handleConfirmAttend = async () => {
+    if (!selectedQueueEntryForAttend || !user?.id) return
+    setAttendingQueue(true)
+    setAttendError(null)
+    try {
+      const newAppt = await createAppointment({
+        patientId: selectedQueueEntryForAttend.patientId,
+        professionalId: user.id,
+        appointmentType: 'initial_consultation',
+        department: selectedQueueEntryForAttend.department || 'psicologia',
+        scheduledDate: new Date().toISOString(),
+        durationMinutes: 60,
+        notes: selectedQueueEntryForAttend.reason || 'Atención iniciada directamente desde Fila Virtual',
+      })
+
+      await updateWaitingListStatus(selectedQueueEntryForAttend.id, 'atendida')
+
+      setAttendQueueConfirmOpen(false)
+      setSelectedQueueEntryForAttend(null)
+      await refreshAppointmentsToday()
+      const qList = await getQueue()
+      setQueue(qList)
+
+      window.open(`/sessions/new?patientId=${encodeURIComponent(selectedQueueEntryForAttend.patient.id)}&appointmentId=${encodeURIComponent(newAppt.id)}&queueEntryId=${encodeURIComponent(selectedQueueEntryForAttend.id)}`, '_blank')
+    } catch (err: any) {
+      console.error('Error starting session from queue:', err)
+      const msg = err.response?.data?.message || t('common.error')
+      setAttendError(msg)
+    } finally {
+      setAttendingQueue(false)
+    }
   }
 
   const toggleExpand = (id: string) => {
@@ -514,13 +554,18 @@ export function DashboardPsychologist() {
                     </div>
 
                     <div className="flex flex-wrap gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
-                      <Link
-                        to={`/sessions/new?patientId=${encodeURIComponent(entry.patient.id)}`}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedQueueEntryForAttend(entry)
+                          setAttendQueueConfirmOpen(true)
+                          setAttendError(null)
+                        }}
                         className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
                       >
                         <PlayCircle size={13} />
                         Atender
-                      </Link>
+                      </button>
                       <button
                         type="button"
                         onClick={() => openScheduleModal(entry)}
@@ -621,6 +666,8 @@ export function DashboardPsychologist() {
                       <div className="flex flex-wrap gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
                         <Link
                           to={`/sessions/new?patientId=${encodeURIComponent(a.patient.id)}&appointmentId=${encodeURIComponent(a.id)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
                         >
                           <PlayCircle size={13} />
@@ -820,6 +867,29 @@ export function DashboardPsychologist() {
         }
       />
 
+      <ConfirmModal
+        open={attendQueueConfirmOpen}
+        onClose={() => {
+          setAttendQueueConfirmOpen(false)
+          setSelectedQueueEntryForAttend(null)
+          setAttendError(null)
+        }}
+        onConfirm={handleConfirmAttend}
+        title={t('dashboard.psychologist.attendPatientTitle', 'Iniciar Atención Inmediata')}
+        message={t(
+          'dashboard.psychologist.attendPatientConfirm',
+          '¿Deseas iniciar la sesión con {{name}} en este momento? Esto creará una cita para hoy y removerá al alumno de la lista de espera.',
+          { name: selectedQueueEntryForAttend?.patient?.user ? `${selectedQueueEntryForAttend.patient.user.firstName} ${selectedQueueEntryForAttend.patient.user.lastName}` : '' }
+        )}
+        detail={
+          attendError ? (
+            <p className="text-xs text-[var(--color-error)] font-sans">{attendError}</p>
+          ) : undefined
+        }
+        confirmLabel={t('dashboard.psychologist.startSession', 'Iniciar Sesión')}
+        confirming={attendingQueue}
+      />
+
       <ScheduleQueueModal
         entry={selectedQueueEntry}
         isOpen={scheduleModalOpen}
@@ -983,6 +1053,8 @@ export function DashboardPsychologist() {
                         <div className="flex flex-wrap gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
                           <Link
                             to={`/sessions/new?patientId=${encodeURIComponent(a.patient.id)}&appointmentId=${encodeURIComponent(a.id)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-primary)]/15 px-2.5 py-1.5 text-xs font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/25"
                           >
                             <PlayCircle size={13} />
@@ -1252,6 +1324,16 @@ export function ScheduleQueueModal({ entry, isOpen, onClose, onSuccess }: Schedu
   }, [isOpen, entry])
 
   useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
+
+  useEffect(() => {
     if (!isOpen || !selectedDate || !user?.id) return
     let active = true
     const fetchDayAppointments = async () => {
@@ -1357,12 +1439,24 @@ export function ScheduleQueueModal({ entry, isOpen, onClose, onSuccess }: Schedu
   const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(customMessage)}`
   const mailUrl = `mailto:${patientEmail}?subject=${encodeURIComponent('Confirmación de Cita - UT Care')}&body=${encodeURIComponent(customMessage)}`
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-xl rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6 shadow-2xl overflow-y-auto max-h-[90vh] font-sans">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* Backdrop overlay */}
+      <div
+        className="absolute inset-0 bg-black/75 backdrop-blur-sm animate-fade-in"
+        onClick={() => {
+          if (success) onSuccess()
+          onClose()
+        }}
+      />
+      {/* Modal card */}
+      <div
+        className="relative w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xl overflow-y-auto max-h-[90vh] font-sans z-10 animate-fade-in"
+        onClick={(e) => e.stopPropagation()}
+      >
         
-        <div className="flex items-center justify-between border-b border-[var(--border)]/40 pb-4 mb-4">
-          <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/60 pb-4 mb-4">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
             {success ? '¡Cita Agendada con Éxito!' : 'Agendar Cita desde Fila Virtual'}
           </h3>
           <button
@@ -1370,7 +1464,7 @@ export function ScheduleQueueModal({ entry, isOpen, onClose, onSuccess }: Schedu
               if (success) onSuccess()
               onClose()
             }}
-            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg transition-colors font-sans"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg transition-colors font-sans"
           >
             <X size={20} />
           </button>
@@ -1378,31 +1472,36 @@ export function ScheduleQueueModal({ entry, isOpen, onClose, onSuccess }: Schedu
 
         {!success ? (
           <form onSubmit={handleSchedule} className="space-y-4">
-            <div className="p-3.5 rounded-xl bg-[var(--bg-secondary)]/50 border border-[var(--border)]/40 text-sm text-[var(--text-secondary)] space-y-1">
-              <p><span className="font-semibold text-[var(--text-primary)] font-sans">Alumno:</span> {entry.patient.user.firstName} {entry.patient.user.lastName}</p>
-              <p><span className="font-semibold text-[var(--text-primary)] font-sans">Carrera:</span> {entry.patient.career?.name || '—'}</p>
-              <p><span className="font-semibold text-[var(--text-primary)] font-sans">Motivo Kiosko:</span> {entry.reason || 'Sin motivo'}</p>
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800/40 text-sm text-slate-700 dark:text-slate-300 space-y-1.5">
+              <p><span className="font-semibold text-slate-900 dark:text-white font-sans">Alumno:</span> {entry.patient.user.firstName} {entry.patient.user.lastName}</p>
+              <p><span className="font-semibold text-slate-900 dark:text-white font-sans">Carrera:</span> {entry.patient.career?.name || '—'}</p>
+              <p><span className="font-semibold text-slate-900 dark:text-white font-sans">Motivo Kiosko:</span> {entry.reason || 'Sin motivo'}</p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-1.5 font-sans">
+              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5 font-sans">
                 Tipo de Cita
               </label>
-              <select
-                value={appointmentType}
-                onChange={(e) => setAppointmentType(e.target.value)}
-                className="w-full rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] transition focus:ring-2 focus:ring-[var(--color-primary)] font-sans"
-              >
-                <option value="initial_consultation">{t('calendar.types.initial_consultation', 'Consulta inicial')}</option>
-                <option value="follow_up">{t('calendar.types.follow_up', 'Seguimiento')}</option>
-                <option value="emergency">{t('calendar.types.emergency', 'Urgencia')}</option>
-                <option value="routine">{t('calendar.types.routine', 'Rutina')}</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={appointmentType}
+                  onChange={(e) => setAppointmentType(e.target.value)}
+                  className="w-full appearance-none rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2.5 pr-10 text-sm text-slate-900 dark:text-white transition focus:ring-2 focus:ring-[var(--color-primary)] font-sans outline-none"
+                >
+                  <option value="initial_consultation">{t('calendar.types.initial_consultation', 'Consulta inicial')}</option>
+                  <option value="follow_up">{t('calendar.types.follow_up', 'Seguimiento')}</option>
+                  <option value="emergency">{t('calendar.types.emergency', 'Urgencia')}</option>
+                  <option value="routine">{t('calendar.types.routine', 'Rutina')}</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-500">
+                  <ChevronDown size={16} />
+                </div>
+              </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-1.5 font-sans">
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5 font-sans">
                   Fecha de Cita
                 </label>
                 <input
@@ -1413,30 +1512,30 @@ export function ScheduleQueueModal({ entry, isOpen, onClose, onSuccess }: Schedu
                     setSelectedDate(e.target.value)
                     setSelectedTime('')
                   }}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] transition focus:ring-2 focus:ring-[var(--color-primary)] font-sans"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white transition focus:ring-2 focus:ring-[var(--color-primary)] font-sans outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-1.5 font-sans">
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5 font-sans">
                   Hora Seleccionada
                 </label>
                 <input
                   type="text"
                   value={selectedTime ? `${selectedTime} hrs` : 'Selecciona abajo'}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--glass-bg)]/40 px-3.5 py-2.5 text-sm text-[var(--text-muted)] font-sans"
-                  disabled
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/50 dark:bg-slate-800/40 px-3.5 py-2.5 text-sm text-slate-700 dark:text-slate-300 font-sans outline-none"
+                  readOnly
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-2 font-sans">
+              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2 font-sans">
                 Agenda Visual de Disponibilidad (Bloques Ocupados)
               </label>
               {loadingAvailability ? (
-                <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] py-4 font-sans justify-center">
+                <div className="flex items-center gap-2 text-sm text-slate-500 py-4 font-sans justify-center">
                   <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
                   <span>Cargando disponibilidad de la agenda...</span>
                 </div>
@@ -1453,14 +1552,14 @@ export function ScheduleQueueModal({ entry, isOpen, onClose, onSuccess }: Schedu
                         onClick={() => setSelectedTime(time)}
                         className={`py-2 rounded-xl text-xs font-semibold transition-all flex flex-col items-center justify-center border font-sans ${
                           occupied
-                            ? 'bg-red-500/10 border-red-500/20 text-red-400 cursor-not-allowed'
+                            ? 'bg-red-500/10 border-red-200 dark:border-red-950/30 text-red-600 dark:text-red-400 cursor-not-allowed'
                             : isSelected
                             ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
-                            : 'bg-[var(--bg-secondary)]/50 border-[var(--border)]/40 text-[var(--text-secondary)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/5'
+                            : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/5'
                         }`}
                       >
                         <span>{time}</span>
-                        <span className="text-[9px] font-normal mt-0.5 opacity-80">
+                        <span className={`text-[9px] font-normal mt-0.5 ${occupied ? 'text-red-500' : isSelected ? 'text-white/80' : 'text-slate-600 dark:text-slate-400'}`}>
                           {occupied ? 'Ocupado' : 'Libre'}
                         </span>
                       </button>
@@ -1471,13 +1570,13 @@ export function ScheduleQueueModal({ entry, isOpen, onClose, onSuccess }: Schedu
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wider mb-1.5 font-sans">
+              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5 font-sans">
                 Notas / Observaciones
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] transition focus:ring-2 focus:ring-[var(--color-primary)] font-sans"
+                className="w-full resize-none rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white transition focus:ring-2 focus:ring-[var(--color-primary)] font-sans outline-none"
                 rows={3}
                 placeholder="Ingresar notas clínicas o motivos específicos de la cita..."
               />
@@ -1493,7 +1592,7 @@ export function ScheduleQueueModal({ entry, isOpen, onClose, onSuccess }: Schedu
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-2.5 rounded-xl border border-[var(--border)] text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] transition font-sans"
+                className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-sans"
               >
                 Cancelar
               </button>
@@ -1513,78 +1612,78 @@ export function ScheduleQueueModal({ entry, isOpen, onClose, onSuccess }: Schedu
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
                 <Sparkles className="h-6 w-6 animate-pulse" />
               </div>
-              <h4 className="text-base font-semibold text-[var(--text-primary)]">
+              <h4 className="text-base font-semibold text-slate-900 dark:text-white">
                 ¡Cita programada con éxito!
               </h4>
-              <p className="text-xs text-[var(--text-muted)] max-w-sm font-sans">
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm font-sans">
                 La cita ha sido guardada y el paciente ha sido removido de la Fila Virtual. Notifica al paciente ahora.
               </p>
             </div>
 
-            <div className="space-y-3.5 border-t border-b border-[var(--border)]/40 py-4">
+            <div className="space-y-3.5 border-t border-b border-slate-200 dark:border-slate-800 py-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider font-sans mb-1">
+                  <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans mb-1">
                     Correo Electrónico
                   </label>
                   <input
                     type="email"
                     value={patientEmail}
                     onChange={(e) => setPatientEmail(e.target.value)}
-                    className="w-full rounded-lg border border-[var(--border)]/60 bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-primary)] font-sans"
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-white font-sans"
                     placeholder="correo@ejemplo.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider font-sans mb-1">
+                  <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans mb-1">
                     Teléfono Celular
                   </label>
                   <input
                     type="tel"
                     value={patientPhone}
                     onChange={(e) => setPatientPhone(e.target.value)}
-                    className="w-full rounded-lg border border-[var(--border)]/60 bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-primary)] font-sans"
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-white font-sans"
                     placeholder="Celular (10 dígitos)"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider font-sans mb-1">
+                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans mb-1">
                   Mensaje de Confirmación a Enviar
                 </label>
                 <textarea
                   value={customMessage}
                   onChange={(e) => setCustomMessage(e.target.value)}
-                  className="w-full resize-none rounded-xl border border-[var(--border)]/60 bg-[var(--bg-secondary)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] font-sans"
+                  className="w-full resize-none rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-sans"
                   rows={4}
                 />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider font-sans mb-1">
+                  <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans mb-1">
                     Tu Teléfono de Contacto
                   </label>
                   <input
                     type="tel"
                     value={therapistPhone}
                     onChange={(e) => setTherapistPhone(e.target.value)}
-                    className="w-full rounded-lg border border-[var(--border)]/60 bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-primary)] font-sans"
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-white font-sans"
                     placeholder="Tu celular de contacto"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider font-sans mb-1">
+                  <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans mb-1">
                     Tu Correo de Contacto
                   </label>
                   <input
                     type="email"
                     value={therapistEmail}
                     onChange={(e) => setTherapistEmail(e.target.value)}
-                    className="w-full rounded-lg border border-[var(--border)]/60 bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-primary)] font-sans"
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100/50 dark:bg-slate-800/40 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-400 font-sans outline-none"
                     placeholder="Tu correo de contacto"
-                    disabled
+                    readOnly
                   />
                 </div>
               </div>
@@ -1621,6 +1720,7 @@ export function ScheduleQueueModal({ entry, isOpen, onClose, onSuccess }: Schedu
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
