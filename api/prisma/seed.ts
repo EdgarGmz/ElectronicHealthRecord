@@ -1583,6 +1583,1032 @@ async function seedProd() {
   console.log('✅ Seed PROD completed. All users have password: ' + DEFAULT_SEED_PASSWORD);
 }
 
+// ============================================================
+// =====================  SEED DEMO  ==========================
+// ============================================================
+
+// --- Frases clínicas en español ---
+const ES_MOTIVOS_CONSULTA = [
+  'El alumno refiere sentirse ansioso y con dificultad para concentrarse en clases.',
+  'Paciente presenta cuadro de tristeza persistente desde el inicio del semestre.',
+  'Refiere conflictos familiares que están afectando su rendimiento académico.',
+  'Manifiesta dificultad para dormir y pensamientos recurrentes de preocupación.',
+  'El alumno solicita orientación por estrés relacionado con carga académica excesiva.',
+  'Presenta síntomas de ansiedad ante exámenes y evaluaciones parciales.',
+  'Refiere episodios de irritabilidad y cambios bruscos de humor.',
+  'El paciente manifiesta sentirse solo y sin motivación para continuar la carrera.',
+  'Consulta por dificultades en las relaciones interpersonales con compañeros.',
+  'El alumno solicita apoyo por duelo ante pérdida de familiar cercano.',
+  'Presenta llanto fácil y sensación de desesperanza desde hace tres semanas.',
+  'Refiere crisis de angustia con palpitaciones y sensación de ahogo.',
+  'El paciente manifiesta pensamientos negativos recurrentes sobre su futuro.',
+  'Acude por orientación vocacional; duda si continuar en la carrera actual.',
+  'Presenta cuadro de agotamiento emocional y burnout estudiantil.',
+  'Refiere dificultades económicas que están generando estrés significativo.',
+  'El alumno manifiesta conflicto con pareja que afecta su concentración.',
+  'Solicita apoyo psicológico por antecedente de bullying en semestres anteriores.',
+  'Presenta síntomas físicos (cefalea, molestias gastrointestinales) asociados al estrés.',
+  'Acude por primera vez expresando que "siente que algo no está bien".',
+];
+
+const ES_HISTORIAS_PSICOLOGICAS = [
+  'El paciente reporta antecedentes de ansiedad desde la preparatoria, sin tratamiento previo. Niega episodios depresivos mayores. Refiere apoyo familiar moderado.',
+  'Sin antecedentes psiquiátricos formales. Refiere periodos de tristeza estacional durante los meses de invierno. Cuenta con red de apoyo de amigos cercanos.',
+  'Historia de tratamiento psicológico breve durante la adolescencia por problemas de conducta. Actualmente sin medicación. Dificultades de adaptación al entorno universitario.',
+  'El alumno refiere haber experimentado episodios de ansiedad en el pasado sin recibir atención profesional. Familia con antecedentes de depresión materna.',
+  'Sin historial de enfermedades mentales diagnosticadas. Personalidad introvertida. Tendencia a la somatización del estrés. Red de apoyo limitada a uno o dos amigos.',
+  'Paciente con antecedente de crisis de pánico hace dos años, remitidas espontáneamente. Actualmente bajo estrés académico elevado. Refiere consumo ocasional de alcohol los fines de semana.',
+  'El alumno ha manifestado dificultades emocionales recurrentes a lo largo de su historial académico. Primera vez que acude a un servicio de psicología. Familia lejana geográficamente.',
+  'Sin antecedentes relevantes. Paciente con alta capacidad de resiliencia. Acude por situación puntual de duelo. Buen insight y disposición al proceso terapéutico.',
+  'Historial de bajo rendimiento académico asociado a problemas emocionales no atendidos. Refiere sentirse incomprendido en el entorno familiar. Primera consulta en servicio universitario.',
+  'El paciente reporta episodios de angustia intermitentes desde hace seis meses. Sin medicación actual. Refiere que la situación se intensificó tras cambio de ciudad para estudiar.',
+];
+
+const ES_NOTAS_EVOLUCION = [
+  'Se establece alianza terapéutica adecuada. El paciente muestra disposición al diálogo y buena capacidad de introspección. Se trabajan técnicas de respiración diafragmática.',
+  'El alumno reporta mejoría parcial en los síntomas de ansiedad. Se refuerzan estrategias de afrontamiento adaptativas y se revisa registro de pensamientos automáticos.',
+  'Sesión centrada en identificación de distorsiones cognitivas. El paciente logra reconocer el pensamiento catastrófico como patrón predominante. Buena adherencia a las tareas.',
+  'Se trabaja el duelo en etapa de aceptación. El paciente muestra avances significativos en la integración de la pérdida. Se refuerza la red de apoyo social.',
+  'El alumno llegó con nivel de ansiedad elevado (8/10). Se realizó técnica de grounding y relajación progresiva de Jacobson. Al finalizar reporta nivel 4/10.',
+  'Se identificaron factores estresores principales: carga académica, problemas económicos y conflictos familiares. Se priorizan y se establecen estrategias por jerarquía.',
+  'El paciente muestra resistencia inicial. Se trabaja motivación al cambio y psicoeducación sobre el proceso terapéutico. Finaliza la sesión con mayor apertura.',
+  'Sesión de seguimiento. El alumno reporta haber aplicado técnicas de manejo del estrés con resultados positivos. Se refuerza logro y se plantean nuevos objetivos.',
+  'Se trabaja asertividad y comunicación efectiva en el contexto de relaciones interpersonales. Role-playing de situaciones conflictivas con compañeros.',
+  'El paciente manifiesta mejoría en calidad del sueño tras implementar higiene del sueño. Se mantiene plan terapéutico. Próxima sesión en 15 días.',
+];
+
+const ES_PROGRESOS_PACIENTE = [
+  'Muestra apertura y disposición creciente al proceso terapéutico.',
+  'Ha logrado aplicar técnicas de regulación emocional en situaciones cotidianas.',
+  'Reporta reducción en la frecuencia e intensidad de los episodios de ansiedad.',
+  'Ha establecido rutinas de autocuidado: ejercicio, descanso y alimentación.',
+  'Identifica sus patrones de pensamiento disfuncional con mayor facilidad.',
+  'Mejora notable en la calidad del sueño y en los niveles de energía durante el día.',
+  'Se observa mayor cohesión familiar y comunicación efectiva con sus padres.',
+  'Ha retomado actividades que antes disfrutaba (deporte, música, convivencia social).',
+  'Reporta rendimiento académico en recuperación. Entregó trabajos pendientes.',
+  'Muestra mayor tolerancia a la frustración y menor reactividad emocional.',
+];
+
+const ES_TAREAS_ASIGNADAS = [
+  'Llevar registro diario de pensamientos automáticos negativos y cuestionarlos.',
+  'Practicar respiración diafragmática 10 minutos cada mañana antes de ir a clases.',
+  'Realizar caminata de 30 minutos al día durante la siguiente semana.',
+  'Redactar carta de despedida como ejercicio de elaboración del duelo.',
+  'Hablar con un familiar o amigo de confianza sobre sus emociones actuales.',
+  'Llevar agenda de actividades agradables y realizarlas al menos 3 veces por semana.',
+  'Aplicar técnica de grounding en el momento en que aparezca la ansiedad.',
+  'Practicar diálogo interno positivo frente al espejo por 5 minutos al día.',
+];
+
+const ES_PLANES_SIGUIENTE_SESION = [
+  'Revisar registro de pensamientos y reforzar reestructuración cognitiva.',
+  'Continuar con exposición gradual a situaciones que generan ansiedad.',
+  'Abordar historia familiar y su influencia en patrones actuales de comportamiento.',
+  'Trabajar manejo del tiempo y organización académica como factor de estrés.',
+  'Profundizar en el módulo de habilidades sociales y comunicación asertiva.',
+  'Cierre terapéutico y evaluación de logros al finalizar el proceso.',
+  'Revisión de plan de acción ante posibles recaídas o situaciones de crisis.',
+  'Evaluación de síntomas con escala de ansiedad y depresión para seguimiento.',
+];
+
+const ES_DIAGNOSTICOS_DSM5: string[] = [
+  'F41.1 Trastorno de ansiedad generalizada',
+  'F32.1 Episodio depresivo moderado',
+  'F43.1 Trastorno de estrés postraumático',
+  'F40.10 Fobia social',
+  'F41.0 Trastorno de pánico sin agorafobia',
+  'F43.2 Trastorno de adaptación con ánimo depresivo',
+  'F60.3 Trastorno límite de la personalidad',
+  'F33.0 Trastorno depresivo recurrente, episodio actual leve',
+];
+
+const ES_QUEJAS_ENFERMERIA = [
+  'Paciente acude por cefalea intensa de 2 días de evolución.',
+  'Presenta cuadro febril de 38.2°C asociado a faringitis.',
+  'Refiere dolor abdominal difuso y náuseas de aparición súbita.',
+  'Acude por revisión de tensión arterial; refiere mareos ocasionales.',
+  'Presenta herida superficial en mano derecha que requiere curación.',
+  'Refiere dolor lumbar de moderada intensidad tras actividad física.',
+  'Acude por rinorrea, congestión nasal y malestar general de 3 días.',
+  'Presenta erupción cutánea en antebrazo de causa no determinada.',
+  'Refiere palpitaciones ocasionales y sensación de cansancio excesivo.',
+  'Acude para toma de signos vitales de rutina y orientación sobre prevención.',
+  'Presenta conjuntivitis con secreción purulenta en ojo derecho.',
+  'Refiere esguince de tobillo izquierdo tras caída durante clase de educación física.',
+];
+
+const ES_DIAGNOSTICOS_ENFERMERIA = [
+  'Cefalea tensional. Se administra analgésico y se indica reposo.',
+  'Faringoamigdalitis aguda. Se refiere a médico general para valoración.',
+  'Gastritis aguda. Se indica dieta blanda y antiácidos.',
+  'Hipertensión leve. Se orienta sobre modificaciones en estilo de vida.',
+  'Herida incisa superficial. Se realiza curación y se aplica antiséptico.',
+  'Lumbalgia mecánica. Se indica reposo relativo y antiinflamatorio.',
+  'Infección respiratoria alta. Medidas generales y analgesia.',
+  'Dermatitis de contacto. Se indica antihistamínico y crema tópica.',
+  'Arritmia sinusal a descartar. Se refiere a cardiología.',
+  'Consulta preventiva. Signos vitales dentro de parámetros normales.',
+];
+
+const ES_OBSERVACIONES_ENFERMERIA = [
+  'Paciente colaborador. Se le orienta sobre signos de alarma para regresar si hay deterioro.',
+  'Se indican medidas de higiene y cuidado en casa. Próxima cita en 72 horas si persiste.',
+  'Paciente ansioso durante la toma de signos vitales. Se le brinda orientación y tranquilidad.',
+  'Sin datos de alarma al momento de la valoración. Se egresa en buenas condiciones generales.',
+  'Se realiza curación satisfactoria. Se orienta sobre cuidados de la herida en casa.',
+];
+
+const ES_PLANES_TRATAMIENTO_ENF = [
+  'Se administra paracetamol 500mg VO. Reposo de 24 horas. Hidratación abundante.',
+  'Curación de herida con solución salina y clorhexidina. Cambio de apósito en 48 horas.',
+  'Antihistamínico oral. Evitar contacto con agente irritante identificado.',
+  'Control de signos vitales en 30 minutos. Registro en expediente. Referencia a médico si TA ≥ 140/90.',
+  'Orientación nutricional y recomendaciones de actividad física moderada.',
+];
+
+const ES_ENFOQUES_TERAPEUTICOS = [
+  'Cognitivo-Conductual',
+  'Psicodinámico',
+  'Humanista-Centrado en la Persona',
+  'Sistémico Familiar',
+  'Integrativo',
+  'Mindfulness y Terapia de Aceptación y Compromiso (ACT)',
+];
+
+const ES_METAS_TRATAMIENTO = [
+  'Reducir la frecuencia e intensidad de los episodios de ansiedad en un 60% en 8 semanas mediante técnicas cognitivo-conductuales.',
+  'Desarrollar habilidades de regulación emocional y tolerancia a la angustia en el marco de la terapia dialéctica conductual.',
+  'Elaborar el proceso de duelo y restablecer el funcionamiento adaptativo del paciente en sus áreas académica, social y familiar.',
+  'Identificar y modificar patrones cognitivos disfuncionales que mantienen el estado depresivo y limitan el rendimiento académico.',
+  'Fortalecer la autoestima y la asertividad del paciente mediante técnicas humanistas y de rol.',
+  'Reducir síntomas de estrés postraumático mediante técnicas de exposición gradual y procesamiento emocional.',
+];
+
+const ES_INTERVENCIONES = [
+  'Psicoeducación sobre el ciclo ansiedad-estrés. Técnica de respiración diafragmática. Registro de pensamientos automáticos. Reestructuración cognitiva.',
+  'Técnicas de relajación progresiva de Jacobson. Mindfulness básico. Exposición gradual a situaciones temidas. Manejo de contingencias.',
+  'Técnica de la silla vacía para el duelo. Narrativa de vida. Exploración de recursos internos y red de apoyo.',
+  'Activación conductual. Registro de actividades agradables. Planificación de logros graduales. Psicoeducación sobre la depresión.',
+  'Role-playing de situaciones sociales. Entrenamiento en habilidades asertivas. Técnica de solución de problemas.',
+  'Psicoeducación sobre el trauma. Técnica EMDR básica. Grounding sensorial. Fortalecimiento de recursos resilientes.',
+];
+
+// --- Generador de email demo ---
+const usedDemoEmails = new Set<string>();
+
+function generateDemoEmail(firstName: string, lastName: string, domain: string): string {
+  const cleanFirst = firstName.trim().split(' ')[0]
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const cleanLast = lastName.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const consonants = cleanLast.replace(/[aeiouáéíóúü\s]/gi, '');
+  const suffix = consonants.substring(0, 3).toLowerCase();
+  const base = `${cleanFirst}${suffix}`;
+  let email = `${base}@${domain}`;
+  let counter = 1;
+  while (usedDemoEmails.has(email)) {
+    email = `${base}${counter}@${domain}`;
+    counter++;
+  }
+  usedDemoEmails.add(email);
+  return email;
+}
+
+// --- Seed Demo Patients ---
+async function seedDemoPatients(careers: any[]) {
+  console.log('👥 Seeding Demo patients (310 alumnos + 30 docentes)...');
+  const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
+  usedUsernames.clear();
+  usedDemoEmails.clear();
+
+  const ALUMNOS_POR_CARRERA = 26; // 12 × 26 = 312 alumnos
+  const TOTAL_DOCENTES = 30;
+
+  const estadosCiviles = ['soltero', 'casado', 'divorciado', 'viudo', 'unión libre'];
+  const grupos = ['A', 'B', 'C', 'D'];
+  const trimestres = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const ocupacionesDocentes = [
+    'Docente de Ingeniería de Software',
+    'Docente de Matemáticas',
+    'Docente de Física',
+    'Docente de Comunicación',
+    'Coordinador Académico',
+    'Docente de Administración',
+    'Docente de Inglés',
+    'Docente de Redes y Telecomunicaciones',
+    'Docente de Mecatrónica',
+    'Docente de Mantenimiento Industrial',
+  ];
+
+  const alumnoUsers: any[] = [];
+  const docenteUsers: any[] = [];
+  const alumnoPatients: any[] = [];
+  const docentePatients: any[] = [];
+
+  // --- Alumnos ---
+  for (let ci = 0; ci < careers.length; ci++) {
+    const career = careers[ci];
+    for (let i = 0; i < ALUMNOS_POR_CARRERA; i++) {
+      const sex = Math.random() < 0.5 ? 'male' : 'female';
+      const firstName = sex === 'male' ? faker.person.firstName('male') : faker.person.firstName('female');
+      const lastName = `${faker.person.lastName()} ${faker.person.lastName()}`;
+      const username = generateUniqueUsername(firstName, lastName);
+      const email = generateDemoEmail(firstName, lastName, 'virtual.utsc.edu.mx');
+
+      const user = await prisma.user.upsert({
+        where: { email },
+        update: { passwordHash: defaultPasswordHash, username, isConfirmed: true, mustChangePassword: false },
+        create: {
+          email,
+          username,
+          passwordHash: defaultPasswordHash,
+          firstName,
+          lastName,
+          dateOfBirth: faker.date.birthdate({ min: 18, max: 30, mode: 'age' }),
+          role: 'patient',
+          enrollmentNumber: `${20000 + ci * ALUMNOS_POR_CARRERA + i}`,
+          sex,
+          phone: `${faker.string.numeric(2)}${faker.string.numeric(8)}`,
+          isConfirmed: true,
+          mustChangePassword: false,
+        },
+      });
+      alumnoUsers.push(user);
+
+      const patient = await prisma.patient.upsert({
+        where: { userId: user.id },
+        update: {},
+        create: {
+          userId: user.id,
+          patientType: 'student',
+          maritalStatus: randomElement(estadosCiviles),
+          guardianName: Math.random() > 0.5 ? faker.person.fullName() : undefined,
+          guardianPhone: faker.string.numeric(10),
+          careerId: career.id,
+          group: randomElement(grupos),
+          trimester: randomElement(trimestres),
+        },
+      });
+      alumnoPatients.push(patient);
+    }
+  }
+  console.log(`  ✅ ${alumnoUsers.length} alumnos creados`);
+
+  // --- Docentes ---
+  for (let i = 0; i < TOTAL_DOCENTES; i++) {
+    const sex = Math.random() < 0.5 ? 'male' : 'female';
+    const firstName = sex === 'male' ? faker.person.firstName('male') : faker.person.firstName('female');
+    const lastName = `${faker.person.lastName()} ${faker.person.lastName()}`;
+    const username = generateUniqueUsername(firstName, lastName);
+    const email = generateDemoEmail(firstName, lastName, 'utsc.edu.mx');
+
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: { passwordHash: defaultPasswordHash, username, isConfirmed: true, mustChangePassword: false },
+      create: {
+        email,
+        username,
+        passwordHash: defaultPasswordHash,
+        firstName,
+        lastName,
+        dateOfBirth: faker.date.birthdate({ min: 28, max: 55, mode: 'age' }),
+        role: 'patient',
+        enrollmentNumber: `D${String(i + 1).padStart(4, '0')}`,
+        sex,
+        phone: `${faker.string.numeric(2)}${faker.string.numeric(8)}`,
+        isConfirmed: true,
+        mustChangePassword: false,
+      },
+    });
+    docenteUsers.push(user);
+
+    const patient = await prisma.patient.upsert({
+      where: { userId: user.id },
+      update: {},
+      create: {
+        userId: user.id,
+        patientType: 'staff',
+        maritalStatus: randomElement(estadosCiviles),
+        careerId: careers[i % careers.length].id,
+        occupation: randomElement(ocupacionesDocentes),
+      },
+    });
+    docentePatients.push(patient);
+  }
+  console.log(`  ✅ ${docenteUsers.length} docentes creados`);
+
+  const allPatientUsers = [...alumnoUsers, ...docenteUsers];
+  const allPatients = [...alumnoPatients, ...docentePatients];
+
+  console.log(`✅ Total pacientes demo: ${allPatients.length}`);
+  return { allPatientUsers, allPatients };
+}
+
+// --- Seed Demo Blog Posts ---
+async function seedDemoBlogPosts(authorId: string) {
+  console.log('📰 Seeding Demo Blog Posts en español...');
+
+  const posts = [
+    {
+      title: 'Ansiedad académica: señales de alerta y estrategias para manejarla',
+      category: 'Salud Mental',
+      content: `La ansiedad académica es uno de los motivos de consulta más frecuentes en los servicios de salud universitarios. Se manifiesta como un estado de preocupación persistente, dificultad para concentrarse, insomnio y síntomas físicos como taquicardia o tensión muscular, todo ello asociado a las exigencias del entorno escolar.
+
+Reconocer las señales a tiempo es fundamental para buscar ayuda oportuna. Algunas de las más comunes son: bloqueo mental ante los exámenes, procrastinación excesiva, irritabilidad, y sensación constante de no ser suficientemente bueno.
+
+Estrategias recomendadas:
+• Técnicas de respiración diafragmática para reducir la activación fisiológica.
+• Organización del tiempo mediante agenda y técnica Pomodoro.
+• Ejercicio físico regular como regulador del sistema nervioso.
+• Búsqueda de apoyo psicológico cuando los síntomas interfieren con el funcionamiento diario.
+
+Recuerda: pedir ayuda es un acto de valentía, no de debilidad. En el Departamento de Psicología de nuestra universidad te esperamos con atención gratuita y confidencial.`,
+      imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format',
+      likes: 87,
+    },
+    {
+      title: 'La importancia del sueño en la salud mental del estudiante universitario',
+      category: 'Salud Mental',
+      content: `El sueño es una función biológica esencial que muchos estudiantes universitarios sacrifican en aras de estudiar más horas. Sin embargo, la evidencia científica es clara: dormir menos de 7 horas afecta negativamente la memoria, la concentración, la regulación emocional y el sistema inmune.
+
+Durante el sueño, el cerebro consolida la información aprendida durante el día mediante un proceso llamado consolidación mnémica. En otras palabras, trasnochar antes de un examen puede ser contraproducente.
+
+Consejos de higiene del sueño:
+• Establece un horario fijo para dormir y despertar, incluso los fines de semana.
+• Evita pantallas (teléfono, computadora) al menos 30 minutos antes de dormir.
+• Mantén tu cuarto oscuro, fresco y silencioso.
+• Limita el consumo de cafeína después de las 3 pm.
+• Si tienes pensamientos acelerados al acostarte, escríbelos en un papel para "descargarlos".
+
+Priorizar el sueño no es perder el tiempo, es invertir en tu rendimiento académico y en tu bienestar emocional.`,
+      imageUrl: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=800&auto=format',
+      likes: 64,
+    },
+    {
+      title: 'Burnout estudiantil: cuando el esfuerzo se convierte en agotamiento',
+      category: 'Salud Mental',
+      content: `El síndrome de burnout, conocido popularmente como "quemarse", no es exclusivo del ámbito laboral. Los estudiantes universitarios son una población especialmente vulnerable, sobre todo aquellos que combinan estudios con trabajo o responsabilidades familiares.
+
+El burnout estudiantil se caracteriza por tres dimensiones: agotamiento emocional (sentirse vaciado), despersonalización (volverse indiferente a los estudios y compañeros) y pérdida del sentido de eficacia académica.
+
+¿Cómo identificarlo?
+• Sientes que ya no te importan las materias que antes te emocionaban.
+• El esfuerzo que haces ya no se traduce en resultados.
+• Te sientes irritable, cansado y sin energía de forma constante.
+• Has dejado de hacer actividades que antes disfrutabas.
+
+Qué puedes hacer:
+• Habla con un profesional de salud mental. No esperes a tocar fondo.
+• Establece límites claros con tus compromisos académicos y personales.
+• Activa tu red de apoyo: amigos, familia, compañeros.
+• Considera un descanso estratégico si la situación lo amerita.
+
+En el Departamento de Psicología contamos con atención especializada para acompañarte en este proceso.`,
+      imageUrl: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&auto=format',
+      likes: 112,
+    },
+    {
+      title: 'Alimentación saludable y bienestar emocional: la conexión que no puedes ignorar',
+      category: 'Salud Fisica',
+      content: `El eje intestino-cerebro es una de las áreas de investigación más fascinantes de la neurociencia moderna. Lo que comemos tiene un impacto directo en nuestra salud mental: el 90% de la serotonina (el neurotransmisor del bienestar) se produce en el intestino.
+
+Una alimentación desequilibrada —alta en azúcares refinados, ultraprocesados y baja en frutas, verduras y proteínas de calidad— se ha asociado con mayor riesgo de depresión, ansiedad y fatiga crónica.
+
+Recomendaciones prácticas para estudiantes:
+• Desayuna siempre: el cerebro necesita glucosa para funcionar correctamente.
+• Incluye proteínas en cada comida (huevo, leguminosas, pollo, pescado).
+• Aumenta el consumo de omega-3: nueces, chía, linaza, salmón.
+• Hidratación: beber 2 litros de agua al día mejora el estado de alerta y el humor.
+• Reduce el consumo de bebidas energizantes: generan picos y caídas bruscas de energía.
+
+Pequeños cambios en tu alimentación pueden marcar una gran diferencia en cómo te sientes día a día. Acude a nuestro servicio de enfermería para obtener orientación nutricional personalizada.`,
+      imageUrl: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&auto=format',
+      likes: 76,
+    },
+    {
+      title: 'Cómo manejar el estrés durante los períodos de exámenes',
+      category: 'Salud Mental',
+      content: `Los períodos de exámenes son momentos de alta exigencia que activan el sistema de estrés de nuestro organismo. Un nivel moderado de estrés puede ser positivo: nos mantiene alerta y motivados. Sin embargo, cuando el estrés se vuelve excesivo, deteriora la memoria, la concentración y el estado de ánimo.
+
+Técnicas efectivas para manejar el estrés antes de los exámenes:
+
+1. Planificación anticipada: estudia en sesiones cortas de 25-50 minutos con descansos de 5-10 minutos (técnica Pomodoro). Evita los maratones de estudio de última hora.
+
+2. Movimiento físico: una caminata de 20 minutos libera endorfinas que reducen el cortisol (hormona del estrés) de forma natural.
+
+3. Respiración 4-7-8: inhala 4 segundos, retén 7, exhala 8. Activa el sistema nervioso parasimpático.
+
+4. Perspectiva: pregúntate "¿esto importará en 5 años?". Un examen no define tu valor como persona.
+
+5. Sueño: no sacrifiques el descanso la noche anterior al examen. Dormir bien consolida la memoria.
+
+Si sientes que el estrés te supera, no esperes: agenda una cita con nuestro equipo de psicología. Estamos aquí para apoyarte.`,
+      imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b6f9b?w=800&auto=format',
+      likes: 95,
+    },
+    {
+      title: 'Actividad física y salud mental: más allá del ejercicio',
+      category: 'Salud Fisica',
+      content: `La relación entre actividad física y salud mental está avalada por décadas de investigación científica. Ejercitarse regularmente no solo beneficia al corazón y los músculos, sino que tiene efectos profundos y duraderos sobre el bienestar emocional y cognitivo.
+
+¿Qué ocurre en el cerebro cuando hacemos ejercicio?
+• Se liberan endorfinas, dopamina y serotonina: los neurotransmisores del bienestar.
+• Se genera neuroplasticidad: el cerebro literalmente crece y crea nuevas conexiones.
+• Se reduce el cortisol: la hormona principal del estrés crónico.
+• Mejora la calidad del sueño y la función cognitiva (memoria, atención).
+
+¿Cuánto ejercicio es suficiente?
+La Organización Mundial de la Salud recomienda al menos 150 minutos de actividad moderada por semana. Pero incluso 20-30 minutos al día de caminata activa marcan una diferencia significativa.
+
+Ideas para estudiantes universitarios:
+• Usa las escaleras en vez del elevador.
+• Únete a un equipo o club deportivo de la universidad.
+• Practica yoga o pilates en casa con videos gratuitos.
+• Camina o usa bicicleta para desplazarte al campus.
+
+El movimiento es medicina. Encuentra la actividad que disfrutes y hazla parte de tu rutina.`,
+      imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&auto=format',
+      likes: 58,
+    },
+    {
+      title: 'Primeros auxilios psicológicos: ¿qué hacer ante una crisis emocional?',
+      category: 'Salud Mental',
+      content: `Una crisis emocional puede ocurrirle a cualquier persona: un episodio de llanto intenso, un ataque de pánico, pensamientos de hacerse daño, o una reacción intensa de desesperación. Saber cómo responder marca una diferencia enorme.
+
+Los primeros auxilios psicológicos (PAP) son una serie de acciones de apoyo inmediato que cualquier persona puede aplicar:
+
+1. Presencia y escucha activa: simplemente estar ahí, sin juzgar. Escucha más de lo que hablas.
+
+2. No minimices: evita frases como "no es para tanto" o "ya se te pasará". Valida la experiencia de la persona.
+
+3. Seguridad física: si hay riesgo de autolesión, acompáñala y busca ayuda profesional de inmediato.
+
+4. Técnicas de grounding: pide a la persona que nombre 5 cosas que puede ver, 4 que puede tocar, 3 que puede escuchar. Esto ancla al presente y reduce la activación.
+
+5. Conectar con recursos: ayuda a la persona a ponerse en contacto con un profesional de salud mental.
+
+Si eres testigo de una crisis en la universidad, no dudes en acudir al Departamento de Psicología. Nuestro equipo está capacitado para atender situaciones urgentes con calidez y profesionalismo.`,
+      imageUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&auto=format',
+      likes: 143,
+    },
+    {
+      title: 'Hipertensión arterial en jóvenes universitarios: el enemigo silencioso',
+      category: 'Salud Fisica',
+      content: `La hipertensión arterial ya no es una enfermedad exclusiva de personas mayores. Datos recientes muestran un aumento preocupante en su prevalencia entre jóvenes de 18 a 30 años, impulsado por el sedentarismo, la alimentación inadecuada, el estrés crónico y el consumo de tabaco o alcohol.
+
+Se le llama "el enemigo silencioso" porque en la mayoría de los casos no produce síntomas evidentes hasta que el daño ya es significativo. Por eso es fundamental medirse la presión arterial regularmente, incluso si te sientes bien.
+
+Valores de referencia:
+• Normal: menos de 120/80 mmHg
+• Elevada: 120-129 / menos de 80 mmHg
+• Hipertensión estadio 1: 130-139 / 80-89 mmHg
+• Hipertensión estadio 2: 140 o más / 90 o más mmHg
+
+¿Qué puedes hacer para prevenirla?
+• Reduce el consumo de sal y alimentos procesados.
+• Realiza actividad física regularmente.
+• Mantén un peso saludable.
+• Limita el alcohol y evita el tabaco.
+• Maneja el estrés con técnicas de relajación o apoyo psicológico.
+
+En nuestro servicio de enfermería puedes hacerte una revisión de signos vitales de forma gratuita. ¡No esperes a tener síntomas para cuidarte!`,
+      imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format',
+      likes: 49,
+    },
+    {
+      title: 'Día Mundial de la Salud Mental 2025: "Es hora de priorizar la salud mental en el trabajo y en las aulas"',
+      category: 'Dia Especial',
+      content: `Cada 10 de octubre, el mundo conmemora el Día Mundial de la Salud Mental, una fecha impulsada por la Federación Mundial de Salud Mental para sensibilizar sobre la importancia de atender el bienestar psicológico de todas las personas.
+
+El tema de este año, "Es hora de priorizar la salud mental en el trabajo y en las aulas", nos invita a reflexionar sobre cómo los entornos académicos y laborales pueden ser factores protectores o de riesgo para la salud mental.
+
+En nuestra universidad, este día es una oportunidad para reafirmar nuestro compromiso con el bienestar integral de la comunidad estudiantil y docente:
+
+✅ Contamos con servicio de atención psicológica gratuita y confidencial.
+✅ Ofrecemos talleres de manejo del estrés, inteligencia emocional y habilidades de vida.
+✅ Disponemos de atención de enfermería para la salud física integral.
+✅ Fomentamos una cultura de apertura donde pedir ayuda es un acto de fortaleza.
+
+Este 10 de octubre, te invitamos a dar el primer paso: agenda tu cita, platica con alguien de confianza, o simplemente pregunta cómo está la persona que tienes al lado.
+
+La salud mental importa. Tú importas.`,
+      imageUrl: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=800&auto=format',
+      likes: 201,
+    },
+    {
+      title: 'El Mundial 2026 y su impacto en el estado anímico y económico de Nuevo León',
+      category: 'Evento',
+      content: `La Copa Mundial de la FIFA 2026, que se celebrará de forma conjunta en Estados Unidos, Canadá y México, tiene en Monterrey y su área metropolitana a una de las sedes más emocionantes del torneo. El estadio BBVA albergará algunos de los partidos más esperados del certamen, y Nuevo León se prepara para vivir una experiencia histórica.
+
+Impacto en el estado anímico de la comunidad
+
+Los grandes eventos deportivos generan lo que los psicólogos llaman "identidad social ampliada": la afición se agrupa alrededor de un equipo o símbolo común, lo que eleva la autoestima colectiva, el sentido de pertenencia y los estados de ánimo positivos. En términos clínicos, se ha observado que durante los torneos mundiales disminuyen los índices de consulta por depresión y ansiedad leve en la población general, mientras aumentan la sociabilidad y el optimismo.
+
+Sin embargo, también pueden aparecer efectos negativos: ansiedad anticipatoria, insomnio por trasnochadas, irritabilidad ante resultados adversos, y consumo elevado de alcohol durante los partidos. Desde el Departamento de Salud, recomendamos disfrutar el Mundial con moderación y sin descuidar las rutinas de autocuidado.
+
+Impacto económico y comercial en Nuevo León
+
+La derrama económica estimada para Nuevo León supera los 1,200 millones de pesos, considerando turismo, hostelería, gastronomía, transporte y comercio minorista. Los comercios locales, restaurants y franquicias deportivas esperan incrementos de hasta un 40% en sus ventas durante los días de partido.
+
+La industria hotelera reporta ya una ocupación proyectada del 95% para las fechas de los encuentros, con turistas provenientes de más de 30 países. El aeropuerto Internacional Mariano Escobedo prevé un aumento del 60% en vuelos internacionales durante el torneo.
+
+Para la comunidad universitaria
+
+¡Vive el Mundial con entusiasmo, pero también con responsabilidad! Aprovecha el evento para practicar inglés con los turistas, explorar otras culturas y reforzar tu sentido de identidad regional. Y si el resultado de algún partido te afecta emocionalmente más de lo esperado, recuerda que el Departamento de Psicología está aquí para escucharte. ¡Arriba México!`,
+      imageUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format',
+      likes: 318,
+    },
+  ];
+
+  let created = 0;
+  for (const post of posts) {
+    await prisma.blogPost.create({
+      data: {
+        title: post.title,
+        content: post.content,
+        category: post.category,
+        authorId,
+        imageUrl: post.imageUrl,
+        likes: post.likes,
+      },
+    });
+    created++;
+  }
+  console.log(`✅ ${created} blog posts creados en español`);
+}
+
+// --- Seed Demo: datos clínicos en español ---
+async function seedDemoClinicalData(
+  allPatients: any[],
+  admin: any,
+  psychologists: any[],
+  nurses: any[],
+  moodCodes: string[],
+) {
+  console.log('📋 Seeding datos clínicos demo en español...');
+
+  const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  const riskLevels = ['none', 'low', 'medium', 'high'];
+
+  const medicalRecords: any[] = [];
+  const psychologyRecords: any[] = [];
+
+  for (const patient of allPatients) {
+    // 85% de los pacientes tienen expediente médico
+    if (Math.random() > 0.15) {
+      const mr = await prisma.medicalRecord.upsert({
+        where: { patientId: patient.id },
+        update: {},
+        create: {
+          patientId: patient.id,
+          bloodType: randomElement(bloodTypes),
+          allergies: Math.random() > 0.6 ? randomElement(['Penicilina', 'Polen', 'Polvo', 'Sulfas', 'Látex', 'Mariscos', 'Nueces']) : null,
+          chronicConditions: Math.random() > 0.75 ? randomElement(['Asma leve', 'Migraña crónica', 'Diabetes tipo 2 en control', 'Hipotiroidismo', 'Gastritis crónica']) : null,
+          currentMedications: Math.random() > 0.7 ? randomElement(['Paracetamol 500mg c/8h', 'Omeprazol 20mg c/24h', 'Levotiroxina 50mcg c/24h', 'Salbutamol inhalado c/8h en crisis']) : null,
+          familyHistory: Math.random() > 0.5 ? randomElement(['Padre con diabetes tipo 2. Madre con hipertensión arterial.', 'Antecedentes de depresión en línea materna.', 'Abuelo con cardiopatía isquémica. Hermano con asma.', 'Sin antecedentes heredo-familiares de relevancia.']) : null,
+          notes: Math.random() > 0.6 ? randomElement(['Paciente cooperador. Signos vitales estables en consulta inicial.', 'Se realizó valoración completa. Sin hallazgos de alarma al momento.', 'Paciente refiere no haber recibido atención médica en los últimos 2 años.']) : null,
+          createdBy: admin.id,
+          updatedBy: admin.id,
+        },
+      });
+      medicalRecords.push(mr);
+
+      // 70% de los expedientes médicos tienen componente psicológico
+      if (psychologists.length > 0 && Math.random() > 0.30) {
+        const assignedPsych = randomElement(psychologists);
+        const pr = await prisma.psychologyRecord.upsert({
+          where: { medicalRecordId: mr.id },
+          update: {},
+          create: {
+            medicalRecordId: mr.id,
+            initialEvaluationDate: faker.date.past({ years: 1 }),
+            chiefComplaint: randomElement(ES_MOTIVOS_CONSULTA),
+            psychologicalHistory: randomElement(ES_HISTORIAS_PSICOLOGICAS),
+            psychiatricHistory: Math.random() > 0.75 ? 'Sin antecedentes psiquiátricos formales previos.' : null,
+            substanceUse: Math.random() > 0.8 ? randomElement(['Consumo ocasional de alcohol los fines de semana.', 'Tabaquismo social. Niega otras sustancias.', 'Refiere consumo de marihuana 1 vez por semana. Se orienta sobre riesgos.']) : null,
+            suicideRiskLevel: randomElement(['none', 'none', 'none', 'low', 'low', 'medium']),
+            violenceRiskLevel: randomElement(['none', 'none', 'none', 'none', 'low']),
+            currentDiagnosisDsm5: Math.random() > 0.4 ? randomElement(ES_DIAGNOSTICOS_DSM5) : null,
+            supportNetwork: randomElement(['Red de apoyo conformada por familia nuclear y amigos cercanos dentro del campus.', 'Apoyo limitado. Vive solo en ciudad distinta a su lugar de origen.', 'Cuenta con pareja estable y grupo de amigos como red de apoyo primaria.']),
+            assignedPsychologistId: assignedPsych.id,
+          },
+        });
+        psychologyRecords.push(pr);
+      }
+    }
+  }
+  console.log(`  ✅ ${medicalRecords.length} expedientes médicos | ${psychologyRecords.length} expedientes psicológicos`);
+
+  // --- Therapy Sessions ---
+  let totalSessions = 0;
+  for (const pr of psychologyRecords) {
+    if (!pr.assignedPsychologistId) continue;
+    const numSessions = Math.floor(Math.random() * 10) + 3;
+    const startDate = pr.initialEvaluationDate || new Date();
+    for (let i = 0; i < numSessions; i++) {
+      const sessionDate = new Date(startDate);
+      sessionDate.setDate(sessionDate.getDate() + i * 7);
+      const selectedMoods = randomElements(moodCodes, 1, 3);
+      await prisma.therapySession.upsert({
+        where: { psychologyRecordId_sessionNumber: { psychologyRecordId: pr.id, sessionNumber: i + 1 } },
+        update: {},
+        create: {
+          psychologyRecordId: pr.id,
+          sessionNumber: i + 1,
+          sessionDate,
+          sessionDuration: randomElement([45, 50, 60]),
+          mood: selectedMoods.join(','),
+          evolutionNotes: randomElement(ES_NOTAS_EVOLUCION),
+          patientProgress: randomElement(ES_PROGRESOS_PACIENTE),
+          assignedTasks: Math.random() > 0.3 ? randomElement(ES_TAREAS_ASIGNADAS) : null,
+          observations: Math.random() > 0.5 ? 'Paciente puntual. Se mantiene alianza terapéutica sólida. Continúa comprometido con el proceso.' : null,
+          nextSessionPlan: Math.random() > 0.4 ? randomElement(ES_PLANES_SIGUIENTE_SESION) : null,
+          therapistId: pr.assignedPsychologistId,
+        },
+      });
+      totalSessions++;
+    }
+  }
+  console.log(`  ✅ ${totalSessions} sesiones de terapia`);
+
+  // --- Treatment Plans ---
+  let totalPlans = 0;
+  for (const pr of psychologyRecords) {
+    if (!pr.assignedPsychologistId) continue;
+    const sessionCount = await prisma.therapySession.count({ where: { psychologyRecordId: pr.id } });
+    if (sessionCount === 0) continue;
+    const numPlans = Math.random() > 0.5 ? 2 : 1;
+    for (let i = 0; i < numPlans; i++) {
+      const startDate = faker.date.past({ years: 1 });
+      await prisma.treatmentPlan.create({
+        data: {
+          psychologyRecordId: pr.id,
+          startDate,
+          endDate: Math.random() > 0.4 ? faker.date.future({ years: 1, refDate: startDate }) : null,
+          therapeuticApproach: randomElement(ES_ENFOQUES_TERAPEUTICOS),
+          goals: randomElement(ES_METAS_TRATAMIENTO),
+          interventions: randomElement(ES_INTERVENCIONES),
+          status: randomElement(['active', 'active', 'completed', 'on_hold']),
+          createdBy: pr.assignedPsychologistId,
+        },
+      });
+      totalPlans++;
+    }
+  }
+  console.log(`  ✅ ${totalPlans} planes de tratamiento`);
+
+  // --- Nursing Consultations ---
+  const consultations: any[] = [];
+  if (nurses.length > 0) {
+    const patientsWithConsultas = randomElements(medicalRecords,
+      Math.floor(medicalRecords.length * 0.4),
+      Math.floor(medicalRecords.length * 0.6),
+    );
+    for (const mr of patientsWithConsultas) {
+      const numConsultas = Math.floor(Math.random() * 6) + 1;
+      for (let i = 0; i < numConsultas; i++) {
+        const c = await prisma.nursingConsultation.create({
+          data: {
+            medicalRecordId: mr.id,
+            consultationDate: faker.date.past({ years: 1 }),
+            chiefComplaint: randomElement(ES_QUEJAS_ENFERMERIA),
+            vitalSignsTemperature: Number((36 + Math.random() * 2.4).toFixed(1)),
+            vitalSignsBloodPressureSys: 100 + Math.floor(Math.random() * 40),
+            vitalSignsBloodPressureDia: 60 + Math.floor(Math.random() * 30),
+            vitalSignsHeartRate: 60 + Math.floor(Math.random() * 40),
+            vitalSignsRespiratoryRate: 12 + Math.floor(Math.random() * 8),
+            vitalSignsOxygenSaturation: 95 + Math.floor(Math.random() * 5),
+            vitalSignsWeight: Number((45 + Math.random() * 55).toFixed(1)),
+            vitalSignsHeight: Number((150 + Math.random() * 40).toFixed(1)),
+            physicalExamination: 'Paciente consciente, orientado en tiempo, lugar y persona. Hidratado. Sin datos de dificultad respiratoria aparente.',
+            diagnosis: Math.random() > 0.2 ? randomElement(ES_DIAGNOSTICOS_ENFERMERIA) : null,
+            treatmentPlan: randomElement(ES_PLANES_TRATAMIENTO_ENF),
+            observations: Math.random() > 0.5 ? randomElement(ES_OBSERVACIONES_ENFERMERIA) : null,
+            nurseId: randomElement(nurses).id,
+          },
+        });
+        consultations.push(c);
+      }
+    }
+    console.log(`  ✅ ${consultations.length} consultas de enfermería`);
+  }
+
+  return { medicalRecords, psychologyRecords, consultations };
+}
+
+// --- Seed Demo Appointments ---
+async function seedDemoAppointments(allPatients: any[], psychologists: any[], nurses: any[]) {
+  console.log('📅 Seeding Demo citas...');
+  const professionals = [...psychologists, ...nurses];
+  if (professionals.length === 0) return;
+
+  const tiposConsulta = ['initial_consultation', 'follow_up', 'emergency', 'routine'];
+  let total = 0;
+
+  for (const patient of allPatients) {
+    const numCitas = Math.floor(Math.random() * 8) + 2;
+    for (let i = 0; i < numCitas; i++) {
+      const isPast = Math.random() > 0.25;
+      const date = isPast ? faker.date.past({ years: 1 }) : faker.date.future({ months: 3 });
+      const status = isPast ? randomElement(['completed', 'completed', 'cancelled', 'no_show']) : 'scheduled';
+      const professional = randomElement(professionals);
+      const dept = professional.role === 'psicologo' ? 'psychology' : 'nursing';
+
+      await prisma.appointment.create({
+        data: {
+          patientId: patient.id,
+          professionalId: professional.id,
+          appointmentType: randomElement(tiposConsulta),
+          department: dept,
+          scheduledDate: date,
+          durationMinutes: randomElement([30, 45, 50, 60]),
+          status,
+          cancellationReason: status === 'cancelled' ? randomElement(['El alumno no se presentó sin previo aviso.', 'Reagendado por solicitud del paciente.', 'Cancelado por agenda del profesional.']) : null,
+          notes: Math.random() > 0.6 ? 'Cita de seguimiento. Paciente confirma asistencia.' : null,
+          createdBy: professional.id,
+        },
+      });
+      total++;
+    }
+  }
+  console.log(`  ✅ ${total} citas agendadas`);
+}
+
+// --- Seed Demo Waiting List ---
+async function seedDemoWaitingList(allPatients: any[], careers: any[], psychologists: any[]) {
+  console.log('⏳ Seeding Demo lista de espera...');
+  const motivos = [
+    'El alumno solicita primera consulta psicológica por estrés académico acumulado.',
+    'Referido por docente por presentar conducta retraída y bajo rendimiento en clase.',
+    'Solicita apoyo psicológico tras conflicto familiar que afecta su desempeño.',
+    'El alumno refiere ansiedad ante los exámenes finales próximos.',
+    'Solicita orientación vocacional y apoyo emocional por cambio de carrera.',
+  ];
+
+  let count = 0;
+  for (const career of careers) {
+    const careerPatients = allPatients.filter((p) => p.careerId === career.id);
+    const targetPatients = randomElements(careerPatients, 3, 6);
+    for (const patient of targetPatients) {
+      const psychologist = psychologists.length > 0 ? randomElement(psychologists) : null;
+      await prisma.waitingList.create({
+        data: {
+          patientId: patient.id,
+          department: 'psicologia',
+          preferredProfessionalId: psychologist?.id || null,
+          requestedDate: faker.date.recent({ days: 20 }),
+          priority: randomElement(['baja', 'media', 'alta']),
+          status: 'espera',
+          reason: randomElement(motivos),
+        },
+      });
+      count++;
+    }
+  }
+  console.log(`  ✅ ${count} entradas en lista de espera`);
+}
+
+// --- Seed Demo Notifications ---
+async function seedDemoNotifications(allUsers: any[]) {
+  console.log('🔔 Seeding Demo notificaciones...');
+  const tipos = [
+    { type: 'appointment_reminder', title: 'Recordatorio de cita', message: 'Tienes una cita mañana a las 10:00 am. Recuerda presentarte con 5 minutos de anticipación.' },
+    { type: 'appointment_confirmation', title: 'Cita confirmada', message: 'Tu cita ha sido confirmada exitosamente. Te esperamos en el Departamento de Psicología.' },
+    { type: 'new_message', title: 'Nuevo mensaje de tu psicólogo/a', message: 'Tu terapeuta te ha dejado un mensaje. Revisa tu expediente para más información.' },
+    { type: 'system_alert', title: 'Bienvenido al sistema UT-Care', message: 'Tu cuenta ha sido activada. Ya puedes acceder a todos los servicios de salud universitaria.' },
+    { type: 'appointment_cancellation', title: 'Cita cancelada', message: 'Lamentamos informarte que tu cita ha sido cancelada. Por favor, agenda una nueva a la brevedad.' },
+  ];
+  let total = 0;
+  for (const user of allUsers) {
+    const num = Math.floor(Math.random() * 4) + 1;
+    for (let i = 0; i < num; i++) {
+      const t = randomElement(tipos);
+      const isRead = Math.random() > 0.35;
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          type: t.type,
+          title: t.title,
+          message: t.message,
+          priority: randomElement(['low', 'normal', 'high']),
+          isRead,
+          readAt: isRead ? faker.date.recent({ days: 10 }) : null,
+        },
+      });
+      total++;
+    }
+  }
+  console.log(`  ✅ ${total} notificaciones`);
+}
+
+// --- Seed Demo Medications y Prescriptions ---
+async function seedDemoPrescriptions(allPatients: any[], medications: any[], nurses: any[], psychologists: any[]) {
+  console.log('💊 Seeding Demo prescripciones...');
+  const prescribers = [...nurses, ...psychologists];
+  if (prescribers.length === 0) return;
+
+  const patientsConReceta = randomElements(allPatients,
+    Math.floor(allPatients.length * 0.15),
+    Math.floor(allPatients.length * 0.25),
+  );
+  const frecuencias = ['Una vez al día', 'Cada 8 horas', 'Cada 12 horas', 'Dos veces al día', 'Según necesidad'];
+  const vias = ['Oral', 'Tópico', 'Inhalado', 'Subcutáneo'];
+  let total = 0;
+
+  for (const patient of patientsConReceta) {
+    const numRx = Math.floor(Math.random() * 2) + 1;
+    for (let i = 0; i < numRx; i++) {
+      const startDate = faker.date.past({ years: 1 });
+      await prisma.prescription.create({
+        data: {
+          patientId: patient.id,
+          medicationId: randomElement(medications).id,
+          prescribedBy: randomElement(prescribers).id,
+          dosage: randomElement(['500mg', '250mg', '100mg', '20mg', '10mg']),
+          frequency: randomElement(frecuencias),
+          route: randomElement(vias),
+          duration: Math.random() > 0.5 ? randomElement(['7 días', '14 días', '30 días', 'Indefinido']) : null,
+          startDate,
+          endDate: Math.random() > 0.4 ? faker.date.future({ years: 1, refDate: startDate }) : null,
+          instructions: randomElement(['Tomar con alimentos para evitar malestar gástrico.', 'Evitar exposición solar directa durante el tratamiento.', 'No combinar con alcohol.', 'Tomar en ayunas con un vaso de agua.']),
+          status: randomElement(['active', 'active', 'completed', 'discontinued']),
+        },
+      });
+      total++;
+    }
+  }
+  console.log(`  ✅ ${total} prescripciones`);
+}
+
+// --- Seed Demo Professional Schedules ---
+async function seedDemoProfessionalSchedules(psychologists: any[], nurses: any[]) {
+  console.log('⏰ Seeding Demo horarios profesionales...');
+  const professionals = [...psychologists, ...nurses];
+  const diasLaborales = [1, 2, 3, 4, 5];
+  let total = 0;
+
+  for (const pro of professionals) {
+    const dias = randomElements(diasLaborales, 4, 5);
+    for (const dia of dias) {
+      const startHour = randomElement([8, 9]);
+      const endHour = randomElement([16, 17, 18]);
+      await prisma.professionalSchedule.create({
+        data: {
+          professionalId: pro.id,
+          dayOfWeek: dia,
+          startTime: new Date(`2000-01-01T${String(startHour).padStart(2, '0')}:00:00`),
+          endTime: new Date(`2000-01-01T${String(endHour).padStart(2, '0')}:00:00`),
+          isActive: true,
+        },
+      });
+      total++;
+    }
+  }
+  console.log(`  ✅ ${total} horarios profesionales`);
+}
+
+// --- Seed Demo Interconsultations ---
+async function seedDemoInterconsultations(allPatients: any[], psychologists: any[], nurses: any[]) {
+  if (psychologists.length === 0 || nurses.length === 0) return;
+  console.log('🔄 Seeding Demo interconsultas...');
+
+  const motivosInter = [
+    'Se refiere a psicología por cuadro ansioso identificado durante consulta de enfermería.',
+    'Se solicita valoración de enfermería por paciente con síntomas somáticos asociados a estrés.',
+    'Paciente con cefalea recurrente es referido a psicología para descartar componente emocional.',
+    'Se solicita interconsulta a enfermería para control de tensión arterial elevada en paciente con ansiedad.',
+    'Psicología refiere a enfermería por paciente que refiere no dormir y presenta ojeras marcadas.',
+  ];
+
+  const patientsConIC = randomElements(allPatients,
+    Math.floor(allPatients.length * 0.08),
+    Math.floor(allPatients.length * 0.15),
+  );
+  let total = 0;
+
+  for (const patient of patientsConIC) {
+    const fromPsych = Math.random() > 0.5;
+    const fromProf = fromPsych ? randomElement(psychologists) : randomElement(nurses);
+    const toProf = fromPsych ? randomElement(nurses) : randomElement(psychologists);
+    const status = randomElement(['pending', 'in_progress', 'completed']);
+    const responded = status !== 'pending';
+
+    await prisma.interconsultation.create({
+      data: {
+        patientId: patient.id,
+        fromDepartment: fromPsych ? 'psychology' : 'nursing',
+        toDepartment: fromPsych ? 'nursing' : 'psychology',
+        fromProfessionalId: fromProf.id,
+        toProfessionalId: toProf.id,
+        reason: randomElement(motivosInter),
+        relevantInformation: 'Paciente en seguimiento activo. Se comparte información clínica relevante para continuidad del cuidado.',
+        urgency: randomElement(['routine', 'routine', 'urgent']),
+        status,
+        response: responded ? 'Se recibe interconsulta. Paciente valorado. Se integra al plan de atención multidisciplinaria.' : null,
+        respondedBy: responded ? toProf.id : null,
+        respondedAt: responded ? faker.date.recent({ days: 14 }) : null,
+      },
+    });
+    total++;
+  }
+  console.log(`  ✅ ${total} interconsultas`);
+}
+
+// ============ ORQUESTADOR PRINCIPAL DEMO ============
+async function seedDemo() {
+  console.log('\n🎓 Iniciando SEED DEMO para exposición universitaria...\n');
+
+  await clearDatabase();
+  const careers = await seedCareers();
+  const moodCodes = await seedMoods();
+
+  const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
+  usedUsernames.clear();
+
+  // Staff fijo
+  console.log('👤 Seeding staff (usuarios reales)...');
+  const staffUsers: any[] = [];
+  for (const s of STAFF_SEED_DATA) {
+    const username = generateUniqueUsername(s.firstName, s.lastName);
+    const user = await prisma.user.upsert({
+      where: { email: s.email },
+      update: { passwordHash: defaultPasswordHash, username, isConfirmed: true, mustChangePassword: false, sex: s.sex, role: s.role },
+      create: {
+        email: s.email,
+        username,
+        passwordHash: defaultPasswordHash,
+        firstName: s.firstName,
+        lastName: s.lastName,
+        dateOfBirth: new Date('1990-01-15'),
+        role: s.role,
+        enrollmentNumber: s.enrollmentNumber,
+        sex: s.sex,
+        phone: faker.string.numeric(10),
+        isConfirmed: true,
+        mustChangePassword: false,
+      },
+    });
+    staffUsers.push(user);
+  }
+  console.log(`✅ ${staffUsers.length} usuarios de staff creados`);
+
+  const admin = staffUsers.find((u) => u.role === 'admin')!;
+  const psychologists = staffUsers.filter((u) => u.role === 'psicologo');
+  const nurses = staffUsers.filter((u) => u.role === 'enfermero');
+
+  await seedPsychologistCareers(psychologists, careers);
+
+  // Pacientes (alumnos + docentes)
+  const { allPatientUsers, allPatients } = await seedDemoPatients(careers);
+
+  // Contactos de emergencia (70% de los pacientes)
+  const patientsWithContacts = randomElements(allPatients,
+    Math.floor(allPatients.length * 0.65),
+    Math.floor(allPatients.length * 0.75),
+  );
+  await seedEmergencyContacts(patientsWithContacts);
+
+  // Datos clínicos
+  const { consultations } = await seedDemoClinicalData(allPatients, admin, psychologists, nurses, moodCodes);
+
+  // Medicamentos y prescripciones
+  const medications = await seedMedications();
+  await seedDemoPrescriptions(allPatients, medications, nurses, psychologists);
+
+  // Citas
+  await seedDemoAppointments(allPatients, psychologists, nurses);
+
+  // Horarios profesionales
+  await seedDemoProfessionalSchedules(psychologists, nurses);
+
+  // Lista de espera
+  await seedDemoWaitingList(allPatients, careers, psychologists);
+
+  // Interconsultas
+  await seedDemoInterconsultations(allPatients, psychologists, nurses);
+
+  // Blog posts
+  await seedDemoBlogPosts(admin.id);
+
+  // Notificaciones
+  const allUsers = [...staffUsers, ...allPatientUsers];
+  await seedDemoNotifications(allUsers);
+
+  // Resumen final
+  await printTableCounts();
+
+  console.log('\n🔑 CREDENCIALES STAFF (SEED DEMO) — Contraseña: ' + DEFAULT_SEED_PASSWORD);
+  console.table(
+    staffUsers.map((u) => ({
+      Nombre: `${u.firstName} ${u.lastName}`,
+      Username: u.username,
+      Email: u.email,
+      Rol: u.role,
+    })),
+  );
+  console.log(`\n✅ SEED DEMO completado — ${allPatients.length} pacientes + ${staffUsers.length} staff | Contraseña: ${DEFAULT_SEED_PASSWORD}`);
+}
+
 // Clear database helper
 async function clearDatabase() {
   console.log('🗑️ Clearing database (except Careers)...');
@@ -1671,6 +2697,8 @@ async function main() {
       await seedRobust();
     } else if (target === 'dev') {
       await seedDev();
+    } else if (target === 'demo') {
+      await seedDemo();
     } else {
       await seedClean();
     }

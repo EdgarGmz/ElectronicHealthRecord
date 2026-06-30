@@ -45,3 +45,9 @@ Al ejecutar el sembrado, configura la variable para dictar el volumen y el tipo 
    - **Uso:** Utilizar para realizar pruebas de carga, paginación, filtros de bitácora y optimización de consultas SQL.
 4. **`prod`**:
    - **Propósito:** Configuración optimizada de usuarios y parámetros reales para el lanzamiento a producción.
+5. **`demo`** ⭐ (Exposición universitaria):
+   - **Propósito:** Dataset definitivo para presentaciones y demostraciones académicas. Limpia la BD y siembra datos ricos, coherentes y en español.
+   - **Contenido:** 5 usuarios de staff reales + 312 alumnos + 30 docentes distribuidos en las 12 carreras. Expedientes médicos y psicológicos con frases clínicas en español, sesiones de terapia, consultas de enfermería, citas, lista de espera, interconsultas y 10 blog posts temáticos (incluyendo artículo sobre el Mundial 2026 y Nuevo León).
+   - **Correos:** Alumnos → `[nombre][3consonantes]@virtual.utsc.edu.mx` | Docentes → `[nombre][3consonantes]@utsc.edu.mx`
+   - **Credenciales:** Todos con contraseña `Password123!`.
+   - **Comando:** `SEED_TARGET=demo npm run prisma:seed`
