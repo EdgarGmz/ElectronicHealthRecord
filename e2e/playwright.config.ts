@@ -18,7 +18,17 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // En local (macOS) usa el Chrome del sistema para evitar problemas de extracción
+        // del Chromium for Testing en arm64. En CI se usa el Chromium headless normal.
+        ...(process.env.CI ? {} : { channel: 'chrome' }),
+      },
+    },
+  ],
   webServer: [
     {
       command: 'npm run dev',
