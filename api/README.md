@@ -171,6 +171,20 @@ El seed `robust` incluye la misma base de usuarios del entorno `dev`, sumando ps
 
 ---
 
+### 5. Seed `demo` (Datos Demostrativos Realistas)
+Crea carreras, personal de salud, pacientes ficticios distribuidos entre todas las carreras y un conjunto completo de datos clínicos asociados: expedientes médicos y psicológicos, citas, prescripciones, horarios profesionales, lista de espera, interconsultas, notificaciones y blog posts. Ideal para demostraciones del sistema con datos visualmente ricos.
+
+| Categoría de Usuario | Rol del Sistema | Descripción |
+| :--- | :--- | :--- |
+| Personal fijo (mismo que `clean`) | `admin`, `coordinador_psicologia`, `coordinador_enfermeria`, `psicologo`, `enfermero` | Ver tabla del Seed `clean` |
+| Alumnos ficticios (nombre y matrícula generados) | `patient` | Pacientes distribuidos en todas las carreras |
+
+> **Comando de ejecución:**
+> * Solo siembra: `npm run prisma:seed:demo`
+> * Reinicio base + siembra: `npm run prisma:reset:seed:demo`
+
+---
+
 ## 🔐 Matriz de Roles y Permisos (RBAC)
 
 | Recurso / Acción | 👨‍💼 Admin | 🧠 Psicología (Coord) | 🏥 Enfermería (Coord) | 👨‍⚕️ Psicólogo | 👩‍⚕️ Enfermero |
