@@ -378,7 +378,14 @@ export class UserService {
       auditLogsCount,
       reportsCount,
       notificationsCount,
-      blogPostsCount
+      blogPostsCount,
+      patientsCount,
+      medicalRecordsCount,
+      psychologyRecordsCount,
+      psychometricEvaluationsCount,
+      treatmentPlansCount,
+      systemSettingsCount,
+      waitingListsCount
     ] = await Promise.all([
       prisma.therapySession.count({ where: { therapistId: id } }),
       prisma.appointment.count({
@@ -414,6 +421,20 @@ export class UserService {
         }
       }),
       prisma.blogPost.count({ where: { authorId: id } }),
+      prisma.patient.count({ where: { userId: id } }),
+      prisma.medicalRecord.count({
+        where: {
+          OR: [
+            { createdBy: id },
+            { updatedBy: id }
+          ]
+        }
+      }),
+      prisma.psychologyRecord.count({ where: { assignedPsychologistId: id } }),
+      prisma.psychometricEvaluation.count({ where: { administeredBy: id } }),
+      prisma.treatmentPlan.count({ where: { createdBy: id } }),
+      prisma.systemSetting.count({ where: { updatedBy: id } }),
+      prisma.waitingList.count({ where: { preferredProfessionalId: id } }),
     ]);
 
     if (
@@ -428,18 +449,35 @@ export class UserService {
       auditLogsCount > 0 ||
       reportsCount > 0 ||
       notificationsCount > 0 ||
-      blogPostsCount > 0
+      blogPostsCount > 0 ||
+      patientsCount > 0 ||
+      medicalRecordsCount > 0 ||
+      psychologyRecordsCount > 0 ||
+      psychometricEvaluationsCount > 0 ||
+      treatmentPlansCount > 0 ||
+      systemSettingsCount > 0 ||
+      waitingListsCount > 0
     ) {
       throw new AppError(
-        'No se puede eliminar permanentemente el usuario porque tiene registros de actividad asociados en el sistema (por ejemplo, consultas, citas, bitácoras, etc.).',
+        'No se puede eliminar permanentemente el usuario porque tiene registros de actividad asociados en el sistema (por ejemplo, expedientes creados, consultas, citas, bitácoras, etc.).',
         400
       );
     }
 
-    await prisma.$transaction([
-      prisma.psychologistCareer.deleteMany({ where: { psychologistId: id } }),
-      prisma.user.delete({ where: { id } }),
-    ]);
+    try {
+      await prisma.$transaction([
+        prisma.psychologistCareer.deleteMany({ where: { psychologistId: id } }),
+        prisma.user.delete({ where: { id } }),
+      ]);
+    } catch (dbError: any) {
+      if (dbError.code === 'P2003') {
+        throw new AppError(
+          'No se puede eliminar permanentemente el usuario debido a restricciones de integridad en la base de datos (existen registros relacionados que dependen de este usuario).',
+          400
+        );
+      }
+      throw dbError;
+    }
     return { message: 'Usuario eliminado permanentemente' };
   }
 
