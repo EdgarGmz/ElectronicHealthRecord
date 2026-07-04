@@ -85,8 +85,8 @@ async function seedCareers() {
   const createdCareers = [];
   for (const career of careers) {
     const created = await prisma.career.upsert({
-      where: { name: career.name },
-      update: {},
+      where: { code: career.code },
+      update: { name: career.name, isActive: true },
       create: {
         name: career.name,
         code: career.code,
@@ -2155,10 +2155,8 @@ async function seedDemoClinicalData(
   for (const patient of allPatients) {
     // 85% de los pacientes tienen expediente médico
     if (Math.random() > 0.15) {
-      const mr = await prisma.medicalRecord.upsert({
-        where: { patientId: patient.id },
-        update: {},
-        create: {
+      const mr = await prisma.medicalRecord.create({
+        data: {
           patientId: patient.id,
           bloodType: randomElement(bloodTypes),
           allergies: Math.random() > 0.6 ? randomElement(['Penicilina', 'Polen', 'Polvo', 'Sulfas', 'Látex', 'Mariscos', 'Nueces']) : null,
@@ -2175,10 +2173,8 @@ async function seedDemoClinicalData(
       // 70% de los expedientes médicos tienen componente psicológico
       if (psychologists.length > 0 && Math.random() > 0.30) {
         const assignedPsych = randomElement(psychologists);
-        const pr = await prisma.psychologyRecord.upsert({
-          where: { medicalRecordId: mr.id },
-          update: {},
-          create: {
+        const pr = await prisma.psychologyRecord.create({
+          data: {
             medicalRecordId: mr.id,
             initialEvaluationDate: faker.date.past({ years: 1 }),
             chiefComplaint: randomElement(ES_MOTIVOS_CONSULTA),
@@ -2208,10 +2204,8 @@ async function seedDemoClinicalData(
       const sessionDate = new Date(startDate);
       sessionDate.setDate(sessionDate.getDate() + i * 7);
       const selectedMoods = randomElements(moodCodes, 1, 3);
-      await prisma.therapySession.upsert({
-        where: { psychologyRecordId_sessionNumber: { psychologyRecordId: pr.id, sessionNumber: i + 1 } },
-        update: {},
-        create: {
+      await prisma.therapySession.create({
+        data: {
           psychologyRecordId: pr.id,
           sessionNumber: i + 1,
           sessionDate,
@@ -2611,31 +2605,33 @@ async function seedDemo() {
 // Clear database helper
 async function clearDatabase() {
   console.log('🗑️ Clearing database (except Careers)...');
-  await prisma.notification.deleteMany();
-  await prisma.auditLog.deleteMany();
-  await prisma.report.deleteMany();
-  await prisma.systemSetting.deleteMany();
-  await prisma.interconsultation.deleteMany();
-  await prisma.professionalSchedule.deleteMany();
-  await prisma.waitingList.deleteMany();
-  await prisma.appointmentReminder.deleteMany();
-  await prisma.appointment.deleteMany();
-  await prisma.prescriptionAdministration.deleteMany();
-  await prisma.medicationAdministration.deleteMany();
-  await prisma.prescription.deleteMany();
-  await prisma.medication.deleteMany();
-  await prisma.nursingProcedure.deleteMany();
-  await prisma.nursingConsultation.deleteMany();
-  await prisma.treatmentPlan.deleteMany();
-  await prisma.therapySession.deleteMany();
-  await prisma.mood.deleteMany();
-  await prisma.psychometricEvaluation.deleteMany();
-  await prisma.psychologyRecord.deleteMany();
-  await prisma.medicalRecord.deleteMany();
-  await prisma.emergencyContact.deleteMany();
-  await prisma.psychologistCareer.deleteMany();
-  await prisma.patient.deleteMany();
-  await prisma.user.deleteMany();
+  await prisma.$executeRawUnsafe(`
+    DO $$
+    DECLARE
+      tbls text[] := ARRAY[
+        'notifications', 'audit_logs', 'reports', 'system_settings',
+        'interconsultations', 'professional_schedules', 'waiting_list',
+        'appointment_reminders', 'appointments',
+        'prescription_administrations', 'medication_administrations',
+        'prescriptions', 'medications',
+        'nursing_procedures', 'nursing_attentions', 'nursing_consultations',
+        'treatment_plans', 'therapy_sessions', 'moods',
+        'psychometric_evaluations', 'psychology_records', 'medical_records',
+        'emergency_contacts', 'psychologist_careers',
+        'blog_posts', 'patients', 'users'
+      ];
+      t text;
+    BEGIN
+      FOREACH t IN ARRAY tbls LOOP
+        IF EXISTS (
+          SELECT 1 FROM information_schema.tables
+          WHERE table_schema = 'public' AND table_name = t
+        ) THEN
+          EXECUTE 'TRUNCATE TABLE ' || quote_ident(t) || ' RESTART IDENTITY CASCADE';
+        END IF;
+      END LOOP;
+    END $$
+  `);
   console.log('✅ Database cleared!');
 }
 
