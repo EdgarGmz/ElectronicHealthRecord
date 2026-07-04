@@ -2309,7 +2309,7 @@ async function seedDemoAppointments(allPatients: any[], psychologists: any[], nu
     for (let i = 0; i < numCitas; i++) {
       const isPast = Math.random() > 0.25;
       const date = isPast ? faker.date.past({ years: 1 }) : faker.date.future({ years: 1 });
-      const status = isPast ? rannpdomElement(['completed', 'completed', 'cancelled', 'no_show']) : 'scheduled';
+      const status = isPast ? randomElement(['completed', 'completed', 'cancelled', 'no_show']) : 'scheduled';
       const professional = randomElement(professionals);
       const dept = professional.role === 'psicologo' ? 'psychology' : 'nursing';
 

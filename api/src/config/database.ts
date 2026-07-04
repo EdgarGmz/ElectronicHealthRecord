@@ -50,6 +50,12 @@ prisma.$use(async (params, next) => {
       (result && typeof result === 'object' && 'id' in (result as any) && String((result as any).id)) ||
       String((params.args as any)?.where?.id || (params.args as any)?.data?.id || 'unknown');
 
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(recordId)) {
+      return result;
+    }
+
+
     const action =
       params.action === 'create' || params.action === 'createMany'
         ? AUDIT_ACTIONS.CREATE
