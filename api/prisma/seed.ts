@@ -2148,7 +2148,6 @@ async function seedDemoClinicalData(
   console.log('📋 Seeding datos clínicos demo en español...');
 
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-  const riskLevels = ['none', 'low', 'medium', 'high'];
 
   const medicalRecords: any[] = [];
   const psychologyRecords: any[] = [];
@@ -2309,8 +2308,8 @@ async function seedDemoAppointments(allPatients: any[], psychologists: any[], nu
     const numCitas = Math.floor(Math.random() * 8) + 2;
     for (let i = 0; i < numCitas; i++) {
       const isPast = Math.random() > 0.25;
-      const date = isPast ? faker.date.past({ years: 1 }) : faker.date.future({ months: 3 });
-      const status = isPast ? randomElement(['completed', 'completed', 'cancelled', 'no_show']) : 'scheduled';
+      const date = isPast ? faker.date.past({ years: 1 }) : faker.date.future({ years: 1 });
+      const status = isPast ? rannpdomElement(['completed', 'completed', 'cancelled', 'no_show']) : 'scheduled';
       const professional = randomElement(professionals);
       const dept = professional.role === 'psicologo' ? 'psychology' : 'nursing';
 
@@ -2569,7 +2568,7 @@ async function seedDemo() {
   await seedEmergencyContacts(patientsWithContacts);
 
   // Datos clínicos
-  const { consultations } = await seedDemoClinicalData(allPatients, admin, psychologists, nurses, moodCodes);
+  await seedDemoClinicalData(allPatients, admin, psychologists, nurses, moodCodes);
 
   // Medicamentos y prescripciones
   const medications = await seedMedications();
