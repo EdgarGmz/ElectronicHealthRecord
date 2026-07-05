@@ -243,14 +243,14 @@ describe('canAccessAnyExpedient', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe('canAccessPath — /patients', () => {
   describe('/patients/new — solo coordinadores y psicólogo', () => {
-    it.each([ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO])(
+    it.each([ROLES.COORDINADOR_PSICOLOGIA, ROLES.PSICOLOGO])(
       'rol %s puede crear paciente',
       (role) => {
         expect(canAccessPath('/patients/new', role)).toBe(true)
       },
     )
 
-    it.each([ROLES.ADMIN, ROLES.ENFERMERO])('rol %s NO puede crear paciente', (role) => {
+    it.each([ROLES.ADMIN, ROLES.ENFERMERO, ROLES.COORDINADOR_ENFERMERIA])('rol %s NO puede crear paciente', (role) => {
       expect(canAccessPath('/patients/new', role)).toBe(false)
     })
   })
@@ -258,15 +258,14 @@ describe('canAccessPath — /patients', () => {
   describe('/patients/:id/edit — coordinadores + psicólogo + enfermero', () => {
     it.each([
       ROLES.COORDINADOR_PSICOLOGIA,
-      ROLES.COORDINADOR_ENFERMERIA,
       ROLES.PSICOLOGO,
       ROLES.ENFERMERO,
     ])('rol %s puede editar paciente', (role) => {
       expect(canAccessPath('/patients/abc123/edit', role)).toBe(true)
     })
 
-    it('admin NO puede editar paciente', () => {
-      expect(canAccessPath('/patients/abc123/edit', ROLES.ADMIN)).toBe(false)
+    it.each([ROLES.ADMIN, ROLES.COORDINADOR_ENFERMERIA])('rol %s NO puede editar paciente', (role) => {
+      expect(canAccessPath('/patients/abc123/edit', role)).toBe(false)
     })
   })
 

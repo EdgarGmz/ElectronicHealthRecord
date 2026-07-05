@@ -24,24 +24,22 @@ export const STAFF_ROLES = [
   ROLES.ENFERMERO,
 ] as const;
 
-/** Pueden editar pacientes (coordinadores + psicólogo + enfermero). */
+/** Pueden editar pacientes (coordinador psicología + psicólogo + enfermero). El coordinador de enfermería sólo puede consultar. */
 export const ROLES_CAN_MANAGE_PATIENTS = [
   ROLES.COORDINADOR_PSICOLOGIA,
-  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ] as const;
 
-/** Coordinadores, psicólogos y enfermeros pueden registrar pacientes nuevos en el sistema. */
+/** Coordinadores de psicología, psicólogos y enfermeros pueden registrar pacientes nuevos en el sistema. */
 export const ROLES_CAN_CREATE_PATIENT = [
   ROLES.COORDINADOR_PSICOLOGIA,
-  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ] as const;
 
-/** Solo coordinadores pueden eliminar (desactivar) pacientes. */
-export const ROLES_CAN_DELETE_PATIENTS = [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA] as const;
+/** Solo el coordinador de psicología puede eliminar (desactivar) pacientes. */
+export const ROLES_CAN_DELETE_PATIENTS = [ROLES.COORDINADOR_PSICOLOGIA] as const;
 
 /** Pueden acceder (ver) expedientes médicos. Coordinadores solo ven historial en ficha de paciente, no el expediente completo. */
 export const ROLES_CAN_ACCESS_MEDICAL_RECORDS = [
@@ -153,8 +151,9 @@ export const ROLES_CAN_ACCESS_NURSING_PROCEDURES = [
   ROLES.ENFERMERO,
 ] as const;
 
-/** Pueden leer atenciones/procedimientos de enfermería (listado y detalle), p. ej. para pestaña Historial Médico. */
+/** Pueden leer atenciones/procedimientos de enfermería (listado y detalle), p. ej. para pestaña Historial Médico y Supervisión. */
 export const ROLES_CAN_READ_NURSING_HISTORY = [
+  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.ENFERMERO,
   ROLES.COORDINADOR_PSICOLOGIA,
   ROLES.PSICOLOGO,
@@ -162,3 +161,9 @@ export const ROLES_CAN_READ_NURSING_HISTORY = [
 
 /** Pueden crear procedimientos de enfermería (en el contexto de una consulta de enfermería). */
 export const ROLES_CAN_CREATE_NURSING_PROCEDURE = [ROLES.ENFERMERO] as const;
+
+/** Roles que pueden crear/editar/eliminar blog posts temáticos */
+export const ROLES_CAN_MANAGE_BLOGS = [
+  ROLES.PSICOLOGO,
+  ROLES.COORDINADOR_PSICOLOGIA,
+] as const;

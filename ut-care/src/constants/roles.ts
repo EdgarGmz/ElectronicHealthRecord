@@ -20,23 +20,20 @@ export const ROLES_VISIBLE_IN_USERS: readonly string[] = [
   ROLES.ENFERMERO,
 ]
 
-/** Coordinadores y psicólogos pueden registrar pacientes nuevos. */
+/** Coordinadores de psicología y psicólogos pueden registrar pacientes nuevos. */
 export const ROLES_CAN_CREATE_PATIENT: readonly string[] = [
   ROLES.COORDINADOR_PSICOLOGIA,
-  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
 ]
 
-/** Solo coordinadores pueden eliminar (desactivar) pacientes. */
+/** Solo el coordinador de psicología puede eliminar (desactivar) pacientes. */
 export const ROLES_CAN_DELETE_PATIENTS: readonly string[] = [
   ROLES.COORDINADOR_PSICOLOGIA,
-  ROLES.COORDINADOR_ENFERMERIA,
 ]
 
-/** Pueden editar pacientes (coordinadores + psicólogo + enfermero). */
+/** Pueden editar pacientes (coordinador de psicología + psicólogo + enfermero). El coordinador de enfermería sólo puede consultar. */
 export const ROLES_CAN_EDIT_PATIENT: readonly string[] = [
   ROLES.COORDINADOR_PSICOLOGIA,
-  ROLES.COORDINADOR_ENFERMERIA,
   ROLES.PSICOLOGO,
   ROLES.ENFERMERO,
 ]
@@ -47,6 +44,12 @@ export const ROLES_CAN_MANAGE_MEDICATIONS: readonly string[] = [ROLES.COORDINADO
 
 /** Pueden crear citas nuevas. Coord. psicología solo ve la lista. */
 export const ROLES_CAN_CREATE_APPOINTMENT: readonly string[] = [ROLES.PSICOLOGO]
+
+/** Roles que pueden crear/editar/eliminar blog posts temáticos */
+export const ROLES_CAN_MANAGE_BLOGS: readonly string[] = [
+  ROLES.COORDINADOR_PSICOLOGIA,
+  ROLES.PSICOLOGO,
+]
 
 /** Roles that see "Total pacientes" on dashboard (coordinators + admin) */
 const ROLES_TOTAL_PATIENTS: readonly string[] = [
@@ -106,6 +109,8 @@ const NAV_VISIBILITY: Record<string, readonly string[]> = {
   '/calendar': [ROLES.PSICOLOGO],
   /** Módulo Supervisión y Gestión de Personal: solo coordinador psicología */
   '/supervision': [ROLES.COORDINADOR_PSICOLOGIA],
+  /** Módulo Supervisión de Enfermería: solo coordinador enfermería */
+  '/supervision-nursing': [ROLES.COORDINADOR_ENFERMERIA],
   // Admin is an auditor; hide operational modules from admin UI
   '/patients': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.COORDINADOR_ENFERMERIA, ROLES.PSICOLOGO, ROLES.ENFERMERO],
   /** Coordinadores y enfermero no tienen acceso al módulo Citas; solo psicólogo operativo */
@@ -121,6 +126,8 @@ const NAV_VISIBILITY: Record<string, readonly string[]> = {
   /** Evaluaciones psicométricas: solo psicólogo. */
   '/evaluations': [ROLES.PSICOLOGO],
   '/notifications': [],
+  /** Administración de blogs de mural de Kiosko: solo psicología */
+  '/blogs': [ROLES.COORDINADOR_PSICOLOGIA, ROLES.PSICOLOGO],
   '/users': [ROLES.ADMIN],
   '/audit-logs': [ROLES.ADMIN],
   '/careers': [ROLES.ADMIN],

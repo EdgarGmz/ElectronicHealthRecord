@@ -47,8 +47,10 @@ import { SupervisionPsychologistsPage } from '@/pages/supervision/SupervisionPsy
 import { SupervisionProgressPage } from '@/pages/supervision/SupervisionProgressPage'
 import { SupervisionCalendarPage } from '@/pages/supervision/SupervisionCalendarPage'
 import { SupervisionAnalyticsPage } from '@/pages/supervision/SupervisionAnalyticsPage'
+import { SupervisionNursing } from '@/pages/supervision/SupervisionNursing'
 import { CalendarPage } from '@/pages/calendar/CalendarPage'
 import { NursingAttentionPage } from '@/pages/nursing/NursingAttentionPage'
+import { BlogListPage } from '@/pages/blogs/BlogListPage'
 import { useAuthStore } from '@/store/auth.store'
 import { SessionExpiredModal } from '@/components/molecules/SessionExpiredModal'
 
@@ -77,6 +79,7 @@ const router = createBrowserRouter(
           <Route path="calendar" element={<SupervisionCalendarPage />} />
           <Route path="analytics" element={<SupervisionAnalyticsPage />} />
         </Route>
+        <Route path="supervision-nursing" element={<RoleGuard><SupervisionNursing /></RoleGuard>} />
         <Route path="patients" element={<RoleGuard><PatientListPage /></RoleGuard>} />
         <Route path="patients/new" element={<RoleGuard><NewPatientPage /></RoleGuard>} />
         <Route path="patients/:id/edit" element={<RoleGuard><EditPatientPage /></RoleGuard>} />
@@ -102,6 +105,7 @@ const router = createBrowserRouter(
         <Route path="evaluations/new" element={<RoleGuard><NewEvaluationPage /></RoleGuard>} />
         <Route path="evaluations/:id" element={<RoleGuard><EvaluationDetailPage /></RoleGuard>} />
         <Route path="nursing-attention" element={<RoleGuard><NursingAttentionPage /></RoleGuard>} />
+        <Route path="blogs" element={<RoleGuard><BlogListPage /></RoleGuard>} />
         <Route path="notifications" element={<NotificationListPage />} />
         <Route path="notifications/new" element={<NewNotificationPage />} />
         <Route path="notifications/:id" element={<NotificationDetailPage />} />

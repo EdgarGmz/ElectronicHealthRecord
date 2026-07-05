@@ -22,9 +22,10 @@ import {
   HelpCircle,
   LogOut,
   X,
-  PanelLeftClose,
   PanelLeft,
+  PanelLeftClose,
   GraduationCap,
+  Rss,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useSidebarStore } from '@/store/sidebar.store'
@@ -52,12 +53,14 @@ const navItems = [
   { to: '/procedures', icon: Syringe, key: 'nav.procedures' },
   { to: '/calendar', icon: CalendarDays, key: 'nav.calendar' },
   { to: '/supervision', icon: UserCog, key: 'nav.supervision' },
+  { to: '/supervision-nursing', icon: UserCog, key: 'nav.supervisionNursing' },
   { to: '/patients', icon: Users, key: 'nav.patients' },
   { to: '/appointments', icon: Calendar, key: 'nav.appointments' },
   { to: '/sessions', icon: FileText, key: 'nav.sessions' },
   { to: '/evaluations', icon: ClipboardList, key: 'nav.evaluations' },
   { to: '/medications', icon: Pill, key: 'nav.medications' },
   { to: '/interconsultations', icon: MessageSquare, key: 'nav.interconsultations' },
+  { to: '/blogs', icon: Rss, key: 'nav.blogs' },
   { to: '/reports', icon: BarChart3, key: 'nav.reports' },
   { to: '/notifications', icon: Bell, key: 'nav.notifications' },
   { to: '/users', icon: Settings2, key: 'nav.users' },
