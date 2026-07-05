@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, Pencil, Eye, Mail, KeyRound, Users, Trash2 } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
@@ -278,6 +278,19 @@ export function UsersPage() {
     setPage(1)
   }
 
+  const fetchFullUsers = useCallback(async (filters: Record<string, string>) => {
+    const excludeDeactivated = filters.status === ''
+    const res = await getUsers({
+      page: 1,
+      limit: pagination.total || 999999,
+      search: filters.search || undefined,
+      role: filters.role || undefined,
+      status: filters.status || undefined,
+      excludeDeactivated,
+    })
+    return res.users
+  }, [pagination.total])
+
   const openEdit = (u: User) => {
     setEditing(u)
     setEditForm({
@@ -489,6 +502,7 @@ export function UsersPage() {
           columns={columns}
           data={sortedData}
           getRowId={(row) => row.id}
+          fetchFullData={fetchFullUsers}
           loading={loading}
           error={error}
           onRowClick={(row) => setViewingUser(row)}
