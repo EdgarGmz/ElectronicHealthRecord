@@ -1,15 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import blogService from '../services/blog.service';
 import { AppError } from '../middleware/errorHandler';
-
-const validatePasscode = (req: Request) => {
-  const inputPasscode = req.headers['x-admin-passcode'] || req.body.passcode;
-  const masterPasscode = process.env.BLOG_ADMIN_PASSCODE || 'utsc-care-master-2026';
-
-  if (!inputPasscode || inputPasscode !== masterPasscode) {
-    throw new AppError('Acceso no autorizado. Contraseña maestra inválida.', 401);
-  }
-};
+import { AuthRequest } from '../middleware/auth';
 
 export class BlogController {
   async getAll(_req: Request, res: Response, next: NextFunction) {
@@ -31,10 +23,14 @@ export class BlogController {
     }
   }
 
-  async create(req: Request, res: Response, next: NextFunction) {
+  async create(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      validatePasscode(req);
-      const { title, content, category, imageUrl, authorId } = req.body;
+      const { title, content, category, imageUrl } = req.body;
+      const authorId = req.user?.userId;
+
+      if (!authorId) {
+        throw new AppError('Usuario no autenticado', 401);
+      }
 
       if (!title || !content || !category) {
         throw new AppError('Título, contenido y categoría son obligatorios', 400);
@@ -54,9 +50,8 @@ export class BlogController {
     }
   }
 
-  async update(req: Request, res: Response, next: NextFunction) {
+  async update(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      validatePasscode(req);
       const { id } = req.params;
       const { title, content, category, imageUrl } = req.body;
 
@@ -73,9 +68,8 @@ export class BlogController {
     }
   }
 
-  async delete(req: Request, res: Response, next: NextFunction) {
+  async delete(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      validatePasscode(req);
       const { id } = req.params;
 
       await blogService.deleteBlog(id);
