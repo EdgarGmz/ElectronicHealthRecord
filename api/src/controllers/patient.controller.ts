@@ -60,10 +60,22 @@ export class PatientController {
       const search = (req.query.search as string) || (req.query.filter as string);
       const patientType = req.query.patientType as string;
       const careerId = req.query.careerId as string | undefined;
+      const sex = req.query.sex as string | undefined;
+      const age = req.query.age as string | undefined;
       const userRole = req.user?.role != null ? String(req.user.role) : undefined;
       const userId = req.user?.userId != null ? String(req.user.userId) : undefined;
 
-      const result = await patientService.getAll(page, limit, search, patientType, userRole, userId, careerId);
+      const result = await patientService.getAll(
+        page,
+        limit,
+        search,
+        patientType,
+        userRole,
+        userId,
+        careerId,
+        sex,
+        age
+      );
 
       res.status(200).json({
         success: true,

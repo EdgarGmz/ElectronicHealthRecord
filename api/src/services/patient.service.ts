@@ -48,7 +48,9 @@ export class PatientService {
     patientType?: string,
     userRole?: string,
     userId?: string,
-    careerId?: string
+    careerId?: string,
+    sex?: string,
+    age?: string | number
   ) {
     const skip = (page - 1) * limit;
 
@@ -66,6 +68,57 @@ export class PatientService {
           { enrollmentNumber: { contains: search, mode: 'insensitive' } },
         ],
       };
+    }
+
+    if (sex) {
+      where.user = {
+        ...(where.user as object),
+        sex: { equals: sex, mode: 'insensitive' },
+      };
+    }
+
+    if (age) {
+      const today = new Date();
+      if (typeof age === 'string' && age.includes('-')) {
+        const [minStr, maxStr] = age.split('-');
+        const minAge = parseInt(minStr, 10);
+        const maxAge = parseInt(maxStr, 10);
+        if (!isNaN(minAge) && !isNaN(maxAge)) {
+          const minBirthDate = new Date(today.getFullYear() - maxAge - 1, today.getMonth(), today.getDate() + 1);
+          const maxBirthDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+          where.user = {
+            ...(where.user as object),
+            dateOfBirth: {
+              gte: minBirthDate,
+              lte: maxBirthDate,
+            },
+          };
+        }
+      } else if (typeof age === 'string' && age.endsWith('+')) {
+        const minAge = parseInt(age.replace('+', ''), 10);
+        if (!isNaN(minAge)) {
+          const maxBirthDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+          where.user = {
+            ...(where.user as object),
+            dateOfBirth: {
+              lte: maxBirthDate,
+            },
+          };
+        }
+      } else {
+        const targetAge = typeof age === 'string' ? parseInt(age, 10) : age;
+        if (!isNaN(targetAge)) {
+          const minDate = new Date(today.getFullYear() - targetAge - 1, today.getMonth(), today.getDate() + 1);
+          const maxDate = new Date(today.getFullYear() - targetAge, today.getMonth(), today.getDate());
+          where.user = {
+            ...(where.user as object),
+            dateOfBirth: {
+              gte: minDate,
+              lte: maxDate,
+            },
+          };
+        }
+      }
     }
 
     if (patientType) {
@@ -119,6 +172,7 @@ export class PatientService {
               dateOfBirth: true,
               phone: true,
               enrollmentNumber: true,
+              sex: true,
             },
           },
           career: {
