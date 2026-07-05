@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CalendarPlus, Calendar } from 'lucide-react'
@@ -161,6 +161,16 @@ export function AppointmentListPage() {
     setPage(1)
   }
 
+  const fetchFullAppointments = useCallback(async (filters: Record<string, string>) => {
+    const res = await getAppointments({
+      page: 1,
+      limit: pagination.total || 999999,
+      status: filters.status || undefined,
+      search: filters.search || undefined,
+    })
+    return res.appointments
+  }, [pagination.total])
+
   const rowVariant = (row: Appointment): 'success' | 'warning' | 'error' | 'default' => {
     if (row.status === APPOINTMENT_STATUS.COMPLETED) return 'success'
     if (row.status === APPOINTMENT_STATUS.CANCELLED || row.status === APPOINTMENT_STATUS.NO_SHOW)
@@ -199,6 +209,7 @@ export function AppointmentListPage() {
           columns={columns}
           data={sortedData}
           getRowId={(row) => row.id}
+          fetchFullData={fetchFullAppointments}
           loading={loading}
           error={error}
           emptyMessage={t('appointments.noAppointments')}

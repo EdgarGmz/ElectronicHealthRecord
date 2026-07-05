@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { History } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
@@ -120,6 +120,18 @@ export function AuditLogsPage() {
     setPage(1)
   }
 
+  const fetchFullAuditLogs = useCallback(async (filters: Record<string, string>) => {
+    const res = await getAuditLogs({
+      page: 1,
+      limit: data?.pagination.total || 999999,
+      action: filters.action || undefined,
+      role: filters.role || undefined,
+      startDate: filters.dateFrom ? `${filters.dateFrom}T00:00:00.000Z` : undefined,
+      endDate: filters.dateTo ? `${filters.dateTo}T23:59:59.999Z` : undefined,
+    })
+    return res.auditLogs
+  }, [data?.pagination.total])
+
   const pagination = data?.pagination ?? { page: 1, limit, total: 0, totalPages: 0 }
 
   return (
@@ -143,6 +155,7 @@ export function AuditLogsPage() {
           columns={columns}
           data={sortedData}
           getRowId={(row) => row.id}
+          fetchFullData={fetchFullAuditLogs}
           loading={loading}
           error={error}
           emptyMessage={t('auditLogs.noData')}

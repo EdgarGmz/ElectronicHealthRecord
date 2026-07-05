@@ -51,6 +51,12 @@ function generateUniqueUsername(firstName: string, lastName: string): string {
   return username;
 }
 
+async function clearAndPopulateUsernames(): Promise<void> {
+  usedUsernames.clear();
+  const users = await prisma.user.findMany({ select: { username: true } });
+  users.forEach((u) => usedUsernames.add(u.username));
+}
+
 // Helper function to get a random element from an array
 function randomElement<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
@@ -1410,7 +1416,7 @@ async function seedRobust() {
 async function seedDev() {
   const careers = await seedCareers();
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
-  usedUsernames.clear();
+  await clearAndPopulateUsernames();
 
   const staffDev = STAFF_SEED_DATA;
 
@@ -1525,7 +1531,7 @@ async function seedProd() {
   await seedCareers();
   await seedMoods();
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
-  usedUsernames.clear();
+  await clearAndPopulateUsernames();
 
   const staffProd = STAFF_SEED_DATA;
 
@@ -1778,7 +1784,7 @@ function generateDemoEmail(firstName: string, lastName: string, domain: string):
 async function seedDemoPatients(careers: any[]) {
   console.log('👥 Seeding Demo patients (310 alumnos + 30 docentes)...');
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
-  usedUsernames.clear();
+  await clearAndPopulateUsernames();
   usedDemoEmails.clear();
 
   const ALUMNOS_POR_CARRERA = 26; // 12 × 26 = 312 alumnos
@@ -1809,8 +1815,10 @@ async function seedDemoPatients(careers: any[]) {
   for (let ci = 0; ci < careers.length; ci++) {
     const career = careers[ci];
     for (let i = 0; i < ALUMNOS_POR_CARRERA; i++) {
-      const sex = Math.random() < 0.5 ? 'male' : 'female';
-      const firstName = sex === 'male' ? faker.person.firstName('male') : faker.person.firstName('female');
+      const isOther = Math.random() < 0.04;
+      const baseSex = Math.random() < 0.5 ? 'male' : 'female';
+      const sex = isOther ? 'other' : baseSex;
+      const firstName = baseSex === 'male' ? faker.person.firstName('male') : faker.person.firstName('female');
       const lastName = `${faker.person.lastName()} ${faker.person.lastName()}`;
       const username = generateUniqueUsername(firstName, lastName);
       const email = generateDemoEmail(firstName, lastName, 'virtual.utsc.edu.mx');
@@ -1856,8 +1864,10 @@ async function seedDemoPatients(careers: any[]) {
 
   // --- Docentes ---
   for (let i = 0; i < TOTAL_DOCENTES; i++) {
-    const sex = Math.random() < 0.5 ? 'male' : 'female';
-    const firstName = sex === 'male' ? faker.person.firstName('male') : faker.person.firstName('female');
+    const isOther = Math.random() < 0.04;
+    const baseSex = Math.random() < 0.5 ? 'male' : 'female';
+    const sex = isOther ? 'other' : baseSex;
+    const firstName = baseSex === 'male' ? faker.person.firstName('male') : faker.person.firstName('female');
     const lastName = `${faker.person.lastName()} ${faker.person.lastName()}`;
     const username = generateUniqueUsername(firstName, lastName);
     const email = generateDemoEmail(firstName, lastName, 'utsc.edu.mx');
@@ -1887,7 +1897,7 @@ async function seedDemoPatients(careers: any[]) {
       update: {},
       create: {
         userId: user.id,
-        patientType: 'staff',
+        patientType: 'faculty',
         maritalStatus: randomElement(estadosCiviles),
         careerId: careers[i % careers.length].id,
         occupation: randomElement(ocupacionesDocentes),
@@ -1897,8 +1907,67 @@ async function seedDemoPatients(careers: any[]) {
   }
   console.log(`  ✅ ${docenteUsers.length} docentes creados`);
 
-  const allPatientUsers = [...alumnoUsers, ...docenteUsers];
-  const allPatients = [...alumnoPatients, ...docentePatients];
+  // --- Administrativos ---
+  const ocupacionesAdministrativas = [
+    'Secretaria Académica',
+    'Asistente de Rectoría',
+    'Personal de TI',
+    'Administrador de Finanzas',
+    'Auxiliar de Contabilidad',
+    'Personal de Servicios Escolares',
+    'Encargado de Biblioteca',
+    'Personal de Recursos Humanos',
+  ];
+  const adminUsers: any[] = [];
+  const adminPatients: any[] = [];
+  const TOTAL_ADMINISTRATIVOS = 20;
+
+  for (let i = 0; i < TOTAL_ADMINISTRATIVOS; i++) {
+    const isOther = Math.random() < 0.04;
+    const baseSex = Math.random() < 0.5 ? 'male' : 'female';
+    const sex = isOther ? 'other' : baseSex;
+    const firstName = baseSex === 'male' ? faker.person.firstName('male') : faker.person.firstName('female');
+    const lastName = `${faker.person.lastName()} ${faker.person.lastName()}`;
+    const username = generateUniqueUsername(firstName, lastName);
+    const email = generateDemoEmail(firstName, lastName, 'utsc.edu.mx');
+
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: { passwordHash: defaultPasswordHash, username, isConfirmed: true, mustChangePassword: false },
+      create: {
+        email,
+        username,
+        passwordHash: defaultPasswordHash,
+        firstName,
+        lastName,
+        dateOfBirth: faker.date.birthdate({ min: 22, max: 60, mode: 'age' }),
+        role: 'patient',
+        enrollmentNumber: `A${String(i + 1).padStart(4, '0')}`,
+        sex,
+        phone: `${faker.string.numeric(2)}${faker.string.numeric(8)}`,
+        isConfirmed: true,
+        mustChangePassword: false,
+      },
+    });
+    adminUsers.push(user);
+
+    const patient = await prisma.patient.upsert({
+      where: { userId: user.id },
+      update: {},
+      create: {
+        userId: user.id,
+        patientType: 'administrative',
+        maritalStatus: randomElement(estadosCiviles),
+        careerId: careers[i % careers.length].id,
+        occupation: randomElement(ocupacionesAdministrativas),
+      },
+    });
+    adminPatients.push(patient);
+  }
+  console.log(`  ✅ ${adminUsers.length} administrativos creados`);
+
+  const allPatientUsers = [...alumnoUsers, ...docenteUsers, ...adminUsers];
+  const allPatients = [...alumnoPatients, ...docentePatients, ...adminPatients];
 
   console.log(`✅ Total pacientes demo: ${allPatients.length}`);
   return { allPatientUsers, allPatients };
@@ -2511,12 +2580,17 @@ async function seedDemoInterconsultations(allPatients: any[], psychologists: any
 async function seedDemo() {
   console.log('\n🎓 Iniciando SEED DEMO para exposición universitaria...\n');
 
-  await clearDatabase();
+  const skipClear = process.env.SKIP_CLEAR === 'true';
+  if (!skipClear) {
+    await clearDatabase();
+  } else {
+    console.log('⚡ Saltando limpieza de BD (SKIP_CLEAR=true)...');
+  }
   const careers = await seedCareers();
   const moodCodes = await seedMoods();
 
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
-  usedUsernames.clear();
+  await clearAndPopulateUsernames();
 
   // Staff fijo
   console.log('👤 Seeding staff (usuarios reales)...');
@@ -2581,7 +2655,15 @@ async function seedDemo() {
   await seedDemoInterconsultations(allPatients, psychologists, nurses);
 
   // Blog posts
-  await seedDemoBlogPosts(admin.id);
+  try {
+    await seedDemoBlogPosts(admin.id);
+  } catch (e: any) {
+    if (e.code === 'P2021' || e.message?.includes('does not exist')) {
+      console.log('⚠️  Tabla blog_posts no existe en esta BD (no migrada). Saltando blog posts.');
+    } else {
+      throw e;
+    }
+  }
 
   // Notificaciones
   const allUsers = [...staffUsers, ...allPatientUsers];
@@ -2605,44 +2687,55 @@ async function seedDemo() {
 // Clear database helper
 async function clearDatabase() {
   console.log('🗑️ Clearing database (except Careers)...');
-  await prisma.$executeRawUnsafe(`
-    DO $$
-    DECLARE
-      tbls text[] := ARRAY[
-        'notifications', 'audit_logs', 'reports', 'system_settings',
-        'interconsultations', 'professional_schedules', 'waiting_list',
-        'appointment_reminders', 'appointments',
-        'prescription_administrations', 'medication_administrations',
-        'prescriptions', 'medications',
-        'nursing_procedures', 'nursing_attentions', 'nursing_consultations',
-        'treatment_plans', 'therapy_sessions', 'moods',
-        'psychometric_evaluations', 'psychology_records', 'medical_records',
-        'emergency_contacts', 'psychologist_careers',
-        'blog_posts', 'patients', 'users'
-      ];
-      t text;
-    BEGIN
-      FOREACH t IN ARRAY tbls LOOP
-        IF EXISTS (
-          SELECT 1 FROM information_schema.tables
-          WHERE table_schema = 'public' AND table_name = t
-        ) THEN
-          EXECUTE 'TRUNCATE TABLE ' || quote_ident(t) || ' RESTART IDENTITY CASCADE';
-        END IF;
-      END LOOP;
-    END $$
-  `);
+  // Order matters: delete children before parents to avoid FK violations
+  try {
+    await prisma.notification.deleteMany();
+    await prisma.auditLog.deleteMany();
+    await prisma.report.deleteMany();
+    await prisma.systemSetting.deleteMany();
+    await prisma.interconsultation.deleteMany();
+    await prisma.professionalSchedule.deleteMany();
+    await prisma.waitingList.deleteMany();
+    await prisma.appointmentReminder.deleteMany();
+    await prisma.appointment.deleteMany();
+    await prisma.prescriptionAdministration.deleteMany();
+    await prisma.medicationAdministration.deleteMany();
+    await prisma.prescription.deleteMany();
+    await prisma.medication.deleteMany();
+    await prisma.nursingProcedure.deleteMany();
+    await prisma.nursingAttention.deleteMany();
+    await prisma.nursingConsultation.deleteMany();
+    await prisma.therapySession.deleteMany();
+    await prisma.treatmentPlan.deleteMany();
+    await prisma.psychometricEvaluation.deleteMany();
+    await prisma.psychologyRecord.deleteMany();
+    await prisma.medicalRecord.deleteMany();
+    await prisma.emergencyContact.deleteMany();
+    await prisma.psychologistCareer.deleteMany();
+    // blogPost might not exist in prod; wrap in try-catch
+    try {
+      await prisma.blogPost.deleteMany();
+    } catch {}
+    await prisma.patient.deleteMany();
+    await prisma.user.deleteMany();
+  } catch (e) {
+    console.warn('⚠️ Partial deletion during clearDatabase:', e);
+  }
   console.log('✅ Database cleared!');
 }
 
 // Clean seed target: only admin user and careers
 async function seedClean() {
-  await clearDatabase();
+  // Skip clearDatabase for prod to avoid connection timeouts on Render Free
+  const skipClear = process.env.SKIP_CLEAR === 'true';
+  if (!skipClear) {
+    await clearDatabase();
+  }
   await seedCareers();
   await seedMoods();
 
   const defaultPasswordHash = await hashPassword(DEFAULT_SEED_PASSWORD);
-  usedUsernames.clear();
+  await clearAndPopulateUsernames();
 
   const staffToCreate = STAFF_SEED_DATA;
 

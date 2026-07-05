@@ -39,7 +39,9 @@ export function PatientListPage() {
   const [search, setSearch] = useState('')
   const [patientType, setPatientType] = useState('')
   const [careerId, setCareerId] = useState('')
-  const [psychologistCareers, setPsychologistCareers] = useState<Career[]>([])
+  const [sex, setSex] = useState('')
+  const [age, setAge] = useState('')
+  const [careersList, setCareersList] = useState<Career[]>([])
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(() => getDefaultTableLimit())
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
@@ -60,6 +62,8 @@ export function PatientListPage() {
       search: search || undefined,
       patientType: patientType || undefined,
       careerId: careerId || undefined,
+      sex: sex || undefined,
+      age: age || undefined,
     })
       .then((r) => {
         setPatients(r.patients)
@@ -67,20 +71,35 @@ export function PatientListPage() {
       })
       .catch(() => setError(t('common.error')))
       .finally(() => setLoading(false))
-  }, [page, limit, search, patientType, careerId, t])
+  }, [page, limit, search, patientType, careerId, sex, age, t])
 
-  // Cargar carreras del psicólogo (las que tiene a cargo) solo para rol psicólogo
+  const fetchFullPatients = useCallback(async (filters: Record<string, string>) => {
+    const res = await getPatients({
+      page: 1,
+      limit: pagination.total || 999999,
+      search: filters.search || undefined,
+      patientType: filters.patientType || undefined,
+      careerId: filters.careerId || undefined,
+      sex: filters.sex || undefined,
+      age: filters.age || undefined,
+    })
+    return res.patients
+  }, [pagination.total])
+
+  // Cargar carreras (si es psicólogo, las que tiene a cargo; si es otro rol, todas)
   useEffect(() => {
-    if (!isPsychologist) {
-      setPsychologistCareers([])
-      return
+    if (isPsychologist) {
+      Promise.all([getMyCareers(), getCareers()])
+        .then(([ids, allCareers]) => {
+          const byId = new Set(ids)
+          setCareersList(allCareers.filter((c) => byId.has(c.id)))
+        })
+        .catch(() => setCareersList([]))
+    } else {
+      getCareers()
+        .then(setCareersList)
+        .catch(() => setCareersList([]))
     }
-    Promise.all([getMyCareers(), getCareers()])
-      .then(([ids, allCareers]) => {
-        const byId = new Set(ids)
-        setPsychologistCareers(allCareers.filter((c) => byId.has(c.id)))
-      })
-      .catch(() => setPsychologistCareers([]))
   }, [isPsychologist])
 
   useEffect(() => {
@@ -116,6 +135,18 @@ export function PatientListPage() {
     }
   }
 
+  const calculateAge = (dob: string) => {
+    if (!dob) return 0
+    const birthDate = new Date(dob)
+    const today = new Date()
+    let ageVal = today.getFullYear() - birthDate.getFullYear()
+    const m = today.getMonth() - birthDate.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      ageVal--
+    }
+    return ageVal
+  }
+
   const fullName = (p: Patient) => `${p.user.firstName} ${p.user.lastName}`.trim()
 
   const columns: DataTableColumn<Patient>[] = [
@@ -136,6 +167,8 @@ export function PatientListPage() {
         row.user.phone ? <PhoneWhatsAppLink phone={row.user.phone} /> : '—',
     },
     { id: 'enrollment', label: t('patients.enrollment'), getValue: (row) => row.user.enrollmentNumber ?? '—' },
+    { id: 'sex', label: t('patients.sex'), getValue: (row) => row.user.sex ? t(`patients.${row.user.sex === 'male' ? 'male' : row.user.sex === 'female' ? 'female' : 'other'}`) : '—', sortable: true },
+    { id: 'age', label: t('patients.age'), getValue: (row) => row.user.dateOfBirth ? String(calculateAge(row.user.dateOfBirth)) : '—', sortable: true },
     { id: 'type', label: t('patients.type'), getValue: (row) => t(`patients.${row.patientType}`) || row.patientType, sortable: true },
     { id: 'career', label: t('patients.career'), getValue: (row) => row.career?.name ?? '—', sortable: true },
   ]
@@ -152,32 +185,56 @@ export function PatientListPage() {
     })
   }, [patients, sortState, columns])
 
-  const filterValues = { search, patientType, careerId }
+  const filterValues = { search, patientType, careerId, sex, age }
   const onFilterChange = (key: string, value: string) => {
     if (key === 'search') setSearch(value)
     else if (key === 'patientType') {
       setPatientType(value)
       if (value === 'faculty' || value === 'administrative') setCareerId('')
     } else if (key === 'careerId') setCareerId(value)
+    else if (key === 'sex') setSex(value)
+    else if (key === 'age') setAge(value)
     setPage(1)
   }
   const onClearFilters = () => {
     setSearch('')
     setPatientType('')
     setCareerId('')
+    setSex('')
+    setAge('')
     setPage(1)
   }
 
   const baseFilters = [
     { key: 'search', label: t('common.search'), type: 'text' as const, placeholder: t('patients.searchPlaceholder'), searchIcon: true, debounceMs: 350 },
     { key: 'patientType', label: t('patients.type'), type: 'select' as const, options: PATIENT_TYPES.map((type) => ({ value: type, label: t(`patients.${type}`) })) },
+    {
+      key: 'sex',
+      label: t('patients.sex'),
+      type: 'select' as const,
+      options: [
+        { value: 'male', label: t('patients.male') },
+        { value: 'female', label: t('patients.female') },
+        { value: 'other', label: t('patients.other') },
+      ],
+    },
+    {
+      key: 'age',
+      label: t('patients.age'),
+      type: 'select' as const,
+      options: [
+        { value: '18-25', label: '18 - 25' },
+        { value: '26-35', label: '26 - 35' },
+        { value: '36-45', label: '36 - 45' },
+        { value: '46+', label: '46+' },
+      ],
+    },
   ]
   const showCareerFilter =
-    isPsychologist &&
-    psychologistCareers.length > 0 &&
+    careersList.length > 0 &&
     (patientType === '' || patientType === 'student')
   const careerFilter = showCareerFilter
-    ? [{ key: 'careerId', label: t('patients.career'), type: 'select' as const, options: psychologistCareers.map((c) => ({ value: c.id, label: c.name })) }]
+    ? [{ key: 'careerId', label: t('patients.career'), type: 'select' as const, options: careersList.map((c) => ({ value: c.id, label: c.name })) }]
     : []
   const filters = [...baseFilters, ...careerFilter]
 
@@ -244,6 +301,7 @@ export function PatientListPage() {
           onClearFilters={onClearFilters}
           sortState={sortState}
           onSort={(columnId, order) => setSortState({ columnId, order })}
+          fetchFullData={fetchFullPatients}
           onRowClick={canClickRow ? (row) => navigate(`/patients/${row.id}`) : undefined}
           renderActions={(row) => (
             <div className="flex flex-row flex-nowrap items-center gap-2">

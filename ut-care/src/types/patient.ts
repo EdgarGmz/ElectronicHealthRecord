@@ -6,6 +6,7 @@ export interface PatientUser {
   dateOfBirth: string
   phone: string | null
   enrollmentNumber: string | null
+  sex: string | null
 }
 
 export interface Career {

@@ -1,4 +1,5 @@
 import { type ReactNode, useState, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,7 +13,6 @@ import {
   X,
 } from 'lucide-react'
 import { GlassButton } from '@/components/atoms/GlassButton'
-import { ConfirmModal } from '@/components/molecules/ConfirmModal'
 import { PasswordInput } from '@/components/atoms/PasswordInput'
 import { getTableRowClass, getStatusBadgeClass } from '@/utils/tableRowColors'
 import type { TableRowVariant } from '@/utils/tableRowColors'
@@ -23,6 +23,7 @@ import {
 } from '@/utils/tableExport'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/auth.store'
+import { useTranslation } from 'react-i18next'
 
 export interface DataTableFilterConfig {
   key: string
@@ -74,10 +75,12 @@ export interface DataTableProps<T> {
   rowClassName?: (row: T) => string
   /** Evento opcional al hacer clic en una fila */
   onRowClick?: (row: T, event: React.MouseEvent) => void
-  /** Formatos de exportación mostrados. */
+  /** Formatos de exportación mostrados. Si se omite, no se muestra la opción de exportar. */
   exportFormats?: ('pdf' | 'csv' | 'xlsx')[]
   exportFilename?: string
   exportTitle?: string
+  /** Función para recuperar el conjunto de datos completo (sin paginar) según los filtros activos. */
+  fetchFullData?: (filterValues: Record<string, string>) => Promise<T[]>
   i18n?: {
     actions?: string
     clearFilters?: string
@@ -124,15 +127,21 @@ export function DataTable<T>({
   exportFormats = ['pdf', 'csv', 'xlsx'],
   exportFilename = 'datos',
   exportTitle,
+  fetchFullData,
   i18n = {},
 }: DataTableProps<T>) {
   void _error
   const currentUser = useAuthStore((s) => s.user)
   const [exportModalOpen, setExportModalOpen] = useState(false)
-  const [pendingFormat, setPendingFormat] = useState<'pdf' | 'csv' | 'xlsx' | null>(null)
+  const [exportStep, setExportStep] = useState(1)
+  const [selectedFormat, setSelectedFormat] = useState<'pdf' | 'csv' | 'xlsx'>('pdf')
+  const [exportScope, setExportScope] = useState<'current' | 'all'>('current')
+  const [filenameInput, setFilenameInput] = useState('')
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false)
   const [exportPassword, setExportPassword] = useState('')
   const [exportPasswordError, setExportPasswordError] = useState<string | null>(null)
-  const [exportVerifying, setExportVerifying] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
+
   const [localTextValues, setLocalTextValues] = useState<Record<string, string>>({})
   const debounceTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const prevFilterValuesRef = useRef<string>('')
@@ -170,29 +179,91 @@ export function DataTable<T>({
     [onFilterChange]
   )
 
-  const t = i18n
-  const activeFilters = hasActiveFilters(filterValues)
-
-  const handleExport = (format: 'pdf' | 'csv' | 'xlsx') => {
-    const headers = columns.map((c) => c.label)
-    const rows = data.map((row) =>
-      columns.map((col) => String(col.getValue(row) ?? ''))
-    )
-    if (format === 'csv') exportTableToCsv(headers, rows, exportFilename)
-    else if (format === 'xlsx') exportTableToXlsx(headers, rows, exportFilename)
-    else exportTableToPdf(headers, rows, exportFilename, exportTitle)
+  const { t: tI18n } = useTranslation()
+  const t = {
+    actions: i18n.actions || tI18n('table.actions'),
+    clearFilters: i18n.clearFilters || tI18n('table.clearFilters'),
+    export: i18n.export || tI18n('table.export'),
+    exportPdf: i18n.exportPdf || tI18n('table.exportPdf'),
+    exportCsv: i18n.exportCsv || tI18n('table.exportCsv'),
+    exportExcel: i18n.exportExcel || tI18n('table.exportExcel'),
+    previous: i18n.previous || tI18n('table.previous'),
+    next: i18n.next || tI18n('table.next'),
+    page: i18n.page || tI18n('table.page'),
+    of: i18n.of || tI18n('table.of'),
+    all: i18n.all || tI18n('table.all'),
+    rowsPerPage: i18n.rowsPerPage || tI18n('table.rowsPerPage'),
+    exportWizard: {
+      title: tI18n('table.exportWizard.title'),
+      stepFormat: tI18n('table.exportWizard.stepFormat'),
+      stepSecurity: tI18n('table.exportWizard.stepSecurity'),
+      stepSave: tI18n('table.exportWizard.stepSave'),
+      stepConfirm: tI18n('table.exportWizard.stepConfirm'),
+      selectFormatAndScope: tI18n('table.exportWizard.selectFormatAndScope'),
+      formatTitle: tI18n('table.exportWizard.formatTitle'),
+      scopeTitle: tI18n('table.exportWizard.scopeTitle'),
+      scopeCurrent: tI18n('table.exportWizard.scopeCurrent'),
+      scopeCurrentDesc: (count: number) => tI18n('table.exportWizard.scopeCurrentDesc', { count }),
+      scopeAll: tI18n('table.exportWizard.scopeAll'),
+      scopeAllDesc: (count: number) => tI18n('table.exportWizard.scopeAllDesc', { count }),
+      scopeAllNotAvailable: tI18n('table.exportWizard.scopeAllNotAvailable'),
+      securityTitle: tI18n('table.exportWizard.securityTitle'),
+      securityWarningHeader: tI18n('table.exportWizard.securityWarningHeader'),
+      securityWarningText: tI18n('table.exportWizard.securityWarningText'),
+      securityAcceptCheckbox: tI18n('table.exportWizard.securityAcceptCheckbox'),
+      filenameLabel: tI18n('table.exportWizard.filenameLabel'),
+      saveNoteTitle: tI18n('table.exportWizard.saveNoteTitle'),
+      saveNoteText: tI18n('table.exportWizard.saveNoteText'),
+      confirmPasswordText: tI18n('table.exportWizard.confirmPasswordText'),
+      passwordLabel: tI18n('table.exportWizard.passwordLabel'),
+      btnBack: tI18n('table.exportWizard.btnBack'),
+      btnCancel: tI18n('table.exportWizard.btnCancel'),
+      btnNext: tI18n('table.exportWizard.btnNext'),
+      btnExporting: tI18n('table.exportWizard.btnExporting'),
+      btnExport: tI18n('table.exportWizard.btnExport'),
+      exportButtonText: tI18n('table.exportWizard.exportButtonText'),
+      reportDefaultTitle: tI18n('table.exportWizard.reportDefaultTitle'),
+      confidentialHeader: tI18n('table.exportWizard.confidentialHeader'),
+      generatedBy: tI18n('table.exportWizard.generatedBy'),
+      roleLabel: tI18n('table.exportWizard.roleLabel'),
+      dateTimeLabel: tI18n('table.exportWizard.dateTimeLabel'),
+      securityDisclaimerLabel: tI18n('table.exportWizard.securityDisclaimerLabel'),
+    }
   }
 
-  const openExportModal = (format: 'pdf' | 'csv' | 'xlsx') => {
+  const activeFilters = hasActiveFilters(filterValues)
+
+  const handleExport = (format: 'pdf' | 'csv' | 'xlsx', exportData: T[], finalFilename: string) => {
+    const headers = columns.map((c) => c.label)
+    const rows = exportData.map((row) =>
+      columns.map((col) => String(col.getValue(row) ?? ''))
+    )
+
+    const meta = currentUser ? {
+      user: `${currentUser.firstName} ${currentUser.lastName} (${currentUser.username})`,
+      role: tI18n(`roles.${currentUser.role}`) || currentUser.role || 'Usuario',
+      dateTime: new Date().toLocaleString(tI18n('language.es') === 'Español' ? 'es-MX' : 'en-US', { dateStyle: 'long', timeStyle: 'medium' }),
+      disclaimer: t.exportWizard.securityWarningText,
+    } : undefined
+
+    if (format === 'csv') exportTableToCsv(headers, rows, finalFilename, meta)
+    else if (format === 'xlsx') exportTableToXlsx(headers, rows, finalFilename, exportTitle || t.exportWizard.reportDefaultTitle, meta)
+    else exportTableToPdf(headers, rows, finalFilename, exportTitle || t.exportWizard.reportDefaultTitle, meta)
+  }
+
+  const openExportWizard = () => {
     if (!data.length) return
-    setPendingFormat(format)
+    setSelectedFormat('pdf')
+    setExportScope('current')
+    setFilenameInput(exportFilename)
+    setDisclaimerAccepted(false)
     setExportPassword('')
     setExportPasswordError(null)
+    setExportStep(1)
     setExportModalOpen(true)
   }
 
   const handleConfirmExport = async () => {
-    if (!pendingFormat) return
     if (!currentUser?.username) {
       setExportPasswordError('No hay usuario en sesión')
       return
@@ -201,7 +272,7 @@ export function DataTable<T>({
       setExportPasswordError('La contraseña es requerida')
       return
     }
-    setExportVerifying(true)
+    setExportLoading(true)
     setExportPasswordError(null)
     try {
       // Validar credenciales antes de exportar
@@ -209,10 +280,16 @@ export function DataTable<T>({
         username: currentUser.username,
         password: exportPassword,
       })
-      handleExport(pendingFormat)
+
+      // Obtener datos según alcance seleccionado
+      let exportData = data
+      if (exportScope === 'all' && fetchFullData) {
+        exportData = await fetchFullData(filterValues)
+      }
+
+      handleExport(selectedFormat, exportData, filenameInput || exportFilename)
       setExportModalOpen(false)
       setExportPassword('')
-      setPendingFormat(null)
     } catch (e: unknown) {
       const msg =
         e && typeof e === 'object' && 'response' in e
@@ -220,7 +297,7 @@ export function DataTable<T>({
           : null
       setExportPasswordError(msg || 'Credenciales inválidas')
     } finally {
-      setExportVerifying(false)
+      setExportLoading(false)
     }
   }
 
@@ -241,36 +318,257 @@ export function DataTable<T>({
    * y no se pierde el foco al actualizar los datos. */
   return (
     <div className="space-y-4">
-      <ConfirmModal
-        open={exportModalOpen}
-        onClose={() => {
-          if (exportVerifying) return
-          setExportModalOpen(false)
-        }}
-        onConfirm={handleConfirmExport}
-        confirming={exportVerifying}
-        title="Confirmar descarga"
-        message="Por seguridad, introduce tu contraseña para exportar estos datos."
-        detail={
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-              Contraseña
-            </label>
-            <PasswordInput
-              value={exportPassword}
-              onChange={(e) => {
-                setExportPassword(e.target.value)
-                setExportPasswordError(null)
-              }}
-              placeholder="********"
-              autoFocus
-            />
-            {exportPasswordError && (
-              <p className="text-xs text-[var(--color-error)]">{exportPasswordError}</p>
-            )}
+      {exportModalOpen && createPortal(
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md transition-all duration-300">
+          <div className="glass-card w-full max-w-lg rounded-2xl p-6 border border-white/20 bg-white/5 dark:bg-black/20 shadow-2xl backdrop-blur-xl animate-fade-in text-[var(--text-primary)]">
+            {/* Header del modal */}
+            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-3">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <FileDown className="text-[var(--color-primary)]" size={20} />
+                <span>{t.exportWizard.title}</span>
+              </h2>
+              <button
+                type="button"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                onClick={() => !exportLoading && setExportModalOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Progreso del Wizard */}
+            <div className="flex items-center justify-between mb-6 text-xs text-[var(--text-muted)] font-medium px-1">
+              <span className={exportStep === 1 ? 'text-[var(--color-primary)] font-bold' : ''}>{t.exportWizard.stepFormat}</span>
+              <span className="opacity-40">→</span>
+              <span className={exportStep === 2 ? 'text-[var(--color-primary)] font-bold' : ''}>{t.exportWizard.stepSecurity}</span>
+              <span className="opacity-40">→</span>
+              <span className={exportStep === 3 ? 'text-[var(--color-primary)] font-bold' : ''}>{t.exportWizard.stepSave}</span>
+              <span className="opacity-40">→</span>
+              <span className={exportStep === 4 ? 'text-[var(--color-primary)] font-bold' : ''}>{t.exportWizard.stepConfirm}</span>
+            </div>
+
+            {/* Contenido según el paso */}
+            <div className="min-h-[180px] mb-6">
+              {exportStep === 1 && (
+                <div className="space-y-4">
+                  <p className="text-sm text-[var(--text-secondary)]">{t.exportWizard.selectFormatAndScope}</p>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2">{t.exportWizard.formatTitle}</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {exportFormats.includes('pdf') && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedFormat('pdf')}
+                          className={`flex flex-col items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-all duration-200 ${
+                            selectedFormat === 'pdf'
+                              ? 'border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                              : 'border-white/10 hover:bg-white/5'
+                          }`}
+                        >
+                          <FileText size={24} />
+                          <span>PDF</span>
+                        </button>
+                      )}
+                      {exportFormats.includes('csv') && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedFormat('csv')}
+                          className={`flex flex-col items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-all duration-200 ${
+                            selectedFormat === 'csv'
+                              ? 'border-neutral-700 bg-neutral-700/10 text-neutral-800 dark:text-neutral-200'
+                              : 'border-white/10 hover:bg-white/5'
+                          }`}
+                        >
+                          <FileDown size={24} />
+                          <span>CSV</span>
+                        </button>
+                      )}
+                      {exportFormats.includes('xlsx') && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedFormat('xlsx')}
+                          className={`flex flex-col items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-all duration-200 ${
+                            selectedFormat === 'xlsx'
+                              ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                              : 'border-white/10 hover:bg-white/5'
+                          }`}
+                        >
+                          <FileSpreadsheet size={24} />
+                          <span>Excel</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2">{t.exportWizard.scopeTitle}</label>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-3 p-3 rounded-xl border border-white/10 hover:bg-white/5 cursor-pointer text-sm font-medium">
+                        <input
+                          type="radio"
+                          name="exportScope"
+                          checked={exportScope === 'current'}
+                          onChange={() => setExportScope('current')}
+                          className="accent-[var(--color-primary)]"
+                        />
+                        <div className="ml-2">
+                          <p>{t.exportWizard.scopeCurrent}</p>
+                          <p className="text-xs text-[var(--text-muted)]">{t.exportWizard.scopeCurrentDesc(data.length)}</p>
+                        </div>
+                      </label>
+
+                      <label className={`flex items-center gap-3 p-3 rounded-xl border border-white/10 cursor-pointer text-sm font-medium ${
+                        !fetchFullData ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/5'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="exportScope"
+                          checked={exportScope === 'all'}
+                          disabled={!fetchFullData}
+                          onChange={() => setExportScope('all')}
+                          className="accent-[var(--color-primary)]"
+                        />
+                        <div className="ml-2">
+                          <p>{t.exportWizard.scopeAll}</p>
+                          <p className="text-xs text-[var(--text-muted)]">
+                            {fetchFullData
+                              ? t.exportWizard.scopeAllDesc(pagination.total)
+                              : t.exportWizard.scopeAllNotAvailable}
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {exportStep === 2 && (
+                <div className="space-y-4">
+                  <div className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/5 text-rose-700 dark:text-rose-300">
+                    <p className="text-xs font-bold uppercase tracking-wider mb-2 text-rose-600 dark:text-rose-400">
+                      {t.exportWizard.securityWarningHeader}
+                    </p>
+                    <p className="text-xs leading-relaxed text-justify">
+                      {t.exportWizard.securityWarningText}
+                    </p>
+                  </div>
+
+                  <label className="flex items-start gap-3 p-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={disclaimerAccepted}
+                      onChange={(e) => setDisclaimerAccepted(e.target.checked)}
+                      className="mt-1 accent-rose-500"
+                    />
+                    <span className="text-xs text-[var(--text-secondary)] leading-normal">
+                      {t.exportWizard.securityAcceptCheckbox}
+                    </span>
+                  </label>
+                </div>
+              )}
+
+              {exportStep === 3 && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                      {t.exportWizard.filenameLabel}
+                    </label>
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={filenameInput}
+                        onChange={(e) => setFilenameInput(e.target.value)}
+                        className="glass-input w-full px-4 py-2.5 text-sm pr-12"
+                        placeholder="reporte_datos"
+                      />
+                      <span className="absolute right-4 text-xs font-medium text-[var(--text-muted)]">
+                        .{selectedFormat}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl border border-white/10 bg-white/5 text-xs text-[var(--text-muted)] leading-relaxed space-y-1">
+                    <p className="font-semibold text-[var(--text-secondary)]">{t.exportWizard.saveNoteTitle}</p>
+                    <p>{t.exportWizard.saveNoteText}</p>
+                  </div>
+                </div>
+              )}
+
+              {exportStep === 4 && (
+                <div className="space-y-4">
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    {t.exportWizard.confirmPasswordText}
+                  </p>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-[var(--text-primary)]">
+                      {t.exportWizard.passwordLabel}
+                    </label>
+                    <PasswordInput
+                      value={exportPassword}
+                      onChange={(e) => {
+                        setExportPassword(e.target.value)
+                        setExportPasswordError(null)
+                      }}
+                      placeholder="********"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !exportLoading) {
+                          e.preventDefault()
+                          handleConfirmExport()
+                        }
+                      }}
+                    />
+                    {exportPasswordError && (
+                      <p className="text-xs text-[var(--color-error)]">{exportPasswordError}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer del modal con botones de navegación del Wizard */}
+            <div className="flex items-center justify-between pt-4 border-t border-white/10">
+              {exportStep > 1 ? (
+                <GlassButton
+                  type="button"
+                  onClick={() => setExportStep((s) => s - 1)}
+                  disabled={exportLoading}
+                >
+                  {t.exportWizard.btnBack}
+                </GlassButton>
+              ) : (
+                <GlassButton
+                  type="button"
+                  onClick={() => setExportModalOpen(false)}
+                >
+                  {t.exportWizard.btnCancel}
+                </GlassButton>
+              )}
+
+              {exportStep < 4 ? (
+                <GlassButton
+                  type="button"
+                  variant="primary"
+                  disabled={exportStep === 2 && !disclaimerAccepted}
+                  onClick={() => setExportStep((s) => s + 1)}
+                >
+                  {t.exportWizard.btnNext}
+                </GlassButton>
+              ) : (
+                <GlassButton
+                  type="button"
+                  variant="primary"
+                  disabled={exportLoading}
+                  onClick={handleConfirmExport}
+                >
+                  {exportLoading ? t.exportWizard.btnExporting : t.exportWizard.btnExport}
+                </GlassButton>
+              )}
+            </div>
           </div>
-        }
-      />
+        </div>,
+        document.body
+      )}
       {/* Filtros + Limpiar + Export */}
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div className="flex flex-wrap items-end gap-3">
@@ -344,50 +642,13 @@ export function DataTable<T>({
             <GlassButton
               type="button"
               onClick={onClearFilters}
-              className="inline-flex items-center gap-1.5"
+              className="inline-flex items-center gap-1.5 h-[46px]"
             >
               <FilterX size={16} />
               {t.clearFilters ?? 'Limpiar filtros'}
             </GlassButton>
           )}
         </div>
-        {exportFormats.length > 0 && (
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-[var(--text-muted)]">
-              {t.export ?? 'Exportar'}
-            </span>
-            {exportFormats.includes('pdf') && (
-              <button
-                type="button"
-                onClick={() => openExportModal('pdf')}
-                className="glass-button inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm bg-rose-500 text-white hover:bg-rose-600"
-                title={t.exportPdf ?? 'PDF'}
-              >
-                <FileText size={16} />
-              </button>
-            )}
-            {exportFormats.includes('csv') && (
-              <button
-                type="button"
-                onClick={() => openExportModal('csv')}
-                className="glass-button inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm bg-black text-white hover:bg-neutral-800"
-                title={t.exportCsv ?? 'CSV'}
-              >
-                <FileDown size={16} />
-              </button>
-            )}
-            {exportFormats.includes('xlsx') && (
-              <button
-                type="button"
-                onClick={() => openExportModal('xlsx')}
-                className="glass-button inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm bg-emerald-500 text-white hover:bg-emerald-600"
-                title={t.exportExcel ?? 'Excel'}
-              >
-                <FileSpreadsheet size={16} />
-              </button>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Tabla */}
@@ -481,9 +742,10 @@ export function DataTable<T>({
               </tbody>
             </table>
           </div>
-          {(pagination.totalPages > 1 || onLimitChange) && (
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
-              <div className="flex flex-wrap items-center gap-4">
+          {(pagination.totalPages > 1 || onLimitChange || exportFormats.length > 0) && (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4 w-full">
+              {/* Sección Izquierda: Selector por página e indicador de página */}
+              <div className="flex items-center gap-4 min-w-[200px] flex-1 justify-start">
                 {onLimitChange && (
                   <div className="flex items-center gap-2">
                     <label className="text-sm text-[var(--text-muted)]" htmlFor="dt-page-size">
@@ -511,28 +773,47 @@ export function DataTable<T>({
                   </p>
                 )}
               </div>
-              {pagination.totalPages > 1 && (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  disabled={pagination.page <= 1}
-                  onClick={() => onPageChange(pagination.page - 1)}
-                  className="glass-button inline-flex items-center gap-1 disabled:opacity-50"
-                >
-                  <ChevronLeft size={18} />
-                  {t.previous ?? 'Anterior'}
-                </button>
-                <button
-                  type="button"
-                  disabled={pagination.page >= pagination.totalPages}
-                  onClick={() => onPageChange(pagination.page + 1)}
-                  className="glass-button inline-flex items-center gap-1 disabled:opacity-50"
-                >
-                  {t.next ?? 'Siguiente'}
-                  <ChevronRight size={18} />
-                </button>
+
+              {/* Sección Central: Anterior y Siguiente */}
+              <div className="flex items-center justify-center min-w-[220px] flex-1">
+                {pagination.totalPages > 1 && (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={pagination.page <= 1}
+                      onClick={() => onPageChange(pagination.page - 1)}
+                      className="glass-button inline-flex items-center gap-1 disabled:opacity-50 h-[38px] px-3 text-sm"
+                    >
+                      <ChevronLeft size={16} />
+                      {t.previous ?? 'Anterior'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={pagination.page >= pagination.totalPages}
+                      onClick={() => onPageChange(pagination.page + 1)}
+                      className="glass-button inline-flex items-center gap-1 disabled:opacity-50 h-[38px] px-3 text-sm"
+                    >
+                      {t.next ?? 'Siguiente'}
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                )}
               </div>
-              )}
+
+              {/* Sección Derecha: Botón Exportar */}
+              <div className="flex items-center justify-end min-w-[150px] flex-1">
+                {exportFormats.length > 0 && (
+                  <GlassButton
+                    type="button"
+                    variant="primary"
+                    onClick={openExportWizard}
+                    className="inline-flex items-center gap-2 hover:scale-[1.02] transition-all duration-200 h-[38px] px-4 text-sm"
+                  >
+                    <FileDown size={18} />
+                    {t.exportWizard.exportButtonText || 'Exportar datos'}
+                  </GlassButton>
+                )}
+              </div>
             </div>
           )}
         </>

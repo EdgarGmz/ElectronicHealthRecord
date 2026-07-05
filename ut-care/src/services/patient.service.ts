@@ -39,12 +39,16 @@ export async function getPatients(params: {
   search?: string
   patientType?: string
   careerId?: string
+  sex?: string
+  age?: string | number
 } = {}): Promise<PatientsResponse> {
-  const { page = 1, limit = 10, search, patientType, careerId } = params
+  const { page = 1, limit = 10, search, patientType, careerId, sex, age } = params
   const sp = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (search?.trim()) sp.set('search', search.trim())
   if (patientType) sp.set('patientType', patientType)
   if (careerId?.trim()) sp.set('careerId', careerId.trim())
+  if (sex?.trim()) sp.set('sex', sex.trim())
+  if (age != null && String(age).trim() !== '') sp.set('age', String(age).trim())
   const { data } = await api.get<{ success: boolean; data: PatientsResponse }>(`/patients?${sp}`)
   return data.data
 }
