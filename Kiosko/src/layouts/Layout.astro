@@ -149,4 +149,14 @@ const { title } = Astro.props;
 		font-family: 'Playfair Display', serif;
 		color: var(--heading-color);
 	}
+
+	/* Compensar la altura de la Navbar fija en el scroll de anclaje */
+	#welcome,
+	#mural,
+	#nuestra-historia,
+	#salud-emocional,
+	#bienestar-cuidado,
+	#violentometro {
+		scroll-margin-top: 100px;
+	}
 </style>
