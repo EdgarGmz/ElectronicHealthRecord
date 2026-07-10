@@ -1,50 +1,144 @@
 ---
 // Kiosko/src/components/Welcome.astro
 ---
-<section id="welcome">
+<section id="welcome" class="welcome-section">
     <div class="content">
-        <h1>Bienvenido al departamento de Enfermería y Psicopedagogía</h1>
-        <p>Un espacio dedicado a tu bienestar y crecimiento personal.</p>
+        <h1 id="welcome-title" data-text="Bienvenido al departamento de Enfermería y Psicopedagogía">Bienvenido al departamento de Enfermería y Psicopedagogía</h1>
+        <p id="welcome-subtitle">Un espacio dedicado a tu bienestar y crecimiento personal.</p>
     </div>
 </section>
 
+<script>
+    const initWelcomeAnimation = () => {
+        // --- 1. EFECTO DE REVELADO LETRA POR LETRA (SIN ROMPER PALABRAS) ---
+        const titleEl = document.getElementById('welcome-title');
+        const subtitleEl = document.getElementById('welcome-subtitle');
+        
+        if (titleEl) {
+            const originalText = titleEl.getAttribute('data-text') || titleEl.textContent || '';
+            titleEl.innerHTML = ''; // Limpiar
+            
+            const words = originalText.split(' ');
+            let charIndex = 0;
+            
+            words.forEach((word, wordIdx) => {
+                // Crear contenedor para que la palabra no se divida
+                const wordSpan = document.createElement('span');
+                wordSpan.style.display = 'inline-block';
+                wordSpan.style.whiteSpace = 'nowrap';
+                
+                // Dividir la palabra en caracteres
+                const chars = word.split('');
+                chars.forEach((char) => {
+                    const charSpan = document.createElement('span');
+                    charSpan.className = 'reveal-char';
+                    charSpan.textContent = char;
+                    charSpan.style.animationDelay = `${charIndex * 0.02}s`;
+                    wordSpan.appendChild(charSpan);
+                    charIndex++;
+                });
+                
+                titleEl.appendChild(wordSpan);
+                
+                // Añadir espacio entre palabras
+                if (wordIdx < words.length - 1) {
+                    const space = document.createElement('span');
+                    space.innerHTML = '&nbsp;';
+                    titleEl.appendChild(space);
+                }
+            });
+        }
+
+        if (subtitleEl) {
+            subtitleEl.classList.add('fade-in-up-delayed');
+        }
+    };
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', initWelcomeAnimation);
+    document.addEventListener('astro:after-swap', initWelcomeAnimation);
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initWelcomeAnimation();
+    }
+</script>
+
 <style>
-    #welcome {
+    .welcome-section {
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 60vh;
+        min-height: 45vh;
         text-align: center;
-        padding: 8rem 2rem;
+        padding: 5rem 2rem;
         box-sizing: border-box;
         width: 100%;
+        overflow: hidden;
+        background: transparent; /* Transparente para dejar ver el canvas global */
     }
 
     .content {
         max-width: 800px;
+        position: relative;
+        z-index: 2;
     }
 
     .content h1 {
-        font-size: 3.5rem;
-        margin-bottom: 1rem;
+        font-size: 3.2rem;
+        margin-bottom: 1.2rem;
         font-weight: 700;
         color: var(--heading-color);
+        font-family: 'Playfair Display', serif;
+        line-height: 1.25;
     }
     
     .content p {
-        font-size: 1.2rem;
-        font-weight: 300;
+        font-size: 1.15rem;
+        font-weight: 400;
         color: var(--body-text-color);
         line-height: 1.6;
+        margin: 0;
+    }
+
+    /* --- ESTILOS DE REVELADO LETRA POR LETRA --- */
+    :global(.reveal-char) {
+        display: inline-block;
+        opacity: 0;
+        transform: translateY(12px);
+        filter: blur(1px);
+        animation: revealCharAnim 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes revealCharAnim {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+        }
+    }
+
+    /* --- FADE-IN RETRASADO PARA SUBTÍTULO --- */
+    :global(.fade-in-up-delayed) {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeInUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards;
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     @media (max-width: 768px) {
-        #welcome {
-            min-height: 40vh;
-            padding: 4rem 1rem;
+        .welcome-section {
+            min-height: 35vh;
+            padding: 3rem 1rem;
         }
         .content h1 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
         }
         .content p {
             font-size: 1rem;
