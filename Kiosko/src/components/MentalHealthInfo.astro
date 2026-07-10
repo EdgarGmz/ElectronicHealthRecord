@@ -110,7 +110,7 @@ const healthCareTips = [
 <section id="mental-health-info" class="page-section">
     <div class="container">
         <!-- Carrusel 1: Salud Mental -->
-        <h2 class="section-title">Salud Mental es Salud</h2>
+        <h2 class="section-title" id="salud-emocional">Salud Emocional</h2>
         <div class="carousel-wrapper" id="wrapper-mental">
             <button class="nav-btn prev" aria-label="Anterior">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -140,7 +140,7 @@ const healthCareTips = [
         <div class="spacer"></div>
 
         <!-- Carrusel 2: Bienestar General -->
-        <h2 class="section-title">Bienestar y Cuidado</h2>
+        <h2 class="section-title" id="bienestar-cuidado">Bienestar y Cuidado</h2>
         <div class="carousel-wrapper" id="wrapper-health">
             <button class="nav-btn prev" aria-label="Anterior">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -364,6 +364,8 @@ const healthCareTips = [
         display: flex;
         align-items: center;
         gap: 15px;
+        max-width: 660px;
+        margin: 0 auto;
     }
 
     .carousel-container {
@@ -382,17 +384,18 @@ const healthCareTips = [
     }
 
     .carousel-card {
-        flex: 0 0 300px;
+        flex: 0 0 520px; /* Ancho ajustado para mostrar un solo elemento predominante */
         scroll-snap-align: center;
         background: var(--card-bg);
         padding: 40px 30px;
-        border-radius: 20px;
+        border-radius: 24px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         border: 1px solid var(--navbar-border);
         display: flex;
         flex-direction: column;
         align-items: center;
+        box-sizing: border-box;
     }
 
     /* Color de acento para el segundo carrusel */
@@ -471,7 +474,7 @@ const healthCareTips = [
 
     @media (max-width: 768px) {
         .carousel-card {
-            flex: 0 0 260px;
+            flex: 0 0 calc(100vw - 100px);
         }
         .nav-btn {
             display: none;

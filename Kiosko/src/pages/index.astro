@@ -1,40 +1,188 @@
 ---
+// Kiosko/src/pages/index.astro
 import Layout from '../layouts/Layout.astro';
 import Welcome from '../components/Welcome.astro';
-import Roulette from '../components/Roulette.astro';
 import MentalHealthInfo from '../components/MentalHealthInfo.astro';
 import Violentometro from '../components/Violentometro.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import NursingSection from '../components/NursingSection.astro';
 import PsychologySection from '../components/PsychologySection.astro';
-import EmpatheticWidget from '../components/EmpatheticWidget.astro';
 import ProjectStory from '../components/ProjectStory.astro';
 import MuralBoard from '../components/MuralBoard.astro';
 ---
 
 <Layout title="UT Care - Kiosko de Autoservicio">
+	<!-- Canvas de Partículas Globales (Fondo Antigravedad) -->
+	<canvas id="global-antigravity-canvas" class="global-background-canvas"></canvas>
+
 	<header class="navbar">
-		<div class="logo">Psicopedagogía</div>
-		<nav>
-			<a href="#welcome">Inicio</a>
-			<a href="#nuestra-historia">Nuestra Historia</a>
-			<a href="#mural">Mural</a>
-			<a href="/agendar" class="login-btn" id="nav-agenda-btn">Agendar cita</a>
-			<ThemeToggle />
-		</nav>
+		<div class="navbar-content">
+			<!-- Columna Izquierda: Logo -->
+			<div class="navbar-left">
+				<div class="logo">Psicopedagogía</div>
+			</div>
+			
+			<!-- Columna Central: Navegación -->
+			<nav class="navbar-center">
+				<a href="#welcome"><span>🏠</span> Inicio</a>
+				<a href="#mural"><span>🖼️</span> Mural</a>
+				<a href="#nuestra-historia"><span>📖</span> Nuestra Historia</a>
+				<a href="#salud-emocional"><span>🧠</span> Salud Emocional</a>
+				<a href="#bienestar-cuidado"><span>🌿</span> Bienestar y Cuidado</a>
+				<a href="#violentometro"><span>📊</span> Violentómetro</a>
+			</nav>
+			
+			<!-- Columna Derecha: Acciones -->
+			<div class="navbar-right">
+				<a href="/agendar" class="login-btn" id="nav-agenda-btn"><span>📅</span> Agendar cita</a>
+				<ThemeToggle />
+			</div>
+		</div>
 	</header>
 
-	<main>
-		<EmpatheticWidget />
-		<Welcome />
-		<MuralBoard />
-		<ProjectStory />
-		<Roulette />
-		<NursingSection />
-		<PsychologySection />
-		<MentalHealthInfo />
-		<Violentometro />
-	</main>
+	<!-- Barra NavTab para Tablets y Smartphones -->
+	<div class="mobile-nav-tabs">
+		<button class="tab-btn active" data-tab="main">
+			<span class="tab-icon">🏠</span>
+			<span class="tab-label">Inicio</span>
+		</button>
+		<button class="tab-btn" data-tab="left-aside">
+			<span class="tab-icon">🧠</span>
+			<span class="tab-label">Psicología</span>
+		</button>
+		<button class="tab-btn" data-tab="right-aside">
+			<span class="tab-icon">🩺</span>
+			<span class="tab-label">Enfermería</span>
+		</button>
+	</div>
+
+	<!-- Grid de Maquetación Global (Estilo Red Social) -->
+	<div class="app-layout-grid">
+		<!-- Panel Izquierdo: Check-in Emocional y Apoyo Psicopedagógico -->
+		<aside class="app-aside left-aside">
+			<!-- Tarjeta Check-in Emocional -->
+			<div class="checkin-card glass-panel reveal">
+				<h3>¿Cómo te sientes hoy?</h3>
+				<p class="checkin-subtitle">Tómate un segundo para registrar tu estado de ánimo actual.</p>
+				<div class="mood-selector">
+					<button class="mood-btn" data-mood="happy" title="Feliz">
+						<span class="mood-emoji">😊</span>
+						<span class="mood-label">Bien</span>
+					</button>
+					<button class="mood-btn" data-mood="sad" title="Triste">
+						<span class="mood-emoji">😢</span>
+						<span class="mood-label">Triste</span>
+					</button>
+					<button class="mood-btn" data-mood="anxious" title="Ansioso">
+						<span class="mood-emoji">😰</span>
+						<span class="mood-label">Ansioso</span>
+					</button>
+					<button class="mood-btn" data-mood="angry" title="Enojado">
+						<span class="mood-emoji">😡</span>
+						<span class="mood-label">Molesto</span>
+					</button>
+					<button class="mood-btn" data-mood="tired" title="Cansado">
+						<span class="mood-emoji">😴</span>
+						<span class="mood-label">Cansado</span>
+					</button>
+				</div>
+				<div id="mood-feedback" class="mood-feedback-container"></div>
+			</div>
+			<PsychologySection />
+		</aside>
+
+		<!-- Columna Central: Scroll Principal de Contenido -->
+		<main>
+			<Welcome />
+			<MuralBoard />
+			<ProjectStory />
+			<MentalHealthInfo />
+			<Violentometro />
+		</main>
+
+		<!-- Panel Derecho: Servicios de Enfermería y Enlaces Rápidos -->
+		<aside class="app-aside right-aside">
+			<NursingSection />
+			
+			<!-- Tarjeta Enlaces de Ayuda y Emergencias -->
+			<div class="links-card glass-panel reveal">
+				<h3>Enlaces de Ayuda</h3>
+				
+				<div class="links-section">
+					<span class="section-label">AYUDA EN CRISIS 24/7</span>
+					<a href="tel:8009112000" class="help-link-btn crisis">
+						<span class="link-icon">📞</span>
+						<div class="link-info">
+							<span class="link-title">Línea de la Vida</span>
+							<span class="link-desc">800 911 2000</span>
+						</div>
+					</a>
+					<a href="tel:911" class="help-link-btn emergency">
+						<span class="link-icon">🚨</span>
+						<div class="link-info">
+							<span class="link-title">Emergencias Campus</span>
+							<span class="link-desc">Área Médica</span>
+						</div>
+					</a>
+				</div>
+
+				<div class="links-section mt-15">
+					<span class="section-label">ATAJOS RÁPIDOS</span>
+					<button class="help-link-btn quick" id="aside-agenda-btn">
+						<span class="link-icon">📅</span>
+						<div class="link-info">
+							<span class="link-title">Agendar Cita</span>
+							<span class="link-desc">Servicio Médico/Psicológico</span>
+						</div>
+					</button>
+					<a href="#salud-emocional" class="help-link-btn quick">
+						<span class="link-icon">✨</span>
+						<div class="link-info">
+							<span class="link-title">Consejos de Salud</span>
+							<span class="link-desc">Tips de bienestar diario</span>
+						</div>
+					</a>
+				</div>
+			</div>
+		</aside>
+	</div>
+
+	<!-- Modales de Enfermería y Psicología Desacoplados (Centrados Globales) -->
+	<div id="nursing-modal-fixed" class="custom-modal-overlay">
+		<div class="custom-modal-content">
+			<button class="custom-close-btn" id="close-nursing-modal">&times;</button>
+			<div class="modal-inner-header">
+				<div class="modal-big-icon pop-in-soft" id="nursing-modal-icon"></div>
+				<h2 id="nursing-modal-title"></h2>
+			</div>
+			<div class="modal-inner-body">
+				<p id="nursing-modal-desc"></p>
+				<div class="modal-inner-highlights">
+					<h4>Puntos Clave</h4>
+					<ul id="nursing-modal-list"></ul>
+				</div>
+			</div>
+			<button class="modal-inner-close-action" id="btn-nursing-close">Cerrar</button>
+		</div>
+	</div>
+
+	<div id="psych-modal-fixed" class="custom-modal-overlay">
+		<div class="custom-modal-content">
+			<button class="custom-close-btn" id="close-psych-modal">&times;</button>
+			<div class="modal-inner-header">
+				<div class="modal-big-icon pop-in-soft" id="psych-modal-icon"></div>
+				<h2 id="psych-modal-title"></h2>
+			</div>
+			<div class="modal-inner-body">
+				<p id="psych-modal-desc"></p>
+				<div class="modal-inner-highlights">
+					<h4>Información Clave</h4>
+					<ul id="psych-modal-list"></ul>
+				</div>
+			</div>
+			<button class="modal-inner-close-action" id="btn-psych-close">Entendido</button>
+		</div>
+	</div>
 </Layout>
 
 <script>
@@ -51,49 +199,360 @@ import MuralBoard from '../components/MuralBoard.astro';
 			});
 		}
 	};
-	document.addEventListener('DOMContentLoaded', setupNavbar);
-	document.addEventListener('astro:after-swap', setupNavbar);
+
+	// Configurar Check-in Emocional
+	const setupCheckIn = () => {
+		const moodButtons = document.querySelectorAll('.mood-btn');
+		const feedbackContainer = document.getElementById('mood-feedback');
+		
+		if (!feedbackContainer) return;
+		
+		const feedbackMessages = {
+			happy: {
+				emoji: '✨',
+				text: '¡Qué gran noticia! Mantén esa energía positiva y contagia tu día a los demás.',
+				actionText: 'Ver consejos de salud',
+				actionUrl: '#salud-emocional'
+			},
+			sad: {
+				emoji: '🌿',
+				text: 'Sentirse triste es parte de ser humano. Si necesitas desahogarte, estamos aquí para escucharte.',
+				actionText: 'Hablar con alguien',
+				actionUrl: '/agendar'
+			},
+			anxious: {
+				emoji: '🧘',
+				text: 'Respira hondo... Todo estará bien. Prueba realizar técnicas de relajación en la sección de Salud Emocional.',
+				actionText: 'Ver técnicas de relajación',
+				actionUrl: '#salud-emocional'
+			},
+			angry: {
+				emoji: '💡',
+				text: 'Es normal sentir enojo. Tómate un momento para respirar y calmar tu mente antes de actuar.',
+				actionText: 'Ver tips de control',
+				actionUrl: '#salud-emocional'
+			},
+			tired: {
+				emoji: '💤',
+				text: 'El descanso es vital para tu salud física y mental. Tómate un tiempo para recargar energías hoy.',
+				actionText: 'Tips de higiene del sueño',
+				actionUrl: '#bienestar-cuidado'
+			}
+		};
+
+		moodButtons.forEach(btn => {
+			// Clonar y reemplazar para evitar listeners duplicados al recargar componentes
+			const newBtn = btn.cloneNode(true);
+			btn.parentNode.replaceChild(newBtn, btn);
+
+			newBtn.addEventListener('click', () => {
+				// Remover active de todos los botones
+				const allBtns = document.querySelectorAll('.mood-btn');
+				allBtns.forEach(b => b.classList.remove('active'));
+				
+				// Agregar active al pulsado
+				newBtn.classList.add('active');
+				
+				const mood = newBtn.getAttribute('data-mood');
+				const config = feedbackMessages[mood];
+				
+				if (config) {
+					feedbackContainer.innerHTML = `
+						<div class="feedback-card fade-in">
+							<span class="feedback-emoji">${config.emoji}</span>
+							<p class="feedback-text">${config.text}</p>
+							<a href="${config.actionUrl}" class="feedback-action-btn">${config.actionText} →</a>
+						</div>
+					`;
+				}
+			});
+		});
+	};
+
+	// Configurar redirección de agendar cita en panel lateral
+	const setupAsideAgenda = () => {
+		const btn = document.getElementById('aside-agenda-btn');
+		if (btn) {
+			btn.addEventListener('click', (e) => {
+				const token = localStorage.getItem('token');
+				if (!token) {
+					e.preventDefault();
+					window.location.href = '/login?redirect=/agendar';
+				} else {
+					window.location.href = '/agendar';
+				}
+			});
+		}
+	};
+
+	// --- PARTÍCULAS ANTIGRAVEDAD GLOBALES (CANVAS FIJO) ---
+	const initGlobalParticles = () => {
+		const canvas = document.getElementById('global-antigravity-canvas');
+		if (!canvas) return;
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		let width = window.innerWidth;
+		let height = window.innerHeight;
+		canvas.width = width;
+		canvas.height = height;
+
+		let particles = [];
+		const maxParticles = 60; // Número de partículas ideal para no sobrecargar el renderizado
+
+		const createParticle = (isInitial = false) => {
+			return {
+				x: Math.random() * width,
+				y: isInitial ? Math.random() * height : height + Math.random() * 50,
+				radius: Math.random() * 5 + 1.5, // Tamaños variados (1.5px a 6.5px)
+				speedY: -(Math.random() * 0.35 + 0.15), // Movimiento ascendente sutil
+				speedX: Math.random() * 0.15 - 0.075, // Desviación lateral mínima
+				alpha: Math.random() * 0.25 + 0.08, // Opacidad baja y sumamente elegante
+				wobble: Math.random() * Math.PI * 2,
+				wobbleSpeed: Math.random() * 0.008 + 0.003
+			};
+		};
+
+		// Generar partículas iniciales
+		for (let i = 0; i < maxParticles; i++) {
+			particles.push(createParticle(true));
+		}
+
+		let animationFrameId;
+
+		const animate = () => {
+			ctx.clearRect(0, 0, width, height);
+
+			const isDark = document.documentElement.classList.contains('dark');
+			const particleColor = isDark ? '162, 217, 206' : '44, 62, 80'; // verde-azul / gris oscuro
+
+			particles.forEach((p, index) => {
+				p.y += p.speedY;
+				p.wobble += p.wobbleSpeed;
+				p.x += p.speedX + Math.sin(p.wobble) * 0.12;
+
+				// Si la partícula sale por arriba, regenerarla abajo
+				if (p.y + p.radius < 0) {
+					particles[index] = createParticle(false);
+					return;
+				}
+
+				ctx.beginPath();
+				ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+				ctx.fillStyle = `rgba(${particleColor}, ${p.alpha})`;
+				ctx.fill();
+			});
+
+			animationFrameId = requestAnimationFrame(animate);
+		};
+
+		animate();
+
+		const handleResize = () => {
+			if (!canvas) return;
+			width = window.innerWidth;
+			height = window.innerHeight;
+			canvas.width = width;
+			canvas.height = height;
+		};
+
+		window.addEventListener('resize', handleResize);
+
+		return () => {
+			window.removeEventListener('resize', handleResize);
+			cancelAnimationFrame(animationFrameId);
+		};
+	};
+
+	let particlesCleanup;
+	const startParticles = () => {
+		if (particlesCleanup) particlesCleanup();
+		particlesCleanup = initGlobalParticles();
+	};
+
+	// Configurar Pestañas para Móvil y Tablet
+	const setupMobileTabs = () => {
+		const tabButtons = document.querySelectorAll('.mobile-nav-tabs .tab-btn');
+		const mainContent = document.querySelector('.app-layout-grid main');
+		const leftAside = document.querySelector('.app-aside.left-aside');
+		const rightAside = document.querySelector('.app-aside.right-aside');
+		
+		if (!tabButtons.length || !mainContent || !leftAside || !rightAside) return;
+		
+		const tabContents = {
+			'main': mainContent,
+			'left-aside': leftAside,
+			'right-aside': rightAside
+		};
+
+		const updateTabState = () => {
+			if (window.innerWidth <= 1100) {
+				const activeBtn = document.querySelector('.mobile-nav-tabs .tab-btn.active');
+				const activeTabKey = activeBtn ? activeBtn.getAttribute('data-tab') : 'main';
+				
+				Object.keys(tabContents).forEach(key => {
+					if (key === activeTabKey) {
+						tabContents[key].classList.add('active-tab');
+					} else {
+						tabContents[key].classList.remove('active-tab');
+					}
+				});
+			} else {
+				Object.values(tabContents).forEach(content => {
+					content.classList.remove('active-tab');
+				});
+			}
+		};
+
+		tabButtons.forEach(btn => {
+			// Clonar y reemplazar para evitar listeners duplicados
+			const newBtn = btn.cloneNode(true);
+			btn.parentNode.replaceChild(newBtn, btn);
+			
+			newBtn.addEventListener('click', () => {
+				const allBtns = document.querySelectorAll('.mobile-nav-tabs .tab-btn');
+				allBtns.forEach(b => b.classList.remove('active'));
+				newBtn.classList.add('active');
+				updateTabState();
+				
+				// Scroll suave al inicio al cambiar de pestaña
+				window.scrollTo({
+					top: 0,
+					behavior: 'smooth'
+				});
+			});
+		});
+
+		window.removeEventListener('resize', updateTabState);
+		window.addEventListener('resize', updateTabState);
+		updateTabState();
+	};
+
+	// Inicializar
+	document.addEventListener('DOMContentLoaded', () => {
+		setupNavbar();
+		setupCheckIn();
+		setupAsideAgenda();
+		startParticles();
+		setupMobileTabs();
+	});
+	document.addEventListener('astro:after-swap', () => {
+		setupNavbar();
+		setupCheckIn();
+		setupAsideAgenda();
+		startParticles();
+		setupMobileTabs();
+	});
 </script>
 
 <style>
+	/* --- ESTILOS DE NAVBAR 3 COLUMNAS --- */
 	.navbar {
 		position: sticky;
 		top: 0;
 		width: 100%;
 		background-color: var(--navbar-bg);
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 0 30px;
-		box-sizing: border-box;
 		z-index: 1000;
 		border-bottom: 1px solid var(--navbar-border);
 		height: 70px;
 		transition: all 0.3s ease;
 	}
 
-	.logo {
-		color: var(--logo-color);
-		font-size: 1.5rem;
-		font-weight: bold;
-		font-family: 'Playfair Display', serif;
+	.navbar-content {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+		height: 100%;
+		padding: 0 15px;
+		box-sizing: border-box;
 	}
 
-	.navbar nav {
+	.navbar-left {
 		display: flex;
 		align-items: center;
+		flex: 1 1 33.333%;
 	}
 
-	.navbar nav a {
+	.logo {
+		color: var(--logo-color);
+		font-size: 1.45rem;
+		font-weight: 700;
+		font-family: 'Playfair Display', serif;
+		letter-spacing: -0.2px;
+	}
+
+	.navbar-center {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex: 1 1 33.333%;
+		gap: 5px;
+	}
+
+	.navbar-center a {
 		color: var(--nav-link-color);
 		text-decoration: none;
-		margin-left: 20px;
+		margin: 0 12px;
 		font-weight: 600;
-		transition: color 0.3s;
+		font-size: 0.92rem;
+		transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 10px;
+		border-radius: 10px;
 	}
 
-	.navbar nav a:hover {
+	.navbar-center a span {
+		display: inline-block;
+		transition: transform 0.25s ease;
+	}
+
+	.navbar-center a:hover {
 		color: var(--nav-link-hover);
+		background: rgba(162, 217, 206, 0.08);
+	}
+
+	.navbar-center a:hover span {
+		transform: scale(1.15) rotate(-5deg);
+	}
+
+	.navbar-right {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		flex: 1 1 33.333%;
+		gap: 15px;
+	}
+
+	@media (min-width: 1100px) {
+		.navbar-content {
+			display: grid;
+			grid-template-columns: 260px 1fr 260px; /* Alineación perfecta con el layout de abajo */
+			gap: 2.5rem;
+			max-width: 1440px;
+			margin: 0 auto;
+			padding: 0 30px;
+		}
+
+		.navbar-left {
+			display: block;
+			flex: none;
+		}
+
+		.navbar-center {
+			display: flex;
+			justify-content: center;
+			flex: none;
+		}
+
+		.navbar-right {
+			display: flex;
+			justify-content: flex-end;
+			flex: none;
+		}
 	}
 
 	.login-btn {
@@ -102,7 +561,12 @@ import MuralBoard from '../components/MuralBoard.astro';
 		border-radius: 20px;
 		color: white !important;
 		text-decoration: none;
+		font-weight: 600;
+		font-size: 0.9rem;
 		transition: all 0.3s ease;
+		display: flex;
+		align-items: center;
+		gap: 6px;
 	}
 
 	.login-btn:hover {
@@ -110,25 +574,689 @@ import MuralBoard from '../components/MuralBoard.astro';
 		transform: translateY(-2px);
 	}
 
-	main {
+	:root.dark .login-btn {
+		background-color: #A2D9CE;
+		color: #121212 !important;
+	}
+
+	:root.dark .login-btn:hover {
+		background-color: #8cd1c3;
+	}
+
+	/* --- MAQUETACIÓN GLOBAL 3 COLUMNAS --- */
+	.app-layout-grid {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		gap: 2.5rem;
+		width: 100%;
+		box-sizing: border-box;
+		padding: 2rem 15px;
+		position: relative;
+		z-index: 1;
+	}
+
+	.app-aside {
+		display: block; /* Visible en PC, tablet y smartphone */
+		width: 100%;
+		max-width: 760px;
+		margin: 0 auto;
+	}
+
+	main {
+		order: 1; /* Main arriba de todo en móviles y tabletas */
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		max-width: 860px; /* Ancho óptimo para dar espacio al contenido central y centrarlo */
+		margin: 0 auto;
+	}
+
+	.left-aside {
+		order: 2; /* Checkin y psicología en medio */
+	}
+
+	.right-aside {
+		order: 3; /* Enfermería y enlaces abajo */
+	}
+
+	@media (min-width: 1100px) {
+		.app-layout-grid {
+			display: grid;
+			grid-template-columns: 260px 1fr 260px;
+			gap: 2.5rem;
+			align-items: start;
+			justify-content: center;
+			width: 100%;
+			max-width: 1440px;
+			margin: 0 auto;
+			padding: 2rem 30px;
+		}
+
+		.app-aside {
+			width: 260px;
+			position: sticky;
+			top: 90px; /* Fijo al hacer scroll vertical */
+			max-height: calc(100vh - 120px); /* Altura máxima respecto al viewport */
+			overflow-y: auto; /* Scroll vertical independiente */
+			scrollbar-width: none; /* Ocultar scrollbar en Firefox */
+			padding-bottom: 20px; /* Espacio extra al final del scroll */
+		}
+
+		.app-aside::-webkit-scrollbar {
+			display: none; /* Ocultar scrollbar en Chrome/Safari */
+		}
+
+		main {
+			order: unset;
+		}
+
+		.left-aside {
+			order: unset;
+		}
+
+		.right-aside {
+			order: unset;
+		}
+	}
+
+	/* Tarjeta Lateral Glassmorphic */
+	.glass-panel {
+		background: rgba(255, 255, 255, 0.45);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.5);
+		border-radius: 24px;
+		padding: 1.5rem;
+		box-sizing: border-box;
+		box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+		transition: all 0.3s ease;
+		margin-bottom: 2rem;
 		width: 100%;
 	}
 
-	/* Responsive Styles */
-	@media (max-width: 768px) {
+	:root.dark .glass-panel {
+		background: rgba(30, 30, 35, 0.65);
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+	}
+
+	/* --- WIDGET CHECK-IN EMOCIONAL --- */
+	.checkin-card h3 {
+		font-size: 1.25rem;
+		margin: 0 0 6px 0;
+		color: var(--heading-color);
+		font-family: 'Playfair Display', serif;
+	}
+
+	.checkin-subtitle {
+		font-size: 0.88rem;
+		color: var(--body-text-color);
+		margin: 0 0 1.2rem 0;
+		line-height: 1.4;
+	}
+
+	.mood-selector {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.35rem;
+		width: 100%;
+	}
+
+	.mood-btn {
+		background: rgba(0, 0, 0, 0.02);
+		border: 1px solid rgba(0, 0, 0, 0.05);
+		border-radius: 14px;
+		padding: 6px 4px;
+		cursor: pointer !important;
+		transition: all 0.2s ease;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 3px;
+		flex: 1;
+		box-sizing: border-box;
+		min-width: 0;
+	}
+
+	:root.dark .mood-btn {
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+	.mood-btn:hover {
+		transform: translateY(-2px);
+		background: rgba(162, 217, 206, 0.1);
+		border-color: rgba(162, 217, 206, 0.3);
+	}
+
+	.mood-btn.active {
+		background: rgba(162, 217, 206, 0.15);
+		border-color: #A2D9CE;
+		box-shadow: 0 0 10px rgba(162, 217, 206, 0.2);
+	}
+
+	.mood-emoji {
+		font-size: 1.2rem;
+		line-height: 1;
+	}
+
+	.mood-label {
+		font-size: 0.65rem;
+		font-weight: 700;
+		color: var(--body-text-color);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		width: 100%;
+		text-align: center;
+	}
+
+	.mood-feedback-container {
+		margin-top: 1.2rem;
+		width: 100%;
+	}
+
+	.feedback-card {
+		background: rgba(162, 217, 206, 0.08);
+		border: 1px dashed rgba(162, 217, 206, 0.3);
+		border-radius: 18px;
+		padding: 1rem;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		box-sizing: border-box;
+		animation: fadeIn 0.4s ease forwards;
+	}
+
+	.feedback-emoji {
+		font-size: 1.6rem;
+		line-height: 1;
+	}
+
+	.feedback-text {
+		font-size: 0.85rem;
+		line-height: 1.45;
+		color: var(--body-text-color);
+		margin: 0;
+	}
+
+	.feedback-action-btn {
+		font-size: 0.8rem;
+		font-weight: 700;
+		color: #A2D9CE;
+		text-decoration: none;
+		margin-top: 4px;
+		transition: all 0.2s ease;
+	}
+
+	.feedback-action-btn:hover {
+		letter-spacing: 0.3px;
+	}
+
+	/* --- WIDGET ENLACES DE AYUDA --- */
+	.links-card h3 {
+		font-size: 1.25rem;
+		margin: 0 0 1rem 0;
+		color: var(--heading-color);
+		font-family: 'Playfair Display', serif;
+	}
+
+	.links-section {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		width: 100%;
+	}
+
+	.section-label {
+		font-size: 0.65rem;
+		font-weight: 700;
+		color: var(--body-text-color);
+		letter-spacing: 0.8px;
+		opacity: 0.7;
+		margin-bottom: 2px;
+	}
+
+	.mt-15 {
+		margin-top: 15px;
+	}
+
+	.help-link-btn {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 14px;
+		border-radius: 16px;
+		text-decoration: none;
+		transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+		border: 1px solid rgba(0, 0, 0, 0.03);
+		text-align: left;
+		cursor: pointer !important;
+		width: 100%;
+		box-sizing: border-box;
+		background: rgba(0, 0, 0, 0.01);
+	}
+
+	:root.dark .help-link-btn {
+		border: 1px solid rgba(255, 255, 255, 0.03);
+		background: rgba(255, 255, 255, 0.01);
+	}
+
+	.help-link-btn:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+	}
+
+	/* Estilos de botones individuales */
+	.help-link-btn.crisis {
+		background: rgba(231, 76, 60, 0.04);
+		border-color: rgba(231, 76, 60, 0.1);
+	}
+	.help-link-btn.crisis:hover {
+		background: rgba(231, 76, 60, 0.08);
+		border-color: rgba(231, 76, 60, 0.3);
+	}
+
+	.help-link-btn.emergency {
+		background: rgba(230, 126, 34, 0.04);
+		border-color: rgba(230, 126, 34, 0.1);
+	}
+	.help-link-btn.emergency:hover {
+		background: rgba(230, 126, 34, 0.08);
+		border-color: rgba(230, 126, 34, 0.3);
+	}
+
+	.help-link-btn.quick {
+		background: rgba(162, 217, 206, 0.04);
+		border-color: rgba(162, 217, 206, 0.1);
+	}
+	.help-link-btn.quick:hover {
+		background: rgba(162, 217, 206, 0.08);
+		border-color: rgba(162, 217, 206, 0.3);
+	}
+
+	.link-icon {
+		font-size: 1.35rem;
+		line-height: 1;
+		flex-shrink: 0;
+	}
+
+	.link-info {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.link-title {
+		font-size: 0.88rem;
+		font-weight: 700;
+		color: var(--heading-color);
+	}
+
+	.link-desc {
+		font-size: 0.75rem;
+		color: var(--body-text-color);
+		margin-top: 1px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* --- MODALES GENERALES (CENTRADOS EN PANTALLA) --- */
+	.custom-modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background: rgba(0, 0, 0, 0.4);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 99999;
+		opacity: 0;
+		visibility: hidden;
+		transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+		padding: 20px;
+		box-sizing: border-box;
+	}
+
+	.custom-modal-overlay.is-visible {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	.custom-modal-content {
+		background: rgba(255, 255, 255, 0.7);
+		backdrop-filter: blur(25px);
+		-webkit-backdrop-filter: blur(25px);
+		border: 1px solid rgba(255, 255, 255, 0.45);
+		border-radius: 28px;
+		padding: 2.5rem;
+		width: 100%;
+		max-width: 500px;
+		box-sizing: border-box;
+		box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+		position: relative;
+		transform: scale(0.9) translateY(10px);
+		transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+		text-align: center;
+	}
+
+	:root.dark .custom-modal-content {
+		background: rgba(25, 25, 30, 0.75);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+	}
+
+	.custom-modal-overlay.is-visible .custom-modal-content {
+		transform: scale(1) translateY(0);
+	}
+
+	.custom-close-btn {
+		position: absolute;
+		top: 15px;
+		right: 20px;
+		background: none;
+		border: none;
+		font-size: 1.8rem;
+		color: var(--body-text-color);
+		cursor: pointer !important;
+		opacity: 0.6;
+		transition: opacity 0.2s ease;
+	}
+
+	.custom-close-btn:hover {
+		opacity: 1;
+	}
+
+	.modal-inner-header {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+		margin-bottom: 1.5rem;
+	}
+
+	.modal-big-icon {
+		font-size: 3.2rem;
+		line-height: 1;
+		animation: popSoft 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+	}
+
+	@keyframes popSoft {
+		0% { transform: scale(0.5); opacity: 0; }
+		100% { transform: scale(1); opacity: 1; }
+	}
+
+	.modal-inner-header h2 {
+		font-family: 'Playfair Display', serif;
+		font-size: 2rem;
+		color: var(--heading-color);
+		margin: 0;
+		font-weight: 700;
+	}
+
+	.modal-inner-body {
+		text-align: left;
+	}
+
+	.modal-inner-body p {
+		color: var(--body-text-color);
+		line-height: 1.6;
+		font-size: 1rem;
+		margin: 0 0 1.5rem 0;
+	}
+
+	.modal-inner-highlights {
+		background: rgba(0, 0, 0, 0.02);
+		padding: 1.2rem;
+		border-radius: 18px;
+		box-sizing: border-box;
+		border: 1px solid rgba(0, 0, 0, 0.03);
+	}
+
+	:root.dark .modal-inner-highlights {
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid rgba(255, 255, 255, 0.03);
+	}
+
+	.modal-inner-highlights h4 {
+		color: var(--heading-color);
+		font-size: 0.9rem;
+		margin: 0 0 12px 0;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+
+	.modal-inner-highlights ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		gap: 8px;
+	}
+
+	.modal-inner-highlights li {
+		font-size: 0.9rem;
+		color: var(--body-text-color);
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.modal-inner-highlights li span {
+		color: #A2D9CE;
+		font-weight: bold;
+	}
+
+	.modal-inner-close-action {
+		width: 100%;
+		background: #2C3E50;
+		color: white;
+		border: none;
+		padding: 0.9rem;
+		border-radius: 16px;
+		font-weight: bold;
+		font-size: 0.95rem;
+		cursor: pointer !important;
+		margin-top: 1.8rem;
+		transition: all 0.25s ease;
+	}
+
+	.modal-inner-close-action:hover {
+		background: #34495e;
+		transform: translateY(-1px);
+	}
+
+	:root.dark .modal-inner-close-action {
+		background: #A2D9CE;
+		color: #121212;
+	}
+
+	:root.dark .modal-inner-close-action:hover {
+		background: #8cd1c3;
+	}
+
+	@media (max-width: 600px) {
+		.custom-modal-content {
+			padding: 2rem 1.5rem;
+		}
+		.modal-inner-header h2 {
+			font-size: 1.6rem;
+		}
+	}
+
+	/* --- CANAVAS DE PARTÍCULAS GLOBAL --- */
+	.global-background-canvas {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		pointer-events: none;
+		z-index: 0; /* Colocado por encima del fondo base del body pero debajo del layout */
+	}
+
+	/* --- ESTILOS DE PESTAÑAS RESPONSIVAS (NAV-TABS) --- */
+	.mobile-nav-tabs {
+		display: none; /* Ocultar por defecto en escritorio */
+	}
+
+	@media (max-width: 1100px) {
+		.mobile-nav-tabs {
+			display: flex;
+			justify-content: space-around;
+			align-items: center;
+			background: rgba(255, 255, 255, 0.45);
+			backdrop-filter: blur(20px);
+			-webkit-backdrop-filter: blur(20px);
+			border-bottom: 1px solid var(--navbar-border);
+			position: sticky;
+			top: 70px; /* Debajo de la navbar normal */
+			z-index: 999;
+			padding: 8px 10px;
+			width: 100%;
+			box-sizing: border-box;
+			gap: 8px;
+		}
+
+		:root.dark .mobile-nav-tabs {
+			background: rgba(30, 30, 30, 0.5);
+		}
+
+		.tab-btn {
+			background: none;
+			border: none;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 4px;
+			padding: 8px 12px;
+			color: var(--body-text-color);
+			cursor: pointer !important;
+			transition: all 0.25s ease;
+			border-radius: 14px;
+			flex: 1;
+			max-width: 130px;
+		}
+
+		.tab-btn:hover {
+			background: rgba(0, 0, 0, 0.03);
+		}
+
+		:root.dark .tab-btn:hover {
+			background: rgba(255, 255, 255, 0.03);
+		}
+
+		.tab-btn.active {
+			color: #A2D9CE;
+			background: rgba(162, 217, 206, 0.08);
+			box-shadow: inset 0 0 0 1px rgba(162, 217, 206, 0.2);
+		}
+
+		.tab-icon {
+			font-size: 1.25rem;
+		}
+
+		.tab-label {
+			font-size: 0.72rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+
+		/* Ocultación y transición de pestañas */
+		.app-aside, main {
+			display: none !important;
+		}
+
+		.app-aside.active-tab, main.active-tab {
+			display: block !important;
+			width: 100%;
+			animation: fadeInTab 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+		}
+	}
+
+	@media (max-width: 992px) {
+		.mobile-nav-tabs {
+			top: 122px; /* Alineación perfecta debajo de la navbar responsiva colapsada verticalmente */
+		}
+	}
+
+	@keyframes fadeInTab {
+		from { 
+			opacity: 0; 
+			transform: translateY(12px); 
+		}
+		to { 
+			opacity: 1; 
+			transform: translateY(0); 
+		}
+	}
+
+	/* Forzar fondos transparentes para dejar ver el fondo global */
+	:global(.page-section), 
+	:global(.story-section), 
+	:global(.carousel-wrapper) {
+		background-color: transparent !important;
+		background: transparent !important;
+	}
+
+	/* Animación Fade In para Checkin Feedback */
+	.fade-in {
+		animation: fadeIn 0.4s ease forwards;
+	}
+
+	@keyframes fadeIn {
+		from { opacity: 0; transform: translateY(10px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+
+	/* Responsive Styles para Navbar Móvil */
+	@media (max-width: 992px) {
 		.navbar {
+			height: auto;
+			padding: 10px 0;
+		}
+		.navbar-content {
 			flex-direction: column;
 			height: auto;
-			padding: 15px;
+			padding: 8px 15px;
+			gap: 10px;
 		}
 		.logo {
-			margin-bottom: 10px;
+			margin-bottom: 2px;
 		}
-		.navbar nav {
-			margin-top: 10px;
+		.navbar-center {
+			margin-top: 5px;
+			width: 100%;
+			overflow-x: auto;
+			justify-content: flex-start;
+			padding: 8px 5px;
+			gap: 15px;
+			scrollbar-width: none;
+			-webkit-overflow-scrolling: touch;
+		}
+		.navbar-center::-webkit-scrollbar {
+			display: none;
+		}
+		.navbar-center a {
+			margin: 0;
+			flex: 0 0 auto;
+		}
+		.navbar-right {
+			margin-top: 5px;
+			width: 100%;
+			justify-content: center;
+			gap: 20px;
 		}
 	}
 
