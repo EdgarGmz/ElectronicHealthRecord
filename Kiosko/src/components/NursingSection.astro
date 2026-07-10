@@ -58,123 +58,152 @@ const nursingTips = [
         ))}
     </div>
 
-    <!-- Modal Blanco Estable -->
-    <div id="nursing-modal-fixed" class="custom-modal-overlay">
-        <div class="custom-modal-content">
-            <button class="custom-close-btn" id="close-nursing-modal">&times;</button>
-            <div class="modal-inner-header">
-                <div class="modal-big-icon pop-in-soft" id="nursing-modal-icon"></div>
-                <h2 id="nursing-modal-title"></h2>
-            </div>
-            <div class="modal-inner-body">
-                <p id="nursing-modal-desc"></p>
-                <div class="modal-inner-highlights">
-                    <h4>Puntos Clave</h4>
-                    <ul id="nursing-modal-list"></ul>
-                </div>
-            </div>
-            <button class="modal-inner-close-action" id="btn-nursing-close">Cerrar</button>
-        </div>
-    </div>
 </section>
 
-<script is:inline>
-    (function() {
-        const initNursingModal = () => {
-            const modal = document.getElementById('nursing-modal-fixed');
-            const cards = document.querySelectorAll('.interactive-nursing-card');
-            const closeX = document.getElementById('close-nursing-modal');
-            const closeBtn = document.getElementById('btn-nursing-close');
+<script>
+    const initNursingModal = () => {
+        const modal = document.getElementById('nursing-modal-fixed');
+        const cards = document.querySelectorAll('.interactive-nursing-card');
+        const closeX = document.getElementById('close-nursing-modal');
+        const closeBtn = document.getElementById('btn-nursing-close');
 
-            if (!modal) return;
+        if (!modal) return;
 
-            const open = (data) => {
-                const iconEl = document.getElementById('nursing-modal-icon');
-                document.getElementById('nursing-modal-title').textContent = data.title;
-                document.getElementById('nursing-modal-desc').textContent = data.info;
-                iconEl.textContent = data.icon;
-                
-                const list = document.getElementById('nursing-modal-list');
+        const open = (data) => {
+            const iconEl = document.getElementById('nursing-modal-icon');
+            if (iconEl) iconEl.textContent = data.icon || '';
+            
+            const titleEl = document.getElementById('nursing-modal-title');
+            if (titleEl) titleEl.textContent = data.title || '';
+            
+            const descEl = document.getElementById('nursing-modal-desc');
+            if (descEl) descEl.textContent = data.info || '';
+            
+            const list = document.getElementById('nursing-modal-list');
+            if (list && data.list) {
                 list.innerHTML = data.list.split(',').map(i => `<li><span>✓</span> ${i.trim()}</li>`).join('');
+            }
 
-                modal.classList.add('is-visible');
-                
-                // Reiniciar animación pop-in sutil
-                iconEl.style.animation = 'none';
-                iconEl.offsetHeight;
-                iconEl.style.animation = null;
-
-                document.body.style.overflow = 'hidden';
-            };
-
-            const close = () => {
-                modal.classList.remove('is-visible');
-                document.body.style.overflow = '';
-            };
-
-            cards.forEach(card => {
-                card.addEventListener('click', () => open(card.dataset));
-            });
-
-            closeX?.addEventListener('click', close);
-            closeBtn?.addEventListener('click', close);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) close();
-            });
+            modal.classList.add('is-visible');
+            document.body.style.overflow = 'hidden';
         };
 
+        const close = () => {
+            modal.classList.remove('is-visible');
+            document.body.style.overflow = '';
+        };
+
+        cards.forEach(card => {
+            // Clonar para limpiar event listeners duplicados en transiciones
+            const newCard = card.cloneNode(true);
+            card.parentNode.replaceChild(newCard, card);
+        });
+
+        // Re-obtener las tarjetas y asignar listeners
+        const cleanCards = document.querySelectorAll('.interactive-nursing-card');
+        cleanCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const data = {
+                    title: card.getAttribute('data-title'),
+                    icon: card.getAttribute('data-icon'),
+                    info: card.getAttribute('data-info'),
+                    list: card.getAttribute('data-list')
+                };
+                open(data);
+            });
+        });
+
+        // Limpiar y re-asignar botones de cerrar
+        if (closeX) {
+            const newCloseX = closeX.cloneNode(true);
+            closeX.parentNode.replaceChild(newCloseX, closeX);
+            newCloseX.addEventListener('click', close);
+        }
+        if (closeBtn) {
+            const newCloseBtn = closeBtn.cloneNode(true);
+            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+            newCloseBtn.addEventListener('click', close);
+        }
+
+        // Re-asignar cierre al hacer click afuera
+        const newModal = document.getElementById('nursing-modal-fixed');
+        if (newModal) {
+            newModal.addEventListener('click', (e) => {
+                if (e.target === newModal) close();
+            });
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', initNursingModal);
+    document.addEventListener('astro:after-swap', initNursingModal);
+
+    // Ejecutar si el script se carga con el DOM listo
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
         initNursingModal();
-        document.addEventListener('astro:after-swap', initNursingModal);
-    })();
+    }
 </script>
 
 <style>
     .page-section {
         width: 100%;
-        max-width: 1200px;
-        padding: 4rem 2rem;
+        padding: 0;
         box-sizing: border-box;
-        text-align: center;
-        border-bottom: 1px solid var(--navbar-border);
-        background-color: var(--bg-color);
+        text-align: left;
+        background-color: transparent;
+        margin-top: 1.5rem;
     }
 
     .section-title {
-        font-size: 2.5rem;
-        margin-bottom: 3rem;
+        font-size: 1.25rem;
+        margin: 0 0 1rem 0;
         color: var(--heading-color);
         font-family: 'Playfair Display', serif;
+        font-weight: 700;
     }
 
     .options-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
         text-align: left;
     }
 
     .option-card {
-        padding: 2rem;
+        padding: 1.2rem;
         transition: all 0.3s ease;
-        background-color: var(--card-bg);
-        border-radius: 12px;
-        cursor: pointer;
-        border: 1px solid var(--navbar-border);
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 20px;
+        cursor: pointer !important;
         display: flex;
         flex-direction: column;
         position: relative;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.01);
+        box-sizing: border-box;
+    }
+
+    :root.dark .option-card {
+        background: rgba(24, 24, 28, 0.65);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
 
     .option-card:hover {
-        background-color: rgba(162, 217, 206, 0.1);
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        background-color: rgba(162, 217, 206, 0.08);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+    }
+
+    :root.dark .option-card:hover {
+        background-color: rgba(162, 217, 206, 0.05);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     }
 
     /* --- ANIMACIÓN SOFT DE EMOJIS (No sale de su órbita) --- */
     .animated-icon-soft {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
         display: inline-block;
         transform-origin: center;
         transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -184,10 +213,28 @@ const nursingTips = [
         transform: scale(1.15) rotate(5deg);
     }
 
-    .option-card h3 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--heading-color); font-family: 'Playfair Display', serif; }
-    .option-card p { font-size: 1rem; line-height: 1.6; color: var(--body-text-color); margin-bottom: 1rem; }
+    .option-card h3 { 
+        font-size: 1.1rem; 
+        margin: 0 0 0.4rem 0; 
+        color: var(--heading-color); 
+        font-family: 'Playfair Display', serif; 
+        font-weight: 700;
+    }
     
-    .click-hint { font-size: 0.8rem; color: #A2D9CE; font-weight: bold; text-transform: uppercase; margin-top: auto; }
+    .option-card p { 
+        font-size: 0.85rem; 
+        line-height: 1.5; 
+        color: var(--body-text-color); 
+        margin: 0 0 0.8rem 0; 
+    }
+    
+    .click-hint { 
+        font-size: 0.75rem; 
+        color: #A2D9CE; 
+        font-weight: bold; 
+        text-transform: uppercase; 
+        margin-top: auto; 
+    }
 
     /* --- MODAL --- */
     .custom-modal-overlay {

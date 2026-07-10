@@ -52,55 +52,397 @@ const sections = [
 ---
 <section id="violentometro" class="page-section">
     <div class="container">
-        <h2 class="section-title">Violentómetro</h2>
-        <p class="section-subtitle">Identifica las señales de violencia. Cada nivel aumenta la gravedad.</p>
+        <!-- VISTA 1: INFOGRAFÍA INFORMATIVA TRADICIONAL -->
+        <div class="violentometro-view-info active-view" id="v-info-view">
+            <h2 class="section-title">Violentómetro</h2>
+            <p class="section-subtitle">Identifica las señales de violencia. Cada nivel aumenta la gravedad.</p>
 
-        <div class="violentometro-grid">
-            {sections.map((section) => (
-                <div class="violentometro-column" style={`--section-color: ${section.color}; --section-color-rgb: ${section.rgb};`}>
-                    <div class="section-header">
-                        <h3>{section.title}</h3>
-                    </div>
-                    <ul class="section-items">
-                        {section.items.map((item) => (
-                            <li class="violentometro-item" role="button" tabindex="0">
-                                <div class="item-content">
-                                    <p class="item-text">{item.text}</p>
-                                    <div class="item-description-wrapper">
-                                        <p class="item-description">{item.description}</p>
+            <div class="test-trigger-container">
+                <button id="start-quiz-btn" class="start-quiz-action-btn">
+                    <span>📊</span> ¿Tienes dudas? Realiza el Test de Concientización
+                </button>
+            </div>
+
+            <div class="violentometro-grid">
+                {sections.map((section) => (
+                    <div class="violentometro-column" style={`--section-color: ${section.color}; --section-color-rgb: ${section.rgb};`}>
+                        <div class="section-header">
+                            <h3>{section.title}</h3>
+                        </div>
+                        <ul class="section-items">
+                            {section.items.map((item) => (
+                                <li class="violentometro-item" role="button" tabindex="0">
+                                    <div class="item-content">
+                                        <p class="item-text">{item.text}</p>
+                                        <div class="item-description-wrapper">
+                                            <p class="item-description">{item.description}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            ))}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
+            
+            <p class="call-to-action">
+                Si identificas alguna de estas situaciones, busca ayuda. No estás solo/a.
+            </p>
         </div>
-        
-        <p class="call-to-action">
-            Si identificas alguna de estas situaciones, busca ayuda. No estás solo/a.
-        </p>
+
+        <!-- VISTA 2: CUESTIONARIO INTERACTIVO (STEPPER) -->
+        <div class="violentometro-view-quiz" id="v-quiz-view">
+            <div class="quiz-card glass-panel-quiz">
+                <div class="quiz-header">
+                    <button id="back-to-info-btn" class="quiz-back-btn">← Ver infografía</button>
+                    <span class="quiz-progress-text" id="quiz-progress-text">Pregunta 1 de 10</span>
+                </div>
+                
+                <div class="quiz-progress-bar-container">
+                    <div class="quiz-progress-bar-fill" id="quiz-progress-fill"></div>
+                </div>
+
+                <div class="quiz-question-container">
+                    <h3 class="quiz-question" id="quiz-question-text">¿Sueles hacer chistes hirientes, burlas o apodos molestos que incomodan a la otra persona?</h3>
+                    <p class="quiz-question-context" id="quiz-question-context">Nivel: Ten Cuidado (Azul)</p>
+                </div>
+
+                <div class="quiz-options">
+                    <button class="quiz-option-btn" data-value="0">
+                        <span class="option-check">⚪</span>
+                        <span class="option-label">Nunca</span>
+                    </button>
+                    <button class="quiz-option-btn" data-value="1">
+                        <span class="option-check">⚪</span>
+                        <span class="option-label">A veces</span>
+                    </button>
+                    <button class="quiz-option-btn" data-value="2">
+                        <span class="option-check">⚪</span>
+                        <span class="option-label">Siempre</span>
+                    </button>
+                </div>
+
+                <div class="quiz-navigation">
+                    <button id="prev-question-btn" class="quiz-nav-btn" disabled>Anterior</button>
+                    <button id="restart-quiz-btn" class="quiz-nav-btn secondary">Reiniciar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA 3: RESULTADOS DEL TEST -->
+        <div class="violentometro-view-results" id="v-results-view">
+            <div class="results-card glass-panel-quiz">
+                <div class="results-header">
+                    <h2>Tu Resultado</h2>
+                    <p class="results-score" id="results-score-text">Puntaje: 0 / 20 puntos</p>
+                </div>
+                
+                <div class="results-layout">
+                    <!-- Termómetro visual líquido -->
+                    <div class="thermometer-container">
+                        <div class="thermometer-glass">
+                            <div class="thermometer-fill" id="thermometer-fill"></div>
+                        </div>
+                        <div class="thermometer-bulb">
+                            <div class="thermometer-bulb-fill" id="thermometer-bulb-fill"></div>
+                        </div>
+                    </div>
+
+                    <div class="results-feedback">
+                        <h3 class="results-level-title" id="results-level-title">Ten Cuidado (Azul)</h3>
+                        <p class="results-description" id="results-description-text">Existen conductas sutiles de control o manipulación cotidianas que suelen normalizarse...</p>
+                        
+                        <div class="results-action-container">
+                            <a href="/agendar" class="results-action-btn primary" id="results-action-btn">
+                                <span>📅</span> Solicitar apoyo confidencial
+                            </a>
+                            <button id="quiz-restart-btn-final" class="results-restart-btn">Realizar Test de Nuevo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
 <script>
     const initViolentometro = () => {
+        // --- 1. CONFIGURACIÓN DEL VIOLENTÓMETRO TRADICIONAL EXPANDIBLE ---
         const items = document.querySelectorAll('.violentometro-item');
         items.forEach(item => {
             const toggle = () => item.classList.toggle('expanded');
+            
+            // Remover listeners previos para evitar duplicación en Astro Views
+            item.removeEventListener('click', toggle);
             item.addEventListener('click', toggle);
-            item.addEventListener('keydown', (e) => {
-                // @ts-ignore
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggle();
+        });
+
+        // --- 2. CONFIGURACIÓN DEL CUESTIONARIO INTERACTIVO ---
+        const quizQuestions = [
+            {
+                text: "¿Sueles hacer chistes hirientes, burlas o apodos molestos que incomodan a la otra persona?",
+                context: "Nivel: Ten Cuidado (Azul) - Conducta Ejercida",
+                level: "azul"
+            },
+            {
+                text: "¿Has sentido la necesidad de revisar el teléfono o las redes sociales de tu pareja/amigos sin su consentimiento?",
+                context: "Nivel: Ten Cuidado (Azul) - Conducta Ejercida",
+                level: "azul"
+            },
+            {
+                text: "¿Tu pareja o amigos te prohíben vestir de cierta forma, hablar con ciertas personas o controlan tus salidas?",
+                context: "Nivel: Ten Cuidado (Azul) - Conducta Recibida",
+                level: "azul"
+            },
+            {
+                text: "¿Sueles aplicar la 'ley del hielo' (ignorar y no hablarle a alguien) como una forma de castigarle o manipularle?",
+                context: "Nivel: Ten Cuidado (Azul) - Conducta Ejercida",
+                level: "azul"
+            },
+            {
+                text: "¿Has sentido que te culpabilizan de todos los problemas de la relación, haciéndote dudar de ti mismo/a?",
+                context: "Nivel: Ten Cuidado (Azul) - Conducta Recibida",
+                level: "azul"
+            },
+            {
+                text: "¿Ha habido golpes 'jugando', empujones, pellizcos o jaloneos físicos durante discusiones o momentos de tensión?",
+                context: "Nivel: Reacciona (Rojo) - Conducta Dual",
+                level: "rojo"
+            },
+            {
+                text: "¿Te han prohibido o aislado de tus familiares y amigos cercanos para que pases tiempo únicamente con esa persona?",
+                context: "Nivel: Reacciona (Rojo) - Conducta Recibida",
+                level: "rojo"
+            },
+            {
+                text: "¿Te han amenazado alguna vez con destruirte, con quitarse la vida o con hacerte daño físico a ti o a tus seres queridos?",
+                context: "Nivel: Reacciona/Actúa - Alerta Crítica",
+                level: "rojo"
+            },
+            {
+                text: "¿Te has sentido forzado/a o presionado/a a mantener contacto o relaciones sexuales por temor a enfadar a tu pareja?",
+                context: "Nivel: Actúa (Púrpura) - Peligro Crítico",
+                level: "purpura"
+            },
+            {
+                text: "¿Alguna vez has destruido, tirado o dañado pertenencias, objetos personales o regalos de otra persona por enojo?",
+                context: "Nivel: Reacciona (Rojo) - Conducta Ejercida",
+                level: "rojo"
+            }
+        ];
+
+        let currentQuestionIdx = 0;
+        let answers = Array(quizQuestions.length).fill(null);
+
+        // Elementos DOM de Vistas
+        const infoView = document.getElementById('v-info-view');
+        const quizView = document.getElementById('v-quiz-view');
+        const resultsView = document.getElementById('v-results-view');
+
+        // Elementos DOM del Cuestionario
+        const questionText = document.getElementById('quiz-question-text');
+        const questionContext = document.getElementById('quiz-question-context');
+        const progressText = document.getElementById('quiz-progress-text');
+        const progressFill = document.getElementById('quiz-progress-fill');
+        const optionButtons = document.querySelectorAll('.quiz-option-btn');
+        const prevBtn = document.getElementById('prev-question-btn');
+        const restartBtn = document.getElementById('restart-quiz-btn');
+        
+        // Elementos DOM de Resultados
+        const resultsScore = document.getElementById('results-score-text');
+        const levelTitle = document.getElementById('results-level-title');
+        const descriptionText = document.getElementById('results-description-text');
+        const thermometerFill = document.getElementById('thermometer-fill');
+        const thermometerBulbFill = document.getElementById('thermometer-bulb-fill');
+        const actionBtn = document.getElementById('results-action-btn') as HTMLAnchorElement;
+
+        // Botones de Navegación de Vistas
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const backToInfoBtn = document.getElementById('back-to-info-btn');
+        const restartQuizBtnFinal = document.getElementById('quiz-restart-btn-final');
+
+        if (!infoView || !quizView || !resultsView) return;
+
+        // Alternar vistas
+        const showView = (viewName: 'info' | 'quiz' | 'results') => {
+            infoView.classList.remove('active-view');
+            quizView.classList.remove('active-view');
+            resultsView.classList.remove('active-view');
+
+            if (viewName === 'info') infoView.classList.add('active-view');
+            if (viewName === 'quiz') quizView.classList.add('active-view');
+            if (viewName === 'results') resultsView.classList.add('active-view');
+        };
+
+        const updateQuestionUI = () => {
+            if (!questionText || !questionContext || !progressText || !progressFill || !prevBtn) return;
+
+            const currentQuestion = quizQuestions[currentQuestionIdx];
+            questionText.textContent = currentQuestion.text;
+            questionContext.textContent = currentQuestion.context;
+
+            // Ajustar el color del tag de contexto según el nivel de la pregunta
+            questionContext.className = 'quiz-question-context ' + currentQuestion.level;
+
+            progressText.textContent = `Pregunta ${currentQuestionIdx + 1} de ${quizQuestions.length}`;
+            const percentage = ((currentQuestionIdx) / quizQuestions.length) * 100;
+            progressFill.style.width = `${percentage}%`;
+
+            // Resetear estados de botones de opción
+            optionButtons.forEach(btn => {
+                btn.classList.remove('selected');
+                const check = btn.querySelector('.option-check');
+                if (check) check.textContent = '⚪';
+            });
+
+            // Seleccionar respuesta previa si existe
+            const prevAnswer = answers[currentQuestionIdx];
+            if (prevAnswer !== null) {
+                const selectedBtn = document.querySelector(`.quiz-option-btn[data-value="${prevAnswer}"]`);
+                if (selectedBtn) {
+                    selectedBtn.classList.add('selected');
+                    const check = selectedBtn.querySelector('.option-check');
+                    if (check) check.textContent = '🟢';
+                }
+            }
+
+            // Deshabilitar botón Anterior si estamos al principio
+            prevBtn.disabled = currentQuestionIdx === 0;
+        };
+
+        const handleOptionClick = (value: number) => {
+            answers[currentQuestionIdx] = value;
+
+            // Actualizar UI del botón seleccionado
+            optionButtons.forEach(btn => {
+                const check = btn.querySelector('.option-check');
+                if (btn.getAttribute('data-mood') || btn.getAttribute('data-value') === value.toString()) {
+                    btn.classList.add('selected');
+                    if (check) check.textContent = '🟢';
+                } else {
+                    btn.classList.remove('selected');
+                    if (check) check.textContent = '⚪';
                 }
             });
+
+            // Avanzar a la siguiente pregunta después de un retraso mínimo
+            setTimeout(() => {
+                if (currentQuestionIdx < quizQuestions.length - 1) {
+                    currentQuestionIdx++;
+                    updateQuestionUI();
+                } else {
+                    // Completado: Calcular resultado
+                    showResults();
+                }
+            }, 250);
+        };
+
+        const showResults = () => {
+            if (!resultsScore || !levelTitle || !descriptionText || !thermometerFill || !thermometerBulbFill) return;
+
+            const totalScore = answers.reduce((sum, val) => sum + (val || 0), 0);
+            resultsScore.textContent = `Puntaje: ${totalScore} / 20 puntos`;
+
+            let level = '';
+            let description = '';
+            let color = '';
+            let priorityParam = 'normal';
+
+            if (totalScore <= 4) {
+                level = 'Ten Cuidado (Azul)';
+                color = '#1e90ff';
+                description = 'Existen conductas sutiles de control, celos o bromas hirientes cotidianas que suelen normalizarse en las relaciones. Aunque parezcan inofensivas, son señales de alerta iniciales. Es momento de reflexionar sobre la forma en que nos comunicamos y poner límites sanos a tiempo.';
+                priorityParam = 'low';
+            } else if (totalScore <= 10) {
+                level = 'Reacciona (Rojo)';
+                color = '#dc3545';
+                description = '¡Cuidado! Se identifican agresiones físicas (golpes "jugando", empujones) o de control directo (aislamiento, prohibiciones). Estas conductas no son normales ni forman parte de una relación saludable. Te recomendamos acercarte al departamento de Psicopedagogía para recibir apoyo confidencial.';
+                priorityParam = 'medium';
+            } else {
+                level = 'Actúa (Púrpura)';
+                color = '#6f42c1';
+                description = '¡Peligro crítico! Tu relación o tus actitudes presentan niveles alarmantes de violencia extrema, manipulación o coacción sexual/física. Tu integridad física y psicológica están en riesgo. No estás solo/a; busca ayuda profesional confidencial de forma urgente.';
+                priorityParam = 'high';
+            }
+
+            levelTitle.textContent = level;
+            levelTitle.style.color = color;
+            descriptionText.textContent = description;
+
+            // Ajustar url de cita con prioridad confidencial
+            if (actionBtn) {
+                actionBtn.href = `/agendar?priority=${priorityParam}&from=quiz`;
+            }
+
+            showView('results');
+
+            // Animar el termómetro líquido
+            setTimeout(() => {
+                const fillPercentage = Math.max((totalScore / 20) * 100, 5); // Al menos 5% para que se vea el líquido
+                thermometerFill.style.height = `${fillPercentage}%`;
+                thermometerFill.style.backgroundColor = color;
+                thermometerBulbFill.style.backgroundColor = color;
+            }, 100);
+        };
+
+        const resetQuiz = () => {
+            currentQuestionIdx = 0;
+            answers = Array(quizQuestions.length).fill(null);
+            if (thermometerFill) thermometerFill.style.height = '0%';
+            updateQuestionUI();
+            showView('quiz');
+        };
+
+        // --- REGISTRO DE EVENTOS ---
+        if (startQuizBtn) {
+            startQuizBtn.addEventListener('click', () => {
+                resetQuiz();
+            });
+        }
+
+        if (backToInfoBtn) {
+            backToInfoBtn.addEventListener('click', () => {
+                showView('info');
+            });
+        }
+
+        if (restartQuizBtnFinal) {
+            restartQuizBtnFinal.addEventListener('click', () => {
+                resetQuiz();
+            });
+        }
+
+        optionButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = parseInt(btn.getAttribute('data-value') || '0');
+                handleOptionClick(val);
+            });
         });
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (currentQuestionIdx > 0) {
+                    currentQuestionIdx--;
+                    updateQuestionUI();
+                }
+            });
+        }
+
+        if (restartBtn) {
+            restartBtn.addEventListener('click', () => {
+                if (confirm('¿Seguro que deseas reiniciar el test?')) {
+                    resetQuiz();
+                }
+            });
+        }
     };
 
-    initViolentometro();
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', initViolentometro);
     document.addEventListener('astro:after-swap', initViolentometro);
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initViolentometro();
+    }
 </script>
 
 <style>
@@ -111,21 +453,81 @@ const sections = [
         box-sizing: border-box;
         text-align: center;
         border-bottom: 1px solid var(--navbar-border);
-        background-color: var(--bg-color);
+        background-color: transparent; /* Permite ver las partículas globales */
+        position: relative;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
     }
 
     .section-title {
         font-size: 2.5rem;
         margin-bottom: 0.5rem;
         color: var(--heading-color);
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        scroll-margin-top: 100px;
     }
 
     .section-subtitle {
         color: var(--body-text-color);
-        margin-bottom: 3rem;
-        font-size: 1rem;
+        margin-bottom: 2rem;
+        font-size: 1.05rem;
+        line-height: 1.5;
     }
 
+    /* --- VISTAS INTERACTIVAS (TRANSICIONES) --- */
+    .violentometro-view-info,
+    .violentometro-view-quiz,
+    .violentometro-view-results {
+        display: none;
+        opacity: 0;
+        transform: translateY(15px);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .violentometro-view-info.active-view,
+    .violentometro-view-quiz.active-view,
+    .violentometro-view-results.active-view {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Contenedor de Botón de Test */
+    .test-trigger-container {
+        margin-bottom: 2.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .start-quiz-action-btn {
+        background: rgba(162, 217, 206, 0.12);
+        border: 1px solid rgba(162, 217, 206, 0.4);
+        color: var(--heading-color);
+        padding: 12px 28px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer !important;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(162, 217, 206, 0.05);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .start-quiz-action-btn:hover {
+        transform: translateY(-2px);
+        background: rgba(162, 217, 206, 0.2);
+        box-shadow: 0 6px 20px rgba(162, 217, 206, 0.15);
+        border-color: #A2D9CE;
+    }
+
+    /* --- GRID DEL VIOLENTÓMETRO TRADICIONAL --- */
     .violentometro-grid {
         display: flex;
         gap: 1.5rem;
@@ -136,12 +538,18 @@ const sections = [
     .violentometro-column {
         flex: 1;
         background-color: var(--card-bg);
-        border-radius: 8px;
+        border-radius: 24px;
         overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.03);
         display: flex;
         flex-direction: column;
         border: 1px solid var(--navbar-border);
+        transition: all 0.3s ease;
+    }
+
+    .violentometro-column:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.06);
     }
 
     .section-header {
@@ -153,8 +561,8 @@ const sections = [
 
     .section-header h3 {
         margin: 0;
-        font-size: 1.2rem;
-        font-weight: bold;
+        font-size: 1.15rem;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1px;
         color: white;
@@ -170,17 +578,19 @@ const sections = [
     }
 
     .violentometro-item {
-        background-color: rgba(var(--section-color-rgb), 0.1);
+        background-color: rgba(var(--section-color-rgb), 0.05);
         padding: 0.8rem 1rem;
-        border-radius: 6px;
+        border-radius: 14px;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         text-align: left;
+        border: 1px solid rgba(var(--section-color-rgb), 0.08);
     }
 
     .violentometro-item:hover {
-        background-color: rgba(var(--section-color-rgb), 0.2);
+        background-color: rgba(var(--section-color-rgb), 0.12);
         transform: translateX(5px);
+        border-color: rgba(var(--section-color-rgb), 0.25);
     }
 
     .item-text {
@@ -188,13 +598,13 @@ const sections = [
         font-size: 0.9rem;
         font-weight: 600;
         color: var(--text-color);
-        line-height: 1.3;
+        line-height: 1.35;
     }
 
     .item-description-wrapper {
         max-height: 0;
         overflow: hidden;
-        transition: max-height 0.3s ease-out;
+        transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .violentometro-item.expanded .item-description-wrapper {
@@ -206,16 +616,388 @@ const sections = [
         font-size: 0.8rem;
         color: var(--body-text-color);
         margin: 0;
-        line-height: 1.4;
-        border-top: 1px solid rgba(var(--section-color-rgb), 0.2);
+        line-height: 1.45;
+        border-top: 1px dashed rgba(var(--section-color-rgb), 0.25);
         padding-top: 0.5rem;
     }
 
     .call-to-action {
         margin-top: 3rem;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--heading-color);
+    }
+
+    /* --- TARJETA DE CUESTIONARIO GLASSMORPHIC --- */
+    .glass-panel-quiz {
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        border-radius: 28px;
+        padding: 2.5rem;
+        box-sizing: border-box;
+        box-shadow: 0 10px 40px 0 rgba(31, 38, 135, 0.05);
+        max-width: 680px;
+        margin: 0 auto;
+        text-align: left;
+    }
+
+    :root.dark .glass-panel-quiz {
+		background: rgba(30, 30, 35, 0.65);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .quiz-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.2rem;
+    }
+
+    .quiz-back-btn {
+        background: none;
+        border: none;
+        color: var(--body-text-color);
+        font-weight: bold;
+        cursor: pointer !important;
+        font-size: 0.9rem;
+        transition: color 0.2s ease;
+        padding: 0;
+    }
+
+    .quiz-back-btn:hover {
+        color: #A2D9CE;
+    }
+
+    .quiz-progress-text {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--body-text-color);
+    }
+
+    /* Barra de Progreso */
+    .quiz-progress-bar-container {
+        width: 100%;
+        height: 6px;
+        background: rgba(0,0,0,0.04);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    :root.dark .quiz-progress-bar-container {
+        background: rgba(255,255,255,0.05);
+    }
+
+    .quiz-progress-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: #A2D9CE;
+        border-radius: 10px;
+        transition: width 0.3s ease;
+    }
+
+    /* Contenido de Pregunta */
+    .quiz-question-container {
+        margin-bottom: 2rem;
+    }
+
+    .quiz-question {
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.45;
+        margin: 0 0 8px 0;
+        color: var(--heading-color);
+        font-family: 'Lato', sans-serif;
+    }
+
+    .quiz-question-context {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.03);
+        color: var(--body-text-color);
+    }
+
+    .quiz-question-context.azul {
+        background: rgba(30, 144, 255, 0.08);
+        color: #1e90ff;
+    }
+    .quiz-question-context.rojo {
+        background: rgba(220, 53, 69, 0.08);
+        color: #dc3545;
+    }
+    .quiz-question-context.purpura {
+        background: rgba(111, 66, 193, 0.08);
+        color: #6f42c1;
+    }
+
+    /* Opciones */
+    .quiz-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .quiz-option-btn {
+        background: rgba(0,0,0,0.02);
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 16px;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        width: 100%;
+        text-align: left;
+    }
+
+    :root.dark .quiz-option-btn {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .quiz-option-btn:hover {
+        transform: translateY(-1px);
+        background: rgba(162, 217, 206, 0.08);
+        border-color: rgba(162, 217, 206, 0.3);
+    }
+
+    .quiz-option-btn.selected {
+        background: rgba(162, 217, 206, 0.12);
+        border-color: #A2D9CE;
+        box-shadow: inset 0 0 0 1px rgba(162, 217, 206, 0.2);
+    }
+
+    .option-check {
         font-size: 1.1rem;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    .option-label {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+
+    /* Navegación */
+    .quiz-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--navbar-border);
+        padding-top: 1.5rem;
+    }
+
+    .quiz-nav-btn {
+        background: rgba(0,0,0,0.03);
+        border: 1px solid rgba(0,0,0,0.05);
+        padding: 10px 20px;
+        border-radius: 14px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer !important;
+        color: var(--body-text-color);
+        transition: all 0.2s ease;
+    }
+
+    :root.dark .quiz-nav-btn {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .quiz-nav-btn:hover:not(:disabled) {
+        background: rgba(0, 0, 0, 0.08);
+    }
+
+    .quiz-nav-btn.secondary {
+        background: none;
+        border: 1px solid transparent;
+    }
+    .quiz-nav-btn.secondary:hover {
+        color: #dc3545;
+        border-color: rgba(220, 53, 69, 0.2);
+        background: rgba(220, 53, 69, 0.02);
+    }
+
+    .quiz-nav-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed !important;
+    }
+
+    /* --- VISTA DE RESULTADOS --- */
+    .results-card {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 2.5rem;
+    }
+
+    .results-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--navbar-border);
+        padding-bottom: 1.5rem;
+    }
+
+    .results-header h2 {
+        margin: 0 0 6px 0;
+        font-size: 1.8rem;
         font-weight: bold;
         color: var(--heading-color);
+    }
+
+    .results-score {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--body-text-color);
+        margin: 0;
+    }
+
+    .results-layout {
+        display: flex;
+        gap: 3rem;
+        align-items: center;
+    }
+
+    /* Termómetro Líquido Interactivo */
+    .thermometer-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+        width: 60px;
+        padding-bottom: 10px;
+    }
+
+    .thermometer-glass {
+        width: 18px;
+        height: 180px;
+        background: rgba(0,0,0,0.05);
+        border: 2px solid rgba(0,0,0,0.08);
+        border-radius: 12px 12px 0 0;
+        position: relative;
+        overflow: hidden;
+        border-bottom: none;
+    }
+
+    :root.dark .thermometer-glass {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.08);
+    }
+
+    .thermometer-fill {
+        width: 100%;
+        height: 0%;
+        background-color: #1e90ff;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        border-radius: 10px 10px 0 0;
+        transition: height 1s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.5s ease;
+    }
+
+    .thermometer-bulb {
+        width: 32px;
+        height: 32px;
+        background: rgba(0,0,0,0.05);
+        border: 2px solid rgba(0,0,0,0.08);
+        border-radius: 50%;
+        margin-top: -3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    :root.dark .thermometer-bulb {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.08);
+    }
+
+    .thermometer-bulb-fill {
+        width: 20px;
+        height: 20px;
+        background-color: #1e90ff;
+        border-radius: 50%;
+        transition: background-color 0.5s ease;
+    }
+
+    .results-feedback {
+        flex: 1;
+        text-align: left;
+    }
+
+    .results-level-title {
+        font-size: 1.5rem;
+        margin: 0 0 12px 0;
+        font-weight: 700;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .results-description {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--body-text-color);
+        margin: 0 0 2rem 0;
+    }
+
+    .results-action-container {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .results-action-btn {
+        background-color: #A2D9CE;
+        color: #121212 !important;
+        padding: 12px 24px;
+        border-radius: 16px;
+        font-weight: 700;
+        font-size: 0.92rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(162, 217, 206, 0.15);
+    }
+
+    .results-action-btn:hover {
+        transform: translateY(-2px);
+        background-color: #8cd1c3;
+        box-shadow: 0 6px 20px rgba(162, 217, 206, 0.25);
+    }
+
+    .results-restart-btn {
+        background: none;
+        border: 1px solid var(--navbar-border);
+        color: var(--body-text-color);
+        padding: 12px 20px;
+        border-radius: 16px;
+        font-weight: bold;
+        font-size: 0.92rem;
+        cursor: pointer !important;
+        transition: all 0.25s ease;
+    }
+
+    .results-restart-btn:hover {
+        background: rgba(0,0,0,0.03);
+        border-color: var(--body-text-color);
+    }
+
+    :root.dark .results-restart-btn:hover {
+        background: rgba(255,255,255,0.03);
     }
 
     @media (max-width: 992px) {
@@ -226,6 +1008,24 @@ const sections = [
         }
         .violentometro-column {
             width: 100%;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .results-layout {
+            flex-direction: column;
+            gap: 2rem;
+            align-items: center;
+        }
+        .results-feedback {
+            text-align: center;
+            width: 100%;
+        }
+        .results-action-container {
+            justify-content: center;
+        }
+        .glass-panel-quiz {
+            padding: 1.5rem;
         }
     }
 </style>

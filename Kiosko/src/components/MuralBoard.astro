@@ -19,20 +19,55 @@
             <button class="filter-btn" data-category="Día Especial">Días Especiales</button>
         </div>
 
-        <!-- Grid de publicaciones -->
-        <div id="mural-grid" class="mural-grid">
-            <div class="loading-state">
-                <div class="spinner"></div>
-                <p>Cargando publicaciones...</p>
+        <!-- Estructura de Carrusel de publicaciones -->
+        <div class="mural-carousel-wrapper">
+            <button class="carousel-control prev" id="carousel-prev" aria-label="Anterior">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            
+            <div class="mural-carousel-container" id="carousel-container">
+                <div id="mural-grid" class="mural-carousel-track">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Cargando publicaciones...</p>
+                    </div>
+                </div>
             </div>
+            
+            <button class="carousel-control next" id="carousel-next" aria-label="Siguiente">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
         </div>
-    </div>
 
-    <!-- Alerta sutil flotante para notificaciones -->
-    <div id="mural-toast" class="mural-toast">
-        <span id="mural-toast-text"></span>
+        <!-- Indicadores (dots) -->
+        <div class="carousel-indicators" id="carousel-indicators"></div>
     </div>
 </section>
+
+<!-- Modal para ver el post completo -->
+<div id="mural-modal" class="mural-modal">
+    <div class="mural-modal-overlay" id="modal-overlay"></div>
+    <div class="mural-modal-content">
+        <button class="modal-close" id="modal-close" aria-label="Cerrar modal">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+        <div class="modal-body" id="modal-body">
+            <!-- Se inyectará el artículo detallado aquí -->
+        </div>
+    </div>
+</div>
+
+<!-- Alerta sutil flotante para notificaciones -->
+<div id="mural-toast" class="mural-toast">
+    <span id="mural-toast-text"></span>
+</div>
 
 <script>
     import { API_BASE_URL } from '../utils/api';
@@ -55,6 +90,18 @@
         return new Date(dateString).toLocaleDateString('es-ES', options);
     };
 
+    // Ocultar o mostrar controles de carrusel
+    const toggleCarouselControls = (show) => {
+        const prevBtn = document.getElementById('carousel-prev');
+        const nextBtn = document.getElementById('carousel-next');
+        const indicators = document.getElementById('carousel-indicators');
+        const displayVal = show ? '' : 'none';
+        
+        if (prevBtn) prevBtn.style.display = displayVal;
+        if (nextBtn) nextBtn.style.display = displayVal;
+        if (indicators) indicators.style.display = displayVal;
+    };
+
     // Renderizar posts en el DOM
     const renderPosts = (filter = 'all') => {
         const grid = document.getElementById('mural-grid');
@@ -70,8 +117,11 @@
                     <p>No hay publicaciones disponibles en esta categoría por el momento.</p>
                 </div>
             `;
+            toggleCarouselControls(false);
             return;
         }
+
+        toggleCarouselControls(true);
 
         // Obtener likes del localStorage
         const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
@@ -82,12 +132,17 @@
             const authorName = post.author 
                 ? `Psic. ${post.author.firstName} ${post.author.lastName}`
                 : 'Departamento de Psicología';
+            
+            // Recortar texto para la tarjeta de blog
+            const truncatedContent = post.content.length > 130 
+                ? post.content.substring(0, 130) + '...' 
+                : post.content;
 
             return `
-                <article id="post-${post.id}" class="mural-card ${cardClass} reveal-card">
+                <article id="post-${post.id}" class="mural-card ${cardClass} reveal-card" data-post-id="${post.id}">
                     ${post.imageUrl ? `
                         <div class="card-image-wrapper">
-                            <img src="${post.imageUrl}" alt="${post.title}" class="card-image" loading="lazy" />
+                            <img src="${post.imageUrl}" alt="${post.title}" class="card-image" loading="lazy" onerror="this.parentNode.style.display='none'" />
                         </div>
                     ` : ''}
                     <div class="card-content">
@@ -96,7 +151,11 @@
                             <span class="card-date">${formatDate(post.createdAt)}</span>
                         </div>
                         <h3 class="card-title">${post.title}</h3>
-                        <p class="card-body-text">${post.content}</p>
+                        <p class="card-body-text">${truncatedContent}</p>
+                        
+                        <button class="read-story-btn" data-id="${post.id}">
+                            Leer historia &rarr;
+                        </button>
                         
                         <div class="card-footer">
                             <span class="card-author">${authorName}</span>
@@ -124,6 +183,7 @@
         }).join('');
 
         setupCardInteractions();
+        setupCarousel();
     };
 
     // Alertas Toast sutiles
@@ -139,11 +199,199 @@
         }
     };
 
-    // Configurar interacciones de Likes y Compartir
+    // Abrir Modal
+    const openModal = (post) => {
+        const modal = document.getElementById('mural-modal');
+        const modalBody = document.getElementById('modal-body');
+        if (!modal || !modalBody) return;
+
+        const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+        const isLiked = likedPosts.includes(post.id);
+        const authorName = post.author 
+            ? `Psic. ${post.author.firstName} ${post.author.lastName}`
+            : 'Departamento de Psicología';
+
+        modalBody.innerHTML = `
+            <article class="modal-article">
+                ${post.imageUrl ? `
+                    <div class="modal-image-wrapper">
+                        <img src="${post.imageUrl}" alt="${post.title}" class="modal-image" onerror="this.parentNode.style.display='none'" />
+                    </div>
+                ` : ''}
+                <div class="modal-article-content">
+                    <div class="modal-article-meta">
+                        <span class="modal-category badge">${post.category}</span>
+                        <span class="modal-date">${formatDate(post.createdAt)}</span>
+                    </div>
+                    
+                    <h2 class="modal-article-title">${post.title}</h2>
+                    
+                    <div class="modal-author-section">
+                        <div class="author-avatar">🧠</div>
+                        <div class="author-info">
+                            <span class="author-label">Escrito por:</span>
+                            <span class="author-name">${authorName}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-article-body">
+                        ${post.content.split('\n').map(p => p.trim() ? `<p>${p.trim()}</p>` : '').join('')}
+                    </div>
+                    
+                    <div class="modal-article-footer">
+                        <div class="modal-actions">
+                            <button class="like-btn modal-like-btn ${isLiked ? 'liked' : ''}" data-id="${post.id}" title="${isLiked ? 'Ya te gusta' : 'Dar me gusta'}">
+                                <svg class="heart-icon" viewBox="0 0 24 24">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                                <span class="likes-count">${post.likes}</span>
+                            </button>
+                            <button class="share-btn modal-share-btn" data-id="${post.id}" data-title="${post.title}" title="Compartir publicación">
+                                <svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="18" cy="5" r="3"></circle>
+                                    <circle cx="6" cy="12" r="3"></circle>
+                                    <circle cx="18" cy="19" r="3"></circle>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                </svg>
+                                Compartir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        `;
+
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        setupModalInteractions(post.id);
+    };
+
+    const closeModal = () => {
+        const modal = document.getElementById('mural-modal');
+        if (modal) {
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    };
+
+    const setupModalClose = () => {
+        const closeBtn = document.getElementById('modal-close');
+        const overlay = document.getElementById('modal-overlay');
+        
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (overlay) overlay.addEventListener('click', closeModal);
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    };
+
+    // Sincronizar me gustas y compartir en el modal
+    const setupModalInteractions = (postId) => {
+        const modalLikeBtn = document.querySelector('.modal-like-btn');
+        const modalShareBtn = document.querySelector('.modal-share-btn');
+        
+        if (modalLikeBtn) {
+            modalLikeBtn.addEventListener('click', async (e) => {
+                const btn = e.currentTarget;
+                let likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+                
+                if (likedPosts.includes(postId)) {
+                    showToast('Ya has reaccionado a esta publicación 😊');
+                    return;
+                }
+                
+                btn.classList.add('liked', 'animating');
+                setTimeout(() => btn.classList.remove('animating'), 600);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/blogs/${postId}/like`, {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        const updatedPost = await response.json();
+                        const likesCountSpan = btn.querySelector('.likes-count');
+                        if (likesCountSpan) {
+                            likesCountSpan.textContent = updatedPost.likes;
+                        }
+                        
+                        likedPosts.push(postId);
+                        localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
+                        
+                        const postIndex = blogPosts.findIndex(p => p.id === postId);
+                        if (postIndex !== -1) {
+                            blogPosts[postIndex].likes = updatedPost.likes;
+                        }
+                        
+                        // Sincronizar la tarjeta del carrusel
+                        const cardLikeBtn = document.querySelector(`.mural-card[data-post-id="${postId}"] .like-btn`);
+                        if (cardLikeBtn) {
+                            cardLikeBtn.classList.add('liked');
+                            const cardLikesCount = cardLikeBtn.querySelector('.likes-count');
+                            if (cardLikesCount) {
+                                cardLikesCount.textContent = updatedPost.likes;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error al dar like en modal:', error);
+                    showToast('Error de conexión al guardar tu reacción.');
+                }
+            });
+        }
+        
+        if (modalShareBtn) {
+            modalShareBtn.addEventListener('click', async () => {
+                const post = blogPosts.find(p => p.id === postId);
+                if (!post) return;
+                const shareUrl = `${window.location.origin}${window.location.pathname}#post-${postId}`;
+                
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: post.title,
+                            text: `Mira este consejo de salud de UT Care: ${post.title}`,
+                            url: shareUrl
+                        });
+                    } catch (err) {}
+                } else {
+                    try {
+                        await navigator.clipboard.writeText(shareUrl);
+                        showToast('Enlace copiado al portapapeles 📋');
+                    } catch (err) {
+                        showToast('No se pudo copiar el enlace.');
+                    }
+                }
+            });
+        }
+    };
+
+    // Configurar interacciones de Likes y Compartir en Tarjetas
     const setupCardInteractions = () => {
-        // Likes
-        document.querySelectorAll('.like-btn').forEach(button => {
+        // Clic en tarjeta para abrir modal
+        document.querySelectorAll('.mural-card').forEach(card => {
+            const postId = card.getAttribute('data-post-id');
+            const post = blogPosts.find(p => p.id === postId);
+            
+            card.addEventListener('click', (e) => {
+                const target = e.target;
+                // Si el clic es en botones de acción, no abrir modal
+                if (target.closest('.like-btn') || target.closest('.share-btn') || target.closest('.card-actions')) {
+                    return;
+                }
+                if (post) {
+                    openModal(post);
+                }
+            });
+        });
+
+        // Likes de tarjetas
+        document.querySelectorAll('.mural-card .like-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
+                e.stopPropagation();
                 const btn = e.currentTarget;
                 const postId = btn.getAttribute('data-id');
                 const likesCountSpan = btn.querySelector('.likes-count');
@@ -155,12 +403,10 @@
                     return;
                 }
 
-                // Animación local
                 btn.classList.add('liked', 'animating');
                 setTimeout(() => btn.classList.remove('animating'), 600);
 
                 try {
-                    // Llamada a la API
                     const response = await fetch(`${API_BASE_URL}/blogs/${postId}/like`, {
                         method: 'POST'
                     });
@@ -171,26 +417,38 @@
                             likesCountSpan.textContent = updatedPost.likes;
                         }
                         
-                        // Guardar en localStorage
                         likedPosts.push(postId);
                         localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
                         
-                        // Actualizar en memoria local
                         const postIndex = blogPosts.findIndex(p => p.id === postId);
                         if (postIndex !== -1) {
                             blogPosts[postIndex].likes = updatedPost.likes;
                         }
+
+                        // Sincronizar modal si está abierto y es de esta publicación
+                        const openModalEl = document.getElementById('mural-modal');
+                        if (openModalEl && openModalEl.classList.contains('open')) {
+                            const modalLikeBtn = openModalEl.querySelector('.modal-like-btn');
+                            if (modalLikeBtn && modalLikeBtn.getAttribute('data-id') === postId) {
+                                modalLikeBtn.classList.add('liked');
+                                const modalLikesCount = modalLikeBtn.querySelector('.likes-count');
+                                if (modalLikesCount) {
+                                    modalLikesCount.textContent = updatedPost.likes;
+                                }
+                            }
+                        }
                     }
                 } catch (error) {
                     console.error('Error al dar like:', error);
-                    showToast('Error de conexión al guardar tu reacción.');
+                    showToast('Error de conexión.');
                 }
             });
         });
 
-        // Compartir
-        document.querySelectorAll('.share-btn').forEach(button => {
+        // Compartir en tarjetas
+        document.querySelectorAll('.mural-card .share-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
+                e.stopPropagation();
                 const btn = e.currentTarget;
                 const postId = btn.getAttribute('data-id');
                 const postTitle = btn.getAttribute('data-title');
@@ -203,11 +461,8 @@
                             text: `Mira este consejo de salud de UT Care: ${postTitle}`,
                             url: shareUrl
                         });
-                    } catch (err) {
-                        // Ignorar errores del menú cancelar del Web Share
-                    }
+                    } catch (err) {}
                 } else {
-                    // Fallback portapapeles
                     try {
                         await navigator.clipboard.writeText(shareUrl);
                         showToast('Enlace copiado al portapapeles 📋');
@@ -219,6 +474,112 @@
         });
     };
 
+    // Configurar carrusel horizontal
+    const setupCarousel = () => {
+        const container = document.getElementById('carousel-container');
+        const track = document.getElementById('mural-grid');
+        const prevBtn = document.getElementById('carousel-prev');
+        const nextBtn = document.getElementById('carousel-next');
+        const indicatorsContainer = document.getElementById('carousel-indicators');
+        
+        if (!container || !track || !prevBtn || !nextBtn || !indicatorsContainer) return;
+        
+        const cards = track.querySelectorAll('.mural-card');
+        if (cards.length === 0) return;
+        
+        // Generar dots
+        indicatorsContainer.innerHTML = '';
+        cards.forEach((card, index) => {
+            const dot = document.createElement('button');
+            dot.classList.add('indicator-dot');
+            if (index === 0) dot.classList.add('active');
+            dot.setAttribute('aria-label', `Ver publicación ${index + 1}`);
+            dot.addEventListener('click', () => {
+                const cardWidth = card.getBoundingClientRect().width;
+                const gap = parseInt(window.getComputedStyle(track).gap) || 0;
+                container.scrollTo({
+                    left: index * (cardWidth + gap),
+                    behavior: 'smooth'
+                });
+            });
+            indicatorsContainer.appendChild(dot);
+        });
+        
+        // Obtener tamaño del desplazamiento (ancho de tarjeta + espacio)
+        const getScrollAmount = () => {
+            const cardWidth = cards[0].getBoundingClientRect().width;
+            const gap = parseInt(window.getComputedStyle(track).gap) || 0;
+            return cardWidth + gap;
+        };
+        
+        // Clonar botones para remover listeners previos
+        const prevClone = prevBtn.cloneNode(true);
+        const nextClone = nextBtn.cloneNode(true);
+        prevBtn.replaceWith(prevClone);
+        nextBtn.replaceWith(nextClone);
+        
+        prevClone.addEventListener('click', () => {
+            container.scrollBy({
+                left: -getScrollAmount(),
+                behavior: 'smooth'
+            });
+        });
+        
+        nextClone.addEventListener('click', () => {
+            container.scrollBy({
+                left: getScrollAmount(),
+                behavior: 'smooth'
+            });
+        });
+        
+        // Sincronizar dots al hacer scroll
+        const updateDots = () => {
+            const dots = indicatorsContainer.querySelectorAll('.indicator-dot');
+            if (dots.length === 0) return;
+            
+            const scrollLeft = container.scrollLeft;
+            const cardWidth = cards[0].getBoundingClientRect().width;
+            const gap = parseInt(window.getComputedStyle(track).gap) || 0;
+            const step = cardWidth + gap;
+            
+            const activeIndex = Math.round(scrollLeft / step);
+            
+            dots.forEach((dot, index) => {
+                if (index === activeIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        };
+        
+        // Deshabilitar botones en extremos
+        const checkArrows = () => {
+            const scrollLeft = container.scrollLeft;
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            
+            if (scrollLeft <= 5) {
+                prevClone.classList.add('disabled');
+            } else {
+                prevClone.classList.remove('disabled');
+            }
+            
+            if (scrollLeft >= maxScroll - 5) {
+                nextClone.classList.add('disabled');
+            } else {
+                nextClone.classList.remove('disabled');
+            }
+        };
+        
+        container.addEventListener('scroll', () => {
+            updateDots();
+            checkArrows();
+        });
+        
+        // Inicializar flechas
+        checkArrows();
+    };
+
     // Manejar filtros
     const setupFilters = () => {
         document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -227,6 +588,9 @@
                 const filter = e.currentTarget.getAttribute('data-category');
                 e.currentTarget.classList.add('active');
                 renderPosts(filter);
+                // Resetear posición del scroll al cambiar de filtro
+                const container = document.getElementById('carousel-container');
+                if (container) container.scrollLeft = 0;
             });
         });
     };
@@ -243,7 +607,7 @@
                     setTimeout(() => {
                         targetElement.classList.remove('highlight-glow');
                     }, 3000);
-                }, 800); // Dar un breve tiempo para renderizar
+                }, 800);
             }
         }
     };
@@ -254,6 +618,8 @@
             const response = await fetch(`${API_BASE_URL}/blogs`);
             if (response.ok) {
                 blogPosts = await response.json();
+                // Ordenar cronológicamente (más recientes primero)
+                blogPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 renderPosts();
                 handleHashHighlight();
             } else {
@@ -269,6 +635,7 @@
                     </div>
                 `;
             }
+            toggleCarouselControls(false);
         }
     };
 
@@ -276,25 +643,29 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadBlogs();
         setupFilters();
+        setupModalClose();
     });
 
     document.addEventListener('astro:after-swap', () => {
         loadBlogs();
         setupFilters();
+        setupModalClose();
     });
 </script>
 
-<style>
+<style is:global>
     .mural-section {
         padding: 5rem 2rem;
         background-color: var(--bg-color);
         width: 100%;
         box-sizing: border-box;
+        position: relative;
     }
 
     .container {
         max-width: 1100px;
         margin: 0 auto;
+        position: relative;
     }
 
     .mural-header {
@@ -326,7 +697,7 @@
         display: flex;
         justify-content: center;
         gap: 0.8rem;
-        margin-bottom: 3rem;
+        margin-bottom: 2rem;
         flex-wrap: wrap;
     }
 
@@ -349,30 +720,182 @@
         transform: translateY(-2px);
     }
 
-    .mural-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 2.5rem;
-        min-height: 200px;
+    /* Estilos del Carrusel */
+    .mural-carousel-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        max-width: 650px; /* Ancho ideal para una tarjeta vertical de blog centrada */
+        margin: 0 auto;
+    }
+
+    .mural-carousel-container {
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        scroll-snap-type: x mandatory;
+        width: 100%;
+        display: flex;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+        padding: 1.5rem 0; /* Remover padding lateral del contenedor scroll */
+    }
+
+    .mural-carousel-container::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+
+    .mural-carousel-track {
+        display: flex;
+        gap: 2rem;
+        width: 100%; /* Evitar max-content que causa dependencia circular */
+        padding: 0 50px; /* Margen lateral en el track para dar espacio de aire */
+        box-sizing: border-box;
     }
 
     .mural-card {
         background: var(--card-bg);
-        border-radius: 24px;
+        border-radius: 28px;
         overflow: hidden;
         border: 1px solid var(--navbar-border);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
         display: flex;
         flex-direction: column;
+        width: calc(100vw - 100px); /* Ocupar el ancho disponible en móvil */
+        flex: 0 0 calc(100vw - 100px);
+        scroll-snap-align: center; /* Alinear al centro */
         transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+
+    @media (min-width: 650px) {
+        .mural-card {
+            width: 550px; /* Ancho fijo perfecto en desktop */
+            flex: 0 0 550px;
+        }
     }
 
     .mural-card:hover {
         transform: translateY(-8px);
         box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+        border-color: rgba(162, 217, 206, 0.5);
     }
 
-    /* Clases de colores pastel premium para las tarjetas */
+    /* Botones de control del carrusel */
+    .carousel-control {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        color: #2C3E50;
+        transition: all 0.3s ease;
+    }
+
+    :root.dark .carousel-control {
+        background: rgba(30, 30, 30, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .carousel-control:hover {
+        background-color: #2C3E50;
+        color: white;
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    :root.dark .carousel-control:hover {
+        background-color: #A2D9CE;
+        color: #121212;
+    }
+
+    .carousel-control.prev {
+        left: -24px;
+    }
+
+    .carousel-control.next {
+        right: -24px;
+    }
+
+    .carousel-control.disabled {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    /* Dots Indicadores */
+    .carousel-indicators {
+        display: flex;
+        justify-content: center;
+        gap: 0.6rem;
+        margin-top: 1.5rem;
+    }
+
+    .indicator-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: none;
+        background-color: var(--navbar-border);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0;
+    }
+
+    .indicator-dot.active {
+        width: 28px;
+        border-radius: 5px;
+        background-color: #2C3E50;
+    }
+
+    :root.dark .indicator-dot.active {
+        background-color: #A2D9CE;
+    }
+
+    /* Botón leer historia en tarjeta */
+    .read-story-btn {
+        background: none;
+        border: none;
+        color: #2C3E50;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-align: left;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0;
+        margin: 0.5rem 0 1.2rem 0;
+        width: fit-content;
+        transition: all 0.2s ease;
+    }
+
+    :root.dark .read-story-btn {
+        color: #A2D9CE;
+    }
+
+    .read-story-btn:hover {
+        color: #A2D9CE;
+        transform: translateX(4px);
+    }
+
+    :root.dark .read-story-btn:hover {
+        color: #ffffff;
+    }
+
+    /* Colores pastel en tarjetas */
     .mint-card {
         border-top: 6px solid #A2D9CE;
     }
@@ -388,8 +911,14 @@
 
     .card-image-wrapper {
         width: 100%;
-        height: 200px;
+        height: 180px;
         overflow: hidden;
+    }
+
+    @media (min-width: 769px) {
+        .card-image-wrapper {
+            height: 220px; /* Altura más equilibrada para mitigar el zoom */
+        }
     }
 
     .card-image {
@@ -400,11 +929,11 @@
     }
 
     .mural-card:hover .card-image {
-        transform: scale(1.05);
+        transform: scale(1.06);
     }
 
     .card-content {
-        padding: 2rem;
+        padding: 1.5rem;
         display: flex;
         flex-direction: column;
         flex-grow: 1;
@@ -414,8 +943,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
-        font-size: 0.8rem;
+        margin-bottom: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -435,17 +964,18 @@
     }
 
     .card-title {
-        font-size: 1.4rem;
-        margin: 0 0 1rem 0;
+        font-size: 1.25rem;
+        margin: 0 0 0.8rem 0;
         color: var(--heading-color);
-        line-height: 1.3;
+        line-height: 1.35;
+        font-weight: 700;
     }
 
     .card-body-text {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         color: var(--body-text-color);
-        line-height: 1.6;
-        margin: 0 0 2rem 0;
+        line-height: 1.55;
+        margin: 0 0 1rem 0;
         flex-grow: 1;
         white-space: pre-wrap;
     }
@@ -455,12 +985,12 @@
         justify-content: space-between;
         align-items: center;
         border-top: 1px solid var(--navbar-border);
-        padding-top: 1.2rem;
+        padding-top: 1rem;
         margin-top: auto;
     }
 
     .card-author {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 700;
         color: var(--heading-color);
     }
@@ -471,11 +1001,11 @@
         align-items: center;
     }
 
-    /* Botón de Likes (Corazón) */
+    /* Botón Reaccionar y Compartir */
     .like-btn, .share-btn {
         background: none;
         border: none;
-        cursor: pointer;
+        cursor: pointer !important;
         padding: 6px;
         display: flex;
         align-items: center;
@@ -500,8 +1030,8 @@
     }
 
     .heart-icon {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         fill: none;
         stroke: currentColor;
         stroke-width: 2;
@@ -518,29 +1048,31 @@
     }
 
     .likes-count {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 700;
     }
 
     .share-icon {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
     }
 
-    /* Animación de pulso al dar like */
     @keyframes heartBeat {
         0% { transform: scale(1); }
-        25% { transform: scale(1.3); }
-        50% { transform: scale(1.1); }
-        75% { transform: scale(1.4); }
+        14% { transform: scale(1.35); }
+        28% { transform: scale(1); }
+        42% { transform: scale(1.35); }
+        70% { transform: scale(1); }
         100% { transform: scale(1); }
     }
 
-    .like-btn.animating .heart-icon {
-        animation: heartBeat 0.6s ease;
+    .like-btn.animating .heart-icon,
+    .modal-like-btn.animating .heart-icon {
+        animation: heartBeat 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        fill: #ff5e57 !important;
+        stroke: #ff5e57 !important;
     }
 
-    /* Efecto de resaltado visual del post */
     @keyframes highlightFlash {
         0% { border-color: var(--navbar-border); box-shadow: 0 0 0 rgba(162, 217, 206, 0); }
         20% { border-color: #A2D9CE; box-shadow: 0 0 25px rgba(162, 217, 206, 0.5); }
@@ -552,12 +1084,266 @@
         animation: highlightFlash 3s ease;
     }
 
+    /* Modal de Lectura Glassmorphism */
+    .mural-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .mural-modal.open {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .mural-modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+    }
+
+    .mural-modal-content {
+        position: relative;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 28px;
+        width: 90%;
+        max-width: 750px;
+        max-height: 85vh;
+        overflow-y: auto;
+        overflow-x: hidden; /* Evitar scroll horizontal */
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.92);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+    }
+
+    .modal-article {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+    }
+
+    :root.dark .mural-modal-content {
+        background: rgba(24, 24, 28, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .mural-modal.open .mural-modal-content {
+        transform: scale(1);
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        border: none;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(4px);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer !important;
+        color: #2C3E50;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+        z-index: 12;
+    }
+
+    :root.dark .modal-close {
+        background: rgba(40, 40, 45, 0.9);
+        color: #ffffff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .modal-close:hover {
+        background: #ff5e57;
+        color: white;
+        transform: rotate(90deg);
+    }
+
+    /* Estilos del Artículo en el Modal */
+    .modal-image-wrapper {
+        width: 100%;
+        height: 320px;
+        overflow: hidden;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .modal-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .modal-article-content {
+        padding: 3rem;
+    }
+
+    .modal-article-meta {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-article-meta .badge {
+        background-color: #2C3E50;
+        color: white;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    :root.dark .modal-article-meta .badge {
+        background-color: #A2D9CE;
+        color: #121212;
+    }
+
+    .modal-date {
+        font-size: 0.85rem;
+        color: var(--body-text-color);
+        font-weight: 500;
+    }
+
+    .modal-article-title {
+        font-size: 2.4rem;
+        margin: 0 0 1.5rem 0;
+        line-height: 1.25;
+        font-weight: 700;
+        color: var(--heading-color);
+        font-family: 'Playfair Display', serif;
+    }
+
+    .modal-author-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2.2rem;
+        background: rgba(0, 0, 0, 0.02);
+        padding: 0.8rem 1.2rem;
+        border-radius: 16px;
+        border: 1px solid var(--navbar-border);
+        width: fit-content;
+    }
+
+    :root.dark .modal-author-section {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .author-avatar {
+        font-size: 1.5rem;
+    }
+
+    .author-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .author-label {
+        font-size: 0.75rem;
+        color: var(--body-text-color);
+    }
+
+    .author-name {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--heading-color);
+    }
+
+    .modal-article-body {
+        font-size: 1.05rem;
+        line-height: 1.8;
+        color: var(--body-text-color);
+        margin-bottom: 3rem;
+    }
+
+    .modal-article-body p {
+        margin: 0 0 1.2rem 0;
+    }
+
+    .modal-article-footer {
+        border-top: 1px solid var(--navbar-border);
+        padding-top: 1.5rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-like-btn {
+        border: 1px solid var(--navbar-border);
+        border-radius: 30px;
+        padding: 8px 22px !important;
+        font-size: 0.95rem;
+        cursor: pointer !important;
+    }
+
+    .modal-share-btn {
+        background: rgba(162, 217, 206, 0.15);
+        border: 1px solid rgba(162, 217, 206, 0.3);
+        border-radius: 30px;
+        padding: 8px 22px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer !important;
+        color: var(--text-color);
+        transition: all 0.3s ease;
+    }
+
+    .modal-share-btn:hover {
+        background: #2C3E50;
+        color: white;
+        border-color: #2C3E50;
+    }
+
+    :root.dark .modal-share-btn:hover {
+        background: #A2D9CE;
+        color: #121212;
+        border-color: #A2D9CE;
+    }
+
     /* Estados de Carga y Vacío */
     .loading-state, .empty-state {
-        grid-column: 1 / -1;
         text-align: center;
         padding: 4rem 2rem;
         color: var(--body-text-color);
+        width: 100%;
+        min-width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 
     .spinner {
@@ -588,7 +1374,7 @@
         font-size: 0.9rem;
         font-weight: 600;
         box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        z-index: 10000;
+        z-index: 100000;
         opacity: 0;
         visibility: hidden;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -600,12 +1386,54 @@
         visibility: visible;
     }
 
+
+
+    /* Adaptabilidad Móvil */
     @media (max-width: 768px) {
         .mural-section {
             padding: 3rem 1rem;
         }
+        
         .mural-header h2 {
             font-size: 2.2rem;
+        }
+
+        .mural-card {
+            width: 100%;
+            flex: 0 0 100%;
+            scroll-snap-align: center;
+        }
+
+        .carousel-control {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .carousel-control.prev {
+            left: -10px;
+        }
+
+        .carousel-control.next {
+            right: -10px;
+        }
+
+        .modal-article-content {
+            padding: 1.8rem;
+        }
+
+        .modal-article-title {
+            font-size: 1.8rem;
+        }
+
+        .modal-image-wrapper {
+            height: 200px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .mural-card {
+            width: 100%;
+            flex: 0 0 100%;
         }
     }
 </style>
