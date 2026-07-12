@@ -10,11 +10,11 @@ import { ROLES } from '../constants/roles';
 
 const router = Router();
 
-// Requerir autenticación para todas las rutas
-router.use(authenticateToken);
-
-// Obtener lista de carreras activas (cualquier usuario del personal autenticado)
+// Obtener lista de carreras activas (Público para Kiosko de Autoservicio)
 router.get('/', careerController.getAll.bind(careerController));
+
+// Requerir autenticación para el resto de las rutas administrativas y CRUD
+router.use(authenticateToken);
 
 // Rutas exclusivas para el Administrador (CRUD)
 router.get(
