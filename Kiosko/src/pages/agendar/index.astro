@@ -4,6 +4,9 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
 ---
 
 <Layout title="Agendar Asesoría - UT Care">
+    <!-- Canvas de Partículas Flotantes (Antigravedad) -->
+    <canvas id="global-antigravity-canvas" class="global-background-canvas"></canvas>
+
     <header class="navbar">
         <div class="logo">Psicopedagogía</div>
         <nav>
@@ -17,21 +20,17 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
             <div class="form-header">
                 <span class="badge">UT Care Agenda Rápida</span>
                 <h1>Agendar Asesoría</h1>
-                <p>Completa esta solicitud confidencial para recibir apoyo en breve.</p>
-            </div>
-
-            <!-- Selector de Modalidad (Cita Estándar vs Anónima) -->
-            <div class="tabs-container">
-                <button type="button" id="tab-book-standard" class="tab-btn active">Cita Estándar</button>
-                <button type="button" id="tab-book-anonymous" class="tab-btn">Cita Anónima</button>
+                <p class="booking-subtitle-wrapper">
+                    <span id="booking-subtitle"></span>
+                </p>
             </div>
 
             <!-- Alerta visual de error/éxito -->
             <div id="booking-alert" class="status-alert"></div>
             
             <form id="booking-form" class="booking-form">
-                <!-- Inputs de Identificación Estándar -->
-                <div class="input-row" id="row-book-names">
+                <!-- Inputs de Identificación Obligatorios -->
+                <div class="input-row">
                     <div class="input-group">
                         <label for="firstName">Nombre(s)</label>
                         <input type="text" id="firstName" name="firstName" placeholder="Juan" required>
@@ -42,14 +41,7 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
                     </div>
                 </div>
 
-                <!-- Input de Identificación Anónima -->
-                <div class="input-group hidden" id="group-book-alias">
-                    <label for="alias">Alias / Pseudónimo</label>
-                    <input type="text" id="alias" name="alias" placeholder="Ej. CalmaTotal22">
-                    <p class="helper-text">Tu nombre real no se registrará en la solicitud de cita.</p>
-                </div>
-
-                <!-- Datos obligatorios de contacto y carrera -->
+                <!-- Datos obligatorios de edad y carrera -->
                 <div class="input-row">
                     <div class="input-group">
                         <label for="edad">Edad</label>
@@ -58,18 +50,8 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
                     <div class="input-group">
                         <label for="carrera">Carrera</label>
                         <div class="select-wrapper">
-                            <select id="carrera" name="carrera" required>
-                                <option value="" disabled selected>Selecciona</option>
-                                <option value="iti">ITI (T.I.)</option>
-                                <option value="evnd">EVND (Negocios)</option>
-                                <option value="im">Mecatrónica</option>
-                                <option value="imi">Mantenimiento</option>
-                                <option value="ipce">Protección Civil</option>
-                                <option value="inano">Nanotecnología</option>
-                                <option value="linm">Mercadotecnia</option>
-                                <option value="lgnp">Negocios</option>
-                                <option value="lli">Logística</option>
-                                <option value="ldgm">Moda</option>
+                            <select id="carrera" name="careerId" required>
+                                <option value="" disabled selected>Cargando carreras...</option>
                             </select>
                         </div>
                     </div>
@@ -88,22 +70,12 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
                 </div>
 
                 <div class="input-group">
-                    <label for="department">Departamento de Atención</label>
-                    <div class="select-wrapper">
-                        <select id="book-department" name="department" required>
-                            <option value="psicologia" selected>Psicología (Salud Mental)</option>
-                            <option value="enfermeria">Enfermería (Salud Física)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="input-group">
                     <label for="reason">¿Cómo te sientes o cuál es el motivo de tu consulta? (Opcional)</label>
-                    <textarea id="reason" name="reason" rows="3" placeholder="Escribe aquí si deseas detallar algo..."></textarea>
+                    <textarea id="reason" name="reason" rows="4" placeholder="Escribe aquí si deseas detallar algo..."></textarea>
                 </div>
 
                 <button type="submit" id="book-submit-btn" class="submit-button">
-                    <span class="btn-text">Confirmar Cita Rápida</span>
+                    <span class="btn-text">Confirmar Cita de Psicología</span>
                     <div class="btn-spinner"></div>
                 </button>
             </form>
@@ -114,72 +86,172 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
 <script>
     import { API_BASE_URL } from '../../utils/api';
 
-    let isBookingAnonymous = false;
+    // Listado de frases de apoyo y ánimos
+    const cheerMessages = [
+        "No te preocupes, todos pasamos por malos ratos! ✨",
+        "¡No estás solo! Estamos aquí para escucharte. 🤝",
+        "Sabemos que no es fácil por lo que estás pasando... ¡pero diste el primer paso! 🌱",
+        "Tu bienestar es nuestra prioridad. Hablar sana. ❤️",
+        "Cuidar de tu mente también es parte de tu carrera. 🎓",
+        "Aquí tienes un espacio seguro y confidencial. 🔒"
+    ];
 
-    const setupBookingForm = () => {
-        // Pestañas
-        const tabBookStandard = document.getElementById('tab-book-standard');
-        const tabBookAnonymous = document.getElementById('tab-book-anonymous');
-        const rowBookNames = document.getElementById('row-book-names');
-        const groupBookAlias = document.getElementById('group-book-alias');
+    let currentMessageIndex = Math.floor(Math.random() * cheerMessages.length);
 
-        // Inputs
-        const firstNameInput = document.getElementById('firstName') as HTMLInputElement;
-        const lastNameInput = document.getElementById('lastName') as HTMLInputElement;
-        const aliasInput = document.getElementById('alias') as HTMLInputElement;
+    const setupCheerRotation = () => {
+        // Limpiar cualquier intervalo y timeout de rotación previos
+        if ((window as any)._cheerTimeout) clearTimeout((window as any)._cheerTimeout);
+        if ((window as any)._cheerInterval) clearInterval((window as any)._cheerInterval);
 
-        // Formularios y alertas
+        const subtitleEl = document.getElementById('booking-subtitle');
+        if (!subtitleEl) return;
+
+        // Establecer primera frase e iniciar opaco con resplandor
+        subtitleEl.textContent = cheerMessages[currentMessageIndex];
+        subtitleEl.classList.remove('fade-out');
+
+        // Rotar cada 5 segundos de forma continua
+        (window as any)._cheerInterval = setInterval(() => {
+            // 1. Iniciar desvanecimiento (Fade Out)
+            subtitleEl.classList.add('fade-out');
+
+            // 2. Cambiar frase y volver a desvanecer hacia adentro (Fade In) a los 800ms
+            (window as any)._cheerTimeout = setTimeout(() => {
+                let nextIndex = Math.floor(Math.random() * cheerMessages.length);
+                while (nextIndex === currentMessageIndex) {
+                    nextIndex = Math.floor(Math.random() * cheerMessages.length);
+                }
+                currentMessageIndex = nextIndex;
+                subtitleEl.textContent = cheerMessages[currentMessageIndex];
+                subtitleEl.classList.remove('fade-out');
+            }, 800); // Coincide con la duración de la transición CSS
+        }, 5000);
+    };
+
+    // --- PARTÍCULAS ANTIGRAVEDAD DE FONDO ---
+    const initGlobalParticles = () => {
+        const canvas = document.getElementById('global-antigravity-canvas') as HTMLCanvasElement;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        let particles: any[] = [];
+        const maxParticles = 60;
+
+        const createParticle = (isInitial = false) => {
+            return {
+                x: Math.random() * width,
+                y: isInitial ? Math.random() * height : height + Math.random() * 50,
+                radius: Math.random() * 5 + 1.5,
+                speedY: -(Math.random() * 0.35 + 0.15),
+                speedX: Math.random() * 0.15 - 0.075,
+                alpha: Math.random() * 0.25 + 0.08,
+                wobble: Math.random() * Math.PI * 2,
+                wobbleSpeed: Math.random() * 0.008 + 0.003
+            };
+        };
+
+        for (let i = 0; i < maxParticles; i++) {
+            particles.push(createParticle(true));
+        }
+
+        let animationFrameId: number;
+
+        const animate = () => {
+            ctx.clearRect(0, 0, width, height);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const particleColor = isDark ? '162, 217, 206' : '44, 62, 80';
+
+            particles.forEach((p, index) => {
+                p.y += p.speedY;
+                p.wobble += p.wobbleSpeed;
+                p.x += p.speedX + Math.sin(p.wobble) * 0.12;
+
+                if (p.y + p.radius < 0) {
+                    particles[index] = createParticle(false);
+                    return;
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${particleColor}, ${p.alpha})`;
+                ctx.fill();
+            });
+
+            animationFrameId = requestAnimationFrame(animate);
+        };
+
+        animate();
+
+        const handleResize = () => {
+            if (!canvas) return;
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            cancelAnimationFrame(animationFrameId);
+        };
+    };
+
+    let particlesCleanup: (() => void) | undefined;
+    const startParticles = () => {
+        if (particlesCleanup) particlesCleanup();
+        particlesCleanup = initGlobalParticles();
+    };
+
+    const setupBookingForm = async () => {
+        // Inicializar rotación de ánimos
+        setupCheerRotation();
+
+        // Inicializar partículas de fondo
+        startParticles();
+
+        // Elementos
+        const carreraSelect = document.getElementById('carrera') as HTMLSelectElement;
         const bookingForm = document.getElementById('booking-form');
         const bookingAlert = document.getElementById('booking-alert');
         const bookingSubmit = document.getElementById('book-submit-btn');
-        const deptSelect = document.getElementById('book-department') as HTMLSelectElement;
 
         if (!bookingForm) return;
 
-        // 1. PRESELECCIÓN DE DEPARTAMENTO SEGÚN LA URL (dept=enfermeria / dept=psicologia)
-        const urlParams = new URLSearchParams(window.location.search);
-        const deptParam = urlParams.get('dept');
-        if (deptParam && deptSelect) {
-            if (deptParam === 'enfermeria' || deptParam === 'psicologia') {
-                deptSelect.value = deptParam;
+        // 1. CARGA DINÁMICA DE CARRERAS DE LA API PÚBLICA
+        if (carreraSelect) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/careers`);
+                if (!response.ok) throw new Error('Error al cargar carreras');
+                
+                const data = await response.json();
+                const careers = data.data || [];
+
+                carreraSelect.innerHTML = '<option value="" disabled selected>Selecciona tu carrera</option>';
+                careers.forEach((career: any) => {
+                    if (career.isActive) {
+                        const option = document.createElement('option');
+                        option.value = career.id; // UUID
+                        option.textContent = `${career.code} - ${career.name}`;
+                        carreraSelect.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error(error);
+                carreraSelect.innerHTML = '<option value="" disabled selected>Error al cargar carreras</option>';
             }
         }
 
-        // 2. LOGICA DE PESTAÑAS (Estándar vs Anónimo)
-        const setStandardMode = () => {
-            isBookingAnonymous = false;
-            tabBookStandard?.classList.add('active');
-            tabBookAnonymous?.classList.remove('active');
-            rowBookNames?.classList.remove('hidden');
-            groupBookAlias?.classList.add('hidden');
-            if (firstNameInput) firstNameInput.required = true;
-            if (lastNameInput) lastNameInput.required = true;
-            if (aliasInput) aliasInput.required = false;
-        };
-
-        const setAnonymousMode = () => {
-            isBookingAnonymous = true;
-            tabBookAnonymous?.classList.add('active');
-            tabBookStandard?.classList.remove('active');
-            rowBookNames?.classList.add('hidden');
-            groupBookAlias?.classList.remove('hidden');
-            if (firstNameInput) firstNameInput.required = false;
-            if (lastNameInput) lastNameInput.required = false;
-            if (aliasInput) aliasInput.required = true;
-        };
-
-        // Re-clonar para limpiar event listeners previos (seguridad en transiciones SPA)
-        if (tabBookStandard && tabBookAnonymous) {
-            const newStandard = tabBookStandard.cloneNode(true);
-            tabBookStandard.parentNode?.replaceChild(newStandard, tabBookStandard);
-            newStandard.addEventListener('click', setStandardMode);
-
-            const newAnonymous = tabBookAnonymous.cloneNode(true);
-            tabBookAnonymous.parentNode?.replaceChild(newAnonymous, tabBookAnonymous);
-            newAnonymous.addEventListener('click', setAnonymousMode);
-        }
-
-        // 3. CAPTURA Y ENVÍO DEL FORMULARIO
+        // 2. CAPTURA Y ENVÍO DEL FORMULARIO
         const handleFormSubmit = async (e: Event) => {
             e.preventDefault();
             if (!bookingAlert || !bookingSubmit) return;
@@ -190,23 +262,13 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
             bookingSubmit.classList.add('loading');
 
             const formData = new FormData(bookingForm as HTMLFormElement);
+            const firstName = (formData.get('firstName') as string).trim();
+            const lastName = (formData.get('lastName') as string).trim();
             const email = formData.get('email') as string;
             const phone = formData.get('phone') as string;
-            const department = formData.get('department') as string;
+            const careerId = formData.get('careerId') as string;
             const reason = formData.get('reason') as string;
             const age = parseInt(formData.get('edad') as string);
-            
-            let firstName = '';
-            let lastName = '';
-
-            if (isBookingAnonymous) {
-                const alias = (formData.get('alias') as string).trim();
-                firstName = 'Anónimo';
-                lastName = alias;
-            } else {
-                firstName = (formData.get('firstName') as string).trim();
-                lastName = (formData.get('lastName') as string).trim();
-            }
 
             try {
                 const response = await fetch(`${API_BASE_URL}/appointments/queue/join`, {
@@ -218,7 +280,8 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
                         email,
                         phone,
                         age,
-                        department,
+                        careerId,
+                        department: 'psicologia', // Envío fijo del departamento único de citas
                         reason
                     })
                 });
@@ -229,12 +292,17 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
                     throw new Error(data.message || 'Error al registrar tu solicitud');
                 }
 
-                // Guardar éxito en sessionStorage para que el Widget empático felicite al alumno
+                // Guardar éxito en sessionStorage
                 sessionStorage.setItem('bookingSuccess', 'true');
 
                 bookingAlert.classList.add('success');
                 bookingAlert.style.display = 'block';
                 bookingAlert.textContent = '¡Tu solicitud ha sido registrada! Redirigiendo...';
+
+                // Detener intervalos y animaciones antes de la redirección
+                if ((window as any)._cheerTimeout) clearTimeout((window as any)._cheerTimeout);
+                if ((window as any)._cheerInterval) clearInterval((window as any)._cheerInterval);
+                if (particlesCleanup) particlesCleanup();
 
                 setTimeout(() => {
                     window.location.href = '/?bookingSuccess=true';
@@ -260,6 +328,17 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
 </script>
 
 <style>
+    /* Canvas de fondo global */
+    .global-background-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+    }
+
     /* Navbar Styles */
     .navbar {
         position: sticky;
@@ -306,9 +385,11 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         justify-content: center;
         align-items: center;
         min-height: calc(100vh - 70px);
-        background-color: var(--bg-color);
+        background-color: transparent; /* Permitir ver el canvas de fondo */
         padding: 3rem 1rem;
         box-sizing: border-box;
+        position: relative;
+        z-index: 1;
     }
 
     .booking-container {
@@ -320,6 +401,8 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         max-width: 600px;
         border: 1px solid var(--navbar-border);
         animation: fadeIn 0.5s ease-out;
+        backdrop-filter: blur(15px); /* Efecto Crystal Glass */
+        -webkit-backdrop-filter: blur(15px);
     }
 
     @keyframes fadeIn {
@@ -356,39 +439,37 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         margin: 0 0 0.5rem 0;
     }
 
-    .form-header p {
-        color: var(--body-text-color);
-        font-size: 0.95rem;
+    .booking-subtitle-wrapper {
         margin: 0;
-    }
-
-    /* Tabs de agendado */
-    .tabs-container {
+        min-height: 32px;
         display: flex;
-        background-color: var(--bg-color);
-        padding: 6px;
-        border-radius: 14px;
-        margin-bottom: 1.5rem;
-        border: 1px solid var(--navbar-border);
+        justify-content: center;
+        align-items: center;
     }
 
-    .tab-btn {
-        flex: 1;
-        background: none;
-        border: none;
-        padding: 10px;
-        font-size: 0.95rem;
-        font-weight: bold;
-        color: var(--body-text-color);
-        cursor: pointer;
-        border-radius: 10px;
-        transition: all 0.3s ease;
+    /* Subtítulo con efecto de brillo (Text-Shadow) y transición lenta */
+    #booking-subtitle {
+        display: inline-block;
+        font-size: 1.15rem; /* ~20% más grande */
+        font-style: italic; /* Letra Cursiva */
+        color: #D86A97; /* Rosa en tema claro */
+        text-shadow: 0 0 12px rgba(216, 106, 151, 0.35); /* Brillo rosa sutil */
+        transition: opacity 0.8s ease-in-out, text-shadow 0.8s ease-in-out;
+        opacity: 1;
+        will-change: opacity, text-shadow;
+        text-align: center;
+        transform: translateZ(0); /* Aceleración GPU */
     }
 
-    .tab-btn.active {
-        background-color: var(--card-bg);
-        color: var(--text-color);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    :root.dark #booking-subtitle {
+        color: #FFA8C5; /* Rosa pastel en tema oscuro */
+        text-shadow: 0 0 18px rgba(255, 168, 197, 0.45); /* Brillo rosa luminoso */
+    }
+
+    /* Estado desvanecido (Fade Out) */
+    #booking-subtitle.fade-out {
+        opacity: 0;
+        text-shadow: 0 0 20px rgba(216, 106, 151, 0);
     }
 
     .status-alert {
@@ -521,6 +602,7 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         display: flex;
         justify-content: center;
         align-items: center;
+        z-index: 2;
     }
 
     .submit-button:hover {
