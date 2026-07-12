@@ -36,6 +36,11 @@ import MuralBoard from '../components/MuralBoard.astro';
 			<div class="navbar-right">
 				<a href="/agendar" class="login-btn" id="nav-agenda-btn"><span>📅</span> Agendar cita</a>
 				<ThemeToggle />
+				<button id="hamburger-menu-btn" class="hamburger-btn" aria-label="Abrir menú de navegación">
+					<span class="hamburger-line"></span>
+					<span class="hamburger-line"></span>
+					<span class="hamburger-line"></span>
+				</button>
 			</div>
 		</div>
 	</header>
@@ -203,6 +208,36 @@ import MuralBoard from '../components/MuralBoard.astro';
 	<!-- Alerta sutil flotante para notificaciones del Mural -->
 	<div id="mural-toast" class="mural-toast">
 		<span id="mural-toast-text"></span>
+	</div>
+
+	<!-- Botón Burbuja Flotante de Agendar Cita (FAB) para móviles y tablets (Estructura Colapsable) -->
+	<div id="floating-agenda-fab" class="floating-agenda-fab collapsed animate-pulse">
+		<button id="fab-toggle-arrow" class="fab-toggle-arrow" aria-label="Expandir agenda">
+			<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+				<polyline points="15 18 9 12 15 6"></polyline>
+			</svg>
+		</button>
+		<button id="fab-action-trigger" class="fab-action-trigger" aria-label="Agendar cita prioritaria">
+			<span class="fab-icon">📅</span>
+			<span class="fab-label">Agendar cita</span>
+		</button>
+	</div>
+
+	<!-- Menú Lateral Deslizable (Drawer) para móviles y tablets -->
+	<div id="drawer-overlay" class="drawer-overlay"></div>
+	<div id="mobile-drawer" class="mobile-drawer">
+		<div class="drawer-header">
+			<div class="drawer-logo">Psicopedagogía</div>
+			<button id="drawer-close-btn" class="drawer-close-btn" aria-label="Cerrar menú">&times;</button>
+		</div>
+		<nav class="drawer-nav">
+			<a href="#welcome" class="drawer-link"><span>🏠</span> Inicio</a>
+			<a href="#mural" class="drawer-link"><span>🖼️</span> Mural</a>
+			<a href="#nuestra-historia" class="drawer-link"><span>📖</span> Nuestra Historia</a>
+			<a href="#salud-emocional" class="drawer-link"><span>🧠</span> Salud Emocional</a>
+			<a href="#bienestar-cuidado" class="drawer-link"><span>🌿</span> Bienestar y Cuidado</a>
+			<a href="#violentometro" class="drawer-link"><span>📊</span> Violentómetro</a>
+		</nav>
 	</div>
 </Layout>
 
@@ -450,6 +485,81 @@ import MuralBoard from '../components/MuralBoard.astro';
 		updateTabState();
 	};
 
+	// Configurar Menú Lateral (Drawer) para móviles/tabletas
+	const setupMobileDrawer = () => {
+		const hamburger = document.getElementById('hamburger-menu-btn');
+		const drawer = document.getElementById('mobile-drawer');
+		const overlay = document.getElementById('drawer-overlay');
+		const closeBtn = document.getElementById('drawer-close-btn');
+		const drawerLinks = document.querySelectorAll('.drawer-link');
+
+		if (!hamburger || !drawer || !overlay || !closeBtn) return;
+
+		const openDrawer = () => {
+			drawer.classList.add('active');
+			overlay.classList.add('active');
+			document.body.style.overflow = 'hidden';
+		};
+
+		const closeDrawer = () => {
+			drawer.classList.remove('active');
+			overlay.classList.remove('active');
+			document.body.style.overflow = '';
+		};
+
+		// Clonar y reemplazar para evitar listeners duplicados
+		const newHamburger = hamburger.cloneNode(true);
+		hamburger.parentNode.replaceChild(newHamburger, hamburger);
+		newHamburger.addEventListener('click', openDrawer);
+
+		const newOverlay = overlay.cloneNode(true);
+		overlay.parentNode.replaceChild(newOverlay, overlay);
+		newOverlay.addEventListener('click', closeDrawer);
+
+		const newCloseBtn = closeBtn.cloneNode(true);
+		closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+		newCloseBtn.addEventListener('click', closeDrawer);
+
+		drawerLinks.forEach(link => {
+			link.removeEventListener('click', closeDrawer);
+			link.addEventListener('click', closeDrawer);
+		});
+	};
+
+	// Configurar Botón Flotante (FAB) de agendar cita
+	const setupFloatingFAB = () => {
+		const fab = document.getElementById('floating-agenda-fab');
+		const toggleArrow = document.getElementById('fab-toggle-arrow');
+		const actionTrigger = document.getElementById('fab-action-trigger');
+
+		if (!fab || !toggleArrow || !actionTrigger) return;
+
+		// Clonar y reemplazar para evitar listeners duplicados
+		const newToggle = toggleArrow.cloneNode(true);
+		toggleArrow.parentNode.replaceChild(newToggle, toggleArrow);
+		
+		newToggle.addEventListener('click', (e) => {
+			e.stopPropagation();
+			fab.classList.toggle('collapsed');
+			
+			const isCollapsed = fab.classList.contains('collapsed');
+			newToggle.setAttribute('aria-label', isCollapsed ? 'Expandir agenda' : 'Colapsar agenda');
+		});
+
+		const newTrigger = actionTrigger.cloneNode(true);
+		actionTrigger.parentNode.replaceChild(newTrigger, actionTrigger);
+		
+		newTrigger.addEventListener('click', (e) => {
+			const token = localStorage.getItem('token');
+			if (!token) {
+				e.preventDefault();
+				window.location.href = '/login?redirect=/agendar';
+			} else {
+				window.location.href = '/agendar';
+			}
+		});
+	};
+
 	// Inicializar
 	document.addEventListener('DOMContentLoaded', () => {
 		setupNavbar();
@@ -457,6 +567,8 @@ import MuralBoard from '../components/MuralBoard.astro';
 		setupAsideAgenda();
 		startParticles();
 		setupMobileTabs();
+		setupMobileDrawer();
+		setupFloatingFAB();
 	});
 	document.addEventListener('astro:after-swap', () => {
 		setupNavbar();
@@ -464,6 +576,8 @@ import MuralBoard from '../components/MuralBoard.astro';
 		setupAsideAgenda();
 		startParticles();
 		setupMobileTabs();
+		setupMobileDrawer();
+		setupFloatingFAB();
 	});
 </script>
 
@@ -1241,45 +1355,347 @@ import MuralBoard from '../components/MuralBoard.astro';
 		to { opacity: 1; transform: translateY(0); }
 	}
 
-	/* Responsive Styles para Navbar Móvil */
-	@media (max-width: 992px) {
+	/* --- BOTÓN HAMBURGUESA EN DESKTOP --- */
+	.hamburger-btn {
+		display: none; /* Oculto en computadoras */
+	}
+
+	/* Ocultar FAB en computadoras por defecto */
+	.floating-agenda-fab {
+		display: none;
+	}
+
+	/* --- ESTILOS DE ADAPTABILIDAD DE NAVBAR Y COMPLEMENTOS RESPONSIVOS (< 1100px) --- */
+	@media (max-width: 1100px) {
 		.navbar {
-			height: auto;
-			padding: 10px 0;
+			height: 70px;
+			padding: 0;
 		}
+
 		.navbar-content {
-			flex-direction: column;
-			height: auto;
-			padding: 8px 15px;
-			gap: 10px;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+			height: 100%;
+			padding: 0 24px;
+			gap: 0;
 		}
+
 		.logo {
-			margin-bottom: 2px;
+			margin-bottom: 0;
+			font-size: 1.35rem;
 		}
+
+		/* Ocultar enlaces de navegación y botón de agenda original de la navbar en móvil/tablet */
 		.navbar-center {
-			margin-top: 5px;
-			width: 100%;
-			overflow-x: auto;
-			justify-content: flex-start;
-			padding: 8px 5px;
-			gap: 15px;
-			scrollbar-width: none;
-			-webkit-overflow-scrolling: touch;
+			display: none !important;
 		}
-		.navbar-center::-webkit-scrollbar {
-			display: none;
+
+		#nav-agenda-btn {
+			display: none !important;
 		}
-		.navbar-center a {
-			margin: 0;
-			flex: 0 0 auto;
-		}
+
 		.navbar-right {
-			margin-top: 5px;
-			width: 100%;
+			margin-top: 0;
+			width: auto;
+			justify-content: flex-end;
+			gap: 12px;
+		}
+
+		/* Mostrar botón hamburguesa */
+		.hamburger-btn {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			border: 1px solid rgba(0, 0, 0, 0.05);
+			background: rgba(0, 0, 0, 0.02);
+			border-radius: 12px;
+			width: 40px;
+			height: 40px;
+			align-items: center;
 			justify-content: center;
-			gap: 20px;
+			cursor: pointer !important;
+			transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+			padding: 0;
+		}
+
+		:root.dark .hamburger-btn {
+			border: 1px solid rgba(255, 255, 255, 0.05);
+			background: rgba(255, 255, 255, 0.03);
+		}
+
+		.hamburger-btn:hover {
+			background: rgba(162, 217, 206, 0.08);
+			border-color: rgba(162, 217, 206, 0.3);
+		}
+
+		.hamburger-line {
+			width: 18px;
+			height: 2px;
+			background-color: var(--heading-color);
+			transition: all 0.3s ease;
+			border-radius: 2px;
+		}
+
+		/* Ajuste de posición para las pestañas de navegación móvil */
+		.mobile-nav-tabs {
+			top: 70px !important; /* Siempre fijo debajo de la Navbar de una fila */
+		}
+
+		/* Mover selector de tema (ThemeToggle) a la esquina inferior izquierda en smartphones/tablets */
+		:global(.theme-toggle) {
+			left: 20px !important;
+			right: auto !important;
+			bottom: 85px !important; /* Altura simétrica al FAB de la derecha */
+			z-index: 998 !important;
+		}
+
+		/* Mostrar botón flotante (FAB) de agendar cita (Estructura Colapsable) */
+		.floating-agenda-fab {
+			display: flex;
+			position: fixed;
+			bottom: 85px; /* Calculado arriba del NavTab inferior */
+			right: 20px;
+			z-index: 998;
+			align-items: center;
+			background-color: #2C3E50;
+			color: white !important;
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+			transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+			padding: 12px 18px 12px 12px;
+			gap: 6px;
+			border-radius: 30px;
+			overflow: hidden;
+			box-sizing: border-box;
+		}
+
+		:root.dark .floating-agenda-fab {
+			background-color: #A2D9CE;
+			color: #121212 !important;
+			border-color: rgba(0, 0, 0, 0.1);
+			box-shadow: 0 8px 25px rgba(162, 217, 206, 0.2);
+		}
+
+		.floating-agenda-fab.collapsed {
+			padding: 12px 14px;
+			gap: 2px;
+		}
+
+		.floating-agenda-fab:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+		}
+
+		:root.dark .floating-agenda-fab:hover {
+			box-shadow: 0 12px 30px rgba(162, 217, 206, 0.35);
+		}
+
+		/* Toggle Arrow Button */
+		.fab-toggle-arrow {
+			background: none;
+			border: none;
+			padding: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer !important;
+			color: inherit;
+			transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+			width: 20px;
+			height: 20px;
+			opacity: 0.7;
+		}
+
+		.fab-toggle-arrow:hover {
+			opacity: 1;
+		}
+
+		.fab-toggle-arrow svg {
+			transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+			transform: rotate(180deg); /* Apunta a la derecha (>) cuando está colapsado por defecto */
+		}
+
+		.floating-agenda-fab.collapsed .fab-toggle-arrow svg {
+			transform: rotate(0deg); /* Rota para apuntar a la izquierda (<) e invitar a expandirse */
+		}
+
+		/* Action Trigger (Icon + Label) */
+		.fab-action-trigger {
+			background: none;
+			border: none;
+			padding: 0;
+			display: flex;
+			align-items: center;
+			cursor: pointer !important;
+			color: inherit;
+			font-weight: 700;
+			font-size: 0.88rem;
+			gap: 4px;
+		}
+
+		.fab-icon {
+			font-size: 1.1rem;
+			display: inline-block;
+		}
+
+		.fab-label {
+			max-width: 120px;
+			opacity: 1;
+			transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, margin-left 0.25s ease;
+			white-space: nowrap;
+			overflow: hidden;
+			display: inline-block;
+			margin-left: 4px;
+		}
+
+		.floating-agenda-fab.collapsed .fab-label {
+			max-width: 0;
+			opacity: 0;
+			margin-left: 0;
+			pointer-events: none;
+		}
+
+		/* Animación de pulso continuo para llamar la atención sutilmente */
+		.animate-pulse {
+			animation: fabPulse 3s infinite ease-in-out;
+		}
+
+		@keyframes fabPulse {
+			0%, 100% {
+				transform: translateY(0) scale(1);
+			}
+			50% {
+				transform: translateY(-3px) scale(1.02);
+			}
 		}
 	}
+
+	/* --- ESTILOS DEL DRAWER LATERAL (MENÚ MÓVIL) --- */
+	.drawer-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background: rgba(0, 0, 0, 0.4);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+		z-index: 99998;
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s ease;
+	}
+
+	.drawer-overlay.active {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	.mobile-drawer {
+		position: fixed;
+		top: 0;
+		right: -300px;
+		width: 300px;
+		height: 100vh;
+		background: rgba(255, 255, 255, 0.7);
+		backdrop-filter: blur(25px);
+		-webkit-backdrop-filter: blur(25px);
+		border-left: 1px solid rgba(255, 255, 255, 0.45);
+		z-index: 99999;
+		box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
+		display: flex;
+		flex-direction: column;
+		transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+		box-sizing: border-box;
+		transform: translateX(0);
+	}
+
+	:root.dark .mobile-drawer {
+		background: rgba(25, 25, 30, 0.75);
+		border-left: 1px solid rgba(255, 255, 255, 0.08);
+		box-shadow: -10px 0 30px rgba(0, 0, 0, 0.25);
+	}
+
+	.mobile-drawer.active {
+		transform: translateX(-300px);
+	}
+
+	.drawer-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20px;
+		border-bottom: 1px solid var(--navbar-border);
+		box-sizing: border-box;
+	}
+
+	.drawer-logo {
+		font-family: 'Playfair Display', serif;
+		font-size: 1.3rem;
+		font-weight: bold;
+		color: var(--logo-color);
+	}
+
+	.drawer-close-btn {
+		background: none;
+		border: none;
+		font-size: 2rem;
+		line-height: 1;
+		color: var(--body-text-color);
+		cursor: pointer !important;
+		opacity: 0.6;
+		transition: all 0.2s ease;
+		padding: 0 5px;
+	}
+
+	.drawer-close-btn:hover {
+		opacity: 1;
+		color: #ff5e57;
+		transform: scale(1.1);
+	}
+
+	.drawer-nav {
+		display: flex;
+		flex-direction: column;
+		padding: 20px 15px;
+		gap: 8px;
+		overflow-y: auto;
+		box-sizing: border-box;
+	}
+
+	.drawer-link {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 12px 18px;
+		border-radius: 14px;
+		text-decoration: none;
+		color: var(--nav-link-color);
+		font-weight: bold;
+		font-size: 0.95rem;
+		transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+		box-sizing: border-box;
+	}
+
+	.drawer-link:hover {
+		background: rgba(162, 217, 206, 0.08);
+		color: var(--nav-link-hover);
+		transform: translateX(4px);
+	}
+
+	.drawer-link span {
+		font-size: 1.15rem;
+		display: inline-block;
+		transition: transform 0.2s ease;
+	}
+
+	.drawer-link:hover span {
+		transform: scale(1.15) rotate(-5deg);
+	}
+
+
 
 	.secret-admin-trigger {
 		position: fixed;
