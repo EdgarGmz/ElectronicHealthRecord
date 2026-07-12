@@ -242,20 +242,6 @@ import MuralBoard from '../components/MuralBoard.astro';
 </Layout>
 
 <script>
-	// Agregar redirección inteligente al botón de la navbar
-	const setupNavbar = () => {
-		const btn = document.getElementById('nav-agenda-btn');
-		if (btn) {
-			btn.addEventListener('click', (e) => {
-				const token = localStorage.getItem('token');
-				if (!token) {
-					e.preventDefault();
-					window.location.href = '/login?redirect=/agendar';
-				}
-			});
-		}
-	};
-
 	// Configurar Check-in Emocional
 	const setupCheckIn = () => {
 		const moodButtons = document.querySelectorAll('.mood-btn');
@@ -325,21 +311,6 @@ import MuralBoard from '../components/MuralBoard.astro';
 		});
 	};
 
-	// Configurar redirección de agendar cita en panel lateral
-	const setupAsideAgenda = () => {
-		const btn = document.getElementById('aside-agenda-btn');
-		if (btn) {
-			btn.addEventListener('click', (e) => {
-				const token = localStorage.getItem('token');
-				if (!token) {
-					e.preventDefault();
-					window.location.href = '/login?redirect=/agendar';
-				} else {
-					window.location.href = '/agendar';
-				}
-			});
-		}
-	};
 
 	// --- PARTÍCULAS ANTIGRAVEDAD GLOBALES (CANVAS FIJO) ---
 	const initGlobalParticles = () => {
@@ -487,6 +458,9 @@ import MuralBoard from '../components/MuralBoard.astro';
 
 	// Configurar Menú Lateral (Drawer) para móviles/tabletas
 	const setupMobileDrawer = () => {
+		// Limpiar cualquier bloqueo residual de scroll del body al cargar
+		document.body.style.overflow = '';
+
 		const hamburger = document.getElementById('hamburger-menu-btn');
 		const drawer = document.getElementById('mobile-drawer');
 		const overlay = document.getElementById('drawer-overlay');
@@ -550,30 +524,20 @@ import MuralBoard from '../components/MuralBoard.astro';
 		actionTrigger.parentNode.replaceChild(newTrigger, actionTrigger);
 		
 		newTrigger.addEventListener('click', (e) => {
-			const token = localStorage.getItem('token');
-			if (!token) {
-				e.preventDefault();
-				window.location.href = '/login?redirect=/agendar';
-			} else {
-				window.location.href = '/agendar';
-			}
+			window.location.href = '/agendar';
 		});
 	};
 
 	// Inicializar
 	document.addEventListener('DOMContentLoaded', () => {
-		setupNavbar();
 		setupCheckIn();
-		setupAsideAgenda();
 		startParticles();
 		setupMobileTabs();
 		setupMobileDrawer();
 		setupFloatingFAB();
 	});
 	document.addEventListener('astro:after-swap', () => {
-		setupNavbar();
 		setupCheckIn();
-		setupAsideAgenda();
 		startParticles();
 		setupMobileTabs();
 		setupMobileDrawer();
