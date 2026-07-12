@@ -900,7 +900,80 @@ export class AppointmentService {
       },
     });
 
-    return waitingEntry;
+    // Notificar a los psicólogos asignados a la carrera y al coordinador de psicología
+    try {
+      let recipientIds: string[] = [];
+
+      // 1. Si el paciente tiene asignada una carrera, notificar a los psicólogos de esa carrera
+      if (waitingEntry.patient.careerId) {
+        const assignedPsychologists = await prisma.psychologistCareer.findMany({
+          where: { careerId: waitingEntry.patient.careerId },
+          select: { psychologistId: true },
+        });
+        recipientIds = assignedPsychologists.map((ap) => ap.psychologistId);
+      }
+
+      // 2. Notificar también a los coordinadores de psicología
+      const coordinators = await prisma.user.findMany({
+        where: { role: ROLES.COORDINADOR_PSICOLOGIA, isActive: true },
+        select: { id: true },
+      });
+      coordinators.forEach((coord) => {
+        if (!recipientIds.includes(coord.id)) {
+          recipientIds.push(coord.id);
+        }
+      });
+
+      // 3. Crear las notificaciones en lote si hay destinatarios
+      if (recipientIds.length > 0) {
+        const careerName = waitingEntry.patient.career 
+          ? waitingEntry.patient.career.name 
+          : 'No especificada';
+        const patientName = `${waitingEntry.patient.user.firstName} ${waitingEntry.patient.user.lastName}`;
+
+        const notificationsData = recipientIds.map((recipientId) => ({
+          userId: recipientId,
+          type: 'queue',
+          title: 'Nueva Cita en Fila de Espera',
+          message: `El alumno ${patientName} de la carrera ${careerName} se ha registrado en la fila virtual del Kiosko esperando atención de Psicología.`,
+          relatedEntityType: 'WaitingList',
+          relatedEntityId: waitingEntry.id,
+          priority: 'high',
+        }));
+
+        await notificationService.createBulk(notificationsData);
+      }
+    } catch (notificationError) {
+      console.error('Error al crear notificaciones de fila virtual:', notificationError);
+    }
+
+    // 4. Buscar nombres de psicólogos asignados a esta carrera para devolverlos al Kiosko
+    let assignedPsychologistNames: string[] = [];
+    try {
+      if (waitingEntry.patient.careerId) {
+        const assignedPsychologists = await prisma.psychologistCareer.findMany({
+          where: { careerId: waitingEntry.patient.careerId },
+          include: {
+            psychologist: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        });
+        assignedPsychologistNames = assignedPsychologists.map(
+          (ap) => `${ap.psychologist.firstName} ${ap.psychologist.lastName}`
+        );
+      }
+    } catch (psychologistError) {
+      console.error('Error al recuperar nombres de psicólogos asignados:', psychologistError);
+    }
+
+    return {
+      waitingEntry,
+      assignedPsychologists: assignedPsychologistNames,
+    };
   }
 
   async updateWaitingListStatus(id: string, status: string) {

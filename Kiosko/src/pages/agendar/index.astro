@@ -1,73 +1,96 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import ThemeToggle from '../../components/ThemeToggle.astro';
 ---
 
 <Layout title="Agendar Asesoría - UT Care">
+    <!-- Canvas de Partículas Flotantes (Antigravedad) -->
+    <canvas id="global-antigravity-canvas" class="global-background-canvas"></canvas>
+
     <header class="navbar">
         <div class="logo">Psicopedagogía</div>
         <nav>
-            <a href="/" class="home-btn">Inicio</a>
-            <button id="logout-btn" class="logout-btn hidden">Cerrar Sesión</button>
-            <ThemeToggle />
+            <a href="/" data-astro-reload class="home-btn">Inicio</a>
         </nav>
     </header>
 
     <main class="booking-page">
-        <!-- Bloque de carga mientras se valida la sesión -->
-        <div id="session-loading" class="session-loading">
-            <div class="spinner"></div>
-            <p>Validando tu sesión...</p>
-        </div>
-
-        <div id="booking-container" class="booking-container hidden">
+        <div class="booking-container">
             <div class="form-header">
-                <span class="badge">UT Care Agenda</span>
-                <h1>Solicitar Apoyo</h1>
-                <p>Estás dando un gran paso para cuidar de ti. Completa esta solicitud confidencial.</p>
+                <span class="badge">UT Care Agenda Rápida</span>
+                <h1>Agendar Asesoría</h1>
+                <p class="booking-subtitle-wrapper">
+                    <span id="booking-subtitle"></span>
+                </p>
             </div>
 
-            <!-- Alerta visual de error -->
-            <div id="booking-alert" class="status-alert error"></div>
+            <!-- Alerta visual de error/éxito -->
+            <div id="booking-alert" class="status-alert"></div>
             
             <form id="booking-form" class="booking-form">
-                <!-- Información personal pre-cargada -->
-                <div class="confidential-fields">
-                    <p class="section-title">🔒 Información Confidencial (Pre-cargada)</p>
-                    <div class="input-row">
-                        <div class="input-group">
-                            <label for="display-name">Identificador / Nombre</label>
-                            <input type="text" id="display-name" readonly disabled class="readonly-input">
-                        </div>
-                        <div class="input-group">
-                            <label for="display-email">Correo de Contacto</label>
-                            <input type="email" id="display-email" readonly disabled class="readonly-input">
+                <!-- Inputs de Identificación Obligatorios -->
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="firstName">Nombre(s)</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="Juan" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="lastName">Apellido(s)</label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Pérez" required>
+                    </div>
+                </div>
+
+                <!-- Datos obligatorios de edad y carrera -->
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="edad">Edad</label>
+                        <input type="number" id="edad" name="edad" placeholder="20" min="16" max="90" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="carrera">Carrera</label>
+                        <div class="select-wrapper">
+                            <select id="carrera" name="careerId" required>
+                                <option value="" disabled selected>Cargando carreras...</option>
+                            </select>
                         </div>
                     </div>
                 </div>
 
-                <!-- Selección de departamento y motivo -->
                 <div class="input-group">
-                    <label for="department">¿Con qué departamento deseas agendar?</label>
-                    <div class="select-wrapper">
-                        <select id="department" name="department" required>
-                            <option value="psicologia" selected>Psicología (Salud Mental y Emocional)</option>
-                            <option value="enfermeria">Enfermería (Salud Física y Primeros Auxilios)</option>
-                        </select>
-                    </div>
+                    <label for="email">Correo de Contacto</label>
+                    <input type="email" id="email" name="email" placeholder="correo@ejemplo.com" required>
+                    <p class="helper-text confidential-label">🔒 Confidencial: Solo el especialista asignado lo verá.</p>
                 </div>
 
                 <div class="input-group">
-                    <label for="reason">¿Cómo te sientes hoy o cuál es el motivo de tu cita? (Opcional)</label>
-                    <textarea id="reason" name="reason" rows="4" placeholder="Escribe aquí de forma libre lo que te gustaría compartir..."></textarea>
-                    <p class="helper-text">Solo el especialista asignado podrá leer esta información.</p>
+                    <label for="phone">Teléfono / WhatsApp</label>
+                    <input type="tel" id="phone" name="phone" placeholder="8110000000" pattern="[0-9]{10}" required>
+                    <p class="helper-text confidential-label">🔒 Confidencial: Solo el especialista asignado lo verá.</p>
                 </div>
 
-                <button type="submit" id="submit-btn" class="submit-button">
-                    <span class="btn-text">Confirmar Solicitud de Cita</span>
+                <div class="input-group">
+                    <label for="reason">¿Cómo te sientes o cuál es el motivo de tu consulta? (Opcional)</label>
+                    <textarea id="reason" name="reason" rows="4" placeholder="Escribe aquí si deseas detallar algo..."></textarea>
+                </div>
+
+                <button type="submit" id="book-submit-btn" class="submit-button">
+                    <span class="btn-text">Confirmar Cita de Psicología</span>
                     <div class="btn-spinner"></div>
                 </button>
             </form>
+        </div>
+
+        <!-- Modal Informativo de Cita Exitosa -->
+        <div id="success-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-icon">✨</div>
+                <h2>¡Solicitud Registrada!</h2>
+                <div class="modal-body">
+                    <p>Tu cita ha sido colocada exitosamente en la <strong>fila virtual de Psicología</strong>.</p>
+                    <p id="success-modal-msg">¡Has dado un gran paso! Tu bienestar es muy importante para nosotros. El especialista asignado a tu carrera revisará tu solicitud y se contactará directamente contigo a través de <strong>WhatsApp o correo electrónico</strong> en los próximos días.</p>
+                    <p class="modal-highlight">📌 Por favor, mantente al pendiente de tus medios de contacto.</p>
+                </div>
+                <button type="button" id="btn-close-modal" class="modal-button">Volver al Inicio</button>
+            </div>
         </div>
     </main>
 </Layout>
@@ -75,84 +98,208 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
 <script>
     import { API_BASE_URL } from '../../utils/api';
 
-    const checkSession = () => {
-        const token = localStorage.getItem('token');
-        const userJson = localStorage.getItem('user');
-        const loadingBox = document.getElementById('session-loading');
-        const bookingBox = document.getElementById('booking-container');
-        const logoutBtn = document.getElementById('logout-btn');
+    // Listado de frases de apoyo y ánimos
+    const cheerMessages = [
+        "No te preocupes, todos pasamos por malos ratos! ✨",
+        "¡No estás solo! Estamos aquí para escucharte. 🤝",
+        "Sabemos que no es fácil por lo que estás pasando... ¡pero diste el primer paso! 🌱",
+        "Tu bienestar es nuestra prioridad. Hablar sana. ❤️",
+        "Cuidar de tu mente también es parte de tu carrera. 🎓",
+        "Aquí tienes un espacio seguro y confidencial. 🔒"
+    ];
 
-        if (!token || !userJson) {
-            // No hay sesión activa, redirigir a login
-            window.location.href = '/login?redirect=/agendar';
-            return;
+    let currentMessageIndex = Math.floor(Math.random() * cheerMessages.length);
+
+    const setupCheerRotation = () => {
+        // Limpiar cualquier intervalo y timeout de rotación previos
+        if ((window as any)._cheerTimeout) clearTimeout((window as any)._cheerTimeout);
+        if ((window as any)._cheerInterval) clearInterval((window as any)._cheerInterval);
+
+        const subtitleEl = document.getElementById('booking-subtitle');
+        if (!subtitleEl) return;
+
+        // Establecer primera frase e iniciar opaco con resplandor
+        subtitleEl.textContent = cheerMessages[currentMessageIndex];
+        subtitleEl.classList.remove('fade-out');
+
+        // Rotar cada 5 segundos de forma continua
+        (window as any)._cheerInterval = setInterval(() => {
+            // 1. Iniciar desvanecimiento (Fade Out)
+            subtitleEl.classList.add('fade-out');
+
+            // 2. Cambiar frase y volver a desvanecer hacia adentro (Fade In) a los 800ms
+            (window as any)._cheerTimeout = setTimeout(() => {
+                let nextIndex = Math.floor(Math.random() * cheerMessages.length);
+                while (nextIndex === currentMessageIndex) {
+                    nextIndex = Math.floor(Math.random() * cheerMessages.length);
+                }
+                currentMessageIndex = nextIndex;
+                subtitleEl.textContent = cheerMessages[currentMessageIndex];
+                subtitleEl.classList.remove('fade-out');
+            }, 800); // Coincide con la duración de la transición CSS
+        }, 5000);
+    };
+
+    // --- PARTÍCULAS ANTIGRAVEDAD DE FONDO ---
+    const initGlobalParticles = () => {
+        const canvas = document.getElementById('global-antigravity-canvas') as HTMLCanvasElement;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        let particles: any[] = [];
+        const maxParticles = 60;
+
+        const createParticle = (isInitial = false) => {
+            return {
+                x: Math.random() * width,
+                y: isInitial ? Math.random() * height : height + Math.random() * 50,
+                radius: Math.random() * 5 + 1.5,
+                speedY: -(Math.random() * 0.35 + 0.15),
+                speedX: Math.random() * 0.15 - 0.075,
+                alpha: Math.random() * 0.25 + 0.08,
+                wobble: Math.random() * Math.PI * 2,
+                wobbleSpeed: Math.random() * 0.008 + 0.003
+            };
+        };
+
+        for (let i = 0; i < maxParticles; i++) {
+            particles.push(createParticle(true));
         }
 
-        const user = JSON.parse(userJson);
-        
-        // Rellenar campos pre-cargados
-        const nameField = document.getElementById('display-name') as HTMLInputElement;
-        const emailField = document.getElementById('display-email') as HTMLInputElement;
+        let animationFrameId: number;
 
-        if (nameField) {
-            if (user.firstName === 'Anónimo') {
-                nameField.value = `Anónimo (${user.lastName})`; // Muestra "Anónimo (alias)"
-            } else {
-                nameField.value = `${user.firstName} ${user.lastName}`;
+        const animate = () => {
+            ctx.clearRect(0, 0, width, height);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const particleColor = isDark ? '162, 217, 206' : '44, 62, 80';
+
+            particles.forEach((p, index) => {
+                p.y += p.speedY;
+                p.wobble += p.wobbleSpeed;
+                p.x += p.speedX + Math.sin(p.wobble) * 0.12;
+
+                if (p.y + p.radius < 0) {
+                    particles[index] = createParticle(false);
+                    return;
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${particleColor}, ${p.alpha})`;
+                ctx.fill();
+            });
+
+            animationFrameId = requestAnimationFrame(animate);
+        };
+
+        animate();
+
+        const handleResize = () => {
+            if (!canvas) return;
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            cancelAnimationFrame(animationFrameId);
+        };
+    };
+
+    let particlesCleanup: (() => void) | undefined;
+    const startParticles = () => {
+        if (particlesCleanup) particlesCleanup();
+        particlesCleanup = initGlobalParticles();
+    };
+
+    const setupBookingForm = async () => {
+        // Inicializar rotación de ánimos
+        setupCheerRotation();
+
+        // Inicializar partículas de fondo
+        startParticles();
+
+        // Obtener formulario original
+        const origForm = document.getElementById('booking-form');
+        if (!origForm) return;
+
+        // Clonar y reemplazar primero en el DOM para limpiar event listeners previos (Astro SPA)
+        const bookingForm = origForm.cloneNode(true) as HTMLFormElement;
+        origForm.parentNode?.replaceChild(bookingForm, origForm);
+
+        // Obtener referencias desde el formulario ya clonado y activo en el DOM
+        const carreraSelect = bookingForm.querySelector('#carrera') as HTMLSelectElement;
+        const bookingAlert = document.getElementById('booking-alert');
+        const bookingSubmit = bookingForm.querySelector('#book-submit-btn') as HTMLButtonElement;
+
+        // 1. CARGA DINÁMICA DE CARRERAS DE LA API PÚBLICA
+        if (carreraSelect) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/careers`);
+                if (!response.ok) throw new Error('Error al cargar carreras');
+                
+                const data = await response.json();
+                const careers = data.data || [];
+
+                carreraSelect.innerHTML = '<option value="" disabled selected>Selecciona tu carrera</option>';
+                careers.forEach((career: any) => {
+                    if (career.isActive) {
+                        const option = document.createElement('option');
+                        option.value = career.id; // UUID
+                        option.textContent = `${career.code} - ${career.name}`;
+                        carreraSelect.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error(error);
+                carreraSelect.innerHTML = '<option value="" disabled selected>Error al cargar carreras</option>';
             }
         }
 
-        if (emailField) {
-            emailField.value = user.email;
-        }
-
-        // Mostrar el formulario
-        if (loadingBox) loadingBox.classList.add('hidden');
-        if (bookingBox) bookingBox.classList.remove('hidden');
-        if (logoutBtn) {
-            logoutBtn.classList.remove('hidden');
-            logoutBtn.addEventListener('click', () => {
-                localStorage.clear();
-                window.location.href = '/';
-            });
-        }
-    };
-
-    const setupBooking = () => {
-        const form = document.getElementById('booking-form');
-        const alertBox = document.getElementById('booking-alert');
-        const submitBtn = document.getElementById('submit-btn');
-
-        if (!form) return;
-
-        form.addEventListener('submit', async (e) => {
+        // 2. CAPTURA Y ENVÍO DEL FORMULARIO
+        const handleFormSubmit = async (e: Event) => {
             e.preventDefault();
+            if (!bookingAlert || !bookingSubmit) return;
 
-            if (!alertBox || !submitBtn) return;
+            bookingAlert.className = 'status-alert';
+            bookingAlert.style.display = 'none';
+            bookingAlert.textContent = '';
+            bookingSubmit.classList.add('loading');
 
-            // Reset alert and start loader
-            alertBox.style.display = 'none';
-            alertBox.textContent = '';
-            submitBtn.classList.add('loading');
-
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const formData = new FormData(form as HTMLFormElement);
-            const department = formData.get('department') as string;
+            const formData = new FormData(bookingForm);
+            const firstName = (formData.get('firstName') as string).trim();
+            const lastName = (formData.get('lastName') as string).trim();
+            const email = formData.get('email') as string;
+            const phone = formData.get('phone') as string;
+            const careerId = formData.get('careerId') as string;
             const reason = formData.get('reason') as string;
+            const age = parseInt(formData.get('edad') as string);
 
             try {
-                // Hacemos el POST al endpoint de la fila virtual pública
                 const response = await fetch(`${API_BASE_URL}/appointments/queue/join`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        firstName: user.firstName || 'Anónimo',
-                        lastName: user.lastName || 'Usuario',
-                        email: user.email,
-                        phone: user.phone || '8110000000',
-                        department,
+                        firstName,
+                        lastName,
+                        email,
+                        phone,
+                        age,
+                        // Solo enviar careerId si es un valor de UUID seleccionado no vacío
+                        ...(careerId ? { careerId } : {}),
+                        department: 'psicologia', // Envío fijo del departamento único de citas
                         reason
                     })
                 });
@@ -160,36 +307,74 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.message || 'Error al solicitar la cita');
+                    // Mapear errores de validación del backend si están disponibles
+                    const errorMsg = data.errors && Array.isArray(data.errors)
+                        ? data.errors.map((e: any) => `${e.path || e.param}: ${e.msg}`).join(', ')
+                        : (data.message || 'Error al registrar tu solicitud');
+                    throw new Error(errorMsg);
                 }
 
                 // Guardar éxito en sessionStorage
                 sessionStorage.setItem('bookingSuccess', 'true');
 
-                // Redirigir al inicio para que el EmpatheticWidget muestre la alerta
-                window.location.href = '/?bookingSuccess=true';
+                // Detener intervalos y animaciones
+                if ((window as any)._cheerTimeout) clearTimeout((window as any)._cheerTimeout);
+                if ((window as any)._cheerInterval) clearInterval((window as any)._cheerInterval);
+                if (particlesCleanup) particlesCleanup();
 
-            } catch (error) {
+                // Mostrar el modal informativo
+                const successModal = document.getElementById('success-modal');
+                const btnCloseModal = document.getElementById('btn-close-modal');
+                const successModalMsg = document.getElementById('success-modal-msg');
+
+                if (successModalMsg && data.assignedPsychologists && Array.isArray(data.assignedPsychologists) && data.assignedPsychologists.length > 0) {
+                    const formattedNames = data.assignedPsychologists
+                        .map((name: string) => `<strong>${name}</strong>`)
+                        .join(' o ');
+                    successModalMsg.innerHTML = `¡Has dado un gran paso! Tu bienestar es muy importante para nosotros. El especialista a cargo de tu carrera, ${formattedNames}, revisará tu solicitud y se contactará directamente contigo a través de <strong>WhatsApp o correo electrónico</strong> en los próximos días.`;
+                } else if (successModalMsg) {
+                    successModalMsg.innerHTML = `¡Has dado un gran paso! Tu bienestar es muy importante para nosotros. El especialista asignado a tu carrera revisará tu solicitud y se contactará directamente contigo a través de <strong>WhatsApp o correo electrónico</strong> en los próximos días.`;
+                }
+
+                if (successModal) {
+                    successModal.classList.remove('hidden');
+                }
+
+                if (btnCloseModal) {
+                    btnCloseModal.addEventListener('click', () => {
+                        window.location.href = '/?bookingSuccess=true';
+                    });
+                }
+
+            } catch (error: any) {
                 console.error(error);
-                alertBox.style.display = 'block';
-                alertBox.textContent = error.message || 'Error al conectar con el servidor.';
-                submitBtn.classList.remove('loading');
+                bookingAlert.classList.add('error');
+                bookingAlert.style.display = 'block';
+                bookingAlert.textContent = error.message || 'Error de conexión con el servidor.';
+                bookingSubmit.classList.remove('loading');
             }
-        });
+        };
+
+        bookingForm.addEventListener('submit', handleFormSubmit);
     };
 
-    document.addEventListener('DOMContentLoaded', () => {
-        checkSession();
-        setupBooking();
-    });
-
-    document.addEventListener('astro:after-swap', () => {
-        checkSession();
-        setupBooking();
-    });
+    // Inicializar listeners en carga de página y transiciones ViewTransitions
+    document.addEventListener('DOMContentLoaded', setupBookingForm);
+    document.addEventListener('astro:after-swap', setupBookingForm);
 </script>
 
 <style>
+    /* Canvas de fondo global */
+    .global-background-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+    }
+
     /* Navbar Styles */
     .navbar {
         position: sticky;
@@ -230,50 +415,17 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         color: var(--nav-link-hover);
     }
 
-    .logout-btn {
-        background-color: transparent;
-        border: 1px solid #ff5e57;
-        color: #ff5e57;
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .logout-btn:hover {
-        background-color: #ff5e57;
-        color: white;
-    }
-
     /* Booking Page Styles */
     .booking-page {
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: calc(100vh - 70px);
-        background-color: var(--bg-color);
+        background-color: transparent; /* Permitir ver el canvas de fondo */
         padding: 3rem 1rem;
         box-sizing: border-box;
-    }
-
-    .session-loading {
-        text-align: center;
-        color: var(--body-text-color);
-    }
-
-    .spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid var(--navbar-border);
-        border-top-color: #A2D9CE;
-        border-radius: 50%;
-        animation: spin 1s infinite linear;
-        margin: 0 auto 1rem;
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
+        position: relative;
+        z-index: 1;
     }
 
     .booking-container {
@@ -285,6 +437,8 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         max-width: 600px;
         border: 1px solid var(--navbar-border);
         animation: fadeIn 0.5s ease-out;
+        backdrop-filter: blur(15px); /* Efecto Crystal Glass */
+        -webkit-backdrop-filter: blur(15px);
     }
 
     @keyframes fadeIn {
@@ -294,7 +448,7 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
 
     .form-header {
         text-align: center;
-        margin-bottom: 2.5rem;
+        margin-bottom: 2rem;
     }
 
     .badge {
@@ -310,22 +464,54 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         margin-bottom: 0.8rem;
     }
 
+    :root.dark .badge {
+        background-color: rgba(162, 217, 206, 0.1);
+        color: #A2D9CE;
+    }
+
     .form-header h1 {
-        font-size: 2.4rem;
+        font-size: 2.2rem;
         color: var(--heading-color);
         margin: 0 0 0.5rem 0;
     }
 
-    .form-header p {
-        color: var(--body-text-color);
-        font-size: 0.95rem;
+    .booking-subtitle-wrapper {
         margin: 0;
+        min-height: 32px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Subtítulo con efecto de brillo (Text-Shadow) y transición lenta */
+    #booking-subtitle {
+        display: inline-block;
+        font-size: 1.15rem; /* ~20% más grande */
+        font-style: italic; /* Letra Cursiva */
+        color: #D86A97; /* Rosa en tema claro */
+        text-shadow: 0 0 12px rgba(216, 106, 151, 0.35); /* Brillo rosa sutil */
+        transition: opacity 0.8s ease-in-out, text-shadow 0.8s ease-in-out;
+        opacity: 1;
+        will-change: opacity, text-shadow;
+        text-align: center;
+        transform: translateZ(0); /* Aceleración GPU */
+    }
+
+    :root.dark #booking-subtitle {
+        color: #FFA8C5; /* Rosa pastel en tema oscuro */
+        text-shadow: 0 0 18px rgba(255, 168, 197, 0.45); /* Brillo rosa luminoso */
+    }
+
+    /* Estado desvanecido (Fade Out) */
+    #booking-subtitle.fade-out {
+        opacity: 0;
+        text-shadow: 0 0 20px rgba(216, 106, 151, 0);
     }
 
     .status-alert {
         padding: 1rem;
         border-radius: 12px;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
         font-size: 0.95rem;
         font-weight: 600;
         display: none;
@@ -338,30 +524,22 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         border: 1px solid #fbc4c0;
     }
 
+    .status-alert.success {
+        background-color: #e6f4f1;
+        color: #1e3a34;
+        border: 1px solid #cce8e2;
+    }
+
+    :root.dark .status-alert.success {
+        background-color: rgba(162, 217, 206, 0.1);
+        color: #A2D9CE;
+        border-color: rgba(162, 217, 206, 0.2);
+    }
+
     .booking-form {
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
-    }
-
-    .confidential-fields {
-        background-color: var(--bg-color);
-        padding: 1.2rem;
-        border-radius: 16px;
-        border: 1px dashed var(--navbar-border);
-    }
-
-    .section-title {
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: #1e3a34;
-        margin: 0 0 1rem 0;
-        letter-spacing: 0.5px;
-    }
-
-    :root.dark .section-title {
-        color: #A2D9CE;
     }
 
     .input-row {
@@ -400,17 +578,6 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         font-family: inherit;
     }
 
-    .readonly-input {
-        background-color: rgba(0, 0, 0, 0.02) !important;
-        border-style: solid;
-        cursor: not-allowed;
-        opacity: 0.8;
-    }
-
-    :root.dark .readonly-input {
-        background-color: rgba(255, 255, 255, 0.02) !important;
-    }
-
     .select-wrapper {
         position: relative;
         width: 100%;
@@ -446,6 +613,15 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         margin: 2px 0 0 0;
     }
 
+    .confidential-label {
+        color: #1e3a34;
+        font-weight: 600;
+    }
+
+    :root.dark .confidential-label {
+        color: #A2D9CE;
+    }
+
     .submit-button {
         width: 100%;
         padding: 1.1rem;
@@ -462,6 +638,7 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         display: flex;
         justify-content: center;
         align-items: center;
+        z-index: 2;
     }
 
     .submit-button:hover {
@@ -487,6 +664,118 @@ import ThemeToggle from '../../components/ThemeToggle.astro';
         border-radius: 50%;
         border-top-color: white;
         animation: spin 0.8s infinite linear;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Estilos del Modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.hidden {
+        display: none !important;
+        opacity: 0;
+    }
+
+    .modal-content {
+        background-color: var(--card-bg);
+        border: 1px solid var(--navbar-border);
+        padding: 2.5rem;
+        border-radius: 26px;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+
+    @keyframes scaleUp {
+        from { transform: scale(0.95); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        animation: pulseGlow 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseGlow {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .modal-content h2 {
+        font-size: 1.8rem;
+        color: var(--heading-color);
+        margin: 0 0 1.2rem 0;
+    }
+
+    .modal-body {
+        color: var(--body-text-color);
+        font-size: 0.98rem;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        text-align: left;
+        margin-bottom: 2rem;
+    }
+
+    .modal-highlight {
+        background-color: rgba(216, 106, 151, 0.08);
+        border-left: 4px solid #D86A97;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-weight: 600;
+        color: #D86A97;
+    }
+
+    :root.dark .modal-highlight {
+        background-color: rgba(255, 168, 197, 0.08);
+        border-left-color: #FFA8C5;
+        color: #FFA8C5;
+    }
+
+    .modal-button {
+        width: 100%;
+        padding: 1rem;
+        background-color: #D86A97;
+        color: white;
+        border: none;
+        border-radius: 14px;
+        font-size: 1.05rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    :root.dark .modal-button {
+        background-color: #FFA8C5;
+        color: #1e3a34;
+    }
+
+    .modal-button:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
     }
 
     .hidden {

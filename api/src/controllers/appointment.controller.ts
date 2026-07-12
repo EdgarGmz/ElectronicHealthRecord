@@ -314,12 +314,13 @@ export const joinQueue = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const queueEntry = await appointmentService.joinQueue(req.body);
+    const result = await appointmentService.joinQueue(req.body);
 
     res.status(201).json({
       success: true,
       message: 'Te has registrado en la fila virtual con éxito',
-      data: queueEntry,
+      data: result.waitingEntry,
+      assignedPsychologists: result.assignedPsychologists,
     });
   } catch (error) {
     next(error);
