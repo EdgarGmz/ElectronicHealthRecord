@@ -23,7 +23,7 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Padding="16,10" RowSpacing="12">
+        <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16,10" RowSpacing="12">
             
             <!-- Header Row -->
             <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,10,0,0">
@@ -253,16 +253,21 @@
                 </CollectionView>
             </RefreshView>
 
-            <!-- Bottom Floating-Like Agendar Button -->
-            <Button Grid.Row="4" 
-                    Text="➕ Agendar Cita Rápida" 
+            <!-- FAB (Floating Action Button) de Agendado Rápido -->
+            <Button Grid.Row="3"
                     Command="{Binding NavigateToQuickAppointmentCommand}"
-                    BackgroundColor="{StaticResource BrandPrimary}"
+                    Text="➕"
                     TextColor="White"
-                    CornerRadius="16"
+                    FontSize="22"
                     FontAttributes="Bold"
-                    HeightRequest="52"
-                    Shadow="{Shadow Brush=Black, Offset='0,4', Radius=8, Opacity=0.15}" />
+                    BackgroundColor="{StaticResource BrandPrimary}"
+                    WidthRequest="56"
+                    HeightRequest="56"
+                    CornerRadius="28"
+                    HorizontalOptions="End"
+                    VerticalOptions="End"
+                    Margin="0,0,10,10"
+                    Shadow="{Shadow Brush=Black, Offset='0,4', Radius=8, Opacity=0.25}" />
         </Grid>
     </Grid>
 

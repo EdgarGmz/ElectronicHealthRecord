@@ -126,6 +126,22 @@
                     </CollectionView.ItemTemplate>
                 </CollectionView>
             </RefreshView>
+
+            <!-- FAB (Floating Action Button) de Agendado Rápido -->
+            <Button Grid.Row="1"
+                    Command="{Binding NavigateToQuickAppointmentNewCommand}"
+                    Text="➕"
+                    TextColor="White"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    BackgroundColor="{StaticResource BrandPrimary}"
+                    WidthRequest="56"
+                    HeightRequest="56"
+                    CornerRadius="28"
+                    HorizontalOptions="End"
+                    VerticalOptions="End"
+                    Margin="0,0,20,20"
+                    Shadow="{Shadow Brush=Black, Offset='0,4', Radius=8, Opacity=0.25}" />
         </Grid>
     </Grid>
 

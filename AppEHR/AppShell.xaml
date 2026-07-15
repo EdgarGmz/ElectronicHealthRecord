@@ -20,9 +20,6 @@
         <Tab Title="Consultantes" Icon="users_tab.png">
             <ShellContent Route="PatientsPage" ContentTemplate="{DataTemplate views:PatientsPage}" />
         </Tab>
-        <Tab Title="Agendar" Icon="add_tab.png">
-            <ShellContent Route="QuickAppointmentTab" ContentTemplate="{DataTemplate views:QuickAppointmentPage}" />
-        </Tab>
         <Tab Title="Notificaciones" Icon="bell_tab.png">
             <ShellContent Route="NotificationsPage" ContentTemplate="{DataTemplate views:NotificationsPage}" />
         </Tab>

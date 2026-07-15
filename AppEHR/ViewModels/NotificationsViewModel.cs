@@ -24,6 +24,7 @@ namespace AppEHR.ViewModels
             MarkAllAsReadCommand = new Command(async () => await MarkAllAsReadAsync());
             MarkAsReadCommand = new Command<Notification>(async (n) => await MarkAsReadAsync(n));
             DeleteNotificationCommand = new Command<Notification>(async (n) => await DeleteNotificationAsync(n));
+            NavigateToQuickAppointmentCommand = new Command(async () => await NavigateToQuickAppointmentAsync());
         }
 
         public ObservableCollection<Notification> Notifications { get; }
@@ -38,6 +39,7 @@ namespace AppEHR.ViewModels
         public ICommand MarkAllAsReadCommand { get; }
         public ICommand MarkAsReadCommand { get; }
         public ICommand DeleteNotificationCommand { get; }
+        public ICommand NavigateToQuickAppointmentCommand { get; }
 
         public async Task LoadNotificationsAsync()
         {
@@ -147,6 +149,11 @@ namespace AppEHR.ViewModels
             {
                 System.Diagnostics.Debug.WriteLine($"Error deleting notification: {ex.Message}");
             }
+        }
+
+        private async Task NavigateToQuickAppointmentAsync()
+        {
+            await Shell.Current.GoToAsync("QuickAppointmentPage");
         }
     }
 }

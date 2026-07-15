@@ -26,6 +26,7 @@ namespace AppEHR.ViewModels
             LoadPatientsCommand = new Command(async () => await LoadPatientsAsync());
             SearchCommand = new Command(ExecuteSearch);
             NavigateToQuickAppointmentCommand = new Command<Patient>(async (patient) => await NavigateToQuickAppointmentAsync(patient));
+            NavigateToQuickAppointmentNewCommand = new Command(async () => await Shell.Current.GoToAsync("QuickAppointmentPage"));
         }
 
         public ObservableCollection<Patient> Patients { get; }
@@ -45,6 +46,7 @@ namespace AppEHR.ViewModels
         public ICommand LoadPatientsCommand { get; }
         public ICommand SearchCommand { get; }
         public ICommand NavigateToQuickAppointmentCommand { get; }
+        public ICommand NavigateToQuickAppointmentNewCommand { get; }
 
         public async Task LoadPatientsAsync()
         {
