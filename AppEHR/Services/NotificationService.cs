@@ -30,9 +30,10 @@ namespace AppEHR.Services
                     if (success)
                     {
                         var dataNode = doc.RootElement.GetProperty("data");
-                        if (dataNode.ValueKind == JsonValueKind.Array)
+                        if (dataNode.TryGetProperty("notifications", out var notificationsNode) && 
+                            notificationsNode.ValueKind == JsonValueKind.Array)
                         {
-                            foreach (var item in dataNode.EnumerateArray())
+                            foreach (var item in notificationsNode.EnumerateArray())
                             {
                                 var notification = JsonSerializer.Deserialize<Notification>(item.GetRawText());
                                 if (notification != null)
