@@ -21,6 +21,8 @@ import {
   Mail,
   MessageCircle,
   ChevronDown,
+  Search,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { canSeeNavItem } from '@/constants/roles'
 import {
@@ -125,6 +127,29 @@ export function DashboardPsychologist() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null)
+
+  // Filtros y ordenamiento para la Fila Virtual
+  const [queueSearchTerm, setQueueSearchTerm] = useState('')
+  const [queueSortBy, setQueueSortBy] = useState<'oldest' | 'newest'>('oldest')
+
+  const filteredAndSortedQueue = useMemo(() => {
+    return queue
+      .filter((entry) => {
+        const patientName = entry.patient?.user
+          ? `${entry.patient.user.firstName} ${entry.patient.user.lastName}`.toLowerCase()
+          : ''
+        return patientName.includes(queueSearchTerm.toLowerCase())
+      })
+      .sort((a, b) => {
+        if (queueSortBy === 'oldest') {
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        }
+        if (queueSortBy === 'newest') {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        }
+        return 0
+      })
+  }, [queue, queueSearchTerm, queueSortBy])
 
   // Seleccionar frase motivacional aleatoria una sola vez al montar
   const welcomePhrase = useMemo(() => {
@@ -503,13 +528,60 @@ export function DashboardPsychologist() {
             {queue.length} en espera
           </span>
         </div>
+
+        {/* Barra de Filtros y Ordenamiento */}
+        {queue.length > 0 && (
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-[var(--border)]/40 pb-4">
+            <div className="relative flex-1 max-w-md">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="h-4 w-4 text-[var(--text-muted)]" />
+              </span>
+              <input
+                type="text"
+                value={queueSearchTerm}
+                onChange={(e) => setQueueSearchTerm(e.target.value)}
+                placeholder="Buscar alumno por nombre..."
+                className="w-full h-10 pl-9 pr-4 text-xs font-medium rounded-xl border border-[var(--border)] bg-[var(--bg)]/10 text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition-all duration-300 font-sans"
+              />
+              {queueSearchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setQueueSearchTerm('')}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[var(--text-secondary)] font-medium font-sans flex items-center gap-1">
+                <SlidersHorizontal className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+                Ordenar por:
+              </span>
+              <select
+                value={queueSortBy}
+                onChange={(e: any) => setQueueSortBy(e.target.value)}
+                className="h-10 px-3 text-xs font-medium rounded-xl border border-[var(--border)] bg-[var(--bg)]/10 text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition-all duration-300 font-sans cursor-pointer"
+              >
+                <option value="oldest" className="bg-[var(--bg)] text-[var(--text-primary)]">Más antiguos primero</option>
+                <option value="newest" className="bg-[var(--bg)] text-[var(--text-primary)]">Más recientes primero</option>
+              </select>
+            </div>
+          </div>
+        )}
+
         {queue.length === 0 ? (
           <p className="py-6 text-center text-sm text-[var(--text-muted)]">
             No hay alumnos en la fila virtual de tus carreras asignadas.
           </p>
+        ) : filteredAndSortedQueue.length === 0 ? (
+          <p className="py-6 text-center text-sm text-[var(--text-muted)]">
+            No se encontraron alumnos que coincidan con la búsqueda.
+          </p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {queue.map((entry) => {
+            {filteredAndSortedQueue.map((entry) => {
               const registerTime = new Date(entry.createdAt).toLocaleTimeString(undefined, {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -553,7 +625,7 @@ export function DashboardPsychologist() {
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[var(--border)]/20 mt-1" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         onClick={() => {
@@ -574,6 +646,28 @@ export function DashboardPsychologist() {
                         <CalendarPlus size={13} />
                         Agendar
                       </button>
+
+                      {entry.patient?.user?.phone && (
+                        <a
+                          href={`https://wa.me/${entry.patient.user.phone.replace(/\D/g, '').startsWith('52') ? entry.patient.user.phone.replace(/\D/g, '') : '52' + entry.patient.user.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${entry.patient.user.firstName}, te contacto del área de Psicopedagogía de UT Care en relación a tu solicitud de cita en la fila virtual.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-lg bg-green-500/10 px-2.5 py-1.5 text-xs font-semibold text-green-600 dark:text-green-400 transition-colors hover:bg-green-500/20"
+                        >
+                          <MessageCircle size={13} />
+                          WhatsApp
+                        </a>
+                      )}
+                      
+                      {entry.patient?.user?.email && (
+                        <a
+                          href={`mailto:${entry.patient.user.email}?subject=${encodeURIComponent('Contacto UT Care - Área de Psicología')}&body=${encodeURIComponent(`Hola ${entry.patient.user.firstName},\n\nTe contacto de Psicopedagogía de UT Care en relación a tu registro en nuestra Fila Virtual.\n\nQuedo a tu disposición para coordinar los detalles de tu cita.\n\nSaludos cordiales.`)}`}
+                          className="inline-flex items-center gap-1 rounded-lg bg-blue-500/10 px-2.5 py-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 transition-colors hover:bg-blue-500/20"
+                        >
+                          <Mail size={13} />
+                          Enviar Correo
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>
