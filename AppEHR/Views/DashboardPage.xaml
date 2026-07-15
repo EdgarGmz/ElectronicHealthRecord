@@ -181,55 +181,59 @@
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="14" />
                                     </Border.StrokeShape>
+                                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
+                                        <!-- Row 0: Full Name & Status Tag -->
+                                        <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="4">
+                                            <Label Text="{Binding Patient.User.FullName}" 
+                                                   FontSize="15" 
+                                                   FontAttributes="Bold" 
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                            
+                                            <HorizontalStackLayout Spacing="10">
+                                                <!-- Group Info -->
+                                                <HorizontalStackLayout Spacing="3" IsVisible="{Binding Patient.Group, Converter={StaticResource StringToBooleanConverter}}">
+                                                    <Label Text="👥" FontSize="11" TextColor="Gray" />
+                                                    <Label Text="{Binding Patient.Group, StringFormat='Grupo {0}'}" FontSize="11" TextColor="Gray" />
+                                                </HorizontalStackLayout>
+                                                
+                                                <!-- Appointment Type Tag -->
+                                                <HorizontalStackLayout Spacing="3">
+                                                    <Label Text="🏷️" FontSize="11" TextColor="Gray" />
+                                                    <Label Text="{Binding LocalizedType}" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource BrandPrimary}" />
+                                                </HorizontalStackLayout>
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
 
-                                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="6">
-                                        <!-- Time & Duration -->
-                                        <HorizontalStackLayout Grid.Row="0" Grid.Column="0" Spacing="6" VerticalOptions="Center">
-                                            <Label Text="🕒" FontSize="14" />
-                                            <Label Text="{Binding FormattedTime}" FontAttributes="Bold" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                                            <Label Text="{Binding DurationMinutes, StringFormat='({0} min)'}" FontSize="12" TextColor="Gray" VerticalOptions="Center" />
-                                        </HorizontalStackLayout>
-
-                                        <!-- Status Tag -->
-                                        <Border Grid.Row="0" Grid.Column="1" Padding="8,3" BackgroundColor="{Binding StatusColor}">
+                                        <!-- Status Badge (Top Right) -->
+                                        <Border Grid.Row="0" Grid.Column="1" Padding="8,4" BackgroundColor="{Binding StatusColor}" StrokeThickness="0" VerticalOptions="Start">
                                             <Border.StrokeShape>
                                                 <RoundRectangle CornerRadius="6" />
                                             </Border.StrokeShape>
                                             <Label Text="{Binding LocalizedStatus}" FontSize="10" FontAttributes="Bold" TextColor="White" />
                                         </Border>
 
-                                        <!-- Patient Info -->
-                                        <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Spacing="2" Margin="0,4,0,4">
-                                            <Label Text="{Binding Patient.User.FullName}" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4">
-                                                <Label Grid.Column="0" Text="🎓" FontSize="11" IsVisible="{Binding Patient.Career, Converter={StaticResource StringToBooleanConverter}}" />
-                                                <Label Grid.Column="1" Text="{Binding Patient.Career.Name}" FontSize="11" TextColor="Gray" LineBreakMode="NoWrap" />
-                                            </Grid>
-                                        </VerticalStackLayout>
+                                        <!-- Row 1: Time, Remaining time indicator & Duration -->
+                                        <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Spacing="8" VerticalOptions="Center">
+                                            <Label Text="🕒" FontSize="12" TextColor="Gray" />
+                                            <Label Text="{Binding FormattedTime}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray850}, Dark={StaticResource Gray150}}" />
+                                            <Label Text="⏱️" FontSize="12" TextColor="Gray" />
+                                            <Label Text="{Binding RemainingTimeText}" FontSize="12" FontAttributes="Italic" TextColor="{AppThemeBinding Light={StaticResource Gray700}, Dark={StaticResource Gray300}}" />
+                                            <Label Text="{Binding DurationMinutes, StringFormat='({0} min)'}" FontSize="11" TextColor="Gray" />
+                                        </HorizontalStackLayout>
 
-                                        <!-- Contact Links & Type -->
-                                        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="0,2,0,0">
-                                            <!-- Type Tag -->
-                                            <Border Grid.Column="0" Padding="8,4" BackgroundColor="Transparent" Stroke="Gray" StrokeThickness="0.8">
-                                                <Border.StrokeShape>
-                                                    <RoundRectangle CornerRadius="6" />
-                                                </Border.StrokeShape>
-                                                <Label Text="{Binding LocalizedType}" FontSize="10" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
-                                            </Border>
-
-                                            <!-- Spacing -->
-                                            <BoxView Grid.Column="1" Color="Transparent" />
-
-                                            <!-- Contact Buttons -->
-                                            <HorizontalStackLayout Grid.Column="2" Spacing="8">
+                                        <!-- Row 2: Action contact buttons (Email Outlook Blue, WhatsApp Green) -->
+                                        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="0,2,0,0">
+                                            <BoxView Grid.Column="0" Color="Transparent" />
+                                            
+                                            <HorizontalStackLayout Grid.Column="1" Spacing="12">
                                                 <!-- Email Button -->
                                                 <Button Text="✉️ Correo" 
                                                         Command="{Binding BindingContext.EmailCommand, Source={x:Reference ThisPage}}" 
                                                         CommandParameter="{Binding Patient.User.Email}"
                                                         BackgroundColor="Transparent"
-                                                        TextColor="{StaticResource BrandPrimary}"
+                                                        TextColor="#0078D4"
                                                         FontAttributes="Bold"
-                                                        FontSize="11"
+                                                        FontSize="12"
                                                         Padding="4,2"
                                                         HeightRequest="30" />
                                                 
@@ -240,7 +244,7 @@
                                                         BackgroundColor="Transparent"
                                                         TextColor="#25D366"
                                                         FontAttributes="Bold"
-                                                        FontSize="11"
+                                                        FontSize="12"
                                                         Padding="4,2"
                                                         HeightRequest="30" />
                                             </HorizontalStackLayout>

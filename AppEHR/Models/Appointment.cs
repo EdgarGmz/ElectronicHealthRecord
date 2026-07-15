@@ -90,5 +90,53 @@ namespace AppEHR.Models
             "no-show" => "#F59E0B",   // naranja
             _ => "#6B7280"
         };
+
+        [JsonIgnore]
+        public string RemainingTimeText
+        {
+            get
+            {
+                var localScheduled = ScheduledDate.ToLocalTime();
+                var now = DateTime.Now;
+                var diff = localScheduled - now;
+
+                if (Status == "completed") return "Completada";
+                if (Status == "cancelled") return "Cancelada";
+
+                if (diff.TotalMinutes < 0)
+                {
+                    var ago = now - localScheduled;
+                    if (ago.TotalDays >= 1)
+                    {
+                        return $"Hace {Math.Floor(ago.TotalDays)} días";
+                    }
+                    if (ago.TotalHours >= 1)
+                    {
+                        return $"Hace {Math.Floor(ago.TotalHours)} horas";
+                    }
+                    if (ago.TotalMinutes >= 1)
+                    {
+                        return $"Hace {Math.Floor(ago.TotalMinutes)} minutos";
+                    }
+                    return "Hace unos instantes";
+                }
+                else
+                {
+                    if (diff.TotalDays >= 1)
+                    {
+                        return $"En {Math.Floor(diff.TotalDays)} días";
+                    }
+                    if (diff.TotalHours >= 1)
+                    {
+                        return $"En {Math.Floor(diff.TotalHours)} horas";
+                    }
+                    if (diff.TotalMinutes >= 1)
+                    {
+                        return $"En {Math.Floor(diff.TotalMinutes)} minutos";
+                    }
+                    return "Comienza ahora";
+                }
+            }
+        }
     }
 }

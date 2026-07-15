@@ -39,8 +39,12 @@ namespace AppEHR.Views
             }
 
             var pathStr = currentTheme == AppTheme.Dark ? SunPath : MoonPath;
-            var converter = new Microsoft.Maui.Controls.Shapes.PathGeometryConverter();
-            ThemeIconPath.Data = (Microsoft.Maui.Controls.Shapes.Geometry)converter.ConvertFromInvariantString(pathStr);
+            var themeIcon = this.FindByName<Microsoft.Maui.Controls.Shapes.Path>("ThemeIconPath");
+            if (themeIcon != null)
+            {
+                var converter = new Microsoft.Maui.Controls.Shapes.PathGeometryConverter();
+                themeIcon.Data = (Microsoft.Maui.Controls.Shapes.Geometry)converter.ConvertFromInvariantString(pathStr);
+            }
         }
 
         private void OnThemeToggleClicked(object sender, EventArgs e)
@@ -67,11 +71,17 @@ namespace AppEHR.Views
 
         private void OnTogglePasswordClicked(object sender, EventArgs e)
         {
-            PasswordEntry.IsPassword = !PasswordEntry.IsPassword;
+            var passwordEntry = this.FindByName<Entry>("PasswordEntry");
+            var eyeIcon = this.FindByName<Microsoft.Maui.Controls.Shapes.Path>("EyeIconPath");
 
-            var converter = new Microsoft.Maui.Controls.Shapes.PathGeometryConverter();
-            EyeIconPath.Data = (Microsoft.Maui.Controls.Shapes.Geometry)converter.ConvertFromInvariantString(
-                PasswordEntry.IsPassword ? EyeOpenPath : EyeClosedPath);
+            if (passwordEntry != null && eyeIcon != null)
+            {
+                passwordEntry.IsPassword = !passwordEntry.IsPassword;
+
+                var converter = new Microsoft.Maui.Controls.Shapes.PathGeometryConverter();
+                eyeIcon.Data = (Microsoft.Maui.Controls.Shapes.Geometry)converter.ConvertFromInvariantString(
+                    passwordEntry.IsPassword ? EyeOpenPath : EyeClosedPath);
+            }
         }
     }
 }
