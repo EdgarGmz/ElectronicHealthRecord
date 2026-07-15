@@ -14,16 +14,16 @@
 
     <!-- Main Navigation TabBar -->
     <TabBar>
-        <Tab Title="Calendario">
+        <Tab Title="Calendario" Icon="calendar_tab.png">
             <ShellContent Route="DashboardPage" ContentTemplate="{DataTemplate views:DashboardPage}" />
         </Tab>
-        <Tab Title="Consultantes">
+        <Tab Title="Consultantes" Icon="users_tab.png">
             <ShellContent Route="PatientsPage" ContentTemplate="{DataTemplate views:PatientsPage}" />
         </Tab>
-        <Tab Title="Agendar">
+        <Tab Title="Agendar" Icon="add_tab.png">
             <ShellContent Route="QuickAppointmentTab" ContentTemplate="{DataTemplate views:QuickAppointmentPage}" />
         </Tab>
-        <Tab Title="Notificaciones">
+        <Tab Title="Notificaciones" Icon="bell_tab.png">
             <ShellContent Route="NotificationsPage" ContentTemplate="{DataTemplate views:NotificationsPage}" />
         </Tab>
     </TabBar>
