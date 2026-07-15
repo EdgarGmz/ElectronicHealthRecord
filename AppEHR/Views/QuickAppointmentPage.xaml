@@ -5,6 +5,7 @@
              xmlns:models="clr-namespace:AppEHR.Models"
              xmlns:converters="clr-namespace:AppEHR.Converters"
              x:Class="AppEHR.Views.QuickAppointmentPage"
+             x:Name="ThisPage"
              Shell.PresentationMode="ModalAnimated"
              Title="Agendar Cita Rápida">
 
@@ -105,6 +106,35 @@
                                         CornerRadius="8"
                                         HeightRequest="40" />
                             </Grid>
+
+                            <!-- Autocomplete Suggestions List -->
+                            <CollectionView ItemsSource="{Binding Suggestions}"
+                                            IsVisible="{Binding ShowSuggestions}"
+                                            HeightRequest="150"
+                                            Margin="0,4,0,0">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:Patient">
+                                        <Grid Padding="4,2">
+                                            <Border StrokeThickness="1"
+                                                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                                                    Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                                                    Padding="12,8"
+                                                    Margin="0,2">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="8" />
+                                                </Border.StrokeShape>
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding BindingContext.SelectSuggestionCommand, Source={x:Reference ThisPage}}" CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+                                                <VerticalStackLayout Spacing="2">
+                                                    <Label Text="{Binding User.FullName}" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                                    <Label Text="{Binding User.EnrollmentNumber, StringFormat='Matrícula: {0}'}" FontSize="11" TextColor="Gray" />
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
 
                             <!-- If not found option -->
                             <Button Text="➕ Registrar Consultante Nuevo" 
