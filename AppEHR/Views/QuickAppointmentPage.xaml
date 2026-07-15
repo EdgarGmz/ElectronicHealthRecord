@@ -86,7 +86,7 @@
                             </Grid>
 
                             <!-- If not found option -->
-                            <Button Text="➕ Registrar Paciente Nuevo" 
+                            <Button Text="➕ Registrar Consultante Nuevo" 
                                     Command="{Binding ToggleNewPatientFormCommand}"
                                     BackgroundColor="Transparent"
                                     TextColor="{StaticResource BrandPrimary}"
@@ -108,7 +108,7 @@
                         </Border.StrokeShape>
 
                         <VerticalStackLayout Spacing="8">
-                            <Label Text="Paciente Seleccionado" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                            <Label Text="Consultante Seleccionado" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
                             <Label Text="{Binding FoundPatient.User.FullName}" FontSize="18" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
                             
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" IsVisible="{Binding FoundPatient.Career, Converter={StaticResource StringToBooleanConverter}}">
@@ -217,7 +217,7 @@
                         </Border.StrokeShape>
 
                         <VerticalStackLayout Spacing="14">
-                            <Label Text="Registrar Nuevo Paciente" FontSize="16" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            <Label Text="Registrar Nuevo Consultante" FontSize="16" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
                             
                             <!-- First Name & Last Name -->
                             <VerticalStackLayout Spacing="4">
@@ -270,7 +270,7 @@
 
                             <!-- Patient Type Picker -->
                             <VerticalStackLayout Spacing="4">
-                                <Label Text="Tipo de Paciente" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Label Text="Tipo de Consultante" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
                                 <Picker SelectedItem="{Binding NewPatientType}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}">
                                     <Picker.Items>
                                         <x:String>student</x:String>

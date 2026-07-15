@@ -98,7 +98,7 @@
                         <!-- Patients -->
                         <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center">
                             <Label Text="{Binding Stats.TotalPatients}" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                            <Label Text="Pacientes" FontSize="9" HorizontalOptions="Center" TextColor="Gray" />
+                            <Label Text="Consultantes" FontSize="9" HorizontalOptions="Center" TextColor="Gray" />
                         </VerticalStackLayout>
                     </Grid>
                 </VerticalStackLayout>

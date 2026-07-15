@@ -9,6 +9,7 @@ using Microsoft.Maui.Controls;
 
 namespace AppEHR.ViewModels
 {
+    [QueryProperty(nameof(PatientId), "patientId")]
     public class QuickAppointmentViewModel : BaseViewModel
     {
         private readonly PatientService _patientService;
@@ -91,6 +92,19 @@ namespace AppEHR.ViewModels
         {
             get => _searchPerformed;
             set => SetProperty(ref _searchPerformed, value);
+        }
+
+        private string? _patientId;
+        public string? PatientId
+        {
+            get => _patientId;
+            set
+            {
+                if (SetProperty(ref _patientId, value) && !string.IsNullOrEmpty(value))
+                {
+                    Task.Run(async () => await LoadPatientByIdAsync(value));
+                }
+            }
         }
         #endregion
 
@@ -280,7 +294,7 @@ namespace AppEHR.ViewModels
                     FoundPatient = patient;
                     PatientFound = true;
                     ShowNewPatientForm = false;
-                    ShowMessage("Paciente encontrado. Llena los detalles de la cita abajo.", false);
+                    ShowMessage("Consultante encontrado. Llena los detalles de la cita abajo.", false);
                 }
                 else
                 {
@@ -291,6 +305,36 @@ namespace AppEHR.ViewModels
             catch (Exception ex)
             {
                 ShowMessage($"Error de búsqueda: {ex.Message}", true);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        public async Task LoadPatientByIdAsync(string id)
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            ShowMessage(string.Empty, false);
+
+            try
+            {
+                var patient = await _patientService.GetPatientByIdAsync(id);
+                if (patient != null)
+                {
+                    FoundPatient = patient;
+                    PatientFound = true;
+                    EnrollmentQuery = patient.User.EnrollmentNumber ?? string.Empty;
+                }
+                else
+                {
+                    ShowMessage("No se pudo cargar la información del consultante seleccionado", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error al cargar consultante: {ex.Message}", true);
             }
             finally
             {
@@ -396,7 +440,7 @@ namespace AppEHR.ViewModels
 
                 if (result.Success && result.Patient != null)
                 {
-                    ShowMessage("Paciente registrado exitosamente. Agendando cita...", false);
+                    ShowMessage("Consultante registrado exitosamente. Agendando cita...", false);
                     FoundPatient = result.Patient;
                     PatientFound = true;
                     ShowNewPatientForm = false;

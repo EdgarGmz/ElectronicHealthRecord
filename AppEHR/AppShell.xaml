@@ -12,10 +12,21 @@
         <ShellContent ContentTemplate="{DataTemplate views:LoginPage}" />
     </ShellItem>
 
-    <!-- Dashboard Page Branch -->
-    <ShellItem Route="DashboardPage">
-        <ShellContent ContentTemplate="{DataTemplate views:DashboardPage}" />
-    </ShellItem>
+    <!-- Main Navigation TabBar -->
+    <TabBar>
+        <Tab Title="Calendario">
+            <ShellContent Route="DashboardPage" ContentTemplate="{DataTemplate views:DashboardPage}" />
+        </Tab>
+        <Tab Title="Consultantes">
+            <ShellContent Route="PatientsPage" ContentTemplate="{DataTemplate views:PatientsPage}" />
+        </Tab>
+        <Tab Title="Agendar">
+            <ShellContent Route="QuickAppointmentTab" ContentTemplate="{DataTemplate views:QuickAppointmentPage}" />
+        </Tab>
+        <Tab Title="Notificaciones">
+            <ShellContent Route="NotificationsPage" ContentTemplate="{DataTemplate views:NotificationsPage}" />
+        </Tab>
+    </TabBar>
 
 </Shell>
 

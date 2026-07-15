@@ -91,6 +91,36 @@ namespace AppEHR.Services
             return response;
         }
 
+        public virtual async Task<HttpResponseMessage> PutAsync(string endpoint)
+        {
+            await ApplyAuthHeaderAsync();
+            var response = await _client.PutAsync($"{_baseUrl}/{endpoint}", null);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                if (await RefreshTokenAsync())
+                {
+                    await ApplyAuthHeaderAsync();
+                    response = await _client.PutAsync($"{_baseUrl}/{endpoint}", null);
+                }
+            }
+            return response;
+        }
+
+        public virtual async Task<HttpResponseMessage> DeleteAsync(string endpoint)
+        {
+            await ApplyAuthHeaderAsync();
+            var response = await _client.DeleteAsync($"{_baseUrl}/{endpoint}");
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                if (await RefreshTokenAsync())
+                {
+                    await ApplyAuthHeaderAsync();
+                    response = await _client.DeleteAsync($"{_baseUrl}/{endpoint}");
+                }
+            }
+            return response;
+        }
+
 
         private async Task<bool> RefreshTokenAsync()
         {

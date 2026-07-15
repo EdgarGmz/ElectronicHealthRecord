@@ -23,16 +23,21 @@ namespace AppEHR
             builder.Services.AddSingleton<AuthService>();
             builder.Services.AddSingleton<PatientService>();
             builder.Services.AddSingleton<AppointmentService>();
+            builder.Services.AddSingleton<NotificationService>();
 
             // Register ViewModels
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<DashboardViewModel>();
             builder.Services.AddTransient<QuickAppointmentViewModel>();
+            builder.Services.AddTransient<PatientsViewModel>();
+            builder.Services.AddTransient<NotificationsViewModel>();
 
             // Register Views
             builder.Services.AddTransient<LoginPage>();
             builder.Services.AddTransient<DashboardPage>();
             builder.Services.AddTransient<QuickAppointmentPage>();
+            builder.Services.AddTransient<PatientsPage>();
+            builder.Services.AddTransient<NotificationsPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();
