@@ -58,6 +58,7 @@ namespace AppEHR.ViewModels
             BookAppointmentCommand = new Command(async () => await ExecuteBookAppointmentCommandAsync(), () => !IsBusy && PatientFound);
             RegisterPatientCommand = new Command(async () => await ExecuteRegisterPatientCommandAsync(), () => !IsBusy && ShowNewPatientForm);
             ToggleNewPatientFormCommand = new Command(() => ExecuteToggleNewPatientForm());
+            CancelCommand = new Command(async () => await ExecuteCancelCommandAsync());
 
             // Cargar carreras asignadas en segundo plano
             Task.Run(async () => await LoadAssignedCareersAsync());
@@ -257,6 +258,7 @@ namespace AppEHR.ViewModels
         public ICommand BookAppointmentCommand { get; }
         public ICommand RegisterPatientCommand { get; }
         public ICommand ToggleNewPatientFormCommand { get; }
+        public ICommand CancelCommand { get; }
 
         private async Task LoadAssignedCareersAsync()
         {
@@ -482,6 +484,11 @@ namespace AppEHR.ViewModels
         {
             StatusMessage = message;
             IsError = isError;
+        }
+
+        private async Task ExecuteCancelCommandAsync()
+        {
+            await Shell.Current.GoToAsync("..");
         }
     }
 }

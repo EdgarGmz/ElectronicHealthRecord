@@ -5,6 +5,7 @@
              xmlns:models="clr-namespace:AppEHR.Models"
              xmlns:converters="clr-namespace:AppEHR.Converters"
              x:Class="AppEHR.Views.QuickAppointmentPage"
+             Shell.PresentationMode="ModalAnimated"
              Title="Agendar Cita Rápida">
 
     <ContentPage.Resources>
@@ -13,8 +14,8 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid>
-        <!-- Background Gradient -->
+    <Grid RowDefinitions="Auto, *">
+        <!-- Background Gradient overlaying the whole page -->
         <Grid.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                 <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStartLight}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
@@ -22,7 +23,27 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <ScrollView Padding="16">
+        <!-- Custom Header Bar for Modal Navigation -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Padding="20,16" BackgroundColor="Transparent">
+            <Label Grid.Column="0" 
+                   Text="Agendar Cita Rápida" 
+                   FontSize="18" 
+                   FontAttributes="Bold" 
+                   VerticalOptions="Center" 
+                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+            <Button Grid.Column="1" 
+                    Text="✕ Cerrar" 
+                    Command="{Binding CancelCommand}" 
+                    BackgroundColor="Transparent" 
+                    TextColor="{StaticResource BrandPrimary}" 
+                    FontAttributes="Bold" 
+                    FontSize="13"
+                    HeightRequest="36"
+                    Padding="10,0"
+                    VerticalOptions="Center" />
+        </Grid>
+
+        <ScrollView Grid.Row="1" Padding="16">
             <VerticalStackLayout Spacing="16">
 
                 <!-- Alert Messages Banner -->
