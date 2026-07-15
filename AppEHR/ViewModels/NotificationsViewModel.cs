@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using AppEHR.Models;
 using AppEHR.Services;
+using AppEHR.Views;
 using Microsoft.Maui.Controls;
 
 namespace AppEHR.ViewModels
@@ -25,6 +26,7 @@ namespace AppEHR.ViewModels
             MarkAsReadCommand = new Command<Notification>(async (n) => await MarkAsReadAsync(n));
             DeleteNotificationCommand = new Command<Notification>(async (n) => await DeleteNotificationAsync(n));
             NavigateToQuickAppointmentCommand = new Command(async () => await NavigateToQuickAppointmentAsync());
+            NavigateToDetailCommand = new Command<Notification>(async (n) => await NavigateToDetailAsync(n));
         }
 
         public ObservableCollection<Notification> Notifications { get; }
@@ -40,6 +42,7 @@ namespace AppEHR.ViewModels
         public ICommand MarkAsReadCommand { get; }
         public ICommand DeleteNotificationCommand { get; }
         public ICommand NavigateToQuickAppointmentCommand { get; }
+        public ICommand NavigateToDetailCommand { get; }
 
         public async Task LoadNotificationsAsync()
         {
@@ -154,6 +157,20 @@ namespace AppEHR.ViewModels
         private async Task NavigateToQuickAppointmentAsync()
         {
             await Shell.Current.GoToAsync("QuickAppointmentPage");
+        }
+
+        private async Task NavigateToDetailAsync(Notification notification)
+        {
+            if (notification == null) return;
+
+            // Mark as read in background if unread
+            if (!notification.IsRead)
+            {
+                await MarkAsReadAsync(notification);
+            }
+
+            // Navigate to detail page
+            await Shell.Current.GoToAsync($"{nameof(NotificationDetailPage)}?notificationId={notification.Id}");
         }
     }
 }

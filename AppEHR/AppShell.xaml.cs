@@ -9,6 +9,7 @@ namespace AppEHR
         {
             InitializeComponent();
             Routing.RegisterRoute(nameof(QuickAppointmentPage), typeof(QuickAppointmentPage));
+            Routing.RegisterRoute(nameof(NotificationDetailPage), typeof(NotificationDetailPage));
         }
     }
 }

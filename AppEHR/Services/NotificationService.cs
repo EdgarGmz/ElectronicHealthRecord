@@ -131,5 +131,31 @@ namespace AppEHR.Services
             }
             return false;
         }
+
+        public async Task<Notification?> GetNotificationByIdAsync(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return null;
+
+            try
+            {
+                var response = await _apiService.GetAsync($"notifications/{Uri.EscapeDataString(id)}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(content);
+                    var success = doc.RootElement.GetProperty("success").GetBoolean();
+                    if (success)
+                    {
+                        var dataJson = doc.RootElement.GetProperty("data").GetRawText();
+                        return JsonSerializer.Deserialize<Notification>(dataJson);
+                    }
+                }
+            }
+            catch
+            {
+                // Ignorar en caso de error
+            }
+            return null;
+        }
     }
 }

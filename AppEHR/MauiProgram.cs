@@ -31,6 +31,7 @@ namespace AppEHR
             builder.Services.AddTransient<QuickAppointmentViewModel>();
             builder.Services.AddTransient<PatientsViewModel>();
             builder.Services.AddTransient<NotificationsViewModel>();
+            builder.Services.AddTransient<NotificationDetailViewModel>();
 
             // Register Views
             builder.Services.AddTransient<LoginPage>();
@@ -38,6 +39,7 @@ namespace AppEHR
             builder.Services.AddTransient<QuickAppointmentPage>();
             builder.Services.AddTransient<PatientsPage>();
             builder.Services.AddTransient<NotificationsPage>();
+            builder.Services.AddTransient<NotificationDetailPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();
