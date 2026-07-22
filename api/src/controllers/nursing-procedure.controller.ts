@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { body } from 'express-validator';
 import nursingProcedureService from '../services/nursing-procedure.service';
 import { AuthRequest } from '../middleware/auth';
+import { createAuditLog, AUDIT_ACTIONS } from '../utils/audit';
 
 export const createProcedureValidation = [
   body('nursingConsultationId').isUUID().withMessage('Valid nursing consultation ID is required'),
@@ -84,6 +85,17 @@ export const createProcedure = async (req: AuthRequest, res: Response, next: Nex
       performedBy,
     });
 
+    if (req.user?.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: 'nursing_procedures',
+        recordId: procedure.id,
+        newValues: { procedureType: procedure.procedureType, description: procedure.description },
+        req,
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Procedure created successfully',
@@ -113,6 +125,17 @@ export const createProcedureFromPatient = async (req: AuthRequest, res: Response
         observations: req.body.observations,
       }
     );
+
+    if (req.user?.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: 'nursing_procedures',
+        recordId: procedure.id,
+        newValues: { procedureType: procedure.procedureType, description: procedure.description },
+        req,
+      });
+    }
 
     res.status(201).json({
       success: true,

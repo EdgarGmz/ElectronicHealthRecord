@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { AuthRequest } from '../middleware/auth';
 import therapySessionService from '../services/therapy-session.service';
+import { createAuditLog, AUDIT_ACTIONS } from '../utils/audit';
 
 export const createTherapySessionValidation = [
   body('psychologyRecordId').isUUID().withMessage('Valid psychology record ID is required'),
@@ -115,6 +116,18 @@ export const createTherapySession = async (req: AuthRequest, res: Response, next
       req.user.userId,
       req.user.role
     );
+
+    if (req.user.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: 'therapy_sessions',
+        recordId: session.id,
+        newValues: { psychologyRecordId: session.psychologyRecordId, sessionNumber: session.sessionNumber },
+        req,
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Therapy session created successfully',
@@ -133,6 +146,18 @@ export const getTherapySessionById = async (req: AuthRequest, res: Response, nex
     }
     const { id } = req.params;
     const session = await therapySessionService.getById(id, req.user.userId, req.user.role);
+
+    if (req.user.userId && session) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.VIEW_RECORD,
+        tableName: 'therapy_sessions',
+        recordId: session.id,
+        newValues: { psychologyRecordId: session.psychologyRecordId, sessionNumber: session.sessionNumber },
+        req,
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Therapy session retrieved successfully',
@@ -170,6 +195,18 @@ export const updateTherapySession = async (req: AuthRequest, res: Response, next
       req.user.userId,
       req.user.role
     );
+
+    if (req.user.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.UPDATE,
+        tableName: 'therapy_sessions',
+        recordId: session.id,
+        newValues: { psychologyRecordId: session.psychologyRecordId, sessionNumber: session.sessionNumber, ...req.body },
+        req,
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Therapy session updated successfully',
@@ -194,6 +231,17 @@ export const cancelTherapySession = async (req: AuthRequest, res: Response, next
       req.user.userId,
       req.user.role
     );
+
+    if (req.user.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.UPDATE,
+        tableName: 'therapy_sessions',
+        recordId: session.id,
+        newValues: { status: 'cancelled', cancellationReason, psychologyRecordId: session.psychologyRecordId },
+        req,
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -224,6 +272,17 @@ export const rescheduleTherapySession = async (
       req.user.userId,
       req.user.role
     );
+
+    if (req.user.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.UPDATE,
+        tableName: 'therapy_sessions',
+        recordId: session.id,
+        newValues: { status: 'rescheduled', rescheduleReason, sessionDate, psychologyRecordId: session.psychologyRecordId },
+        req,
+      });
+    }
 
     res.status(200).json({
       success: true,
