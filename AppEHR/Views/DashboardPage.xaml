@@ -4,6 +4,7 @@
              xmlns:viewmodels="clr-namespace:AppEHR.ViewModels"
              xmlns:models="clr-namespace:AppEHR.Models"
              xmlns:converters="clr-namespace:AppEHR.Converters"
+             xmlns:controls="clr-namespace:AppEHR.Controls"
              x:Class="AppEHR.Views.DashboardPage"
              x:Name="ThisPage"
              Title="Mi Agenda">
@@ -26,25 +27,18 @@
         <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16,10" RowSpacing="12">
             
             <!-- Header Row -->
-            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,10,0,0">
-                <VerticalStackLayout Grid.Column="0" Spacing="2">
+            <Grid Grid.Row="0" Margin="0,10,0,0">
+                <VerticalStackLayout Spacing="2">
                     <Label Text="Hola," FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
                     <Label Text="{Binding PsychologistName}" FontSize="20" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
                 </VerticalStackLayout>
-                <Button Grid.Column="1" 
-                        Text="Salir" 
-                        Command="{Binding LogoutCommand}"
-                        BackgroundColor="Transparent"
-                        TextColor="{StaticResource BrandError}"
-                        FontAttributes="Bold"
-                        VerticalOptions="Center" />
             </Grid>
 
             <!-- Statistics & Grounding Phrase (Glass Card) -->
             <Border Grid.Row="1"
                     StrokeThickness="1.2"
-                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                    Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}, Default={StaticResource GlassBorderLight}}"
+                    Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}, Default={StaticResource GlassBgLight}}"
                     Padding="16">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="16" />
@@ -110,10 +104,10 @@
                         Text="Hoy"
                         Command="{Binding ChangeViewModeCommand}" 
                         CommandParameter="today"
-                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}, Default={StaticResource Black}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}, Default={StaticResource GlassBgLight}}"
                         BorderWidth="1"
-                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}, Default={StaticResource GlassBorderLight}}"
                         CornerRadius="10"
                         FontSize="12">
                     <Button.Triggers>
@@ -127,10 +121,10 @@
                         Text="Semana" 
                         Command="{Binding ChangeViewModeCommand}" 
                         CommandParameter="week"
-                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}, Default={StaticResource Black}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}, Default={StaticResource GlassBgLight}}"
                         BorderWidth="1"
-                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}, Default={StaticResource GlassBorderLight}}"
                         CornerRadius="10"
                         FontSize="12">
                     <Button.Triggers>
@@ -144,10 +138,10 @@
                         Text="Mes" 
                         Command="{Binding ChangeViewModeCommand}" 
                         CommandParameter="month"
-                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}, Default={StaticResource Black}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}, Default={StaticResource GlassBgLight}}"
                         BorderWidth="1"
-                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}, Default={StaticResource GlassBorderLight}}"
                         CornerRadius="10"
                         FontSize="12">
                     <Button.Triggers>
@@ -175,8 +169,8 @@
                         <DataTemplate x:DataType="models:Appointment">
                             <Grid Padding="0,4,0,8">
                                 <Border StrokeThickness="1"
-                                        Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                                        Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                                        Stroke="{AppThemeBinding Light=#30FFFFFF, Dark=#20FFFFFF}"
+                                        Background="{AppThemeBinding Light=#90FFFFFF, Dark=#50161622}"
                                         Padding="14">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="14" />
@@ -187,7 +181,7 @@
                                             <Label Text="{Binding Patient.User.FullName}" 
                                                    FontSize="15" 
                                                    FontAttributes="Bold" 
-                                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                                   TextColor="{AppThemeBinding Light=#212121, Dark=White}" />
                                             
                                             <HorizontalStackLayout Spacing="10">
                                                 <!-- Group Info -->
@@ -215,9 +209,9 @@
                                         <!-- Row 1: Time, Remaining time indicator & Duration -->
                                         <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Spacing="8" VerticalOptions="Center">
                                             <Label Text="🕒" FontSize="12" TextColor="Gray" />
-                                            <Label Text="{Binding FormattedTime}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray850}, Dark={StaticResource Gray150}}" />
+                                            <Label Text="{Binding FormattedTime}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#2A2A2A, Dark=#D9D9D9}" />
                                             <Label Text="⏱️" FontSize="12" TextColor="Gray" />
-                                            <Label Text="{Binding RemainingTimeText}" FontSize="12" FontAttributes="Italic" TextColor="{AppThemeBinding Light={StaticResource Gray700}, Dark={StaticResource Gray300}}" />
+                                            <Label Text="{Binding RemainingTimeText}" FontSize="12" FontAttributes="Italic" TextColor="{AppThemeBinding Light=#333333, Dark=#ACACAC}" />
                                             <Label Text="{Binding DurationMinutes, StringFormat='({0} min)'}" FontSize="11" TextColor="Gray" />
                                         </HorizontalStackLayout>
 
@@ -257,21 +251,8 @@
                 </CollectionView>
             </RefreshView>
 
-            <!-- FAB (Floating Action Button) de Agendado Rápido -->
-            <Button Grid.Row="3"
-                    Command="{Binding NavigateToQuickAppointmentCommand}"
-                    Text="➕"
-                    TextColor="White"
-                    FontSize="22"
-                    FontAttributes="Bold"
-                    BackgroundColor="{StaticResource BrandPrimary}"
-                    WidthRequest="56"
-                    HeightRequest="56"
-                    CornerRadius="28"
-                    HorizontalOptions="End"
-                    VerticalOptions="End"
-                    Margin="0,0,10,10"
-                    Shadow="{Shadow Brush=Black, Offset='0,4', Radius=8, Opacity=0.25}" />
+            <!-- Bottom Navigation Bar -->
+            <controls:AppNavBar ActiveTab="1" Grid.Row="3" VerticalOptions="End" Margin="-16,0,-16,-10" />
         </Grid>
     </Grid>
 
