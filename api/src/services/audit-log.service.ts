@@ -177,6 +177,10 @@ async function resolveLogDetail(log: any): Promise<string> {
     psychologyrecord: 'expedientes psicológicos',
     nursing_consultations: 'consultas de enfermería',
     nursingconsultation: 'consultas de enfermería',
+    nursing_attentions: 'atenciones de enfermería',
+    nursingattention: 'atenciones de enfermería',
+    nursing_procedures: 'procedimientos de enfermería',
+    nursingprocedure: 'procedimientos de enfermería',
     prescriptions: 'recetas',
     prescription: 'recetas',
     medication_administrations: 'administraciones de medicamentos',
@@ -201,6 +205,8 @@ async function resolveLogDetail(log: any): Promise<string> {
     blogpost: 'publicaciones de blog',
     emergency_contacts: 'contactos de emergencia',
     emergencycontact: 'contactos de emergencia',
+    waiting_list: 'lista de espera virtual',
+    waitinglist: 'lista de espera virtual',
   };
 
   const friendlyTable = friendlyTableNames[table] || table;
@@ -209,23 +215,23 @@ async function resolveLogDetail(log: any): Promise<string> {
     return `${actorWithTitle} exportó registros de la tabla de ${friendlyTable}.`;
   }
 
-  // 2. Resource specific actions
-  try {
-    const formatPatientPhrases = (name: string) => {
-      const isDefault = name === 'un paciente';
-      return {
-        delPaciente: isDefault ? 'de un paciente' : `del paciente ${name}`,
-        paraElPaciente: isDefault ? 'para un paciente' : `para el paciente ${name}`,
-        conElPaciente: isDefault ? 'con un paciente' : `con el paciente ${name}`,
-        alPaciente: isDefault ? 'a un paciente' : `al paciente ${name}`,
-      };
+  // Helper local para formatear frases sobre pacientes de forma limpia en español
+  const formatPatientPhrases = (name: string) => {
+    const isDefault = !name || name === 'un paciente';
+    return {
+      delPaciente: isDefault ? 'de un paciente' : `del paciente ${name}`,
+      paraElPaciente: isDefault ? 'para un paciente' : `para el paciente ${name}`,
+      conElPaciente: isDefault ? 'con un paciente' : `con el paciente ${name}`,
+      alPaciente: isDefault ? 'a un paciente' : `al paciente ${name}`,
     };
+  };
 
+  try {
     // A. Users
     if (table === 'users' || table === 'user') {
       const targetFirstName = newVals.firstName || oldVals.firstName || '';
       const targetLastName = newVals.lastName || oldVals.lastName || '';
-      const targetName = `${targetFirstName} ${targetLastName}`.trim() || 'un usuario';
+      const targetName = `${targetFirstName} ${targetLastName}`.trim() || newVals.userName || oldVals.userName || 'un usuario';
 
       if (action === 'CREATE') {
         return `${actorWithTitle} creó al usuario ${targetName}.`;
@@ -249,7 +255,7 @@ async function resolveLogDetail(log: any): Promise<string> {
 
     // B. Careers
     if (table === 'careers' || table === 'career') {
-      const careerName = newVals.name || oldVals.name || 'una carrera';
+      const careerName = newVals.name || oldVals.name || newVals.careerName || oldVals.careerName || 'una carrera';
       if (action === 'CREATE') {
         return `${actorWithTitle} creó la carrera ${careerName}.`;
       }
@@ -266,8 +272,8 @@ async function resolveLogDetail(log: any): Promise<string> {
       const patientId = newVals.patientId || oldVals.patientId;
       const assignedPsychologistId = newVals.assignedPsychologistId || oldVals.assignedPsychologistId;
 
-      let patientName = 'un paciente';
-      if (patientId) {
+      let patientName = newVals.patientName || oldVals.patientName || 'un paciente';
+      if (patientName === 'un paciente' && patientId) {
         const patientRecord = await prisma.patient.findUnique({
           where: { id: patientId },
           include: { user: true }
@@ -277,8 +283,8 @@ async function resolveLogDetail(log: any): Promise<string> {
         }
       }
 
-      let psychologistName = '';
-      if (assignedPsychologistId) {
+      let psychologistName = newVals.psychologistName || oldVals.psychologistName || '';
+      if (!psychologistName && assignedPsychologistId) {
         const psychRecord = await prisma.user.findUnique({
           where: { id: assignedPsychologistId }
         });
@@ -305,45 +311,47 @@ async function resolveLogDetail(log: any): Promise<string> {
 
     // D. Therapy Sessions
     if (table === 'therapy_sessions' || table === 'therapysession') {
-      const psychologyRecordId = newVals.psychologyRecordId || oldVals.psychologyRecordId;
-      let patientName = 'un paciente';
-      if (psychologyRecordId) {
-        const psychologyRecord = await prisma.psychologyRecord.findUnique({
-          where: { id: psychologyRecordId },
-          include: {
-            medicalRecord: {
-              include: {
-                patient: {
-                  include: { user: true }
+      let patientName = newVals.patientName || oldVals.patientName || 'un paciente';
+      if (patientName === 'un paciente') {
+        const psychologyRecordId = newVals.psychologyRecordId || oldVals.psychologyRecordId;
+        if (psychologyRecordId) {
+          const psychologyRecord = await prisma.psychologyRecord.findUnique({
+            where: { id: psychologyRecordId },
+            include: {
+              medicalRecord: {
+                include: {
+                  patient: {
+                    include: { user: true }
+                  }
                 }
               }
             }
+          });
+          const userObj = psychologyRecord?.medicalRecord?.patient?.user;
+          if (userObj) {
+            patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
           }
-        });
-        const userObj = psychologyRecord?.medicalRecord?.patient?.user;
-        if (userObj) {
-          patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
-        }
-      } else if (log.recordId) {
-        const session = await prisma.therapySession.findUnique({
-          where: { id: log.recordId },
-          include: {
-            psychologyRecord: {
-              include: {
-                medicalRecord: {
-                  include: {
-                    patient: {
-                      include: { user: true }
+        } else if (log.recordId) {
+          const session = await prisma.therapySession.findUnique({
+            where: { id: log.recordId },
+            include: {
+              psychologyRecord: {
+                include: {
+                  medicalRecord: {
+                    include: {
+                      patient: {
+                        include: { user: true }
+                      }
                     }
                   }
                 }
               }
             }
+          });
+          const userObj = session?.psychologyRecord?.medicalRecord?.patient?.user;
+          if (userObj) {
+            patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
           }
-        });
-        const userObj = session?.psychologyRecord?.medicalRecord?.patient?.user;
-        if (userObj) {
-          patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
         }
       }
 
@@ -365,37 +373,39 @@ async function resolveLogDetail(log: any): Promise<string> {
 
     // E. Clinical Records (nursing_consultations)
     if (table === 'nursing_consultations' || table === 'nursingconsultation') {
-      const medicalRecordId = newVals.medicalRecordId || oldVals.medicalRecordId;
-      let patientName = 'un paciente';
-      if (medicalRecordId) {
-        const medicalRecord = await prisma.medicalRecord.findUnique({
-          where: { id: medicalRecordId },
-          include: {
-            patient: {
-              include: { user: true }
+      let patientName = newVals.patientName || oldVals.patientName || 'un paciente';
+      if (patientName === 'un paciente') {
+        const medicalRecordId = newVals.medicalRecordId || oldVals.medicalRecordId;
+        if (medicalRecordId) {
+          const medicalRecord = await prisma.medicalRecord.findUnique({
+            where: { id: medicalRecordId },
+            include: {
+              patient: {
+                include: { user: true }
+              }
             }
+          });
+          const userObj = medicalRecord?.patient?.user;
+          if (userObj) {
+            patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
           }
-        });
-        const userObj = medicalRecord?.patient?.user;
-        if (userObj) {
-          patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
-        }
-      } else if (log.recordId) {
-        const consultation = await prisma.nursingConsultation.findUnique({
-          where: { id: log.recordId },
-          include: {
-            medicalRecord: {
-              include: {
-                patient: {
-                  include: { user: true }
+        } else if (log.recordId) {
+          const consultation = await prisma.nursingConsultation.findUnique({
+            where: { id: log.recordId },
+            include: {
+              medicalRecord: {
+                include: {
+                  patient: {
+                    include: { user: true }
+                  }
                 }
               }
             }
+          });
+          const userObj = consultation?.medicalRecord?.patient?.user;
+          if (userObj) {
+            patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
           }
-        });
-        const userObj = consultation?.medicalRecord?.patient?.user;
-        if (userObj) {
-          patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
         }
       }
 
@@ -417,28 +427,30 @@ async function resolveLogDetail(log: any): Promise<string> {
 
     // F. Medical Records
     if (table === 'medical_records' || table === 'medicalrecord') {
-      const patientId = newVals.patientId || oldVals.patientId;
-      let patientName = 'un paciente';
-      if (patientId) {
-        const patientRecord = await prisma.patient.findUnique({
-          where: { id: patientId },
-          include: { user: true }
-        });
-        if (patientRecord?.user) {
-          patientName = `${patientRecord.user.firstName} ${patientRecord.user.lastName}`.trim();
-        }
-      } else if (log.recordId) {
-        const medicalRecord = await prisma.medicalRecord.findUnique({
-          where: { id: log.recordId },
-          include: {
-            patient: {
-              include: { user: true }
-            }
+      let patientName = newVals.patientName || oldVals.patientName || 'un paciente';
+      if (patientName === 'un paciente') {
+        const patientId = newVals.patientId || oldVals.patientId;
+        if (patientId) {
+          const patientRecord = await prisma.patient.findUnique({
+            where: { id: patientId },
+            include: { user: true }
+          });
+          if (patientRecord?.user) {
+            patientName = `${patientRecord.user.firstName} ${patientRecord.user.lastName}`.trim();
           }
-        });
-        const userObj = medicalRecord?.patient?.user;
-        if (userObj) {
-          patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
+        } else if (log.recordId) {
+          const medicalRecord = await prisma.medicalRecord.findUnique({
+            where: { id: log.recordId },
+            include: {
+              patient: {
+                include: { user: true }
+              }
+            }
+          });
+          const userObj = medicalRecord?.patient?.user;
+          if (userObj) {
+            patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
+          }
         }
       }
 
@@ -481,28 +493,30 @@ async function resolveLogDetail(log: any): Promise<string> {
 
     // H. Appointments
     if (table === 'appointments' || table === 'appointment') {
-      const patientId = newVals.patientId || oldVals.patientId;
-      let patientName = 'un paciente';
-      if (patientId) {
-        const patientRecord = await prisma.patient.findUnique({
-          where: { id: patientId },
-          include: { user: true }
-        });
-        if (patientRecord?.user) {
-          patientName = `${patientRecord.user.firstName} ${patientRecord.user.lastName}`.trim();
-        }
-      } else if (log.recordId) {
-        const appointment = await prisma.appointment.findUnique({
-          where: { id: log.recordId },
-          include: {
-            patient: {
-              include: { user: true }
-            }
+      let patientName = newVals.patientName || oldVals.patientName || 'un paciente';
+      if (patientName === 'un paciente') {
+        const patientId = newVals.patientId || oldVals.patientId;
+        if (patientId) {
+          const patientRecord = await prisma.patient.findUnique({
+            where: { id: patientId },
+            include: { user: true }
+          });
+          if (patientRecord?.user) {
+            patientName = `${patientRecord.user.firstName} ${patientRecord.user.lastName}`.trim();
           }
-        });
-        const userObj = appointment?.patient?.user;
-        if (userObj) {
-          patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
+        } else if (log.recordId) {
+          const appointment = await prisma.appointment.findUnique({
+            where: { id: log.recordId },
+            include: {
+              patient: {
+                include: { user: true }
+              }
+            }
+          });
+          const userObj = appointment?.patient?.user;
+          if (userObj) {
+            patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
+          }
         }
       }
 
@@ -531,48 +545,51 @@ async function resolveLogDetail(log: any): Promise<string> {
 
     // I. Prescriptions
     if (table === 'prescriptions' || table === 'prescription') {
-      const patientId = newVals.patientId || oldVals.patientId;
-      const medicationId = newVals.medicationId || oldVals.medicationId;
-
-      let patientName = 'un paciente';
-      if (patientId) {
-        const patientRecord = await prisma.patient.findUnique({
-          where: { id: patientId },
-          include: { user: true }
-        });
-        if (patientRecord?.user) {
-          patientName = `${patientRecord.user.firstName} ${patientRecord.user.lastName}`.trim();
-        }
-      } else if (log.recordId) {
-        const prescription = await prisma.prescription.findUnique({
-          where: { id: log.recordId },
-          include: {
-            patient: {
-              include: { user: true }
-            }
+      let patientName = newVals.patientName || oldVals.patientName || 'un paciente';
+      if (patientName === 'un paciente') {
+        const patientId = newVals.patientId || oldVals.patientId;
+        if (patientId) {
+          const patientRecord = await prisma.patient.findUnique({
+            where: { id: patientId },
+            include: { user: true }
+          });
+          if (patientRecord?.user) {
+            patientName = `${patientRecord.user.firstName} ${patientRecord.user.lastName}`.trim();
           }
-        });
-        const userObj = prescription?.patient?.user;
-        if (userObj) {
-          patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
+        } else if (log.recordId) {
+          const prescription = await prisma.prescription.findUnique({
+            where: { id: log.recordId },
+            include: {
+              patient: {
+                include: { user: true }
+              }
+            }
+          });
+          const userObj = prescription?.patient?.user;
+          if (userObj) {
+            patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
+          }
         }
       }
 
-      let medicationName = 'un medicamento';
-      if (medicationId) {
-        const medicationRecord = await prisma.medication.findUnique({
-          where: { id: medicationId }
-        });
-        if (medicationRecord) {
-          medicationName = medicationRecord.name;
-        }
-      } else if (log.recordId) {
-        const prescription = await prisma.prescription.findUnique({
-          where: { id: log.recordId },
-          include: { medication: true }
-        });
-        if (prescription?.medication) {
-          medicationName = prescription.medication.name;
+      let medicationName = newVals.medicationName || oldVals.medicationName || 'un medicamento';
+      if (medicationName === 'un medicamento') {
+        const medicationId = newVals.medicationId || oldVals.medicationId;
+        if (medicationId) {
+          const medicationRecord = await prisma.medication.findUnique({
+            where: { id: medicationId }
+          });
+          if (medicationRecord) {
+            medicationName = medicationRecord.name;
+          }
+        } else if (log.recordId) {
+          const prescription = await prisma.prescription.findUnique({
+            where: { id: log.recordId },
+            include: { medication: true }
+          });
+          if (prescription?.medication) {
+            medicationName = prescription.medication.name;
+          }
         }
       }
 
@@ -594,65 +611,68 @@ async function resolveLogDetail(log: any): Promise<string> {
 
     // J. Medication Administrations
     if (table === 'medication_administrations' || table === 'medicationadministration') {
-      const medicationId = newVals.medicationId || oldVals.medicationId;
-      const nursingConsultationId = newVals.nursingConsultationId || oldVals.nursingConsultationId;
-
-      let patientName = 'un paciente';
-      if (nursingConsultationId) {
-        const consultation = await prisma.nursingConsultation.findUnique({
-          where: { id: nursingConsultationId },
-          include: {
-            medicalRecord: {
-              include: {
-                patient: {
-                  include: { user: true }
+      let patientName = newVals.patientName || oldVals.patientName || 'un paciente';
+      if (patientName === 'un paciente') {
+        const nursingConsultationId = newVals.nursingConsultationId || oldVals.nursingConsultationId;
+        if (nursingConsultationId) {
+          const consultation = await prisma.nursingConsultation.findUnique({
+            where: { id: nursingConsultationId },
+            include: {
+              medicalRecord: {
+                include: {
+                  patient: {
+                    include: { user: true }
+                  }
                 }
               }
             }
+          });
+          const userObj = consultation?.medicalRecord?.patient?.user;
+          if (userObj) {
+            patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
           }
-        });
-        const userObj = consultation?.medicalRecord?.patient?.user;
-        if (userObj) {
-          patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
-        }
-      } else if (log.recordId) {
-        const adminRecord = await prisma.medicationAdministration.findUnique({
-          where: { id: log.recordId },
-          include: {
-            consultation: {
-              include: {
-                medicalRecord: {
-                  include: {
-                    patient: {
-                      include: { user: true }
+        } else if (log.recordId) {
+          const adminRecord = await prisma.medicationAdministration.findUnique({
+            where: { id: log.recordId },
+            include: {
+              consultation: {
+                include: {
+                  medicalRecord: {
+                    include: {
+                      patient: {
+                        include: { user: true }
+                      }
                     }
                   }
                 }
               }
             }
+          });
+          const userObj = adminRecord?.consultation?.medicalRecord?.patient?.user;
+          if (userObj) {
+            patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
           }
-        });
-        const userObj = adminRecord?.consultation?.medicalRecord?.patient?.user;
-        if (userObj) {
-          patientName = `${userObj.firstName} ${userObj.lastName}`.trim();
         }
       }
 
-      let medicationName = 'un medicamento';
-      if (medicationId) {
-        const medicationRecord = await prisma.medication.findUnique({
-          where: { id: medicationId }
-        });
-        if (medicationRecord) {
-          medicationName = medicationRecord.name;
-        }
-      } else if (log.recordId) {
-        const adminRecord = await prisma.medicationAdministration.findUnique({
-          where: { id: log.recordId },
-          include: { medication: true }
-        });
-        if (adminRecord?.medication) {
-          medicationName = adminRecord.medication.name;
+      let medicationName = newVals.medicationName || oldVals.medicationName || 'un medicamento';
+      if (medicationName === 'un medicamento') {
+        const medicationId = newVals.medicationId || oldVals.medicationId;
+        if (medicationId) {
+          const medicationRecord = await prisma.medication.findUnique({
+            where: { id: medicationId }
+          });
+          if (medicationRecord) {
+            medicationName = medicationRecord.name;
+          }
+        } else if (log.recordId) {
+          const adminRecord = await prisma.medicationAdministration.findUnique({
+            where: { id: log.recordId },
+            include: { medication: true }
+          });
+          if (adminRecord?.medication) {
+            medicationName = adminRecord.medication.name;
+          }
         }
       }
 
@@ -672,13 +692,114 @@ async function resolveLogDetail(log: any): Promise<string> {
       }
     }
 
+    // K. Waiting List (Kiosko / Virtual Queue)
+    if (table === 'waiting_list' || table === 'waitinglist') {
+      let patientName = newVals.patientName || oldVals.patientName || 'un paciente';
+      if (patientName === 'un paciente') {
+        const patientId = newVals.patientId || oldVals.patientId;
+        if (patientId) {
+          const patientRecord = await prisma.patient.findUnique({
+            where: { id: patientId },
+            include: { user: true }
+          });
+          if (patientRecord?.user) {
+            patientName = `${patientRecord.user.firstName} ${patientRecord.user.lastName}`.trim();
+          }
+        }
+      }
+
+      const phrases = formatPatientPhrases(patientName);
+
+      if (action === 'CREATE') {
+        return `${actorWithTitle} se registró en la fila virtual de espera (Kiosko).`;
+      }
+      if (action === 'UPDATE') {
+        const status = newVals.status || oldVals.status || '';
+        return `${actorWithTitle} actualizó el estado en la lista de espera de ${phrases.delPaciente} a '${status}'.`;
+      }
+      if (action === 'DELETE') {
+        return `${actorWithTitle} retiró de la lista de espera ${phrases.alPaciente}.`;
+      }
+    }
+
+    // L. Nursing Attention / Attentions
+    if (table === 'nursing_attentions' || table === 'nursingattention') {
+      let patientName = newVals.patientName || oldVals.patientName || 'un paciente';
+      if (patientName === 'un paciente') {
+        const patientId = newVals.patientId || oldVals.patientId;
+        if (patientId) {
+          const patientRecord = await prisma.patient.findUnique({
+            where: { id: patientId },
+            include: { user: true }
+          });
+          if (patientRecord?.user) {
+            patientName = `${patientRecord.user.firstName} ${patientRecord.user.lastName}`.trim();
+          }
+        }
+      }
+
+      const phrases = formatPatientPhrases(patientName);
+
+      if (action === 'CREATE') {
+        return `${actorWithTitle} registró una atención de enfermería de urgencia/kiosko ${phrases.paraElPaciente}.`;
+      }
+      if (action === 'UPDATE') {
+        return `${actorWithTitle} modificó la atención de enfermería ${phrases.paraElPaciente}.`;
+      }
+      if (action === 'DELETE') {
+        return `${actorWithTitle} eliminó la atención de enfermería ${phrases.paraElPaciente}.`;
+      }
+    }
+
+    // M. Nursing Procedure
+    if (table === 'nursing_procedures' || table === 'nursingprocedure') {
+      let procedureType = newVals.procedureType || oldVals.procedureType || 'un procedimiento';
+      if (action === 'CREATE') {
+        return `${actorWithTitle} realizó el procedimiento de enfermería '${procedureType}'.`;
+      }
+      if (action === 'UPDATE') {
+        return `${actorWithTitle} modificó el procedimiento de enfermería '${procedureType}'.`;
+      }
+      if (action === 'DELETE') {
+        return `${actorWithTitle} eliminó el procedimiento de enfermería '${procedureType}'.`;
+      }
+    }
+
+    // N. Psychometric test / Evaluation
+    if (table === 'psychometric_evaluations' || table === 'psychometricevaluation') {
+      let evalType = newVals.evaluationType || oldVals.evaluationType || 'una evaluación psicométrica';
+      if (action === 'CREATE') {
+        return `${actorWithTitle} aplicó la evaluación psicométrica '${evalType}'.`;
+      }
+      if (action === 'UPDATE') {
+        return `${actorWithTitle} modificó la evaluación psicométrica '${evalType}'.`;
+      }
+      if (action === 'DELETE') {
+        return `${actorWithTitle} eliminó la evaluación psicométrica '${evalType}'.`;
+      }
+    }
+
+    // O. Blog posts
+    if (table === 'blog_posts' || table === 'blogpost') {
+      let postTitle = newVals.title || oldVals.title || 'una publicación de blog';
+      if (action === 'CREATE') {
+        return `${actorWithTitle} publicó el artículo '${postTitle}' en el mural del Kiosko.`;
+      }
+      if (action === 'UPDATE') {
+        return `${actorWithTitle} editó el artículo '${postTitle}' en el mural del Kiosko.`;
+      }
+      if (action === 'DELETE') {
+        return `${actorWithTitle} eliminó el artículo '${postTitle}' del mural del Kiosko.`;
+      }
+    }
+
   } catch (err) {
     // Ignore errors resolving detail, fallback below
   }
 
   // Fallback for other resources / actions
   const actionText = action === 'CREATE' ? 'creó' : action === 'UPDATE' ? 'modificó' : action === 'DELETE' ? 'eliminó' : action === 'READ' || action === 'VIEW_RECORD' ? 'consultó' : action.toLowerCase();
-  return `${actorWithTitle} ${actionText} un registro en la tabla de ${friendlyTable}.`;
+  return `${actorWithTitle} ${actionText} un registro de ${friendlyTable}.`;
 }
 
 export default new AuditLogService();
