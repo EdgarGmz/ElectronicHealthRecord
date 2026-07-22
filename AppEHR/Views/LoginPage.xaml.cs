@@ -45,7 +45,7 @@ namespace AppEHR.Views
                 var converter = new Microsoft.Maui.Controls.Shapes.PathGeometryConverter();
                 themeIcon.Data = (Microsoft.Maui.Controls.Shapes.Geometry)converter.ConvertFromInvariantString(pathStr);
             }
-        }
+            }
 
         private void OnThemeToggleClicked(object sender, EventArgs e)
         {

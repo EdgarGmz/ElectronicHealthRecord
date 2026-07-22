@@ -17,8 +17,8 @@
         <!-- Background Gradient -->
         <Grid.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Color="{AppThemeBinding Light=#f8fafc, Dark=#1e293b}" Offset="0.0" />
-                <GradientStop Color="{AppThemeBinding Light=#e2e8f0, Dark=#0f172a}" Offset="1.0" />
+                <GradientStop Color="{AppThemeBinding Light=#f8fafc, Dark=#1e293b, Default=#f8fafc}" Offset="0.0" />
+                <GradientStop Color="{AppThemeBinding Light=#e2e8f0, Dark=#0f172a, Default=#e2e8f0}" Offset="1.0" />
             </LinearGradientBrush>
         </Grid.Background>
 
@@ -27,9 +27,9 @@
             <Border Grid.Column="1"
                     WidthRequest="40"
                     HeightRequest="40"
-                    Background="{AppThemeBinding Light=#f1f5f9, Dark=#1e293b}"
+                    Background="{AppThemeBinding Light=#f1f5f9, Dark=#1e293b, Default=#f1f5f9}"
                     StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#334155}"
+                    Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#334155, Default=#cbd5e1}"
                     HorizontalOptions="End"
                     VerticalOptions="Center">
                 <Border.StrokeShape>
@@ -37,7 +37,7 @@
                 </Border.StrokeShape>
                 <Grid WidthRequest="32" HeightRequest="32" VerticalOptions="Center" HorizontalOptions="Center">
                     <Path x:Name="ThemeIconPath"
-                          Fill="{AppThemeBinding Light=#64748b, Dark=#FBBF24}"
+                          Fill="{AppThemeBinding Light=#64748b, Dark=#FBBF24, Default=#64748b}"
                           Aspect="Uniform"
                           HeightRequest="18"
                           WidthRequest="18"
@@ -56,8 +56,8 @@
                 <!-- Dark/Light Container/Card -->
                 <Border WidthRequest="360"
                         StrokeThickness="1"
-                        Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#1e293b}"
-                        Background="{AppThemeBinding Light=#ffffff, Dark=#111827}"
+                        Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#1e293b, Default=#cbd5e1}"
+                        Background="{AppThemeBinding Light=#ffffff, Dark=#111827, Default=#ffffff}"
                         Padding="28"
                         HorizontalOptions="Center"
                         VerticalOptions="Center">
@@ -65,7 +65,7 @@
                         <RoundRectangle CornerRadius="24" />
                     </Border.StrokeShape>
                     <Border.Shadow>
-                        <Shadow Brush="Black" Offset="0,8" Radius="16" Opacity="{AppThemeBinding Light=0.05, Dark=0.4}" />
+                        <Shadow Brush="Black" Offset="0,8" Radius="16" Opacity="{AppThemeBinding Light=0.05, Dark=0.4, Default=0.05}" />
                     </Border.Shadow>
 
                     <VerticalStackLayout Spacing="24">
@@ -75,7 +75,7 @@
                             <!-- Icon Container (Blue rounded square) -->
                             <Border WidthRequest="64"
                                     HeightRequest="64"
-                                    Background="{AppThemeBinding Light=#E0F2FE, Dark=#1e293b}"
+                                    Background="{AppThemeBinding Light=#E0F2FE, Dark=#1e293b, Default=#E0F2FE}"
                                     StrokeThickness="1"
                                     Stroke="{StaticResource BrandPrimary}"
                                     HorizontalOptions="Center">
@@ -97,13 +97,13 @@
                             <Label Text="Universidad Tecnológica" 
                                    FontSize="20" 
                                    FontAttributes="Bold" 
-                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}"
                                    HorizontalTextAlignment="Center"
                                    HorizontalOptions="Center" />
                             <Label Text="Santa Catarina" 
                                    FontSize="20" 
                                    FontAttributes="Bold" 
-                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}"
                                    HorizontalTextAlignment="Center"
                                    HorizontalOptions="Center"
                                    Margin="0,-6,0,0" />
@@ -125,10 +125,10 @@
                                 <Label Text="Nombre de usuario" 
                                        FontSize="14" 
                                        FontAttributes="Bold" 
-                                       TextColor="{AppThemeBinding Light=#0F172A, Dark=White}" />
+                                       TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}" />
                                 <Border StrokeThickness="1" 
-                                        Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#1e293b}"
-                                        Background="{AppThemeBinding Light=#f8fafc, Dark=#0f172a}"
+                                        Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#1e293b, Default=#cbd5e1}"
+                                        Background="{AppThemeBinding Light=#f8fafc, Dark=#0f172a, Default=#f8fafc}"
                                         HeightRequest="48"
                                         Padding="12,0">
                                     <Border.StrokeShape>
@@ -138,7 +138,7 @@
                                         <!-- User Icon SVG path -->
                                         <Path Grid.Column="0"
                                               Data="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"
-                                              Fill="{AppThemeBinding Light=#64748b, Dark=#94A3B8}"
+                                              Fill="{AppThemeBinding Light=#64748b, Dark=#94A3B8, Default=#64748b}"
                                               Aspect="Uniform"
                                               HeightRequest="18"
                                               WidthRequest="18"
@@ -147,8 +147,8 @@
                                         <Entry Grid.Column="1"
                                                Text="{Binding Username}" 
                                                Placeholder="Usuario" 
-                                               TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
-                                               PlaceholderColor="{AppThemeBinding Light=#94a3b8, Dark=#475569}"
+                                               TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}"
+                                               PlaceholderColor="{AppThemeBinding Light=#94a3b8, Dark=#475569, Default=#94a3b8}"
                                                VerticalOptions="Center"
                                                FontSize="15"
                                                Keyboard="Default"
@@ -162,10 +162,10 @@
                                 <Label Text="Contraseña" 
                                        FontSize="14" 
                                        FontAttributes="Bold" 
-                                       TextColor="{AppThemeBinding Light=#0F172A, Dark=White}" />
+                                       TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}" />
                                 <Border StrokeThickness="1" 
-                                        Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#1e293b}"
-                                        Background="{AppThemeBinding Light=#f8fafc, Dark=#0f172a}"
+                                        Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#1e293b, Default=#cbd5e1}"
+                                        Background="{AppThemeBinding Light=#f8fafc, Dark=#0f172a, Default=#f8fafc}"
                                         HeightRequest="48"
                                         Padding="12,0">
                                     <Border.StrokeShape>
@@ -175,7 +175,7 @@
                                         <!-- Lock Icon SVG path -->
                                         <Path Grid.Column="0"
                                               Data="M18,8H17V6A5,5 0 0,0 12,1A5,5 0 0,0 7,6V8H6A2,2 0 0,0 4,10V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V10A2,2 0 0,0 18,8M9,6A3,3 0 0,1 12,3A3,3 0 0,1 15,6V8H9V6M18,20H6V10H18V20M12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17A2,2 0 0,0 14,15A2,2 0 0,0 12,13Z"
-                                              Fill="{AppThemeBinding Light=#64748b, Dark=#94A3B8}"
+                                              Fill="{AppThemeBinding Light=#64748b, Dark=#94A3B8, Default=#64748b}"
                                               Aspect="Uniform"
                                               HeightRequest="18"
                                               WidthRequest="18"
@@ -186,8 +186,8 @@
                                                Text="{Binding Password}" 
                                                Placeholder="••••••••" 
                                                IsPassword="True" 
-                                               TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
-                                               PlaceholderColor="{AppThemeBinding Light=#94a3b8, Dark=#475569}"
+                                               TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}"
+                                               PlaceholderColor="{AppThemeBinding Light=#94a3b8, Dark=#475569, Default=#94a3b8}"
                                                VerticalOptions="Center"
                                                FontSize="15"
                                                Margin="0" />
@@ -200,7 +200,7 @@
                                               HorizontalOptions="Center">
                                             <Path x:Name="EyeIconPath"
                                                   Data="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17Z"
-                                                  Fill="{AppThemeBinding Light=#64748b, Dark=#94A3B8}"
+                                                  Fill="{AppThemeBinding Light=#64748b, Dark=#94A3B8, Default=#64748b}"
                                                   Aspect="Uniform"
                                                   HeightRequest="18"
                                                   WidthRequest="18"
@@ -226,7 +226,7 @@
                                     <Label Text="Mantener sesión" 
                                            VerticalOptions="Center" 
                                            FontSize="13" 
-                                           TextColor="{AppThemeBinding Light=#64748b, Dark=#94A3B8}" />
+                                           TextColor="{AppThemeBinding Light=#64748b, Dark=#94A3B8, Default=#64748b}" />
                                 </HorizontalStackLayout>
 
                                 <!-- Forgot Password -->

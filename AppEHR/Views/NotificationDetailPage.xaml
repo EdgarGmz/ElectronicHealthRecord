@@ -19,8 +19,8 @@
                 
                 <!-- Main Glass Card -->
                 <Border StrokeThickness="1"
-                        Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                        Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                        Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}, Default={StaticResource GlassBorderLight}}"
+                        Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}, Default={StaticResource GlassBgLight}}"
                         Padding="20"
                         Margin="0,10">
                     <Border.StrokeShape>
@@ -73,7 +73,7 @@
                         </VerticalStackLayout>
 
                         <!-- Separator line -->
-                        <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+                        <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}, Default={StaticResource Gray200}}" />
 
                         <!-- Message Body -->
                         <Label Text="{Binding CurrentNotification.Message}"
