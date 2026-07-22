@@ -215,7 +215,7 @@
         </ScrollView>
 
         <!-- Bottom Navigation Bar -->
-        <controls:AppNavBar ActiveTab="4" Grid.Row="1" VerticalOptions="End" />
+        <controls:AppNavBar ActiveTab="4" Grid.Row="1" VerticalOptions="End" Margin="16,0,16,10" />
     </Grid>
 
 </ContentPage>

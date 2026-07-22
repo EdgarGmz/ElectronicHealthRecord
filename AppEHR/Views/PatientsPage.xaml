@@ -129,7 +129,7 @@
             </RefreshView>
 
             <!-- Bottom Navigation Bar -->
-            <controls:AppNavBar ActiveTab="2" Grid.Row="1" VerticalOptions="End" Margin="-16,0,-16,-10" />
+            <controls:AppNavBar ActiveTab="2" Grid.Row="1" VerticalOptions="End" Margin="16,0,16,10" />
         </Grid>
     </Grid>
 
