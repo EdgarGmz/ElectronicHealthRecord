@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { body } from 'express-validator';
 import careerService from '../services/career.service';
+import { AuthRequest } from '../middleware/auth';
+import { createAuditLog, AUDIT_ACTIONS, AUDIT_TABLES } from '../utils/audit';
 
 export const createCareerValidation = [
   body('name')
@@ -74,10 +76,22 @@ export class CareerController {
   /**
    * Crea una nueva carrera.
    */
-  async create(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async create(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, code } = req.body;
       const career = await careerService.create({ name, code });
+
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.CREATE,
+          tableName: AUDIT_TABLES.CAREER,
+          recordId: career.id,
+          newValues: { name: career.name, code: career.code },
+          req: req as Request,
+        });
+      }
+
       res.status(201).json({
         success: true,
         message: 'Career created successfully',
@@ -91,11 +105,23 @@ export class CareerController {
   /**
    * Actualiza una carrera existente.
    */
-  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async update(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
       const { name, code, isActive } = req.body;
       const career = await careerService.update(id, { name, code, isActive });
+
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.UPDATE,
+          tableName: AUDIT_TABLES.CAREER,
+          recordId: career.id,
+          newValues: { name: career.name, code: career.code, isActive: career.isActive },
+          req: req as Request,
+        });
+      }
+
       res.status(200).json({
         success: true,
         message: 'Career updated successfully',
@@ -109,10 +135,21 @@ export class CareerController {
   /**
    * Elimina una carrera (o arroja error si no se puede).
    */
-  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async delete(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
       const result = await careerService.delete(id);
+
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.DELETE,
+          tableName: AUDIT_TABLES.CAREER,
+          recordId: id,
+          req: req as Request,
+        });
+      }
+
       res.status(200).json({
         success: true,
         message: result.message,

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import blogService from '../services/blog.service';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
+import { createAuditLog, AUDIT_ACTIONS } from '../utils/audit';
 
 export class BlogController {
   async getAll(_req: Request, res: Response, next: NextFunction) {
@@ -44,6 +45,17 @@ export class BlogController {
         authorId,
       });
 
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.CREATE,
+          tableName: 'blog_posts',
+          recordId: blog.id,
+          newValues: { title: blog.title, category: blog.category },
+          req: req as Request,
+        });
+      }
+
       res.status(201).json(blog);
     } catch (error) {
       next(error);
@@ -62,6 +74,17 @@ export class BlogController {
         imageUrl,
       });
 
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.UPDATE,
+          tableName: 'blog_posts',
+          recordId: blog.id,
+          newValues: { title: blog.title, category: blog.category, ...req.body },
+          req: req as Request,
+        });
+      }
+
       res.json(blog);
     } catch (error) {
       next(error);
@@ -72,7 +95,20 @@ export class BlogController {
     try {
       const { id } = req.params;
 
+      const blog = await blogService.getBlogById(id);
       await blogService.deleteBlog(id);
+
+      if (req.user?.userId && blog) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.DELETE,
+          tableName: 'blog_posts',
+          recordId: id,
+          oldValues: { title: blog.title },
+          req: req as Request,
+        });
+      }
+
       res.json({ message: 'Publicación eliminada correctamente' });
     } catch (error) {
       next(error);

@@ -9,6 +9,7 @@ using Microsoft.Maui.Controls;
 
 namespace AppEHR.ViewModels
 {
+    [QueryProperty(nameof(PatientId), "patientId")]
     public class QuickAppointmentViewModel : BaseViewModel
     {
         private readonly PatientService _patientService;
@@ -19,6 +20,8 @@ namespace AppEHR.ViewModels
         private Patient? _foundPatient;
         private bool _patientFound;
         private bool _searchPerformed;
+        private List<Patient> _allPatients = new List<Patient>();
+        private bool _showSuggestions;
 
         // Cita
         private DateTime _scheduledDate = DateTime.Today;
@@ -52,23 +55,44 @@ namespace AppEHR.ViewModels
 
             Title = "Agendado Rápido";
             AssignedCareers = new ObservableCollection<Career>();
+            Suggestions = new ObservableCollection<Patient>();
 
             SearchPatientCommand = new Command(async () => await ExecuteSearchPatientCommandAsync(), () => !IsBusy);
             BookAppointmentCommand = new Command(async () => await ExecuteBookAppointmentCommandAsync(), () => !IsBusy && PatientFound);
             RegisterPatientCommand = new Command(async () => await ExecuteRegisterPatientCommandAsync(), () => !IsBusy && ShowNewPatientForm);
             ToggleNewPatientFormCommand = new Command(() => ExecuteToggleNewPatientForm());
+            CancelCommand = new Command(async () => await ExecuteCancelCommandAsync());
+            SelectSuggestionCommand = new Command<Patient>(ExecuteSelectSuggestion);
 
-            // Cargar carreras asignadas en segundo plano
-            Task.Run(async () => await LoadAssignedCareersAsync());
+            // Cargar datos en segundo plano
+            Task.Run(async () => 
+            {
+                await LoadAssignedCareersAsync();
+                await LoadAllPatientsAsync();
+            });
         }
 
         public ObservableCollection<Career> AssignedCareers { get; }
+        public ObservableCollection<Patient> Suggestions { get; }
+        public ICommand SelectSuggestionCommand { get; }
 
         #region Propiedades de Búsqueda
         public string EnrollmentQuery
         {
             get => _enrollmentQuery;
-            set => SetProperty(ref _enrollmentQuery, value);
+            set
+            {
+                if (SetProperty(ref _enrollmentQuery, value))
+                {
+                    UpdateSuggestions(value);
+                }
+            }
+        }
+
+        public bool ShowSuggestions
+        {
+            get => _showSuggestions;
+            set => SetProperty(ref _showSuggestions, value);
         }
 
         public Patient? FoundPatient
@@ -91,6 +115,19 @@ namespace AppEHR.ViewModels
         {
             get => _searchPerformed;
             set => SetProperty(ref _searchPerformed, value);
+        }
+
+        private string? _patientId;
+        public string? PatientId
+        {
+            get => _patientId;
+            set
+            {
+                if (SetProperty(ref _patientId, value) && !string.IsNullOrEmpty(value))
+                {
+                    Task.Run(async () => await LoadPatientByIdAsync(value));
+                }
+            }
         }
         #endregion
 
@@ -243,6 +280,7 @@ namespace AppEHR.ViewModels
         public ICommand BookAppointmentCommand { get; }
         public ICommand RegisterPatientCommand { get; }
         public ICommand ToggleNewPatientFormCommand { get; }
+        public ICommand CancelCommand { get; }
 
         private async Task LoadAssignedCareersAsync()
         {
@@ -280,7 +318,7 @@ namespace AppEHR.ViewModels
                     FoundPatient = patient;
                     PatientFound = true;
                     ShowNewPatientForm = false;
-                    ShowMessage("Paciente encontrado. Llena los detalles de la cita abajo.", false);
+                    ShowMessage("Consultante encontrado. Llena los detalles de la cita abajo.", false);
                 }
                 else
                 {
@@ -291,6 +329,36 @@ namespace AppEHR.ViewModels
             catch (Exception ex)
             {
                 ShowMessage($"Error de búsqueda: {ex.Message}", true);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        public async Task LoadPatientByIdAsync(string id)
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            ShowMessage(string.Empty, false);
+
+            try
+            {
+                var patient = await _patientService.GetPatientByIdAsync(id);
+                if (patient != null)
+                {
+                    FoundPatient = patient;
+                    PatientFound = true;
+                    EnrollmentQuery = patient.User.EnrollmentNumber ?? string.Empty;
+                }
+                else
+                {
+                    ShowMessage("No se pudo cargar la información del consultante seleccionado", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error al cargar consultante: {ex.Message}", true);
             }
             finally
             {
@@ -396,7 +464,7 @@ namespace AppEHR.ViewModels
 
                 if (result.Success && result.Patient != null)
                 {
-                    ShowMessage("Paciente registrado exitosamente. Agendando cita...", false);
+                    ShowMessage("Consultante registrado exitosamente. Agendando cita...", false);
                     FoundPatient = result.Patient;
                     PatientFound = true;
                     ShowNewPatientForm = false;
@@ -438,6 +506,58 @@ namespace AppEHR.ViewModels
         {
             StatusMessage = message;
             IsError = isError;
+        }
+
+        private async Task LoadAllPatientsAsync()
+        {
+            try
+            {
+                _allPatients = await _patientService.GetPatientsAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error preloading patients for autocomplete: {ex.Message}");
+            }
+        }
+
+        private void UpdateSuggestions(string query)
+        {
+            Suggestions.Clear();
+            
+            if (string.IsNullOrWhiteSpace(query) || _allPatients == null || _allPatients.Count == 0 || PatientFound)
+            {
+                ShowSuggestions = false;
+                return;
+            }
+
+            var filtered = _allPatients.Where(p => 
+                p.User.FullName.ToLower().Contains(query.ToLower()) || 
+                (p.User.EnrollmentNumber != null && p.User.EnrollmentNumber.ToLower().Contains(query.ToLower()))
+            ).Take(5).ToList();
+
+            foreach (var p in filtered)
+            {
+                Suggestions.Add(p);
+            }
+
+            ShowSuggestions = Suggestions.Count > 0;
+        }
+
+        private void ExecuteSelectSuggestion(Patient patient)
+        {
+            if (patient == null) return;
+
+            FoundPatient = patient;
+            PatientFound = true;
+            ShowSuggestions = false;
+            EnrollmentQuery = patient.User.EnrollmentNumber ?? patient.User.FullName;
+            ShowNewPatientForm = false;
+            ShowMessage("Consultante seleccionado. Llena los detalles de la cita abajo.", false);
+        }
+
+        private async Task ExecuteCancelCommandAsync()
+        {
+            await Shell.Current.GoToAsync("..");
         }
     }
 }

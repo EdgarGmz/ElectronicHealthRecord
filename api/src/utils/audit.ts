@@ -97,6 +97,7 @@ export const AUDIT_ACTIONS = {
 export const AUDIT_TABLES = {
   USER: 'users',
   PATIENT: 'patients',
+  CAREER: 'careers',
   MEDICAL_RECORD: 'medical_records',
   PSYCHOLOGY_RECORD: 'psychology_records',
   NURSING_CONSULTATION: 'nursing_consultations',

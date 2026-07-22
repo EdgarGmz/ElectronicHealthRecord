@@ -3,6 +3,7 @@ import { body, param, validationResult } from 'express-validator';
 import medicationService from '../services/medication.service';
 import { AuthRequest } from '../middleware/auth';
 import { PRESCRIPTION_STATUS_VALUES, parseBooleanQuery } from '../utils/constants';
+import { createAuditLog, AUDIT_ACTIONS } from '../utils/audit';
 
 // Validation rules
 export const createMedicationValidation = [
@@ -128,11 +129,22 @@ export const getMedicationConsumption = async (req: Request, res: Response, next
   }
 };
 
-export const createMedication = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const createMedication = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     if (handleValidationErrors(req, res)) return;
 
     const medication = await medicationService.createMedication(req.body);
+
+    if (req.user?.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: 'medications',
+        recordId: medication.id,
+        newValues: { name: medication.name, genericName: medication.genericName, stock: medication.stock },
+        req: req as Request,
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -144,12 +156,23 @@ export const createMedication = async (req: Request, res: Response, next: NextFu
   }
 };
 
-export const updateMedication = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateMedication = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     if (handleValidationErrors(req, res)) return;
 
     const { id } = req.params;
     const medication = await medicationService.updateMedication(id, req.body);
+
+    if (req.user?.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.UPDATE,
+        tableName: 'medications',
+        recordId: medication.id,
+        newValues: { name: medication.name, ...req.body },
+        req: req as Request,
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -238,6 +261,17 @@ export const createPrescription = async (req: AuthRequest, res: Response, next: 
 
     const prescription = await medicationService.createPrescription(prescriptionData);
 
+    if (req.user?.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: 'prescriptions',
+        recordId: prescription.id,
+        newValues: { patientId: prescription.patientId, medicationId: prescription.medicationId, dosage: prescription.dosage },
+        req,
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Prescription created successfully',
@@ -248,7 +282,7 @@ export const createPrescription = async (req: AuthRequest, res: Response, next: 
   }
 };
 
-export const updatePrescriptionStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updatePrescriptionStatus = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     if (handleValidationErrors(req, res)) return;
 
@@ -256,6 +290,17 @@ export const updatePrescriptionStatus = async (req: Request, res: Response, next
     const { status } = req.body;
 
     const prescription = await medicationService.updatePrescriptionStatus(id, status);
+
+    if (req.user?.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.UPDATE,
+        tableName: 'prescriptions',
+        recordId: prescription.id,
+        newValues: { status: prescription.status },
+        req: req as Request,
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -301,6 +346,21 @@ export const createPrescriptionAdministration = async (
     };
 
     const result = await medicationService.createPrescriptionAdministration(administrationData);
+
+    if (req.user?.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: 'medication_administrations',
+        recordId: result.medicationAdmin.id,
+        newValues: {
+          prescriptionId: result.prescriptionAdmin.prescriptionId,
+          medicationId: result.medicationAdmin.medicationId,
+          nursingConsultationId: result.medicationAdmin.nursingConsultationId,
+        },
+        req,
+      });
+    }
 
     res.status(201).json({
       success: true,

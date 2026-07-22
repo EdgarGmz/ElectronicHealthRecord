@@ -18,6 +18,41 @@ namespace AppEHR.Services
             _apiService = apiService;
         }
 
+        public async Task<List<Patient>> GetPatientsAsync()
+        {
+            var result = new List<Patient>();
+            try
+            {
+                var response = await _apiService.GetAsync("patients?limit=200");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(content);
+                    var success = doc.RootElement.GetProperty("success").GetBoolean();
+                    if (success)
+                    {
+                        var dataNode = doc.RootElement.GetProperty("data");
+                        if (dataNode.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var item in dataNode.EnumerateArray())
+                            {
+                                var patient = JsonSerializer.Deserialize<Patient>(item.GetRawText());
+                                if (patient != null)
+                                {
+                                    result.Add(patient);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Devolver lista vacía en caso de falla
+            }
+            return result;
+        }
+
         public async Task<Patient?> FindByEnrollmentAsync(string enrollmentNumber)
         {
             if (string.IsNullOrWhiteSpace(enrollmentNumber)) return null;
@@ -159,6 +194,32 @@ namespace AppEHR.Services
             {
                 return (false, $"Error al conectar con el servidor: {ex.Message}", null);
             }
+        }
+
+        public async Task<Patient?> GetPatientByIdAsync(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return null;
+
+            try
+            {
+                var response = await _apiService.GetAsync($"patients/{Uri.EscapeDataString(id)}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(content);
+                    var success = doc.RootElement.GetProperty("success").GetBoolean();
+                    if (success)
+                    {
+                        var dataJson = doc.RootElement.GetProperty("data").GetRawText();
+                        return JsonSerializer.Deserialize<Patient>(dataJson);
+                    }
+                }
+            }
+            catch
+            {
+                // Retornar nulo en caso de excepción
+            }
+            return null;
         }
     }
 }

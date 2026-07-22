@@ -2,10 +2,12 @@ using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Linq;
 using AppEHR.Models;
 using AppEHR.Services;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Devices.Sensors;
 
 namespace AppEHR.ViewModels
 {
@@ -25,14 +27,14 @@ namespace AppEHR.ViewModels
             Title = "Mi Agenda";
             Appointments = new ObservableCollection<Appointment>();
 
-            LoadDataCommand = new Command(async () => await LoadDataAsync());
+            LoadDataCommand = new Command(async () => await LoadDataAsync(force: true));
             ChangeViewModeCommand = new Command<string>(async (mode) => await ExecuteChangeViewModeAsync(mode));
             WhatsAppCommand = new Command<string>(async (phone) => await OpenWhatsAppAsync(phone));
             EmailCommand = new Command<string>(async (email) => await OpenEmailAsync(email));
             NavigateToQuickAppointmentCommand = new Command(async () => await NavigateToQuickAppointmentAsync());
             LogoutCommand = new Command(async () => await ExecuteLogoutCommandAsync());
 
-            PsychologistName = _authService.CurrentUser?.FullName ?? "Psicólogo";
+            InitializeWeatherAndDateTime();
         }
 
         public ObservableCollection<Appointment> Appointments { get; }
@@ -55,6 +57,8 @@ namespace AppEHR.ViewModels
             set => SetProperty(ref _psychologistName, value);
         }
 
+
+
         public ICommand LoadDataCommand { get; }
         public ICommand ChangeViewModeCommand { get; }
         public ICommand WhatsAppCommand { get; }
@@ -62,15 +66,25 @@ namespace AppEHR.ViewModels
         public ICommand NavigateToQuickAppointmentCommand { get; }
         public ICommand LogoutCommand { get; }
 
-        public async Task LoadDataAsync()
+        public async Task LoadDataAsync(bool force = false)
         {
+            // Evitar recargas de red innecesarias al cambiar de pestaña si ya tenemos datos
+            if (!force && Appointments.Count > 0 && Stats.TotalAppointments > 0)
+            {
+                return;
+            }
+
             if (IsBusy) return;
             IsBusy = true;
 
             try
             {
-                // Cargar estadísticas
-                Stats = await _appointmentService.GetDashboardStatsAsync();
+                // Cargar estadísticas y clima en paralelo para mejorar el rendimiento
+                var statsTask = _appointmentService.GetDashboardStatsAsync();
+                var weatherTask = FetchWeatherAsync();
+
+                await Task.WhenAll(statsTask, weatherTask);
+                Stats = statsTask.Result;
 
                 // Cargar citas según el modo
                 DateTime start, end;
@@ -114,7 +128,7 @@ namespace AppEHR.ViewModels
         private async Task ExecuteChangeViewModeAsync(string mode)
         {
             SelectedViewMode = mode;
-            await LoadDataAsync();
+            await LoadDataAsync(force: true);
         }
 
         private async Task OpenWhatsAppAsync(string? phone)
@@ -164,5 +178,7 @@ namespace AppEHR.ViewModels
             await _authService.LogoutAsync();
             await Shell.Current.GoToAsync("///LoginPage");
         }
+
+
     }
 }

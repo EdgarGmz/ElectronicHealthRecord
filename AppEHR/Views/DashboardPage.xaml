@@ -4,6 +4,7 @@
              xmlns:viewmodels="clr-namespace:AppEHR.ViewModels"
              xmlns:models="clr-namespace:AppEHR.Models"
              xmlns:converters="clr-namespace:AppEHR.Converters"
+             xmlns:controls="clr-namespace:AppEHR.Controls"
              x:Class="AppEHR.Views.DashboardPage"
              x:Name="ThisPage"
              Title="Mi Agenda">
@@ -23,144 +24,221 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Padding="16,10" RowSpacing="12">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Padding="16,10" RowSpacing="12">
             
-            <!-- Header Row -->
-            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,10,0,0">
-                <VerticalStackLayout Grid.Column="0" Spacing="2">
-                    <Label Text="Hola," FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                    <Label Text="{Binding PsychologistName}" FontSize="20" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                </VerticalStackLayout>
-                <Button Grid.Column="1" 
-                        Text="Salir" 
-                        Command="{Binding LogoutCommand}"
-                        BackgroundColor="Transparent"
-                        TextColor="{StaticResource BrandError}"
-                        FontAttributes="Bold"
-                        VerticalOptions="Center" />
-            </Grid>
-
-            <!-- Statistics & Grounding Phrase (Glass Card) -->
-            <Border Grid.Row="1"
-                    StrokeThickness="1.2"
+            <!-- 0. Floating Glassmorphic Weather & Profile Header Bar -->
+            <Border Grid.Row="0"
+                    StrokeThickness="1"
                     Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
                     Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
-                    Padding="16">
+                    Padding="14,10"
+                    Margin="0,4,0,2">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="16" />
+                    <RoundRectangle CornerRadius="20" />
                 </Border.StrokeShape>
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="0,2" Radius="6" Opacity="0.05" />
-                </Border.Shadow>
+                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                    <!-- Left Section: Date, Time & Weather Status -->
+                    <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                        <!-- Date Info -->
+                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                            <Label Text="📅" FontSize="13" VerticalOptions="Center" />
+                            <Label Text="{Binding FormattedDate}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray800}, Dark={StaticResource Gray200}}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        
+                        <Label Text="|" TextColor="Gray" FontSize="12" VerticalOptions="Center" />
+                        
+                        <!-- Time Info -->
+                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                            <Label Text="🕒" FontSize="13" VerticalOptions="Center" />
+                            <Label Text="{Binding FormattedTime}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
 
-                <VerticalStackLayout Spacing="10">
-                    <!-- Grounding Phrase -->
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                        <Label Grid.Column="0" Text="🧠" FontSize="20" VerticalOptions="Center" />
-                        <Label Grid.Column="1" 
-                               Text="{Binding Stats.GroundingPhrase}" 
-                               FontSize="12" 
-                               FontAttributes="Italic"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" 
-                               VerticalOptions="Center" />
-                    </Grid>
-                    
-                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}" />
+                        <!-- Weather Info (Conditional visibility) -->
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center" IsVisible="{Binding IsWeatherVisible}">
+                            <Label Text="|" TextColor="Gray" FontSize="12" VerticalOptions="Center" />
+                            <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
+                                <Label Text="{Binding WeatherIcon}" FontSize="13" VerticalOptions="Center" />
+                                <Label Text="{Binding CurrentTemperatureText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource BrandPrimary}, Dark={StaticResource PrimaryDark}}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </HorizontalStackLayout>
+                    </HorizontalStackLayout>
 
-                    <!-- Workload Progress -->
-                    <VerticalStackLayout Spacing="4">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <Label Grid.Column="0" Text="Carga de Trabajo Semanal" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                            <Label Grid.Column="1" Text="{Binding Stats.HoursThisWeek, StringFormat='{0}h / 25h'}" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource BrandPrimary}, Dark={StaticResource PrimaryDark}}" />
-                        </Grid>
-                        <ProgressBar Progress="{Binding Stats.WorkloadPercentage, Converter={StaticResource StringToBooleanConverter}, ConverterParameter=ProgressBar}" 
-                                     ProgressColor="{StaticResource BrandPrimary}"
-                                     HeightRequest="6"/>
-                    </VerticalStackLayout>
-
-                    <!-- Monthly Metrics Summary -->
-                    <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="4">
-                        <!-- Total -->
-                        <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center">
-                            <Label Text="{Binding Stats.TotalAppointments}" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                            <Label Text="Mes" FontSize="9" HorizontalOptions="Center" TextColor="Gray" />
-                        </VerticalStackLayout>
-                        <!-- Completed -->
-                        <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
-                            <Label Text="{Binding Stats.CompletedAppointments}" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource BrandSuccess}" />
-                            <Label Text="Listas" FontSize="9" HorizontalOptions="Center" TextColor="Gray" />
-                        </VerticalStackLayout>
-                        <!-- Cancelled -->
-                        <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center">
-                            <Label Text="{Binding Stats.CancelledAppointments}" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource BrandError}" />
-                            <Label Text="Canc." FontSize="9" HorizontalOptions="Center" TextColor="Gray" />
-                        </VerticalStackLayout>
-                        <!-- Patients -->
-                        <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center">
-                            <Label Text="{Binding Stats.TotalPatients}" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                            <Label Text="Pacientes" FontSize="9" HorizontalOptions="Center" TextColor="Gray" />
-                        </VerticalStackLayout>
-                    </Grid>
-                </VerticalStackLayout>
+                    <!-- Right Section: User Profile & Avatar -->
+                    <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center" HorizontalOptions="End">
+                        <Label Text="{Binding PsychologistName}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" VerticalOptions="Center" />
+                        <Border WidthRequest="32" HeightRequest="32" BackgroundColor="{AppThemeBinding Light='#15D35400', Dark='#30D35400'}" StrokeThickness="0" VerticalOptions="Center">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Label Text="{Binding PsychologistInitials}" FontAttributes="Bold" FontSize="11" TextColor="{StaticResource BrandPrimary}" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                    </HorizontalStackLayout>
+                </Grid>
             </Border>
 
-            <!-- Navigation Mode Selector (Tabs) -->
-            <Grid Grid.Row="2" ColumnDefinitions="*,*,*" ColumnSpacing="8" HeightRequest="40">
-                <Button Grid.Column="0" 
-                        Text="Hoy"
-                        Command="{Binding ChangeViewModeCommand}" 
-                        CommandParameter="today"
-                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
-                        BorderWidth="1"
-                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                        CornerRadius="10"
-                        FontSize="12">
-                    <Button.Triggers>
-                        <DataTrigger TargetType="Button" Binding="{Binding SelectedViewMode}" Value="today">
-                            <Setter Property="BackgroundColor" Value="{StaticResource BrandPrimary}" />
-                            <Setter Property="TextColor" Value="White" />
-                        </DataTrigger>
-                    </Button.Triggers>
-                </Button>
-                <Button Grid.Column="1" 
-                        Text="Semana" 
-                        Command="{Binding ChangeViewModeCommand}" 
-                        CommandParameter="week"
-                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
-                        BorderWidth="1"
-                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                        CornerRadius="10"
-                        FontSize="12">
-                    <Button.Triggers>
-                        <DataTrigger TargetType="Button" Binding="{Binding SelectedViewMode}" Value="week">
-                            <Setter Property="BackgroundColor" Value="{StaticResource BrandPrimary}" />
-                            <Setter Property="TextColor" Value="White" />
-                        </DataTrigger>
-                    </Button.Triggers>
-                </Button>
-                <Button Grid.Column="2" 
-                        Text="Mes" 
-                        Command="{Binding ChangeViewModeCommand}" 
-                        CommandParameter="month"
-                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
-                        BorderWidth="1"
-                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                        CornerRadius="10"
-                        FontSize="12">
-                    <Button.Triggers>
-                        <DataTrigger TargetType="Button" Binding="{Binding SelectedViewMode}" Value="month">
-                            <Setter Property="BackgroundColor" Value="{StaticResource BrandPrimary}" />
-                            <Setter Property="TextColor" Value="White" />
-                        </DataTrigger>
-                    </Button.Triggers>
-                </Button>
+            <!-- 1. Zen Banner (Grounding Phrase) -->
+            <Border Grid.Row="1"
+                    StrokeThickness="0"
+                    Background="{AppThemeBinding Light='#15D35400', Dark='#30D35400'}"
+                    Padding="12,10"
+                    Margin="0,2,0,2">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8">
+                    <Label Grid.Column="0" Text="🧘" FontSize="18" VerticalOptions="Center" />
+                    <Label Grid.Column="1" 
+                           Text="{Binding Stats.GroundingPhrase}" 
+                           FontSize="12" 
+                           FontAttributes="Italic"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray800}, Dark={StaticResource Gray200}}" 
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <!-- 2. Statistics (KPI Glass Cards & Circular Workload Progress) -->
+            <Grid Grid.Row="2" ColumnDefinitions="*, 110" ColumnSpacing="10" Margin="0,2">
+                <!-- Left Side: 2x2 Glass KPI Cards -->
+                <Grid Grid.Column="0" RowDefinitions="Auto, Auto" ColumnDefinitions="*, *" RowSpacing="6" ColumnSpacing="6">
+                    <!-- KPI 1: Total Mes -->
+                    <Border Grid.Row="0" Grid.Column="0" Padding="10" StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                            <Label Text="📅" FontSize="14" HorizontalOptions="Center" />
+                            <Label Text="{Binding Stats.TotalAppointments}" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            <Label Text="Total Mes" FontSize="9" HorizontalOptions="Center" TextColor="Gray" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <!-- KPI 2: Completadas -->
+                    <Border Grid.Row="0" Grid.Column="1" Padding="10" StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                            <Label Text="✅" FontSize="14" HorizontalOptions="Center" />
+                            <Label Text="{Binding Stats.CompletedAppointments}" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource BrandSuccess}" />
+                            <Label Text="Completadas" FontSize="9" HorizontalOptions="Center" TextColor="Gray" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <!-- KPI 3: Canceladas -->
+                    <Border Grid.Row="1" Grid.Column="0" Padding="10" StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                            <Label Text="❌" FontSize="14" HorizontalOptions="Center" />
+                            <Label Text="{Binding Stats.CancelledAppointments}" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource BrandError}" />
+                            <Label Text="Canceladas" FontSize="9" HorizontalOptions="Center" TextColor="Gray" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <!-- KPI 4: Pacientes -->
+                    <Border Grid.Row="1" Grid.Column="1" Padding="10" StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                            <Label Text="👥" FontSize="14" HorizontalOptions="Center" />
+                            <Label Text="{Binding Stats.TotalPatients}" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            <Label Text="Pacientes" FontSize="9" HorizontalOptions="Center" TextColor="Gray" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Right Side: Circular Workload Progress Ring -->
+                <Border Grid.Column="1" Padding="10" StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                        Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                    <Grid RowDefinitions="*, Auto" RowSpacing="4">
+                        <!-- Custom Circular Progress Control -->
+                        <controls:CircularProgressBar Grid.Row="0" 
+                                                      Progress="{Binding Stats.WorkloadPercentage}" 
+                                                      ProgressColor="{StaticResource BrandPrimary}" 
+                                                      HorizontalOptions="Center" 
+                                                      VerticalOptions="Center" />
+                        <!-- Text Info -->
+                        <VerticalStackLayout Grid.Row="1" Spacing="1">
+                            <Label Text="Carga Semanal" FontSize="9" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Gray" HorizontalTextAlignment="Center" />
+                            <Label Text="{Binding Stats.HoursThisWeek, StringFormat='{0}h/25h'}" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource BrandPrimary}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
             </Grid>
 
-            <!-- Agenda Itinerary List -->
-            <RefreshView Grid.Row="3" Command="{Binding LoadDataCommand}" IsRefreshing="{Binding IsBusy}">
+            <!-- 3. Navigation Mode Selector (Segmented Pill) -->
+            <Border Grid.Row="3"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                    Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                    HeightRequest="46"
+                    Padding="4"
+                    Margin="0,2">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="23" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="4">
+                    <!-- Button: Hoy -->
+                    <Button Grid.Column="0" 
+                            Text="Hoy"
+                            Command="{Binding ChangeViewModeCommand}" 
+                            CommandParameter="today"
+                            TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                            BackgroundColor="Transparent"
+                            CornerRadius="19"
+                            HeightRequest="36"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            Padding="0">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding SelectedViewMode}" Value="today">
+                                <Setter Property="BackgroundColor" Value="{StaticResource BrandPrimary}" />
+                                <Setter Property="TextColor" Value="White" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <!-- Button: Semana -->
+                    <Button Grid.Column="1" 
+                            Text="Semana" 
+                            Command="{Binding ChangeViewModeCommand}" 
+                            CommandParameter="week"
+                            TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                            BackgroundColor="Transparent"
+                            CornerRadius="19"
+                            HeightRequest="36"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            Padding="0">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding SelectedViewMode}" Value="week">
+                                <Setter Property="BackgroundColor" Value="{StaticResource BrandPrimary}" />
+                                <Setter Property="TextColor" Value="White" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <!-- Button: Mes -->
+                    <Button Grid.Column="2" 
+                            Text="Mes" 
+                            Command="{Binding ChangeViewModeCommand}" 
+                            CommandParameter="month"
+                            TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                            BackgroundColor="Transparent"
+                            CornerRadius="19"
+                            HeightRequest="36"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            Padding="0">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding SelectedViewMode}" Value="month">
+                                <Setter Property="BackgroundColor" Value="{StaticResource BrandPrimary}" />
+                                <Setter Property="TextColor" Value="White" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- 4. Agenda Itinerary Timeline List -->
+            <RefreshView Grid.Row="4" Command="{Binding LoadDataCommand}" IsRefreshing="{Binding IsBusy}">
                 <CollectionView ItemsSource="{Binding Appointments}" SelectionMode="None">
                     
                     <CollectionView.EmptyView>
@@ -173,78 +251,105 @@
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:Appointment">
-                            <Grid Padding="0,4,0,8">
-                                <Border StrokeThickness="1"
+                            <!-- Grid representing a connected Timeline row -->
+                            <Grid ColumnDefinitions="70, 24, *" RowDefinitions="Auto" Padding="0,2,0,4">
+                                <!-- Col 0: Horario compacto -->
+                                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" HorizontalOptions="End" Margin="0,0,8,0" Spacing="2">
+                                    <Label Text="{Binding FormattedTime}" FontSize="12" FontAttributes="Bold" HorizontalOptions="End" TextColor="{AppThemeBinding Light=#2A2A2A, Dark=#D9D9D9}" />
+                                    <Label Text="{Binding DurationMinutes, StringFormat='{0} min'}" FontSize="10" HorizontalOptions="End" TextColor="Gray" />
+                                </VerticalStackLayout>
+
+                                <!-- Col 1: Timeline vertical line & status dot -->
+                                <Grid Grid.Column="1" VerticalOptions="Fill" HorizontalOptions="Center">
+                                    <!-- Vertical Connector Line -->
+                                    <BoxView WidthRequest="2" BackgroundColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" HorizontalOptions="Center" VerticalOptions="Fill" />
+                                    <!-- Status Circle Indicator -->
+                                    <Border WidthRequest="12" HeightRequest="12" StrokeThickness="0" BackgroundColor="{Binding StatusColor}" HorizontalOptions="Center" VerticalOptions="Center">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="6" />
+                                        </Border.StrokeShape>
+                                        <Border.Shadow>
+                                            <Shadow Brush="{Binding StatusColor}" Offset="0,0" Radius="4" Opacity="0.5" />
+                                        </Border.Shadow>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Col 2: Glassmorphic Appointment Card -->
+                                <Border Grid.Column="2"
+                                        StrokeThickness="1"
                                         Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
                                         Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
-                                        Padding="14">
+                                        Padding="12"
+                                        Margin="8,0,0,0">
                                     <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="14" />
+                                        <RoundRectangle CornerRadius="16" />
                                     </Border.StrokeShape>
-
-                                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="6">
-                                        <!-- Time & Duration -->
-                                        <HorizontalStackLayout Grid.Row="0" Grid.Column="0" Spacing="6" VerticalOptions="Center">
-                                            <Label Text="🕒" FontSize="14" />
-                                            <Label Text="{Binding FormattedTime}" FontAttributes="Bold" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                                            <Label Text="{Binding DurationMinutes, StringFormat='({0} min)'}" FontSize="12" TextColor="Gray" VerticalOptions="Center" />
-                                        </HorizontalStackLayout>
-
-                                        <!-- Status Tag -->
-                                        <Border Grid.Row="0" Grid.Column="1" Padding="8,3" BackgroundColor="{Binding StatusColor}">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="6" />
-                                            </Border.StrokeShape>
-                                            <Label Text="{Binding LocalizedStatus}" FontSize="10" FontAttributes="Bold" TextColor="White" />
+                                    
+                                    <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, *, Auto" RowSpacing="10" ColumnSpacing="10">
+                                        <!-- Row 0, Col 0: Patient Avatar -->
+                                        <Border Grid.Row="0" Grid.Column="0" WidthRequest="40" HeightRequest="40" BackgroundColor="{AppThemeBinding Light='#15D35400', Dark='#30D35400'}" StrokeThickness="0" VerticalOptions="Center">
+                                            <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
+                                            <Label Text="{Binding Patient.User.Initials}" FontAttributes="Bold" FontSize="13" TextColor="{StaticResource BrandPrimary}" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
 
-                                        <!-- Patient Info -->
-                                        <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Spacing="2" Margin="0,4,0,4">
-                                            <Label Text="{Binding Patient.User.FullName}" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4">
-                                                <Label Grid.Column="0" Text="🎓" FontSize="11" IsVisible="{Binding Patient.Career, Converter={StaticResource StringToBooleanConverter}}" />
-                                                <Label Grid.Column="1" Text="{Binding Patient.Career.Name}" FontSize="11" TextColor="Gray" LineBreakMode="NoWrap" />
-                                            </Grid>
+                                        <!-- Row 0, Col 1: Name, Type and Group -->
+                                        <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                            <Label Text="{Binding Patient.User.FullName}" FontSize="14" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#212121, Dark=White}" />
+                                            
+                                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                                <!-- Appointment Type Tag -->
+                                                <Border Padding="5,2" BackgroundColor="{AppThemeBinding Light='#E0F2FE', Dark='#0C4A6E'}" StrokeThickness="0" VerticalOptions="Center">
+                                                    <Border.StrokeShape><RoundRectangle CornerRadius="4" /></Border.StrokeShape>
+                                                    <HorizontalStackLayout Spacing="3">
+                                                        <Path Data="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z M16 2v4 M8 2v4 M3 10h18" Stroke="{AppThemeBinding Light='#0284C7', Dark='#38BDF8'}" StrokeThickness="1" WidthRequest="9" HeightRequest="9" Aspect="Uniform" Fill="Transparent" VerticalOptions="Center" />
+                                                        <Label Text="{Binding LocalizedType}" FontSize="8" FontAttributes="Bold" TextColor="{AppThemeBinding Light='#0284C7', Dark='#38BDF8'}" VerticalOptions="Center" />
+                                                    </HorizontalStackLayout>
+                                                </Border>
+                                                <!-- Group Tag -->
+                                                <Border Padding="5,2" BackgroundColor="{AppThemeBinding Light='#F3E8FF', Dark='#3B0764'}" StrokeThickness="0" IsVisible="{Binding Patient.Group, Converter={StaticResource StringToBooleanConverter}}" VerticalOptions="Center">
+                                                    <Border.StrokeShape><RoundRectangle CornerRadius="4" /></Border.StrokeShape>
+                                                    <Label Text="{Binding Patient.Group, StringFormat='Grupo {0}'}" FontSize="8" FontAttributes="Bold" TextColor="{AppThemeBinding Light='#7E22CE', Dark='#C084FC'}" />
+                                                </Border>
+                                            </HorizontalStackLayout>
                                         </VerticalStackLayout>
 
-                                        <!-- Contact Links & Type -->
-                                        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="0,2,0,0">
-                                            <!-- Type Tag -->
-                                            <Border Grid.Column="0" Padding="8,4" BackgroundColor="Transparent" Stroke="Gray" StrokeThickness="0.8">
-                                                <Border.StrokeShape>
-                                                    <RoundRectangle CornerRadius="6" />
-                                                </Border.StrokeShape>
-                                                <Label Text="{Binding LocalizedType}" FontSize="10" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
-                                            </Border>
+                                        <!-- Row 0, Col 2: Status Badge -->
+                                        <Border Grid.Row="0" Grid.Column="2" Padding="6,3" BackgroundColor="{Binding StatusColor}" StrokeThickness="0" VerticalOptions="Center" HorizontalOptions="End">
+                                            <Border.StrokeShape><RoundRectangle CornerRadius="5" /></Border.StrokeShape>
+                                            <Label Text="{Binding LocalizedStatus}" FontSize="9" FontAttributes="Bold" TextColor="White" />
+                                        </Border>
 
-                                            <!-- Spacing -->
-                                            <BoxView Grid.Column="1" Color="Transparent" />
+                                        <!-- Row 1, Col 0-1: Duration & Remaining Time -->
+                                        <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Spacing="6" VerticalOptions="Center">
+                                            <Path Data="M12 8v4l3 3 M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" Stroke="Gray" StrokeThickness="1.2" WidthRequest="10" HeightRequest="10" Aspect="Uniform" Fill="Transparent" VerticalOptions="Center" />
+                                            <Label Text="{Binding RemainingTimeText}" FontSize="10" FontAttributes="Italic" TextColor="{AppThemeBinding Light=#555555, Dark=#ACACAC}" VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
 
-                                            <!-- Contact Buttons -->
-                                            <HorizontalStackLayout Grid.Column="2" Spacing="8">
-                                                <!-- Email Button -->
-                                                <Button Text="✉️ Correo" 
-                                                        Command="{Binding BindingContext.EmailCommand, Source={x:Reference ThisPage}}" 
-                                                        CommandParameter="{Binding Patient.User.Email}"
-                                                        BackgroundColor="Transparent"
-                                                        TextColor="{StaticResource BrandPrimary}"
-                                                        FontAttributes="Bold"
-                                                        FontSize="11"
-                                                        Padding="4,2"
-                                                        HeightRequest="30" />
-                                                
-                                                <!-- WhatsApp Button -->
-                                                <Button Text="💬 WhatsApp" 
-                                                        Command="{Binding BindingContext.WhatsAppCommand, Source={x:Reference ThisPage}}" 
-                                                        CommandParameter="{Binding Patient.User.Phone}"
-                                                        BackgroundColor="Transparent"
-                                                        TextColor="#25D366"
-                                                        FontAttributes="Bold"
-                                                        FontSize="11"
-                                                        Padding="4,2"
-                                                        HeightRequest="30" />
-                                            </HorizontalStackLayout>
-                                        </Grid>
+                                        <!-- Row 1, Col 2: Action Buttons -->
+                                        <HorizontalStackLayout Grid.Row="1" Grid.Column="2" Spacing="8" HorizontalOptions="End" VerticalOptions="Center">
+                                            <!-- Email Button -->
+                                            <Button Command="{Binding BindingContext.EmailCommand, Source={x:Reference ThisPage}}" 
+                                                    CommandParameter="{Binding Patient.User.Email}"
+                                                    Text="✉️"
+                                                    BackgroundColor="{AppThemeBinding Light='#E0F2FE', Dark='#0C4A6E'}"
+                                                    TextColor="#0078D4"
+                                                    FontSize="10"
+                                                    WidthRequest="28"
+                                                    HeightRequest="28"
+                                                    Padding="0"
+                                                    CornerRadius="14" />
+                                            <!-- WhatsApp Button -->
+                                            <Button Command="{Binding BindingContext.WhatsAppCommand, Source={x:Reference ThisPage}}" 
+                                                    CommandParameter="{Binding Patient.User.Phone}"
+                                                    Text="💬"
+                                                    BackgroundColor="{AppThemeBinding Light='#DCFCE7', Dark='#064E3B'}"
+                                                    TextColor="#25D366"
+                                                    FontSize="10"
+                                                    WidthRequest="28"
+                                                    HeightRequest="28"
+                                                    Padding="0"
+                                                    CornerRadius="14" />
+                                        </HorizontalStackLayout>
                                     </Grid>
                                 </Border>
                             </Grid>
@@ -253,16 +358,8 @@
                 </CollectionView>
             </RefreshView>
 
-            <!-- Bottom Floating-Like Agendar Button -->
-            <Button Grid.Row="4" 
-                    Text="➕ Agendar Cita Rápida" 
-                    Command="{Binding NavigateToQuickAppointmentCommand}"
-                    BackgroundColor="{StaticResource BrandPrimary}"
-                    TextColor="White"
-                    CornerRadius="16"
-                    FontAttributes="Bold"
-                    HeightRequest="52"
-                    Shadow="{Shadow Brush=Black, Offset='0,4', Radius=8, Opacity=0.15}" />
+            <!-- Bottom Navigation Bar -->
+            <controls:AppNavBar ActiveTab="1" Grid.Row="4" VerticalOptions="End" Margin="0" />
         </Grid>
     </Grid>
 

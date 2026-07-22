@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import nursingAttentionService from '../services/nursing-attention.service';
 import type { AuthRequest } from '../middleware/auth';
+import { createAuditLog, AUDIT_ACTIONS } from '../utils/audit';
 
 export const createNursingAttentionValidation = [
   body('patientId').isUUID().withMessage('Valid patient ID is required'),
@@ -108,6 +109,17 @@ export const createNursingAttention = async (
       observaciones: req.body.observaciones,
       derivacion: req.body.derivacion,
     });
+
+    if (req.user?.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: 'nursing_attentions',
+        recordId: attention.id,
+        newValues: { patientId: attention.patientId, motive: attention.motive },
+        req,
+      });
+    }
 
     res.status(201).json({
       success: true,

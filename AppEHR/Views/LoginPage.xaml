@@ -13,130 +13,255 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid>
+    <Grid RowDefinitions="Auto, *">
         <!-- Background Gradient -->
         <Grid.Background>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStartLight}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
-                <GradientStop Color="{AppThemeBinding Light={StaticResource GradientEndLight}, Dark={StaticResource GradientEndDark}}" Offset="1.0" />
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="{AppThemeBinding Light=#f8fafc, Dark=#1e293b, Default=#f8fafc}" Offset="0.0" />
+                <GradientStop Color="{AppThemeBinding Light=#e2e8f0, Dark=#0f172a, Default=#e2e8f0}" Offset="1.0" />
             </LinearGradientBrush>
         </Grid.Background>
 
-        <ScrollView VerticalOptions="Center" HorizontalOptions="Center">
-            <VerticalStackLayout Spacing="20" Padding="20">
-                
-                <!-- Logo & Header -->
-                <VerticalStackLayout HorizontalOptions="Center" Spacing="8">
-                    <Label Text="🏥" FontSize="64" HorizontalOptions="Center" />
-                    <Label Text="EHR System" 
-                           FontSize="28" 
-                           FontAttributes="Bold" 
-                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
-                           HorizontalOptions="Center" />
-                    <Label Text="Asistente de Psicología" 
-                           FontSize="14" 
-                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
-                           HorizontalOptions="Center" />
-                </VerticalStackLayout>
+        <!-- Top Bar with Theme Toggle -->
+        <Grid Grid.Row="0" Padding="16,12" ColumnDefinitions="*, Auto">
+            <Border Grid.Column="1"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    Background="{AppThemeBinding Light=#f1f5f9, Dark=#1e293b, Default=#f1f5f9}"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#334155, Default=#cbd5e1}"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="20" />
+                </Border.StrokeShape>
+                <Grid WidthRequest="32" HeightRequest="32" VerticalOptions="Center" HorizontalOptions="Center">
+                    <Path x:Name="ThemeIconPath"
+                          Fill="{AppThemeBinding Light=#64748b, Dark=#FBBF24, Default=#64748b}"
+                          Aspect="Uniform"
+                          HeightRequest="18"
+                          WidthRequest="18"
+                          HorizontalOptions="Center"
+                          VerticalOptions="Center" />
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnThemeToggleClicked" />
+                    </Grid.GestureRecognizers>
+                </Grid>
+            </Border>
+        </Grid>
 
-                <!-- Glass Card Container -->
-                <Border StrokeThickness="1.2"
-                        Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                        Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
-                        Padding="24"
-                        WidthRequest="340"
-                        HorizontalOptions="Center">
+        <ScrollView Grid.Row="1" VerticalOptions="Center" HorizontalOptions="Center">
+            <VerticalStackLayout Spacing="0" Padding="16">
+                
+                <!-- Dark/Light Container/Card -->
+                <Border WidthRequest="360"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#1e293b, Default=#cbd5e1}"
+                        Background="{AppThemeBinding Light=#ffffff, Dark=#111827, Default=#ffffff}"
+                        Padding="28"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center">
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="20" />
+                        <RoundRectangle CornerRadius="24" />
                     </Border.StrokeShape>
                     <Border.Shadow>
-                        <Shadow Brush="Black" Offset="0,4" Radius="10" Opacity="0.1" />
+                        <Shadow Brush="Black" Offset="0,8" Radius="16" Opacity="{AppThemeBinding Light=0.05, Dark=0.4, Default=0.05}" />
                     </Border.Shadow>
 
-                    <VerticalStackLayout Spacing="16">
+                    <VerticalStackLayout Spacing="24">
                         
-                        <!-- Username Input -->
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="Nombre de Usuario" 
-                                   FontSize="12" 
-                                   FontAttributes="Bold" 
-                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                            <Border StrokeThickness="1" 
-                                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                        <!-- Branding (Logo, University Name, App EHR) -->
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="12">
+                            <!-- Icon Container (Blue rounded square) -->
+                            <Border WidthRequest="64"
+                                    HeightRequest="64"
+                                    Background="{AppThemeBinding Light=#E0F2FE, Dark=#1e293b, Default=#E0F2FE}"
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource BrandPrimary}"
+                                    HorizontalOptions="Center">
                                 <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
+                                    <RoundRectangle CornerRadius="16" />
                                 </Border.StrokeShape>
-                                <Entry Text="{Binding Username}" 
-                                       Placeholder="Introduce tu usuario" 
-                                       Keyboard="Default" 
-                                       TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
-                                       PlaceholderColor="Gray"
-                                       Margin="6,0"
-                                       HeightRequest="44"/>
+                                <Path Data="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                                      Fill="Transparent" 
+                                      Stroke="{StaticResource BrandPrimary}" 
+                                      StrokeThickness="2" 
+                                      Aspect="Uniform" 
+                                      HeightRequest="30" 
+                                      WidthRequest="30" 
+                                      HorizontalOptions="Center" 
+                                      VerticalOptions="Center" />
                             </Border>
+
+                            <!-- University Name -->
+                            <Label Text="Universidad Tecnológica" 
+                                   FontSize="20" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}"
+                                   HorizontalTextAlignment="Center"
+                                   HorizontalOptions="Center" />
+                            <Label Text="Santa Catarina" 
+                                   FontSize="20" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}"
+                                   HorizontalTextAlignment="Center"
+                                   HorizontalOptions="Center"
+                                   Margin="0,-6,0,0" />
+                            
+                            <!-- App EHR (Gold letters) -->
+                            <Label Text="App EHR" 
+                                   FontSize="24" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#D4AF37"
+                                   HorizontalOptions="Center"
+                                   Margin="0,2,0,0" />
                         </VerticalStackLayout>
 
-                        <!-- Password Input -->
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="Contraseña" 
-                                   FontSize="12" 
-                                   FontAttributes="Bold" 
-                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                            <Border StrokeThickness="1" 
-                                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
-                                <Entry Text="{Binding Password}" 
-                                       Placeholder="••••••••" 
-                                       IsPassword="True" 
-                                       TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
-                                       PlaceholderColor="Gray"
-                                       Margin="6,0"
-                                       HeightRequest="44"/>
-                            </Border>
-                        </VerticalStackLayout>
+                        <!-- Input Fields Stack -->
+                        <VerticalStackLayout Spacing="16">
+                            
+                            <!-- Username -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Nombre de usuario" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold" 
+                                       TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}" />
+                                <Border StrokeThickness="1" 
+                                        Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#1e293b, Default=#cbd5e1}"
+                                        Background="{AppThemeBinding Light=#f8fafc, Dark=#0f172a, Default=#f8fafc}"
+                                        HeightRequest="48"
+                                        Padding="12,0">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="12" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="28, *">
+                                        <!-- User Icon SVG path -->
+                                        <Path Grid.Column="0"
+                                              Data="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"
+                                              Fill="{AppThemeBinding Light=#64748b, Dark=#94A3B8, Default=#64748b}"
+                                              Aspect="Uniform"
+                                              HeightRequest="18"
+                                              WidthRequest="18"
+                                              HorizontalOptions="Start"
+                                              VerticalOptions="Center" />
+                                        <Entry Grid.Column="1"
+                                               Text="{Binding Username}" 
+                                               Placeholder="Usuario" 
+                                               TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}"
+                                               PlaceholderColor="{AppThemeBinding Light=#94a3b8, Dark=#475569, Default=#94a3b8}"
+                                               VerticalOptions="Center"
+                                               FontSize="15"
+                                               Keyboard="Default"
+                                               Margin="0"/>
+                                    </Grid>
+                                </Border>
+                            </VerticalStackLayout>
 
-                        <!-- Remember Me Option -->
-                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center" Margin="2,0,0,0">
-                            <CheckBox IsChecked="{Binding RememberMe}" Color="{StaticResource BrandPrimary}" />
-                            <Label Text="Mantener sesión abierta" 
-                                   VerticalOptions="Center" 
-                                   FontSize="13" 
-                                   TextColor="{AppThemeBinding Light={StaticResource Gray700}, Dark={StaticResource Gray300}}" />
-                        </HorizontalStackLayout>
+                            <!-- Password -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Contraseña" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold" 
+                                       TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}" />
+                                <Border StrokeThickness="1" 
+                                        Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#1e293b, Default=#cbd5e1}"
+                                        Background="{AppThemeBinding Light=#f8fafc, Dark=#0f172a, Default=#f8fafc}"
+                                        HeightRequest="48"
+                                        Padding="12,0">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="12" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="28, *, 32">
+                                        <!-- Lock Icon SVG path -->
+                                        <Path Grid.Column="0"
+                                              Data="M18,8H17V6A5,5 0 0,0 12,1A5,5 0 0,0 7,6V8H6A2,2 0 0,0 4,10V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V10A2,2 0 0,0 18,8M9,6A3,3 0 0,1 12,3A3,3 0 0,1 15,6V8H9V6M18,20H6V10H18V20M12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17A2,2 0 0,0 14,15A2,2 0 0,0 12,13Z"
+                                              Fill="{AppThemeBinding Light=#64748b, Dark=#94A3B8, Default=#64748b}"
+                                              Aspect="Uniform"
+                                              HeightRequest="18"
+                                              WidthRequest="18"
+                                              HorizontalOptions="Start"
+                                              VerticalOptions="Center" />
+                                        <Entry Grid.Column="1"
+                                               x:Name="PasswordEntry"
+                                               Text="{Binding Password}" 
+                                               Placeholder="••••••••" 
+                                               IsPassword="True" 
+                                               TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}"
+                                               PlaceholderColor="{AppThemeBinding Light=#94a3b8, Dark=#475569, Default=#94a3b8}"
+                                               VerticalOptions="Center"
+                                               FontSize="15"
+                                               Margin="0" />
+                                        
+                                        <!-- Toggle visibility button (Custom Grid layout with TapGesture) -->
+                                        <Grid Grid.Column="2" 
+                                              WidthRequest="32" 
+                                              HeightRequest="32" 
+                                              VerticalOptions="Center" 
+                                              HorizontalOptions="Center">
+                                            <Path x:Name="EyeIconPath"
+                                                  Data="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17Z"
+                                                  Fill="{AppThemeBinding Light=#64748b, Dark=#94A3B8, Default=#64748b}"
+                                                  Aspect="Uniform"
+                                                  HeightRequest="18"
+                                                  WidthRequest="18"
+                                                  HorizontalOptions="Center"
+                                                  VerticalOptions="Center" />
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnTogglePasswordClicked" />
+                                            </Grid.GestureRecognizers>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Remember Me and Forgot Password Row -->
+                            <Grid ColumnDefinitions="*, *" VerticalOptions="Center" Margin="0,4,0,0">
+                                <!-- Remember Me -->
+                                <HorizontalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                    <CheckBox IsChecked="{Binding RememberMe}" 
+                                              Color="{StaticResource BrandPrimary}" 
+                                              VerticalOptions="Center"
+                                              HeightRequest="24"
+                                              WidthRequest="24" />
+                                    <Label Text="Mantener sesión" 
+                                           VerticalOptions="Center" 
+                                           FontSize="13" 
+                                           TextColor="{AppThemeBinding Light=#64748b, Dark=#94A3B8, Default=#64748b}" />
+                                </HorizontalStackLayout>
+
+                                <!-- Forgot Password -->
+                                <Button Grid.Column="1"
+                                        Text="¿Olvidaste tu contraseña?"
+                                        Command="{Binding ForgotPasswordCommand}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{StaticResource BrandPrimary}"
+                                        FontSize="13"
+                                        FontAttributes="Bold"
+                                        HorizontalOptions="End"
+                                        VerticalOptions="Center"
+                                        HeightRequest="32"
+                                        Padding="0"
+                                        Margin="0"/>
+                            </Grid>
+                        </VerticalStackLayout>
 
                         <!-- Error Message -->
                         <Label Text="{Binding ErrorMessage}" 
-                               TextColor="{StaticResource BrandError}" 
-                               FontSize="12" 
+                               TextColor="#EF4444" 
+                               FontSize="13" 
                                HorizontalOptions="Center" 
                                HorizontalTextAlignment="Center"
                                IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBooleanConverter}}" />
 
-                        <!-- Login Button -->
-                        <Button Text="Iniciar Sesión" 
+                        <!-- Submit Button -->
+                        <Button Text="Iniciar sesión" 
                                 Command="{Binding LoginCommand}" 
                                 BackgroundColor="{StaticResource BrandPrimary}" 
                                 TextColor="White" 
                                 CornerRadius="12" 
                                 FontAttributes="Bold"
-                                HeightRequest="48"
-                                Margin="0,8,0,0"/>
-
-                        <!-- Forgot Password Link -->
-                        <Button Text="¿Olvidaste tu contraseña?"
-                                Command="{Binding ForgotPasswordCommand}"
-                                BackgroundColor="Transparent"
-                                TextColor="{StaticResource BrandPrimary}"
-                                FontSize="13"
-                                FontAttributes="Bold"
-                                HorizontalOptions="Center"
-                                HeightRequest="38"
-                                Padding="0"
-                                Margin="0,4,0,0"/>
+                                FontSize="16"
+                                HeightRequest="48"/>
 
                         <!-- Loading Indicator -->
                         <ActivityIndicator IsRunning="{Binding IsBusy}" 

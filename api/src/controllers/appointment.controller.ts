@@ -3,6 +3,7 @@ import { body, param } from 'express-validator';
 import appointmentService from '../services/appointment.service';
 import { AuthRequest } from '../middleware/auth';
 import { APPOINTMENT_STATUS_VALUES } from '../constants/appointment';
+import { createAuditLog, AUDIT_ACTIONS, AUDIT_TABLES } from '../utils/audit';
 
 export const createAppointmentValidation = [
   body('patientId').isUUID().withMessage('Valid patient ID is required'),
@@ -152,6 +153,18 @@ export const createAppointment = async (
 
     const appointment = await appointmentService.create(data);
 
+    if (req.user.userId) {
+      const patientName = `${appointment.patient?.user?.firstName || ''} ${appointment.patient?.user?.lastName || ''}`.trim() || 'un paciente';
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: AUDIT_TABLES.APPOINTMENT,
+        recordId: appointment.id,
+        newValues: { ...req.body, patientName },
+        req,
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Appointment created successfully',
@@ -186,6 +199,18 @@ export const updateAppointment = async (
       data
     );
 
+    if (req.user.userId) {
+      const patientName = `${appointment.patient?.user?.firstName || ''} ${appointment.patient?.user?.lastName || ''}`.trim() || 'un paciente';
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.UPDATE,
+        tableName: AUDIT_TABLES.APPOINTMENT,
+        recordId: appointment.id,
+        newValues: { ...req.body, patientName },
+        req,
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Appointment updated successfully',
@@ -216,6 +241,18 @@ export const cancelAppointment = async (
       req.user.role,
       cancellationReason
     );
+
+    if (req.user.userId) {
+      const patientName = `${appointment.patient?.user?.firstName || ''} ${appointment.patient?.user?.lastName || ''}`.trim() || 'un paciente';
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.UPDATE,
+        tableName: AUDIT_TABLES.APPOINTMENT,
+        recordId: appointment.id,
+        newValues: { status: 'cancelled', cancellationReason, patientName },
+        req,
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -315,6 +352,21 @@ export const joinQueue = async (
 ): Promise<void> => {
   try {
     const result = await appointmentService.joinQueue(req.body);
+    const waitingEntry = result.waitingEntry;
+
+    if (waitingEntry) {
+      const patientUser = waitingEntry.patient?.user;
+      const patientName = `${patientUser?.firstName || ''} ${patientUser?.lastName || ''}`.trim() || 'un paciente';
+
+      await createAuditLog({
+        userId: waitingEntry.patient.userId,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: 'waiting_list',
+        recordId: waitingEntry.id,
+        newValues: { patientName, department: waitingEntry.department },
+        req,
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -347,6 +399,17 @@ export const updateWaitingListStatus = async (
     }
 
     const updated = await appointmentService.updateWaitingListStatus(id, status);
+
+    if (req.user.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.UPDATE,
+        tableName: 'waiting_list',
+        recordId: updated.id,
+        newValues: { status: updated.status, patientId: updated.patientId },
+        req,
+      });
+    }
 
     res.status(200).json({
       success: true,

@@ -6,6 +6,7 @@ import { AuthRequest } from '../middleware/auth';
 import { ROLES, ROLES_VISIBLE_IN_USERS } from '../constants/roles';
 import prisma from '../config/database';
 import { comparePassword } from '../utils/password';
+import { createAuditLog, AUDIT_ACTIONS, AUDIT_TABLES } from '../utils/audit';
 
 export const createUserValidation = [
   body('email').isEmail().withMessage('Email válido requerido'),
@@ -54,6 +55,18 @@ export class UserController {
         dateOfBirth: req.body.dateOfBirth ? new Date(req.body.dateOfBirth) : new Date('1990-01-01'),
       };
       const user = await userService.create(data);
+
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.CREATE,
+          tableName: AUDIT_TABLES.USER,
+          recordId: user.id,
+          newValues: { firstName: user.firstName, lastName: user.lastName, role: user.role, userName: user.username },
+          req,
+        });
+      }
+
       res.status(201).json({
         success: true,
         message: 'Usuario creado correctamente',
@@ -118,6 +131,18 @@ export class UserController {
       };
       const user = await userService.update(userId, data, true);
       const emailChangePending = (user as any).emailChangePending || false;
+
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.UPDATE,
+          tableName: AUDIT_TABLES.USER,
+          recordId: user.id,
+          newValues: { ...req.body, userName: user.username },
+          req,
+        });
+      }
+
       res.status(200).json({
         success: true,
         message: emailChangePending
@@ -205,6 +230,17 @@ export class UserController {
 
       const user = await userService.update(id, data);
 
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.UPDATE,
+          tableName: AUDIT_TABLES.USER,
+          recordId: user.id,
+          newValues: { firstName: user.firstName, lastName: user.lastName, role: user.role, userName: user.username, ...restBody },
+          req,
+        });
+      }
+
       res.status(200).json({
         success: true,
         message: 'Usuario actualizado correctamente',
@@ -245,6 +281,17 @@ export class UserController {
 
       const result = await userService.delete(id);
 
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.DELETE,
+          tableName: AUDIT_TABLES.USER,
+          recordId: id,
+          newValues: { isActive: false },
+          req,
+        });
+      }
+
       res.status(200).json({
         success: true,
         message: result.message,
@@ -284,6 +331,17 @@ export class UserController {
 
       const result = await userService.deletePermanently(id);
 
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.DELETE,
+          tableName: AUDIT_TABLES.USER,
+          recordId: id,
+          newValues: { permanentDelete: true },
+          req,
+        });
+      }
+
       res.status(200).json({
         success: true,
         message: result.message,
@@ -301,6 +359,17 @@ export class UserController {
         return;
       }
       const result = await userService.changePassword(userId, req.body);
+
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.PASSWORD_CHANGE,
+          tableName: AUDIT_TABLES.USER,
+          recordId: userId,
+          req,
+        });
+      }
+
       res.status(200).json({
         success: true,
         message: result.message,

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:AppEHR.ViewModels"
+             xmlns:models="clr-namespace:AppEHR.Models"
+             xmlns:converters="clr-namespace:AppEHR.Converters"
+             xmlns:controls="clr-namespace:AppEHR.Controls"
+             x:Class="AppEHR.Views.PatientsPage"
+             x:Name="ThisPage"
+             Title="Consultantes">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:StringToBooleanConverter x:Key="StringToBooleanConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+        <!-- Background Gradient -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStartLight}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
+                <GradientStop Color="{AppThemeBinding Light={StaticResource GradientEndLight}, Dark={StaticResource GradientEndDark}}" Offset="1.0" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <Grid RowDefinitions="Auto, Auto, *" Padding="0" RowSpacing="0">
+            
+            <!-- 0. Floating Glassmorphic Weather & Profile Header Bar -->
+            <Border Grid.Row="0"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                    Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                    Padding="14,10"
+                    Margin="16,10,16,2">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="20" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                    <!-- Left Section: Date, Time & Weather Status -->
+                    <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                        <!-- Date Info -->
+                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                            <Label Text="📅" FontSize="13" VerticalOptions="Center" />
+                            <Label Text="{Binding FormattedDate}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray800}, Dark={StaticResource Gray200}}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        
+                        <Label Text="|" TextColor="Gray" FontSize="12" VerticalOptions="Center" />
+                        
+                        <!-- Time Info -->
+                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                            <Label Text="🕒" FontSize="13" VerticalOptions="Center" />
+                            <Label Text="{Binding FormattedTime}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+
+                        <!-- Weather Info (Conditional visibility) -->
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center" IsVisible="{Binding IsWeatherVisible}">
+                            <Label Text="|" TextColor="Gray" FontSize="12" VerticalOptions="Center" />
+                            <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
+                                <Label Text="{Binding WeatherIcon}" FontSize="13" VerticalOptions="Center" />
+                                <Label Text="{Binding CurrentTemperatureText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource BrandPrimary}, Dark={StaticResource PrimaryDark}}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </HorizontalStackLayout>
+                    </HorizontalStackLayout>
+
+                    <!-- Right Section: User Profile & Avatar -->
+                    <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center" HorizontalOptions="End">
+                        <Label Text="{Binding PsychologistName}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" VerticalOptions="Center" />
+                        <Border WidthRequest="32" HeightRequest="32" BackgroundColor="{AppThemeBinding Light='#15D35400', Dark='#30D35400'}" StrokeThickness="0" VerticalOptions="Center">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Label Text="{Binding PsychologistInitials}" FontAttributes="Bold" FontSize="11" TextColor="{StaticResource BrandPrimary}" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                    </HorizontalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Custom Search Bar -->
+            <Border Grid.Row="1"
+                    StrokeThickness="1" 
+                    Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#1e293b, Default=#cbd5e1}"
+                    Background="{AppThemeBinding Light=#ffffff, Dark=#111827, Default=#ffffff}"
+                    HeightRequest="46"
+                    Padding="12,0"
+                    Margin="16,10,16,10">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="24, *">
+                    <Path Grid.Column="0"
+                          Data="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L19.71,19L18.3,20.41L13.03,15.14C11.9,16.11 10.42,16.7 8.5,16.7A6.5,6.5 0 0,1 2,10.2A6.5,6.5 0 0,1 8.5,3.7M8.5,5.7A4.5,4.5 0 0,0 4,10.2A4.5,4.5 0 0,0 8.5,14.7A4.5,4.5 0 0,0 13,10.2A4.5,4.5 0 0,0 8.5,5.7Z"
+                          Fill="{AppThemeBinding Light=#64748b, Dark=#94A3B8, Default=#64748b}"
+                          Aspect="Uniform"
+                          HeightRequest="16"
+                          WidthRequest="16"
+                          HorizontalOptions="Start"
+                          VerticalOptions="Center" />
+                    <Entry Grid.Column="1"
+                           Text="{Binding SearchQuery}" 
+                           Placeholder="Buscar por nombre o matrícula..." 
+                           TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}"
+                           PlaceholderColor="{AppThemeBinding Light=#94a3b8, Dark=#475569, Default=#94a3b8}"
+                           VerticalOptions="Center"
+                           FontSize="14"
+                           Margin="6,0,0,0"/>
+                </Grid>
+            </Border>
+
+            <!-- Refresh List of Consultantes -->
+            <RefreshView Grid.Row="2" Command="{Binding LoadPatientsCommand}" IsRefreshing="{Binding IsBusy}">
+                <CollectionView ItemsSource="{Binding Patients}" SelectionMode="None">
+                    
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout Spacing="8" VerticalOptions="Center" HorizontalOptions="Center" Padding="40">
+                            <Label Text="👥" FontSize="48" HorizontalOptions="Center" />
+                            <Label Text="No se encontraron consultantes" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Gray" />
+                            <Label Text="No hay consultantes registrados que coincidan con la búsqueda." FontSize="12" HorizontalOptions="Center" HorizontalTextAlignment="Center" TextColor="Gray" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Patient">
+                            <Grid Padding="0,2,0,4">
+                                <Border StrokeThickness="1"
+                                        Stroke="{AppThemeBinding Light=#30FFFFFF, Dark=#20FFFFFF}"
+                                        Background="{AppThemeBinding Light=#90FFFFFF, Dark=#50161622}"
+                                        Padding="16"
+                                        Margin="16,4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="16" />
+                                    </Border.StrokeShape>
+
+                                    <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, Auto" RowSpacing="8">
+                                        <!-- Left side: Basic Info -->
+                                        <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="4">
+                                            <Label Text="{Binding User.FullName}"
+                                                   FontSize="16"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{AppThemeBinding Light=#212121, Dark=White}" />
+                                            <Label Text="{Binding User.EnrollmentNumber, StringFormat='Matrícula: {0}'}"
+                                                   FontSize="12"
+                                                   TextColor="Gray"
+                                                   IsVisible="{Binding User.EnrollmentNumber, Converter={StaticResource StringToBooleanConverter}}" />
+                                            <Label Text="{Binding PatientType}"
+                                                   FontSize="11"
+                                                   TextColor="{StaticResource BrandPrimary}"
+                                                   FontAttributes="Bold" />
+                                        </VerticalStackLayout>
+
+                                        <!-- Right side: Quick Book button -->
+                                        <Button Grid.Row="0" Grid.Column="1"
+                                                Grid.RowSpan="2"
+                                                Text="📅 Agendar"
+                                                Command="{Binding BindingContext.NavigateToQuickAppointmentCommand, Source={x:Reference ThisPage}}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="{StaticResource BrandPrimary}"
+                                                TextColor="White"
+                                                FontAttributes="Bold"
+                                                FontSize="12"
+                                                HeightRequest="36"
+                                                CornerRadius="10"
+                                                VerticalOptions="Center" />
+
+                                        <!-- Additional Metadata (e.g. Career) -->
+                                        <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Spacing="4" VerticalOptions="Center">
+                                            <Label Text="🎓" FontSize="12" IsVisible="{Binding Career, Converter={StaticResource StringToBooleanConverter}}" />
+                                            <Label Text="{Binding Career.Name}" FontSize="12" TextColor="Gray" IsVisible="{Binding Career, Converter={StaticResource StringToBooleanConverter}}" />
+                                            
+                                            <Label Text="💼" FontSize="12" IsVisible="{Binding Occupation, Converter={StaticResource StringToBooleanConverter}}" />
+                                            <Label Text="{Binding Occupation}" FontSize="12" TextColor="Gray" IsVisible="{Binding Occupation, Converter={StaticResource StringToBooleanConverter}}" />
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </RefreshView>
+
+            <!-- Bottom Navigation Bar -->
+            <controls:AppNavBar ActiveTab="2" Grid.Row="2" VerticalOptions="End" Margin="16,0,16,10" />
+        </Grid>
+    </Grid>
+
+</ContentPage>

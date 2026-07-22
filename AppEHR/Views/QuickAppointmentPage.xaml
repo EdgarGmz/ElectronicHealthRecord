@@ -5,6 +5,8 @@
              xmlns:models="clr-namespace:AppEHR.Models"
              xmlns:converters="clr-namespace:AppEHR.Converters"
              x:Class="AppEHR.Views.QuickAppointmentPage"
+             x:Name="ThisPage"
+             Shell.PresentationMode="ModalAnimated"
              Title="Agendar Cita Rápida">
 
     <ContentPage.Resources>
@@ -13,8 +15,8 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid>
-        <!-- Background Gradient -->
+    <Grid x:Name="RootContainer" RowDefinitions="Auto, *">
+        <!-- Background Gradient overlaying the whole page -->
         <Grid.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                 <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStartLight}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
@@ -22,13 +24,33 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <ScrollView Padding="16">
+        <!-- Custom Header Bar for Modal Navigation -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Padding="20,16" BackgroundColor="Transparent">
+            <Label Grid.Column="0" 
+                   Text="Agendar Cita Rápida" 
+                   FontSize="18" 
+                   FontAttributes="Bold" 
+                   VerticalOptions="Center" 
+                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+            <Button Grid.Column="1" 
+                    Text="✕ Cerrar" 
+                    Clicked="OnCloseButtonClicked"
+                    BackgroundColor="Transparent" 
+                    TextColor="{StaticResource BrandPrimary}" 
+                    FontAttributes="Bold" 
+                    FontSize="13"
+                    HeightRequest="36"
+                    Padding="10,0"
+                    VerticalOptions="Center" />
+        </Grid>
+
+        <ScrollView Grid.Row="1" Padding="16">
             <VerticalStackLayout Spacing="16">
 
                 <!-- Alert Messages Banner -->
                 <Border StrokeThickness="1"
-                        Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                        Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                        Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}, Default={StaticResource GlassBorderLight}}"
+                        Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}, Default={StaticResource GlassBgLight}}"
                         Padding="12"
                         IsVisible="{Binding StatusMessage, Converter={StaticResource StringToBooleanConverter}}">
                     <Border.StrokeShape>
@@ -53,8 +75,8 @@
                     
                     <!-- Search Card -->
                     <Border StrokeThickness="1"
-                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}, Default={StaticResource GlassBorderLight}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}, Default={StaticResource GlassBgLight}}"
                             Padding="16">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="16" />
@@ -64,7 +86,7 @@
                             <Label Text="Buscar Alumno o Personal" FontSize="14" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
                             
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                <Border Grid.Column="0" StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                <Border Grid.Column="0" StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}, Default={StaticResource White}}">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="8" />
                                     </Border.StrokeShape>
@@ -85,8 +107,37 @@
                                         HeightRequest="40" />
                             </Grid>
 
+                            <!-- Autocomplete Suggestions List -->
+                            <CollectionView ItemsSource="{Binding Suggestions}"
+                                            IsVisible="{Binding ShowSuggestions}"
+                                            HeightRequest="150"
+                                            Margin="0,4,0,0">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:Patient">
+                                        <Grid Padding="4,2">
+                                            <Border StrokeThickness="1"
+                                                    Stroke="{AppThemeBinding Light=#30FFFFFF, Dark=#20FFFFFF}"
+                                                    Background="{AppThemeBinding Light=#90FFFFFF, Dark=#50161622}"
+                                                    Padding="12,8"
+                                                    Margin="0,2">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="8" />
+                                                </Border.StrokeShape>
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding BindingContext.SelectSuggestionCommand, Source={x:Reference ThisPage}}" CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+                                                <VerticalStackLayout Spacing="2">
+                                                    <Label Text="{Binding User.FullName}" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#212121, Dark=White}" />
+                                                    <Label Text="{Binding User.EnrollmentNumber, StringFormat='Matrícula: {0}'}" FontSize="11" TextColor="Gray" />
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+
                             <!-- If not found option -->
-                            <Button Text="➕ Registrar Paciente Nuevo" 
+                            <Button Text="➕ Registrar Consultante Nuevo" 
                                     Command="{Binding ToggleNewPatientFormCommand}"
                                     BackgroundColor="Transparent"
                                     TextColor="{StaticResource BrandPrimary}"
@@ -99,8 +150,8 @@
 
                     <!-- Patient Info (If found) -->
                     <Border StrokeThickness="1"
-                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}, Default={StaticResource GlassBorderLight}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}, Default={StaticResource GlassBgLight}}"
                             Padding="16"
                             IsVisible="{Binding PatientFound}">
                         <Border.StrokeShape>
@@ -108,7 +159,7 @@
                         </Border.StrokeShape>
 
                         <VerticalStackLayout Spacing="8">
-                            <Label Text="Paciente Seleccionado" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                            <Label Text="Consultante Seleccionado" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
                             <Label Text="{Binding FoundPatient.User.FullName}" FontSize="18" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
                             
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" IsVisible="{Binding FoundPatient.Career, Converter={StaticResource StringToBooleanConverter}}">
@@ -125,8 +176,8 @@
 
                     <!-- Appointment Details Form (If found) -->
                     <Border StrokeThickness="1"
-                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}, Default={StaticResource GlassBorderLight}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}, Default={StaticResource GlassBgLight}}"
                             Padding="16"
                             IsVisible="{Binding PatientFound}">
                         <Border.StrokeShape>
@@ -179,11 +230,11 @@
                             <!-- Notes -->
                             <VerticalStackLayout Spacing="4">
                                 <Label Text="Notas / Motivo" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
-                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}, Default={StaticResource White}}">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="8" />
                                     </Border.StrokeShape>
-                                    <Editor Text="{Binding Notes}" 
+                                    <Editor Text="{Binding Notes}"
                                             Placeholder="Notas sobre el encuentro rápido (ej: pasillo de biblioteca)" 
                                             TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
                                             PlaceholderColor="Gray"
@@ -209,56 +260,56 @@
                 <!-- SECTION 2: NEW PATIENT REGISTRATION FORM (If New Patient Form is OPENED) -->
                 <VerticalStackLayout Spacing="16" IsVisible="{Binding ShowNewPatientForm}">
                     <Border StrokeThickness="1"
-                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}, Default={StaticResource GlassBorderLight}}"
+                            Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}, Default={StaticResource GlassBgLight}}"
                             Padding="18">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="16" />
                         </Border.StrokeShape>
 
                         <VerticalStackLayout Spacing="14">
-                            <Label Text="Registrar Nuevo Paciente" FontSize="16" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            <Label Text="Registrar Nuevo Consultante" FontSize="16" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
                             
                             <!-- First Name & Last Name -->
                             <VerticalStackLayout Spacing="4">
                                 <Label Text="Nombre(s)" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
-                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}, Default={StaticResource White}}">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="8" />
                                     </Border.StrokeShape>
-                                    <Entry Text="{Binding NewFirstName}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                    <Entry Text="{Binding NewFirstName}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}, Default={StaticResource Black}}" Margin="6,0" HeightRequest="40" />
                                 </Border>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout Spacing="4">
                                 <Label Text="Apellido(s)" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
-                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}, Default={StaticResource White}}">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="8" />
                                     </Border.StrokeShape>
-                                    <Entry Text="{Binding NewLastName}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                    <Entry Text="{Binding NewLastName}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}, Default={StaticResource Black}}" Margin="6,0" HeightRequest="40" />
                                 </Border>
                             </VerticalStackLayout>
 
                             <!-- Email -->
                             <VerticalStackLayout Spacing="4">
                                 <Label Text="Correo Electrónico" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
-                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}, Default={StaticResource White}}">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="8" />
                                     </Border.StrokeShape>
-                                    <Entry Text="{Binding NewEmail}" Keyboard="Email" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                    <Entry Text="{Binding NewEmail}" Keyboard="Email" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}, Default={StaticResource Black}}" Margin="6,0" HeightRequest="40" />
                                 </Border>
                             </VerticalStackLayout>
 
                             <!-- Phone -->
                             <VerticalStackLayout Spacing="4">
                                 <Label Text="WhatsApp / Teléfono" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
-                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}, Default={StaticResource White}}">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="8" />
                                     </Border.StrokeShape>
-                                    <Entry Text="{Binding NewPhone}" Keyboard="Telephone" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                    <Entry Text="{Binding NewPhone}" Keyboard="Telephone" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}, Default={StaticResource Black}}" Margin="6,0" HeightRequest="40" />
                                 </Border>
                             </VerticalStackLayout>
 
@@ -270,7 +321,7 @@
 
                             <!-- Patient Type Picker -->
                             <VerticalStackLayout Spacing="4">
-                                <Label Text="Tipo de Paciente" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
+                                <Label Text="Tipo de Consultante" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
                                 <Picker SelectedItem="{Binding NewPatientType}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}">
                                     <Picker.Items>
                                         <x:String>student</x:String>
@@ -283,11 +334,11 @@
                             <!-- Enrollment/Employee Number -->
                             <VerticalStackLayout Spacing="4">
                                 <Label Text="Matrícula o Nº Empleado" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
-                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}, Default={StaticResource White}}">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="8" />
                                     </Border.StrokeShape>
-                                    <Entry Text="{Binding NewEnrollmentNumber}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                    <Entry Text="{Binding NewEnrollmentNumber}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}, Default={StaticResource Black}}" Margin="6,0" HeightRequest="40" />
                                 </Border>
                             </VerticalStackLayout>
 
@@ -305,22 +356,22 @@
                                 <!-- Group -->
                                 <VerticalStackLayout Spacing="4">
                                     <Label Text="Grupo" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
-                                    <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                    <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}, Default={StaticResource White}}">
                                         <Border.StrokeShape>
                                             <RoundRectangle CornerRadius="8" />
                                         </Border.StrokeShape>
-                                        <Entry Text="{Binding NewGroup}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                        <Entry Text="{Binding NewGroup}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}, Default={StaticResource Black}}" Margin="6,0" HeightRequest="40" />
                                     </Border>
                                 </VerticalStackLayout>
 
                                 <!-- Trimester -->
                                 <VerticalStackLayout Spacing="4">
                                     <Label Text="Cuatrimestre (1-12)" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
-                                    <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                    <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}, Default={StaticResource White}}">
                                         <Border.StrokeShape>
                                             <RoundRectangle CornerRadius="8" />
                                         </Border.StrokeShape>
-                                        <Entry Text="{Binding NewTrimester}" Keyboard="Numeric" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                        <Entry Text="{Binding NewTrimester}" Keyboard="Numeric" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}, Default={StaticResource Black}}" Margin="6,0" HeightRequest="40" />
                                     </Border>
                                 </VerticalStackLayout>
                             </VerticalStackLayout>
@@ -328,11 +379,11 @@
                             <!-- Staff Fields (Visible if patient type is NOT student) -->
                             <VerticalStackLayout Spacing="4" IsVisible="{Binding IsStudentSelected, Converter={StaticResource StringToBooleanConverter}, ConverterParameter='invert'}">
                                 <Label Text="Ocupación / Puesto" FontSize="11" FontAttributes="Bold" TextColor="Gray" />
-                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                                <Border StrokeThickness="1" Stroke="Gray" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}, Default={StaticResource White}}">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="8" />
                                     </Border.StrokeShape>
-                                    <Entry Text="{Binding NewOccupation}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" Margin="6,0" HeightRequest="40" />
+                                    <Entry Text="{Binding NewOccupation}" TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}, Default={StaticResource Black}}" Margin="6,0" HeightRequest="40" />
                                 </Border>
                             </VerticalStackLayout>
 

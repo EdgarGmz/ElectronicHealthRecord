@@ -5,17 +5,29 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:AppEHR.Views"
     Title="AppEHR"
-    FlyoutBehavior="Disabled">
+    FlyoutBehavior="Disabled"
+    Shell.TabBarIsVisible="False"
+    Shell.NavBarIsVisible="False">
 
     <!-- Login Page Branch -->
-    <ShellItem Route="LoginPage">
+    <ShellItem Route="LoginPage" Shell.TabBarIsVisible="False" Shell.NavBarIsVisible="False">
         <ShellContent ContentTemplate="{DataTemplate views:LoginPage}" />
     </ShellItem>
 
-    <!-- Dashboard Page Branch -->
-    <ShellItem Route="DashboardPage">
-        <ShellContent ContentTemplate="{DataTemplate views:DashboardPage}" />
-    </ShellItem>
+    <!-- Main Navigation TabBar (4 Tabs) -->
+    <TabBar Shell.TabBarIsVisible="False">
+        <Tab Title="Calendario" Icon="calendar_tab.png" Route="DashboardTab">
+            <ShellContent Route="DashboardPage" ContentTemplate="{DataTemplate views:DashboardPage}" />
+        </Tab>
+        <Tab Title="Consultantes" Icon="users_tab.png" Route="PatientsTab">
+            <ShellContent Route="PatientsPage" ContentTemplate="{DataTemplate views:PatientsPage}" />
+        </Tab>
+        <Tab Title="Notificaciones" Icon="bell_tab.png" Route="NotificationsTab">
+            <ShellContent Route="NotificationsPage" ContentTemplate="{DataTemplate views:NotificationsPage}" />
+        </Tab>
+        <Tab Title="Ajustes" Icon="settings_tab.png" Route="SettingsTab">
+            <ShellContent Route="SettingsPage" ContentTemplate="{DataTemplate views:SettingsPage}" />
+        </Tab>
+    </TabBar>
 
 </Shell>
-

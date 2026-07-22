@@ -127,7 +127,7 @@ test.describe('Flujo completo — rol PSICÓLOGO', () => {
   // ─────────────────────────────────────────────────────
   test('evaluaciones — lista', async ({ page }) => {
     await page.goto('/evaluations')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.screenshot({ path: 'screenshots/09-evaluations.png', fullPage: true })
     console.log('URL evaluaciones:', page.url())
   })
@@ -157,7 +157,7 @@ test.describe('Flujo completo — rol PSICÓLOGO', () => {
   // ─────────────────────────────────────────────────────
   test('RBAC — /audit-logs redirige a no autorizado', async ({ page }) => {
     await page.goto('/audit-logs')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.screenshot({ path: 'screenshots/12-audit-logs-restricted.png', fullPage: true })
     const url = page.url()
     const pageText = await page.locator('body').innerText()

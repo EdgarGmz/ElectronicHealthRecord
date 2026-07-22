@@ -2,6 +2,7 @@ import { NextFunction, Response } from 'express';
 import { body, param } from 'express-validator';
 import psychometricTestService from '../services/psychometric-test.service';
 import { AuthRequest } from '../middleware/auth';
+import { createAuditLog, AUDIT_ACTIONS } from '../utils/audit';
 
 export const createPsychometricTestValidation = [
   body('psychologyRecordId').isUUID().withMessage('Valid psychology record ID is required'),
@@ -98,6 +99,17 @@ export const getPsychometricTestById = async (
       req.user.role
     );
 
+    if (req.user.userId && evaluation) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.VIEW_RECORD,
+        tableName: 'psychometric_evaluations',
+        recordId: evaluation.id,
+        newValues: { evaluationType: evaluation.evaluationType, psychologyRecordId: evaluation.psychologyRecordId },
+        req,
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Psychometric evaluation retrieved successfully',
@@ -144,6 +156,17 @@ export const createPsychometricTest = async (
     };
 
     const evaluation = await psychometricTestService.create(data);
+
+    if (req.user.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: 'psychometric_evaluations',
+        recordId: evaluation.id,
+        newValues: { evaluationType: evaluation.evaluationType, psychologyRecordId: evaluation.psychologyRecordId },
+        req,
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -197,6 +220,17 @@ export const updatePsychometricTest = async (
       data
     );
 
+    if (req.user.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.UPDATE,
+        tableName: 'psychometric_evaluations',
+        recordId: evaluation.id,
+        newValues: { evaluationType: evaluation.evaluationType, psychologyRecordId: evaluation.psychologyRecordId, ...req.body },
+        req,
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Psychometric evaluation updated successfully',
@@ -224,6 +258,16 @@ export const deletePsychometricTest = async (
       req.user.userId,
       req.user.role
     );
+
+    if (req.user.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.DELETE,
+        tableName: 'psychometric_evaluations',
+        recordId: id,
+        req,
+      });
+    }
 
     res.status(200).json({
       success: true,
