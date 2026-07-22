@@ -25,7 +25,7 @@ namespace AppEHR.ViewModels
             Title = "Mi Agenda";
             Appointments = new ObservableCollection<Appointment>();
 
-            LoadDataCommand = new Command(async () => await LoadDataAsync());
+            LoadDataCommand = new Command(async () => await LoadDataAsync(force: true));
             ChangeViewModeCommand = new Command<string>(async (mode) => await ExecuteChangeViewModeAsync(mode));
             WhatsAppCommand = new Command<string>(async (phone) => await OpenWhatsAppAsync(phone));
             EmailCommand = new Command<string>(async (email) => await OpenEmailAsync(email));
@@ -62,8 +62,14 @@ namespace AppEHR.ViewModels
         public ICommand NavigateToQuickAppointmentCommand { get; }
         public ICommand LogoutCommand { get; }
 
-        public async Task LoadDataAsync()
+        public async Task LoadDataAsync(bool force = false)
         {
+            // Evitar recargas de red innecesarias al cambiar de pestaña si ya tenemos datos
+            if (!force && Appointments.Count > 0 && Stats.TotalAppointments > 0)
+            {
+                return;
+            }
+
             if (IsBusy) return;
             IsBusy = true;
 
@@ -114,7 +120,7 @@ namespace AppEHR.ViewModels
         private async Task ExecuteChangeViewModeAsync(string mode)
         {
             SelectedViewMode = mode;
-            await LoadDataAsync();
+            await LoadDataAsync(force: true);
         }
 
         private async Task OpenWhatsAppAsync(string? phone)
