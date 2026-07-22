@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:AppEHR.ViewModels"
+             xmlns:controls="clr-namespace:AppEHR.Controls"
+             x:Class="AppEHR.Views.SettingsPage"
+             x:Name="ThisPage"
+             Title="Ajustes">
+
+    <Grid RowDefinitions="*, Auto">
+        <!-- Background Gradient -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStartLight}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
+                <GradientStop Color="{AppThemeBinding Light={StaticResource GradientEndLight}, Dark={StaticResource GradientEndDark}}" Offset="1.0" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <ScrollView Grid.Row="0" Padding="16,12">
+            <VerticalStackLayout Spacing="16">
+
+                <!-- Header Title -->
+                <VerticalStackLayout Spacing="2" Margin="0,6,0,4">
+                    <Label Text="Ajustes y Configuración" FontSize="20" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                    <Label Text="Gestiona la preferencia de tu cuenta y la aplicación" FontSize="12" TextColor="Gray" />
+                </VerticalStackLayout>
+
+                <!-- SECTION 1: Account Information (Glass Card) -->
+                <Border StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                        Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                        Padding="16">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="12">
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Label Text="👤" FontSize="18" />
+                            <Label Text="Información de la Cuenta" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+
+                        <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+
+                        <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="10" ColumnSpacing="10">
+                            <!-- Name -->
+                            <Label Grid.Row="0" Grid.Column="0" Text="Nombre:" FontSize="12" FontAttributes="Bold" TextColor="Gray" />
+                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding PsychologistName}" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray850}, Dark={StaticResource Gray150}}" />
+
+                            <!-- Enrollment -->
+                            <Label Grid.Row="1" Grid.Column="0" Text="Matrícula/Usuario:" FontSize="12" FontAttributes="Bold" TextColor="Gray" />
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding EnrollmentNumber}" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray800}, Dark={StaticResource Gray200}}" />
+
+                            <!-- Email -->
+                            <Label Grid.Row="2" Grid.Column="0" Text="Correo:" FontSize="12" FontAttributes="Bold" TextColor="Gray" />
+                            <Label Grid.Row="2" Grid.Column="1" Text="{Binding Email}" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray800}, Dark={StaticResource Gray200}}" />
+
+                            <!-- Phone / WhatsApp -->
+                            <Label Grid.Row="3" Grid.Column="0" Text="WhatsApp:" FontSize="12" FontAttributes="Bold" TextColor="Gray" />
+                            <Label Grid.Row="3" Grid.Column="1" Text="{Binding Phone}" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray800}, Dark={StaticResource Gray200}}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- SECTION 2: App Settings (Glass Card) -->
+                <Border StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                        Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                        Padding="16">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="14">
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Label Text="🎨" FontSize="18" />
+                            <Label Text="Personalización y Preferencias" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+
+                        <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+
+                        <!-- Dark Theme Switch -->
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="Modo Oscuro" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                <Label Text="Cambia el tema de interfaz entre Claro y Oscuro" FontSize="11" TextColor="Gray" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" IsToggled="{Binding IsDarkMode}" OnColor="{StaticResource BrandPrimary}" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Mute Notifications Switch -->
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="Silenciar Notificaciones" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                                <Label Text="Desactiva los avisos y alertas emergentes" FontSize="11" TextColor="Gray" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" IsToggled="{Binding IsNotificationsMuted}" OnColor="{StaticResource BrandPrimary}" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Font Size Selector -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Tamaño de Fuente" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            <Grid ColumnDefinitions="*, *, *" ColumnSpacing="8">
+                                <Button Grid.Column="0" 
+                                        Text="Pequeño" 
+                                        Command="{Binding SelectFontSizeCommand}" 
+                                        CommandParameter="Pequeño"
+                                        FontSize="11"
+                                        HeightRequest="36"
+                                        Padding="0"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                                        BorderWidth="1"
+                                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                                        CornerRadius="8" />
+
+                                <Button Grid.Column="1" 
+                                        Text="Normal" 
+                                        Command="{Binding SelectFontSizeCommand}" 
+                                        CommandParameter="Normal"
+                                        FontSize="11"
+                                        HeightRequest="36"
+                                        Padding="0"
+                                        BackgroundColor="{StaticResource BrandPrimary}"
+                                        TextColor="White"
+                                        CornerRadius="8" />
+
+                                <Button Grid.Column="2" 
+                                        Text="Grande" 
+                                        Command="{Binding SelectFontSizeCommand}" 
+                                        CommandParameter="Grande"
+                                        FontSize="11"
+                                        HeightRequest="36"
+                                        Padding="0"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                                        BorderWidth="1"
+                                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                                        CornerRadius="8" />
+                            </Grid>
+                        </VerticalStackLayout>
+
+                        <!-- Primary Color Presets Selector -->
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Color Principal de la App" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
+                            <HorizontalStackLayout Spacing="12" HorizontalOptions="Center">
+                                <!-- Orange (#D35400) -->
+                                <Border WidthRequest="36" HeightRequest="36" BackgroundColor="#D35400" StrokeThickness="2" Stroke="White">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectColorCommand}" CommandParameter="#D35400" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <!-- Outlook Blue (#0078D4) -->
+                                <Border WidthRequest="36" HeightRequest="36" BackgroundColor="#0078D4" StrokeThickness="2" Stroke="White">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectColorCommand}" CommandParameter="#0078D4" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <!-- Health Green (#10B981) -->
+                                <Border WidthRequest="36" HeightRequest="36" BackgroundColor="#10B981" StrokeThickness="2" Stroke="White">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectColorCommand}" CommandParameter="#10B981" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <!-- Violet (#8B5CF6) -->
+                                <Border WidthRequest="36" HeightRequest="36" BackgroundColor="#8B5CF6" StrokeThickness="2" Stroke="White">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectColorCommand}" CommandParameter="#8B5CF6" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <!-- Wine Red (#991B1B) -->
+                                <Border WidthRequest="36" HeightRequest="36" BackgroundColor="#991B1B" StrokeThickness="2" Stroke="White">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectColorCommand}" CommandParameter="#991B1B" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- SECTION 3: Session Management (Logout Button) -->
+                <Button Text="🚪 Cerrar Sesión" 
+                        Command="{Binding LogoutCommand}"
+                        BackgroundColor="Transparent"
+                        BorderColor="{StaticResource BrandError}"
+                        BorderWidth="1.2"
+                        TextColor="{StaticResource BrandError}"
+                        FontAttributes="Bold"
+                        FontSize="14"
+                        CornerRadius="12"
+                        HeightRequest="46"
+                        Margin="0,6,0,10" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Bottom Navigation Bar -->
+        <controls:AppNavBar ActiveTab="4" Grid.Row="1" VerticalOptions="End" />
+    </Grid>
+
+</ContentPage>
