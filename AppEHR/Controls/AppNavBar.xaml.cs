@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AppEHR.Views;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Graphics;
 
 namespace AppEHR.Controls
@@ -34,12 +35,31 @@ namespace AppEHR.Controls
         public void HighlightActiveTab(int index)
         {
             Color primaryColor = (Color)(Application.Current?.Resources["BrandPrimary"] ?? Colors.Orange);
-            Color defaultColor = (Application.Current?.RequestedTheme == AppTheme.Dark) ? Colors.White : Colors.Black;
 
-            if (Tab1Label != null) Tab1Label.TextColor = (index == 1) ? primaryColor : defaultColor;
-            if (Tab2Label != null) Tab2Label.TextColor = (index == 2) ? primaryColor : defaultColor;
-            if (Tab3Label != null) Tab3Label.TextColor = (index == 3) ? primaryColor : defaultColor;
-            if (Tab4Label != null) Tab4Label.TextColor = (index == 4) ? primaryColor : defaultColor;
+            UpdateTabState(1, index == 1, Tab1Label, Tab1Icon, primaryColor);
+            UpdateTabState(2, index == 2, Tab2Label, Tab2Icon, primaryColor);
+            UpdateTabState(3, index == 3, Tab3Label, Tab3Icon, primaryColor);
+            UpdateTabState(4, index == 4, Tab4Label, Tab4Icon, primaryColor);
+        }
+
+        private void UpdateTabState(int tabIndex, bool isActive, Label? label, Microsoft.Maui.Controls.Shapes.Path? icon, Color primaryColor)
+        {
+            if (label == null || icon == null) return;
+
+            if (isActive)
+            {
+                label.TextColor = primaryColor;
+                icon.Stroke = new SolidColorBrush(primaryColor);
+            }
+            else
+            {
+                // Restaurar el color correspondiente al tema activo
+                Color lightColor = (Color)(Application.Current?.Resources["Gray900"] ?? Colors.Black);
+                Color darkColor = (Color)(Application.Current?.Resources["White"] ?? Colors.White);
+
+                label.SetAppThemeColor(Label.TextColorProperty, lightColor, darkColor);
+                icon.SetAppThemeColor(Microsoft.Maui.Controls.Shapes.Path.StrokeProperty, lightColor, darkColor);
+            }
         }
 
         private async void OnTab1Clicked(object sender, EventArgs e)
