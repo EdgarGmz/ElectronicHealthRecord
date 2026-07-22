@@ -2,6 +2,7 @@ import { NextFunction, Response } from 'express';
 import { body, param } from 'express-validator';
 import interconsultationService from '../services/interconsultation.service';
 import { AuthRequest } from '../middleware/auth';
+import { createAuditLog, AUDIT_ACTIONS } from '../utils/audit';
 import {
   INTERCONSULTATION_URGENCY_VALUES,
   DEPARTMENT_VALUES,
@@ -174,6 +175,17 @@ export const createInterconsultation = async (
 
     const interconsultation = await interconsultationService.create(data);
 
+    if (req.user.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: 'interconsultations',
+        recordId: interconsultation.id,
+        newValues: { patientId: interconsultation.patientId, fromDepartment: interconsultation.fromDepartment, toDepartment: interconsultation.toDepartment },
+        req,
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Interconsultation created successfully',
@@ -204,6 +216,17 @@ export const respondToInterconsultation = async (
       req.user.role,
       response
     );
+
+    if (req.user.userId) {
+      await createAuditLog({
+        userId: req.user.userId,
+        action: AUDIT_ACTIONS.UPDATE,
+        tableName: 'interconsultations',
+        recordId: interconsultation.id,
+        newValues: { response: interconsultation.response, respondedBy: req.user.userId, patientId: interconsultation.patientId },
+        req,
+      });
+    }
 
     res.status(200).json({
       success: true,
