@@ -24,39 +24,78 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16,10" RowSpacing="12">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Padding="16,10" RowSpacing="12">
             
-            <!-- 1. Header Row & Zen Banner -->
-            <Grid Grid.Row="0" RowDefinitions="Auto, Auto" Margin="0,6,0,0" RowSpacing="8">
-                <!-- Greetings -->
-                <VerticalStackLayout Grid.Row="0" Spacing="2">
-                    <Label Text="Hola," FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                    <Label Text="{Binding PsychologistName}" FontSize="24" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                </VerticalStackLayout>
-                
-                <!-- Zen Banner (Grounding Phrase) -->
-                <Border Grid.Row="1"
-                        StrokeThickness="0"
-                        Background="{AppThemeBinding Light='#15D35400', Dark='#30D35400'}"
-                        Padding="12,10"
-                        Margin="0,2,0,2">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
-                    </Border.StrokeShape>
-                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8">
-                        <Label Grid.Column="0" Text="🧘" FontSize="18" VerticalOptions="Center" />
-                        <Label Grid.Column="1" 
-                               Text="{Binding Stats.GroundingPhrase}" 
-                               FontSize="12" 
-                               FontAttributes="Italic"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray800}, Dark={StaticResource Gray200}}" 
-                               VerticalOptions="Center" />
-                    </Grid>
-                </Border>
-            </Grid>
+            <!-- 0. Floating Glassmorphic Weather & Profile Header Bar -->
+            <Border Grid.Row="0"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                    Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                    Padding="14,10"
+                    Margin="0,4,0,2">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="20" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                    <!-- Left Section: Date, Time & Weather Status -->
+                    <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                        <!-- Date Info -->
+                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                            <Label Text="📅" FontSize="13" VerticalOptions="Center" />
+                            <Label Text="{Binding FormattedDate}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray800}, Dark={StaticResource Gray200}}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        
+                        <Label Text="|" TextColor="Gray" FontSize="12" VerticalOptions="Center" />
+                        
+                        <!-- Time Info -->
+                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                            <Label Text="🕒" FontSize="13" VerticalOptions="Center" />
+                            <Label Text="{Binding FormattedTime}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+
+                        <!-- Weather Info (Conditional visibility) -->
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center" IsVisible="{Binding IsWeatherVisible}">
+                            <Label Text="|" TextColor="Gray" FontSize="12" VerticalOptions="Center" />
+                            <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
+                                <Label Text="{Binding WeatherIcon}" FontSize="13" VerticalOptions="Center" />
+                                <Label Text="{Binding CurrentTemperatureText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource BrandPrimary}, Dark={StaticResource PrimaryDark}}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </HorizontalStackLayout>
+                    </HorizontalStackLayout>
+
+                    <!-- Right Section: User Profile & Avatar -->
+                    <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center" HorizontalOptions="End">
+                        <Label Text="{Binding PsychologistName}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" VerticalOptions="Center" />
+                        <Border WidthRequest="32" HeightRequest="32" BackgroundColor="{AppThemeBinding Light='#15D35400', Dark='#30D35400'}" StrokeThickness="0" VerticalOptions="Center">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Label Text="{Binding PsychologistInitials}" FontAttributes="Bold" FontSize="11" TextColor="{StaticResource BrandPrimary}" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                    </HorizontalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- 1. Zen Banner (Grounding Phrase) -->
+            <Border Grid.Row="1"
+                    StrokeThickness="0"
+                    Background="{AppThemeBinding Light='#15D35400', Dark='#30D35400'}"
+                    Padding="12,10"
+                    Margin="0,2,0,2">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8">
+                    <Label Grid.Column="0" Text="🧘" FontSize="18" VerticalOptions="Center" />
+                    <Label Grid.Column="1" 
+                           Text="{Binding Stats.GroundingPhrase}" 
+                           FontSize="12" 
+                           FontAttributes="Italic"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray800}, Dark={StaticResource Gray200}}" 
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
 
             <!-- 2. Statistics (KPI Glass Cards & Circular Workload Progress) -->
-            <Grid Grid.Row="1" ColumnDefinitions="*, 110" ColumnSpacing="10" Margin="0,2">
+            <Grid Grid.Row="2" ColumnDefinitions="*, 110" ColumnSpacing="10" Margin="0,2">
                 <!-- Left Side: 2x2 Glass KPI Cards -->
                 <Grid Grid.Column="0" RowDefinitions="Auto, Auto" ColumnDefinitions="*, *" RowSpacing="6" ColumnSpacing="6">
                     <!-- KPI 1: Total Mes -->
@@ -127,7 +166,7 @@
             </Grid>
 
             <!-- 3. Navigation Mode Selector (Segmented Pill) -->
-            <Border Grid.Row="2"
+            <Border Grid.Row="3"
                     StrokeThickness="1"
                     Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
                     Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
@@ -199,7 +238,7 @@
             </Border>
 
             <!-- 4. Agenda Itinerary Timeline List -->
-            <RefreshView Grid.Row="3" Command="{Binding LoadDataCommand}" IsRefreshing="{Binding IsBusy}">
+            <RefreshView Grid.Row="4" Command="{Binding LoadDataCommand}" IsRefreshing="{Binding IsBusy}">
                 <CollectionView ItemsSource="{Binding Appointments}" SelectionMode="None">
                     
                     <CollectionView.EmptyView>
@@ -320,7 +359,7 @@
             </RefreshView>
 
             <!-- Bottom Navigation Bar -->
-            <controls:AppNavBar ActiveTab="1" Grid.Row="3" VerticalOptions="End" Margin="0" />
+            <controls:AppNavBar ActiveTab="1" Grid.Row="4" VerticalOptions="End" Margin="0" />
         </Grid>
     </Grid>
 

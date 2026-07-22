@@ -2,10 +2,12 @@ using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Linq;
 using AppEHR.Models;
 using AppEHR.Services;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Devices.Sensors;
 
 namespace AppEHR.ViewModels
 {
@@ -32,7 +34,7 @@ namespace AppEHR.ViewModels
             NavigateToQuickAppointmentCommand = new Command(async () => await NavigateToQuickAppointmentAsync());
             LogoutCommand = new Command(async () => await ExecuteLogoutCommandAsync());
 
-            PsychologistName = _authService.CurrentUser?.FullName ?? "Psicólogo";
+            InitializeWeatherAndDateTime();
         }
 
         public ObservableCollection<Appointment> Appointments { get; }
@@ -55,6 +57,8 @@ namespace AppEHR.ViewModels
             set => SetProperty(ref _psychologistName, value);
         }
 
+
+
         public ICommand LoadDataCommand { get; }
         public ICommand ChangeViewModeCommand { get; }
         public ICommand WhatsAppCommand { get; }
@@ -75,8 +79,12 @@ namespace AppEHR.ViewModels
 
             try
             {
-                // Cargar estadísticas
-                Stats = await _appointmentService.GetDashboardStatsAsync();
+                // Cargar estadísticas y clima en paralelo para mejorar el rendimiento
+                var statsTask = _appointmentService.GetDashboardStatsAsync();
+                var weatherTask = FetchWeatherAsync();
+
+                await Task.WhenAll(statsTask, weatherTask);
+                Stats = statsTask.Result;
 
                 // Cargar citas según el modo
                 DateTime start, end;
@@ -170,5 +178,7 @@ namespace AppEHR.ViewModels
             await _authService.LogoutAsync();
             await Shell.Current.GoToAsync("///LoginPage");
         }
+
+
     }
 }
