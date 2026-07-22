@@ -27,6 +27,8 @@ namespace AppEHR.ViewModels
             SearchCommand = new Command(ExecuteSearch);
             NavigateToQuickAppointmentCommand = new Command<Patient>(async (patient) => await NavigateToQuickAppointmentAsync(patient));
             NavigateToQuickAppointmentNewCommand = new Command(async () => await Shell.Current.GoToAsync("QuickAppointmentPage"));
+
+            InitializeWeatherAndDateTime();
         }
 
         public ObservableCollection<Patient> Patients { get; }
@@ -56,7 +58,13 @@ namespace AppEHR.ViewModels
             try
             {
                 Patients.Clear();
-                _allPatients = await _patientService.GetPatientsAsync();
+                
+                // Cargar pacientes y clima en paralelo
+                var patientsTask = _patientService.GetPatientsAsync();
+                var weatherTask = FetchWeatherAsync();
+
+                await Task.WhenAll(patientsTask, weatherTask);
+                _allPatients = patientsTask.Result;
                 
                 // Sort by FullName alphabetically
                 _allPatients = _allPatients.OrderBy(p => p.User.FullName).ToList();

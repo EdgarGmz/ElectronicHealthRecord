@@ -27,6 +27,8 @@ namespace AppEHR.ViewModels
             DeleteNotificationCommand = new Command<Notification>(async (n) => await DeleteNotificationAsync(n));
             NavigateToQuickAppointmentCommand = new Command(async () => await NavigateToQuickAppointmentAsync());
             NavigateToDetailCommand = new Command<Notification>(async (n) => await NavigateToDetailAsync(n));
+
+            InitializeWeatherAndDateTime();
         }
 
         public ObservableCollection<Notification> Notifications { get; }
@@ -52,7 +54,13 @@ namespace AppEHR.ViewModels
             try
             {
                 Notifications.Clear();
-                var list = await _notificationService.GetNotificationsAsync();
+
+                // Cargar notificaciones y clima en paralelo
+                var notificationsTask = _notificationService.GetNotificationsAsync();
+                var weatherTask = FetchWeatherAsync();
+
+                await Task.WhenAll(notificationsTask, weatherTask);
+                var list = notificationsTask.Result;
                 
                 // Sort by date descending
                 list = list.OrderByDescending(n => n.CreatedAt).ToList();
