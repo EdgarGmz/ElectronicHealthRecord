@@ -43,5 +43,19 @@ namespace AppEHR.Models
 
         [JsonIgnore]
         public string FullName => $"{FirstName} {LastName}".Trim();
+
+        [JsonIgnore]
+        public string Initials
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(FirstName) && string.IsNullOrWhiteSpace(LastName))
+                    return "?";
+                
+                string f = !string.IsNullOrWhiteSpace(FirstName) ? FirstName.Trim()[0].ToString() : string.Empty;
+                string l = !string.IsNullOrWhiteSpace(LastName) ? LastName.Trim()[0].ToString() : string.Empty;
+                return (f + l).ToUpper();
+            }
+        }
     }
 }
