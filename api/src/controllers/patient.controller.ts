@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import patientService from '../services/patient.service';
 import { AuthRequest } from '../middleware/auth';
+import { createAuditLog, AUDIT_ACTIONS, AUDIT_TABLES } from '../utils/audit';
 
 export const createPatientValidation = [
   body('email').isEmail().withMessage('Valid email is required'),
@@ -138,6 +139,18 @@ export class PatientController {
 
       const patient = await patientService.create(data, options);
 
+      if (req.user?.userId) {
+        const patientName = `${patient.user?.firstName || ''} ${patient.user?.lastName || ''}`.trim() || patient.user?.email || '';
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.CREATE,
+          tableName: AUDIT_TABLES.PATIENT,
+          recordId: patient.id,
+          newValues: { patientName, patientType: patient.patientType },
+          req,
+        });
+      }
+
       res.status(201).json({
         success: true,
         message: 'Patient created successfully',
@@ -148,10 +161,22 @@ export class PatientController {
     }
   }
 
-  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async update(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
       const patient = await patientService.update(id, req.body);
+
+      if (req.user?.userId) {
+        const patientName = `${patient.user?.firstName || ''} ${patient.user?.lastName || ''}`.trim() || patient.user?.email || '';
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.UPDATE,
+          tableName: AUDIT_TABLES.PATIENT,
+          recordId: patient.id,
+          newValues: { ...req.body, patientName },
+          req: req as Request,
+        });
+      }
 
       res.status(200).json({
         success: true,
@@ -163,10 +188,20 @@ export class PatientController {
     }
   }
 
-  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async delete(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
       const result = await patientService.delete(id);
+
+      if (req.user?.userId) {
+        await createAuditLog({
+          userId: req.user.userId,
+          action: AUDIT_ACTIONS.DELETE,
+          tableName: AUDIT_TABLES.PATIENT,
+          recordId: id,
+          req: req as Request,
+        });
+      }
 
       res.status(200).json({
         success: true,
