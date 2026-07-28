@@ -61,5 +61,8 @@ namespace AppEHR.Models
 
         [JsonPropertyName("career")]
         public Career? Career { get; set; }
+
+        [JsonPropertyName("emergencyContacts")]
+        public List<EmergencyContact>? EmergencyContacts { get; set; }
     }
 }

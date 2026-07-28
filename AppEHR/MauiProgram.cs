@@ -24,6 +24,7 @@ namespace AppEHR
             builder.Services.AddSingleton<PatientService>();
             builder.Services.AddSingleton<AppointmentService>();
             builder.Services.AddSingleton<NotificationService>();
+            builder.Services.AddSingleton<ExpedientService>();
 
             // Register ViewModels
             builder.Services.AddTransient<LoginViewModel>();
