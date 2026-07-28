@@ -38,8 +38,12 @@ namespace AppEHR.ViewModels
             EnrollmentNumber = user?.EnrollmentNumber ?? "S/N";
             Phone = !string.IsNullOrEmpty(user?.Phone) ? user.Phone : "No registrado";
 
-            // Cargar preferencias iniciales
-            _isDarkMode = Application.Current?.UserAppTheme == AppTheme.Dark || Preferences.Get("app_theme", "Light") == "Dark";
+            // Cargar preferencias iniciales (Por defecto "Light" / Claro, Switch apagado)
+            _isDarkMode = Preferences.Get("app_theme", "Light") == "Dark";
+            if (Application.Current != null)
+            {
+                Application.Current.UserAppTheme = _isDarkMode ? AppTheme.Dark : AppTheme.Light;
+            }
             _isNotificationsMuted = Preferences.Get("notifications_muted", false);
             _selectedFontSize = Preferences.Get("font_size_scale", "Normal");
             _selectedColorHex = Preferences.Get("primary_color_hex", "#D35400");
