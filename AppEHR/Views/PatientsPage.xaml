@@ -43,7 +43,7 @@
                 <!-- Psicólogo e Iniciales (Lado Derecho) -->
                 <HorizontalStackLayout Grid.Column="2" Spacing="8" HorizontalOptions="End" VerticalOptions="Center">
                     <Label Text="{Binding PsychologistName}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" VerticalOptions="Center" />
-                    <Border WidthRequest="32" HeightRequest="32" BackgroundColor="{StaticResource BrandPrimaryLight}" StrokeThickness="0" HorizontalOptions="Center" VerticalOptions="Center">
+                    <Border WidthRequest="32" HeightRequest="32" BackgroundColor="{DynamicResource BrandPrimaryLight}" StrokeThickness="0" HorizontalOptions="Center" VerticalOptions="Center">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="16" />
                         </Border.StrokeShape>
@@ -95,7 +95,7 @@
                 <Button Grid.Column="3"
                         Text="Buscar"
                         Command="{Binding SearchCommand}"
-                        BackgroundColor="{StaticResource BrandPrimary}"
+                        BackgroundColor="{DynamicResource BrandPrimary}"
                         TextColor="White"
                         FontSize="11"
                         FontAttributes="Bold"
@@ -135,7 +135,7 @@
             <!-- B. VISTA DE CARGANDO -->
             <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"
-                               Color="{StaticResource BrandPrimary}"
+                               Color="{DynamicResource BrandPrimary}"
                                WidthRequest="40"
                                HeightRequest="40"
                                HorizontalOptions="Center"
@@ -173,7 +173,7 @@
                     <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
                     <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12">
                         <!-- Iniciales -->
-                        <Border Grid.Column="0" WidthRequest="44" HeightRequest="44" BackgroundColor="{StaticResource BrandPrimary}" StrokeThickness="0">
+                        <Border Grid.Column="0" WidthRequest="44" HeightRequest="44" BackgroundColor="{DynamicResource BrandPrimary}" StrokeThickness="0">
                             <Border.StrokeShape><RoundRectangle CornerRadius="22" /></Border.StrokeShape>
                             <Label Text="{Binding CurrentPatient.User.Initials}" FontSize="16" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
@@ -184,7 +184,7 @@
                             <HorizontalStackLayout Spacing="8">
                                 <Label Text="{Binding CurrentPatient.User.EnrollmentNumber}" FontSize="11" TextColor="Gray" />
                                 <Label Text="•" TextColor="LightGray" />
-                                <Label Text="{Binding PatientTypeFormatted}" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource BrandPrimary}" />
+                                <Label Text="{Binding PatientTypeFormatted}" FontSize="11" FontAttributes="Bold" TextColor="{DynamicResource BrandPrimary}" />
                             </HorizontalStackLayout>
                             <Label Text="{Binding CurrentPatient.Career.Name}" FontSize="10" TextColor="Gray" LineBreakMode="TailTruncation" IsVisible="{Binding IsStudentSelected}" />
                         </VerticalStackLayout>
@@ -226,7 +226,7 @@
                             FontAttributes="Bold"
                             CornerRadius="8"
                             TextColor="{AppThemeBinding Light=White, Dark=White}"
-                            BackgroundColor="{StaticResource BrandPrimary}"
+                            BackgroundColor="{DynamicResource BrandPrimary}"
                             HeightRequest="36">
                         <Button.Triggers>
                             <DataTrigger TargetType="Button" Binding="{Binding IsPsychologyTabActive}" Value="False">
@@ -245,7 +245,7 @@
                             FontAttributes="Bold"
                             CornerRadius="8"
                             TextColor="{AppThemeBinding Light=White, Dark=White}"
-                            BackgroundColor="{StaticResource BrandPrimary}"
+                            BackgroundColor="{DynamicResource BrandPrimary}"
                             HeightRequest="36">
                         <Button.Triggers>
                             <DataTrigger TargetType="Button" Binding="{Binding IsClinicalTabActive}" Value="False">
@@ -364,7 +364,7 @@
                                                 <Grid Grid.Column="0">
                                                     <!-- Línea vertical del timeline -->
                                                     <BoxView WidthRequest="2" 
-                                                             Color="{StaticResource BrandPrimaryLight}" 
+                                                             Color="{DynamicResource BrandPrimaryLight}" 
                                                              HorizontalOptions="Center" 
                                                              VerticalOptions="Fill" />
                                                     
@@ -373,7 +373,7 @@
                                                             HeightRequest="28" 
                                                             BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#1E293B}"
                                                             StrokeThickness="1.5" 
-                                                            Stroke="{StaticResource BrandPrimary}" 
+                                                            Stroke="{DynamicResource BrandPrimary}" 
                                                             HorizontalOptions="Center" 
                                                             VerticalOptions="Start"
                                                             Margin="0,4,0,0">
@@ -461,7 +461,7 @@
                                         <!-- Tipo de Sangre -->
                                         <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="1">
                                             <Label Text="Grupo Sanguíneo" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
-                                            <Label Text="{Binding CurrentMedicalRecord.BloodType, TargetNullValue='No especificado'}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource BrandPrimary}" />
+                                            <Label Text="{Binding CurrentMedicalRecord.BloodType, TargetNullValue='No especificado'}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource BrandPrimary}" />
                                         </VerticalStackLayout>
                                         <!-- Fecha Creación -->
                                         <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="1">
@@ -577,7 +577,7 @@
                                             <DataTemplate x:DataType="models:NursingConsultation">
                                                 <VerticalStackLayout Spacing="4">
                                                     <Grid ColumnDefinitions="*, Auto">
-                                                        <Label Grid.Column="0" Text="{Binding ConsultationDate, StringFormat='{0:dd MMMM yyyy, hh:mm tt}'}" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource BrandPrimary}" />
+                                                        <Label Grid.Column="0" Text="{Binding ConsultationDate, StringFormat='{0:dd MMMM yyyy, hh:mm tt}'}" FontSize="11" FontAttributes="Bold" TextColor="{DynamicResource BrandPrimary}" />
                                                         <Label Grid.Column="1" Text="{Binding Nurse.FullName}" FontSize="10" TextColor="Gray" />
                                                     </Grid>
                                                     <Grid ColumnDefinitions="*, *, *" Margin="0,2">

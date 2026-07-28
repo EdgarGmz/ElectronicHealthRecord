@@ -77,14 +77,14 @@
                                     HeightRequest="64"
                                     Background="{AppThemeBinding Light=#E0F2FE, Dark=#1e293b, Default=#E0F2FE}"
                                     StrokeThickness="1"
-                                    Stroke="{StaticResource BrandPrimary}"
+                                    Stroke="{DynamicResource BrandPrimary}"
                                     HorizontalOptions="Center">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="16" />
                                 </Border.StrokeShape>
                                 <Path Data="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
                                       Fill="Transparent" 
-                                      Stroke="{StaticResource BrandPrimary}" 
+                                      Stroke="{DynamicResource BrandPrimary}" 
                                       StrokeThickness="2" 
                                       Aspect="Uniform" 
                                       HeightRequest="30" 
@@ -219,7 +219,7 @@
                                 <!-- Remember Me -->
                                 <HorizontalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
                                     <CheckBox IsChecked="{Binding RememberMe}" 
-                                              Color="{StaticResource BrandPrimary}" 
+                                              Color="{DynamicResource BrandPrimary}" 
                                               VerticalOptions="Center"
                                               HeightRequest="24"
                                               WidthRequest="24" />
@@ -234,7 +234,7 @@
                                         Text="¿Olvidaste tu contraseña?"
                                         Command="{Binding ForgotPasswordCommand}"
                                         BackgroundColor="Transparent"
-                                        TextColor="{StaticResource BrandPrimary}"
+                                        TextColor="{DynamicResource BrandPrimary}"
                                         FontSize="13"
                                         FontAttributes="Bold"
                                         HorizontalOptions="End"
@@ -256,7 +256,7 @@
                         <!-- Submit Button -->
                         <Button Text="Iniciar sesión" 
                                 Command="{Binding LoginCommand}" 
-                                BackgroundColor="{StaticResource BrandPrimary}" 
+                                BackgroundColor="{DynamicResource BrandPrimary}" 
                                 TextColor="White" 
                                 CornerRadius="12" 
                                 FontAttributes="Bold"
@@ -266,7 +266,7 @@
                         <!-- Loading Indicator -->
                         <ActivityIndicator IsRunning="{Binding IsBusy}" 
                                            IsVisible="{Binding IsBusy}" 
-                                           Color="{StaticResource BrandPrimary}" 
+                                           Color="{DynamicResource BrandPrimary}" 
                                            HorizontalOptions="Center" />
 
                     </VerticalStackLayout>

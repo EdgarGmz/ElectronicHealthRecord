@@ -23,7 +23,6 @@ namespace AppEHR.ViewModels
         private readonly AuthService _authService;
         private bool _isDarkMode;
         private bool _isNotificationsMuted;
-        private string _selectedFontSize = "Normal";
         private string _selectedColorHex = "#D35400";
 
         public SettingsViewModel(AuthService authService)
@@ -45,8 +44,8 @@ namespace AppEHR.ViewModels
                 Application.Current.UserAppTheme = _isDarkMode ? AppTheme.Dark : AppTheme.Light;
             }
             _isNotificationsMuted = Preferences.Get("notifications_muted", false);
-            _selectedFontSize = Preferences.Get("font_size_scale", "Normal");
             _selectedColorHex = Preferences.Get("primary_color_hex", "#D35400");
+            ApplyPrimaryColor(_selectedColorHex);
 
             ColorPresets = new List<ColorPresetOption>
             {
@@ -58,7 +57,6 @@ namespace AppEHR.ViewModels
             };
 
             SelectColorCommand = new Command<string>(ExecuteSelectColor);
-            SelectFontSizeCommand = new Command<string>(ExecuteSelectFontSize);
             LogoutCommand = new Command(async () => await ExecuteLogoutAsync());
         }
 
@@ -97,18 +95,6 @@ namespace AppEHR.ViewModels
             }
         }
 
-        public string SelectedFontSize
-        {
-            get => _selectedFontSize;
-            set
-            {
-                if (SetProperty(ref _selectedFontSize, value))
-                {
-                    Preferences.Set("font_size_scale", value);
-                }
-            }
-        }
-
         public string SelectedColorHex
         {
             get => _selectedColorHex;
@@ -122,7 +108,6 @@ namespace AppEHR.ViewModels
         }
 
         public ICommand SelectColorCommand { get; }
-        public ICommand SelectFontSizeCommand { get; }
         public ICommand LogoutCommand { get; }
 
         private void ExecuteSelectColor(string hex)
@@ -131,20 +116,27 @@ namespace AppEHR.ViewModels
             SelectedColorHex = hex;
         }
 
-        private void ExecuteSelectFontSize(string size)
-        {
-            if (string.IsNullOrEmpty(size)) return;
-            SelectedFontSize = size;
-        }
-
         private void ApplyPrimaryColor(string hex)
         {
             try
             {
                 var color = Color.FromArgb(hex);
+                // Calcular versión clara (light) del color principal para BrandPrimaryLight
+                string lightHex = hex switch
+                {
+                    "#D35400" => "#F97316", // Naranja
+                    "#0078D4" => "#3A96DD", // Azul
+                    "#10B981" => "#34D399", // Verde
+                    "#8B5CF6" => "#A78BFA", // Violeta
+                    "#991B1B" => "#F87171", // Rojo
+                    _ => hex
+                };
+                var lightColor = Color.FromArgb(lightHex);
+
                 if (Application.Current != null)
                 {
                     Application.Current.Resources["BrandPrimary"] = color;
+                    Application.Current.Resources["BrandPrimaryLight"] = lightColor;
                     Application.Current.Resources["Primary"] = color;
                 }
                 Preferences.Set("primary_color_hex", hex);

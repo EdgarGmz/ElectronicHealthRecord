@@ -58,6 +58,7 @@
     <Color x:Key="GradientEndDark">#1D1D2E</Color>
 
     <Color x:Key="BrandPrimary">#D35400</Color> <!-- naranja oscuro corporativo -->
+    <Color x:Key="BrandPrimaryLight">#F97316</Color> <!-- naranja claro corporativo -->
     <Color x:Key="BrandSuccess">#10B981</Color>
     <Color x:Key="BrandWarning">#F59E0B</Color>
     <Color x:Key="BrandError">#EF4444</Color>

@@ -85,7 +85,7 @@
                                 <Label Text="Modo Oscuro" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
                                 <Label Text="Cambia el tema de interfaz entre Claro y Oscuro" FontSize="11" TextColor="Gray" />
                             </VerticalStackLayout>
-                            <Switch Grid.Column="1" IsToggled="{Binding IsDarkMode}" OnColor="{StaticResource BrandPrimary}" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" IsToggled="{Binding IsDarkMode}" OnColor="{DynamicResource BrandPrimary}" VerticalOptions="Center" />
                         </Grid>
 
                         <!-- Mute Notifications Switch -->
@@ -94,51 +94,8 @@
                                 <Label Text="Silenciar Notificaciones" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
                                 <Label Text="Desactiva los avisos y alertas emergentes" FontSize="11" TextColor="Gray" />
                             </VerticalStackLayout>
-                            <Switch Grid.Column="1" IsToggled="{Binding IsNotificationsMuted}" OnColor="{StaticResource BrandPrimary}" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" IsToggled="{Binding IsNotificationsMuted}" OnColor="{DynamicResource BrandPrimary}" VerticalOptions="Center" />
                         </Grid>
-
-                        <!-- Font Size Selector -->
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="Tamaño de Fuente" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-                            <Grid ColumnDefinitions="*, *, *" ColumnSpacing="8">
-                                <Button Grid.Column="0" 
-                                        Text="Pequeño" 
-                                        Command="{Binding SelectFontSizeCommand}" 
-                                        CommandParameter="Pequeño"
-                                        FontSize="11"
-                                        HeightRequest="36"
-                                        Padding="0"
-                                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
-                                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
-                                        BorderWidth="1"
-                                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                                        CornerRadius="8" />
-
-                                <Button Grid.Column="1" 
-                                        Text="Normal" 
-                                        Command="{Binding SelectFontSizeCommand}" 
-                                        CommandParameter="Normal"
-                                        FontSize="11"
-                                        HeightRequest="36"
-                                        Padding="0"
-                                        BackgroundColor="{StaticResource BrandPrimary}"
-                                        TextColor="White"
-                                        CornerRadius="8" />
-
-                                <Button Grid.Column="2" 
-                                        Text="Grande" 
-                                        Command="{Binding SelectFontSizeCommand}" 
-                                        CommandParameter="Grande"
-                                        FontSize="11"
-                                        HeightRequest="36"
-                                        Padding="0"
-                                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
-                                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
-                                        BorderWidth="1"
-                                        BorderColor="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                                        CornerRadius="8" />
-                            </Grid>
-                        </VerticalStackLayout>
 
                         <!-- Primary Color Presets Selector -->
                         <VerticalStackLayout Spacing="8">
