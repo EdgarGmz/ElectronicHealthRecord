@@ -12,6 +12,8 @@ import {
   Pause,
   RotateCcw,
   Timer,
+  Clock,
+  Stethoscope,
 } from 'lucide-react'
 import { GlassCard } from '@/components/atoms/GlassCard'
 import { GlassButton } from '@/components/atoms/GlassButton'
@@ -19,6 +21,7 @@ import { LoadingModal } from '@/components/molecules/LoadingModal'
 import { ErrorModal } from '@/components/molecules/ErrorModal'
 import { SuccessModal } from '@/components/molecules/SuccessModal'
 import { ConfirmModal } from '@/components/molecules/ConfirmModal'
+import { useAuthStore } from '@/store/auth.store'
 import { createTherapySession, getTherapySessions } from '@/services/therapy-session.service'
 import { getMoods } from '@/services/mood.service'
 import { getPatients } from '@/services/patient.service'
@@ -28,7 +31,7 @@ import type { CreateTherapySessionInput } from '@/types/therapy-session'
 import type { Mood, MoodCategory } from '@/types/mood'
 import type { Patient } from '@/types/patient'
 import { APPOINTMENT_STATUS } from '@/types/appointment'
-import { updateWaitingListStatus } from '@/services/appointment.service'
+import { updateWaitingListStatus, createAppointment, type CreateAppointmentInput } from '@/services/appointment.service'
 
 interface FlyingMood {
   id: string
@@ -94,6 +97,14 @@ function Field({
   )
 }
 
+function getMinDateTimeLocal(): string {
+  const d = new Date()
+  d.setSeconds(0, 0)
+  d.setMinutes(d.getMinutes() + 1)
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+  return d.toISOString().slice(0, 16)
+}
+
 export function NewSessionPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -103,13 +114,21 @@ export function NewSessionPage() {
   const appointmentIdFromUrl = searchParams.get('appointmentId') ?? ''
   const queueEntryIdFromUrl = searchParams.get('queueEntryId') ?? ''
 
+  const user = useAuthStore((s) => s.user)
+  const userId = user?.id
+  const minDateTimeLocal = useMemo(() => getMinDateTimeLocal(), [])
+
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
-  const [createdId, setCreatedId] = useState<string | null>(null)
+  const [isSaved, setIsSaved] = useState(false)
   const [showConfirmFinish, setShowConfirmFinish] = useState(false)
-  const [showReschedulePrompt, setShowReschedulePrompt] = useState(false)
+  const [showDecisionModal, setShowDecisionModal] = useState(false)
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
+  const [createdAppointment, setCreatedAppointment] = useState<{ scheduledDate: string; durationMinutes: number } | null>(null)
   const [completedAt, setCompletedAt] = useState<Date | null>(null)
+  
+
   const [moods, setMoods] = useState<Mood[]>([])
   const [moodsLoading, setMoodsLoading] = useState(true)
   const [selectedMoodCodes, setSelectedMoodCodes] = useState<string[]>([])
@@ -121,6 +140,24 @@ export function NewSessionPage() {
   const [loadingRecord, setLoadingRecord] = useState(false)
   const [selectedPatientId, setSelectedPatientId] = useState(patientIdFromUrl)
   const patientInputRef = useRef<HTMLDivElement>(null)
+
+  const [appointmentForm, setAppointmentForm] = useState<CreateAppointmentInput>({
+    patientId: '',
+    professionalId: '',
+    appointmentType: '',
+    department: 'psychology',
+    scheduledDate: minDateTimeLocal,
+    durationMinutes: 50,
+    notes: '',
+  })
+
+  useEffect(() => {
+    setAppointmentForm((prev) => ({
+      ...prev,
+      patientId: selectedPatientId || '',
+      professionalId: userId || '',
+    }))
+  }, [selectedPatientId, userId])
 
   const [flyingMoods, setFlyingMoods] = useState<FlyingMood[]>([])
   const [transitMoodCodes, setTransitMoodCodes] = useState<string[]>([])
@@ -138,11 +175,14 @@ export function NewSessionPage() {
     nextSessionPlan: '',
   })
 
-  const isDirty = useMemo(() => {
-    if (showSuccess) return false
+  const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), [])
 
-    const initialDate = new Date().toISOString().slice(0, 10)
-    const dateChanged = form.sessionDate !== initialDate
+  const isDirty = useMemo(() => {
+    // Si la sesión se guardó exitosamente o se muestra la pantalla de éxito,
+    // ya no se considera "sucio" (dirty), evitando que el blocker moleste al salir.
+    if (showSuccess || isSaved) return false
+
+    const dateChanged = form.sessionDate !== todayIso
     const durationChanged = form.sessionDurationStr !== String(DEFAULT_DURATION)
     const hasNotes = (form.evolutionNotes ?? '').trim() !== ''
     const hasProgress = (form.patientProgress ?? '').trim() !== ''
@@ -152,7 +192,7 @@ export function NewSessionPage() {
     const hasMood = selectedMoodCodes.length > 0
 
     return dateChanged || durationChanged || hasNotes || hasProgress || hasTasks || hasObservations || hasNextPlan || hasMood
-  }, [form, selectedMoodCodes, showSuccess])
+  }, [form, selectedMoodCodes, showSuccess, isSaved, todayIso])
 
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
@@ -477,9 +517,8 @@ export function NewSessionPage() {
         console.error('Error updating queue status:', err)
       }
     }
-    setCompletedAt(new Date())
-    setCreatedId(created.id)
-    setShowSuccess(true)
+
+    return created
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -503,17 +542,95 @@ export function NewSessionPage() {
   }
 
   const handleConfirmFinish = () => {
+    setShowConfirmFinish(false)
+    setShowDecisionModal(true)
+  }
+
+  const handleSaveSession = (reagenda: boolean) => {
+    if (reagenda) {
+      setShowDecisionModal(false)
+      setShowAppointmentModal(true)
+    } else {
+      setSubmitting(true)
+      doSubmit()
+        .then(() => {
+          const now = new Date()
+          setCompletedAt(now)
+          setIsSaved(true)
+          setShowDecisionModal(false)
+          setShowSuccess(true)
+        })
+        .catch((err: unknown) => {
+          const res = err && typeof err === 'object' && 'response' in err ? (err as { response?: { status?: number; data?: { message?: string } } }).response : null
+          const msg = res?.data?.message ?? null
+          const isDuplicateSession = res?.status === 409 || (typeof msg === 'string' && msg.toLowerCase().includes('already exists'))
+          setError(isDuplicateSession ? t('sessions.sessionNumberAlreadyExists') : (msg || t('common.error')))
+        })
+        .finally(() => {
+          setSubmitting(false)
+        })
+    }
+  }
+
+  const handleSaveAll = () => {
+    setError('')
+    if (
+      !appointmentForm.patientId.trim() ||
+      !appointmentForm.professionalId.trim() ||
+      !appointmentForm.appointmentType.trim() ||
+      !appointmentForm.scheduledDate.trim() ||
+      !appointmentForm.durationMinutes
+    ) {
+      setError('Todos los campos marcados con asterisco (*) son obligatorios.')
+      return
+    }
+
     setSubmitting(true)
+    // 1. Guardar la sesión de terapia primero
     doSubmit()
+      .then(() => {
+        // 2. Al guardar con éxito la sesión, guardamos la cita de seguimiento
+        const payload: CreateAppointmentInput = {
+          patientId: appointmentForm.patientId.trim(),
+          professionalId: appointmentForm.professionalId.trim(),
+          appointmentType: appointmentForm.appointmentType.trim(),
+          department: 'psychology',
+          scheduledDate: appointmentForm.scheduledDate.trim(),
+          durationMinutes: Number(appointmentForm.durationMinutes),
+        }
+        if (appointmentForm.notes?.trim()) {
+          payload.notes = appointmentForm.notes.trim()
+        }
+
+        return createAppointment(payload)
+      })
+      .then(() => {
+        const now = new Date()
+        setCompletedAt(now)
+        setCreatedAppointment({
+          scheduledDate: appointmentForm.scheduledDate,
+          durationMinutes: Number(appointmentForm.durationMinutes),
+        })
+        setIsSaved(true)
+        setShowAppointmentModal(false)
+        setShowSuccess(true)
+      })
       .catch((err: unknown) => {
         const res = err && typeof err === 'object' && 'response' in err ? (err as { response?: { status?: number; data?: { message?: string } } }).response : null
         const msg = res?.data?.message ?? null
-        const isDuplicateSession = res?.status === 409 || (typeof msg === 'string' && msg.toLowerCase().includes('already exists'))
-        setError(isDuplicateSession ? t('sessions.sessionNumberAlreadyExists') : (msg || t('common.error')))
+        const isConflict = res?.status === 409
+        const isDuplicateSession = typeof msg === 'string' && msg.toLowerCase().includes('already exists')
+        
+        if (isConflict) {
+          setError('Conflicto de horario: Ya existe una cita agendada para el profesional o paciente en esa hora.')
+        } else if (isDuplicateSession) {
+          setError(t('sessions.sessionNumberAlreadyExists'))
+        } else {
+          setError(msg || t('common.error'))
+        }
       })
       .finally(() => {
         setSubmitting(false)
-        setShowConfirmFinish(false)
       })
   }
 
@@ -539,6 +656,8 @@ export function NewSessionPage() {
     setSubmitting(true)
     doSubmit()
       .then(() => {
+        setCompletedAt(new Date())
+        setIsSaved(true)
         blocker.reset?.()
       })
       .catch((err: unknown) => {
@@ -554,7 +673,7 @@ export function NewSessionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-mesh p-4 md:p-6 lg:p-8 space-y-6">
+    <div className={`min-h-screen bg-mesh p-4 md:p-6 lg:p-8 space-y-6 transition-colors duration-500 ${isTimerRunning ? 'theme-warm' : ''}`}>
       {blocker.state === 'blocked' && (
         <div
           className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
@@ -621,41 +740,248 @@ export function NewSessionPage() {
         confirmLabel={t('sessions.finishSession')}
         confirming={submitting}
       />
+
       <SuccessModal
         open={showSuccess}
         onClose={() => {
           setShowSuccess(false)
           setCompletedAt(null)
-          setShowReschedulePrompt(true)
+          setCreatedAppointment(null)
+          navigate('/') // Redirigir al Dashboard principal
         }}
-        message={completedAt && selectedPatientLabel
-          ? t('sessions.successFinishSession', {
-              name: selectedPatientLabel,
-              datetime: completedAt.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' }),
-            })
-          : t('common.successSaved')}
+        title="Sesión Guardada con Éxito"
+        message="La sesión de terapia ha sido guardada correctamente."
+        detail={
+          <div className="space-y-2 text-left text-xs text-slate-700 dark:text-slate-300 font-sans">
+            <div className="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-1">
+              <span className="font-semibold text-slate-500 font-sans">Paciente:</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200 font-sans">{selectedPatientLabel}</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-1">
+              <span className="font-semibold text-slate-500 font-sans">Fecha de Sesión:</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200 font-sans">{form.sessionDate}</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-1">
+              <span className="font-semibold text-slate-500 font-sans">Duración:</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200 font-sans">{form.sessionDurationStr || DEFAULT_DURATION} minutos</span>
+            </div>
+            <div className="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-1">
+              <span className="font-semibold text-slate-500 font-sans">Número de Sesión:</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200 font-sans">{form.sessionNumber}</span>
+            </div>
+            {completedAt && (
+              <div className="flex justify-between pt-0.5">
+                <span className="font-semibold text-slate-500 font-sans">Finalizada el:</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200 font-sans">
+                  {completedAt.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' })}
+                </span>
+              </div>
+            )}
+            {createdAppointment && (
+              <div className="mt-3 border-t border-slate-200 dark:border-slate-800 pt-2.5 space-y-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-primary)] font-sans">
+                  Cita de Seguimiento Agendada
+                </p>
+                <div className="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-1">
+                  <span className="font-semibold text-slate-500 font-sans">Fecha de Cita:</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200 font-sans">
+                    {new Date(createdAppointment.scheduledDate).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                  </span>
+                </div>
+                <div className="flex justify-between pb-0.5">
+                  <span className="font-semibold text-slate-500 font-sans">Duración Cita:</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200 font-sans">
+                    {createdAppointment.durationMinutes} minutos
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        }
       />
 
-      <ConfirmModal
-        open={showReschedulePrompt}
-        onClose={() => {
-          setShowReschedulePrompt(false)
-          if (createdId) {
-            navigate(`/sessions/${createdId}`, { replace: true })
-          }
-          setCreatedId(null)
-        }}
-        onConfirm={() => {
-          setShowReschedulePrompt(false)
-          // Redirigir a la pantalla de crear cita pre-cargando al paciente
-          navigate(`/appointments/new?patientId=${encodeURIComponent(selectedPatientId || '')}`)
-          setCreatedId(null)
-        }}
-        title="¿Deseas agendar la próxima cita?"
-        message={`¿Deseas programar la siguiente sesión de seguimiento para ${selectedPatientLabel || 'el alumno'}?`}
-        confirmLabel="Sí, agendar"
-        cancelLabel="No, terminar"
-      />
+      {showDecisionModal && (
+        <div
+          className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="decision-modal-title"
+          onClick={() => setShowDecisionModal(false)}
+        >
+          <div
+            className="glass-card flex w-full max-w-md flex-col gap-6 rounded-2xl p-7 shadow-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-center animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)]">
+                <CalendarCheck size={28} className="text-[var(--color-primary)]" />
+              </div>
+              <h2
+                id="decision-modal-title"
+                className="text-lg font-bold text-[var(--text-primary)] font-sans"
+              >
+                Sesión lista para guardar
+              </h2>
+              <p className="text-sm text-[var(--text-secondary)] font-sans">
+                La sesión para <strong className="text-[var(--text-primary)] font-sans">{selectedPatientLabel}</strong> se guardará en el expediente. ¿Deseas agendar una nueva cita de seguimiento ahora?
+              </p>
+            </div>
+            <div className="flex flex-col gap-2.5">
+              <GlassButton
+                type="button"
+                variant="primary"
+                onClick={() => handleSaveSession(true)}
+                className="w-full py-3 rounded-xl font-semibold text-sm inline-flex items-center justify-center gap-2 shadow-md"
+              >
+                <Calendar size={18} />
+                Sí, guardar y agendar cita
+              </GlassButton>
+              <GlassButton
+                type="button"
+                onClick={() => handleSaveSession(false)}
+                className="w-full py-3 rounded-xl font-semibold text-sm border border-slate-200 dark:border-slate-800 bg-white/20 dark:bg-slate-900/20 text-[var(--text-primary)] hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all"
+              >
+                Solo guardar cambios y salir
+              </GlassButton>
+              <button
+                type="button"
+                onClick={() => setShowDecisionModal(false)}
+                className="w-full py-2.5 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors font-sans"
+              >
+                Cancelar (seguir editando)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAppointmentModal && (
+        <div
+          className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="appointment-modal-title"
+        >
+          <div
+            className="glass-card flex w-full max-w-lg flex-col gap-5 rounded-2xl p-7 shadow-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-left animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 border-b border-[var(--border)] pb-3">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)]">
+                <CalendarCheck size={22} className="text-[var(--color-primary)]" />
+              </div>
+              <div>
+                <h2
+                  id="appointment-modal-title"
+                  className="text-lg font-bold text-[var(--text-primary)] font-sans"
+                >
+                  Agendar Cita de Seguimiento
+                </h2>
+                <p className="text-xs text-[var(--text-muted)] font-sans">
+                  Completa los datos para agendar la cita para <strong className="font-sans">{selectedPatientLabel}</strong>
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Tipo de Cita */}
+              <div>
+                <label htmlFor="modal-appt-type" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] font-sans">
+                  <Stethoscope size={16} className="text-[var(--color-primary)]" />
+                  Tipo de Cita *
+                </label>
+                <select
+                  id="modal-appt-type"
+                  value={appointmentForm.appointmentType}
+                  onChange={(e) => setAppointmentForm(prev => ({ ...prev, appointmentType: e.target.value }))}
+                  className="glass-input w-full rounded-xl px-4 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-transparent border border-[var(--border)] text-sm text-[var(--text-primary)] font-sans"
+                >
+                  <option value="" disabled className="bg-[var(--bg-primary)] font-sans">Selecciona tipo de cita</option>
+                  <option value="Seguimiento" className="bg-[var(--bg-primary)] font-sans">Seguimiento</option>
+                  <option value="Evaluación" className="bg-[var(--bg-primary)] font-sans">Evaluación</option>
+                  <option value="Crisis" className="bg-[var(--bg-primary)] font-sans">Crisis</option>
+                  <option value="Primera vez" className="bg-[var(--bg-primary)] font-sans">Primera vez</option>
+                </select>
+              </div>
+
+              {/* Fecha y Hora */}
+              <div>
+                <label htmlFor="modal-appt-date" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] font-sans">
+                  <Calendar size={16} className="text-[var(--color-primary)]" />
+                  Fecha y Hora Programada *
+                </label>
+                <input
+                  id="modal-appt-date"
+                  type="datetime-local"
+                  min={minDateTimeLocal}
+                  value={appointmentForm.scheduledDate}
+                  onChange={(e) => setAppointmentForm(prev => ({ ...prev, scheduledDate: e.target.value }))}
+                  className="glass-input w-full rounded-xl px-4 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-transparent border border-[var(--border)] text-sm text-[var(--text-primary)] font-sans"
+                />
+              </div>
+
+              {/* Duración */}
+              <div>
+                <label htmlFor="modal-appt-duration" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] font-sans">
+                  <Clock size={16} className="text-[var(--color-primary)]" />
+                  Duración (minutos) *
+                </label>
+                <select
+                  id="modal-appt-duration"
+                  value={appointmentForm.durationMinutes}
+                  onChange={(e) => setAppointmentForm(prev => ({ ...prev, durationMinutes: Number(e.target.value) }))}
+                  className="glass-input w-full rounded-xl px-4 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-transparent border border-[var(--border)] text-sm text-[var(--text-primary)] font-sans"
+                >
+                  <option value={30} className="bg-[var(--bg-primary)] font-sans">30 minutos</option>
+                  <option value={45} className="bg-[var(--bg-primary)] font-sans">45 minutos</option>
+                  <option value={50} className="bg-[var(--bg-primary)] font-sans">50 minutos</option>
+                  <option value={60} className="bg-[var(--bg-primary)] font-sans">60 minutos</option>
+                  <option value={90} className="bg-[var(--bg-primary)] font-sans">90 minutos</option>
+                </select>
+              </div>
+
+              {/* Notas de la Cita */}
+              <div>
+                <label htmlFor="modal-appt-notes" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] font-sans">
+                  <FileText size={16} className="text-[var(--color-primary)]" />
+                  Notas de la Cita
+                </label>
+                <textarea
+                  id="modal-appt-notes"
+                  value={appointmentForm.notes}
+                  onChange={(e) => setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))}
+                  rows={3}
+                  placeholder="Instrucciones especiales para el alumno..."
+                  className="glass-input w-full rounded-xl px-4 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-transparent border border-[var(--border)] text-sm text-[var(--text-primary)] min-h-[80px] resize-y font-sans"
+                />
+              </div>
+            </div>
+
+            <div className="flex w-full gap-3 justify-end border-t border-[var(--border)] pt-4 mt-2 font-sans">
+              <GlassButton
+                type="button"
+                onClick={() => {
+                  setShowAppointmentModal(false)
+                  setShowDecisionModal(true)
+                }}
+                disabled={submitting}
+              >
+                Volver atrás
+              </GlassButton>
+              <GlassButton
+                type="button"
+                variant="primary"
+                onClick={handleSaveAll}
+                disabled={submitting}
+                className="inline-flex items-center gap-2"
+              >
+                <CheckCircle size={18} />
+                {submitting ? 'Guardando...' : 'Guardar todo'}
+              </GlassButton>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -666,29 +992,29 @@ export function NewSessionPage() {
         </div>
 
         {/* Stopwatch and Date widget */}
-        <div className="flex items-center gap-5 bg-white/40 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 rounded-2xl px-5 py-3 shadow-sm backdrop-blur-md self-start sm:self-auto font-sans">
+        <div className="flex items-center gap-6 bg-white/40 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 rounded-2xl px-6 py-3.5 shadow-md backdrop-blur-md self-start sm:self-auto font-sans">
           {/* Fecha */}
-          <div className="flex items-center gap-2.5 border-r border-slate-200 dark:border-slate-800/80 pr-5 text-sm font-medium text-slate-700 dark:text-slate-300 font-sans">
-            <Calendar size={17} className="text-[var(--color-primary)]" />
+          <div className="flex items-center gap-3 border-r border-slate-200 dark:border-slate-800/80 pr-6 text-base font-medium text-slate-700 dark:text-slate-300 font-sans">
+            <Calendar size={19} className="text-[var(--color-primary)]" />
             <span>{currentDateLabel}</span>
           </div>
           
           {/* Cronómetro */}
-          <div className="flex items-center gap-3.5 pl-1 font-sans">
-            <div className="flex items-center gap-2 font-mono text-base font-bold text-slate-800 dark:text-slate-200 min-w-[85px]">
-              <Timer size={17} className={`text-[var(--color-primary)] ${isTimerRunning ? 'animate-pulse' : ''}`} />
+          <div className="flex items-center gap-4 pl-1 font-sans">
+            <div className="flex items-center gap-2 font-mono text-lg font-bold text-slate-800 dark:text-slate-200 min-w-[94px]">
+              <Timer size={19} className={`text-[var(--color-primary)] ${isTimerRunning ? 'animate-pulse' : ''}`} />
               <span>{formatStopwatch(secondsElapsed)}</span>
             </div>
             
             {/* Botones de control */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setIsTimerRunning(!isTimerRunning)}
                 title={isTimerRunning ? 'Pausar Cronómetro' : 'Iniciar Cronómetro'}
-                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition"
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition"
               >
-                {isTimerRunning ? <Pause size={16} /> : <Play size={16} />}
+                {isTimerRunning ? <Pause size={18} /> : <Play size={18} />}
               </button>
               <button
                 type="button"
@@ -697,9 +1023,9 @@ export function NewSessionPage() {
                   setSecondsElapsed(0)
                 }}
                 title="Reiniciar Cronómetro"
-                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition"
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition"
               >
-                <RotateCcw size={16} />
+                <RotateCcw size={18} />
               </button>
             </div>
           </div>
@@ -708,6 +1034,7 @@ export function NewSessionPage() {
 
       <GlassCard className="overflow-hidden rounded-2xl">
         <form onSubmit={handleSubmit} className="space-y-6">
+          <fieldset disabled={!isTimerRunning} className="space-y-6">
           <FormSection title={t('sessions.formSectionIdentification')} icon={FileText}>
             <Field
               id="session-patient-search"
@@ -879,8 +1206,13 @@ export function NewSessionPage() {
                                         <button
                                           key={`library-${mood.id}`}
                                           type="button"
+                                          disabled={!isTimerRunning}
                                           onClick={(e) => handleMoodClick(e, mood)}
-                                          className="inline-flex items-center gap-1 rounded-full border border-slate-300/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-1 text-xs font-medium transition-all duration-200 hover:scale-105 hover:border-[var(--color-primary)]/40 hover:text-[var(--color-primary)] font-sans"
+                                          className={`inline-flex items-center gap-1 rounded-full border border-slate-300/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/30 text-slate-700 dark:text-slate-300 px-2.5 py-1 text-xs font-medium transition-all duration-200 font-sans ${
+                                            !isTimerRunning
+                                              ? 'opacity-40 cursor-not-allowed'
+                                              : 'hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105 hover:border-[var(--color-primary)]/40 hover:text-[var(--color-primary)]'
+                                          }`}
                                           aria-label={`Seleccionar ${mood.name}`}
                                         >
                                           <span>{mood.emoji}</span>
@@ -924,8 +1256,13 @@ export function NewSessionPage() {
                               <button
                                 key={`selected-${m.id}`}
                                 type="button"
+                                disabled={!isTimerRunning}
                                 onClick={() => toggleMood(m.code)}
-                                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)] text-white px-3.5 py-1.5 text-sm font-medium shadow-md transition-all duration-200 hover:bg-[var(--color-primary)]/90 hover:scale-95 animate-scale-in font-sans"
+                                className={`inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)] text-white px-3.5 py-1.5 text-sm font-medium shadow-md transition-all duration-200 font-sans ${
+                                  !isTimerRunning
+                                    ? 'opacity-40 cursor-not-allowed'
+                                    : 'hover:bg-[var(--color-primary)]/90 hover:scale-95 animate-scale-in'
+                                }`}
                                 aria-label={`Remover ${m.name}`}
                               >
                                 <span>{m.emoji}</span>
@@ -992,8 +1329,15 @@ export function NewSessionPage() {
             </Field>
           </FormSection>
 
+          </fieldset>
+
           <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[var(--border)] pt-6">
-            <GlassButton type="submit" variant="primary" disabled={submitting} className="inline-flex items-center gap-2">
+            <GlassButton
+              type="submit"
+              variant="primary"
+              disabled={submitting || !isTimerRunning}
+              className="inline-flex items-center gap-2"
+            >
               <CheckCircle size={18} aria-hidden />
               {submitting ? t('common.loading') : t('sessions.finishSession')}
             </GlassButton>
