@@ -765,3 +765,36 @@
     transform: translateX(0);
   }
 }
+
+/* ==========================================================================
+   TEMA CÁLIDO Y ESTADOS DE SESIÓN (PSICÓLOGO)
+   ========================================================================== */
+
+/* Tema Cálido para Terapia en Curso (isTimerRunning = true) */
+.theme-warm {
+  --color-primary: #ea580c !important; /* Orange 600 */
+  --mesh-1: rgba(234, 88, 12, 0.12) !important;
+  --mesh-2: rgba(244, 63, 94, 0.08) !important;
+}
+
+.dark .theme-warm {
+  --color-primary: #f97316 !important; /* Orange 500 */
+  --mesh-1: rgba(249, 115, 22, 0.15) !important;
+  --mesh-2: rgba(244, 63, 94, 0.1) !important;
+}
+
+/* Estilos de Formulario Deshabilitado cuando la Terapia está Pausada */
+fieldset:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transition: opacity 0.3s ease;
+}
+
+fieldset:disabled input,
+fieldset:disabled textarea,
+fieldset:disabled select,
+fieldset:disabled button {
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+

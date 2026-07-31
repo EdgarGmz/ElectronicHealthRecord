@@ -1,3 +1,4 @@
+import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CheckCircle } from 'lucide-react'
 import { GlassButton } from '@/components/atoms/GlassButton'
@@ -13,6 +14,8 @@ export interface SuccessModalProps {
   title?: string
   /** Label for the close button (default: common.close) */
   closeLabel?: string
+  /** Optional detail content (e.g. summary) */
+  detail?: ReactNode
 }
 
 export function SuccessModal({
@@ -21,6 +24,7 @@ export function SuccessModal({
   message,
   title,
   closeLabel,
+  detail,
 }: SuccessModalProps) {
   const { t } = useTranslation()
 
@@ -28,7 +32,7 @@ export function SuccessModal({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? 'success-modal-title' : undefined}
@@ -44,7 +48,7 @@ export function SuccessModal({
           className="modal-icon-success shrink-0 text-[var(--color-success)]"
           aria-hidden
         />
-        <div className="flex flex-col items-center gap-1 text-center">
+        <div className="flex flex-col items-center gap-1 text-center w-full">
           {title && (
             <h2
               id="success-modal-title"
@@ -56,6 +60,11 @@ export function SuccessModal({
           <p id="success-modal-desc" className="text-sm text-[var(--text-secondary)]">
             {message ?? t('common.success')}
           </p>
+          {detail && (
+            <div className="mt-3 w-full rounded-xl border border-[var(--border)] bg-black/5 px-4 py-3 text-left text-sm text-[var(--text-secondary)] dark:bg-white/5">
+              {detail}
+            </div>
+          )}
         </div>
         <GlassButton
           type="button"

@@ -58,7 +58,7 @@
                             <Label Text="|" TextColor="Gray" FontSize="12" VerticalOptions="Center" />
                             <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
                                 <Label Text="{Binding WeatherIcon}" FontSize="13" VerticalOptions="Center" />
-                                <Label Text="{Binding CurrentTemperatureText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource BrandPrimary}, Dark={StaticResource PrimaryDark}}" VerticalOptions="Center" />
+                                <Label Text="{Binding CurrentTemperatureText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={DynamicResource BrandPrimary}, Dark={StaticResource PrimaryDark}}" VerticalOptions="Center" />
                             </HorizontalStackLayout>
                         </HorizontalStackLayout>
                     </HorizontalStackLayout>
@@ -68,7 +68,7 @@
                         <Label Text="{Binding PsychologistName}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" VerticalOptions="Center" />
                         <Border WidthRequest="32" HeightRequest="32" BackgroundColor="{AppThemeBinding Light='#15D35400', Dark='#30D35400'}" StrokeThickness="0" VerticalOptions="Center">
                             <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
-                            <Label Text="{Binding PsychologistInitials}" FontAttributes="Bold" FontSize="11" TextColor="{StaticResource BrandPrimary}" HorizontalOptions="Center" VerticalOptions="Center" />
+                            <Label Text="{Binding PsychologistInitials}" FontAttributes="Bold" FontSize="11" TextColor="{DynamicResource BrandPrimary}" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                     </HorizontalStackLayout>
                 </Grid>
@@ -98,7 +98,7 @@
                         Text="✓ Marcar todo"
                         Command="{Binding MarkAllAsReadCommand}"
                         BackgroundColor="Transparent"
-                        TextColor="{StaticResource BrandPrimary}"
+                        TextColor="{DynamicResource BrandPrimary}"
                         FontAttributes="Bold"
                         FontSize="12"
                         Padding="8,4"
@@ -140,7 +140,7 @@
                                         <Ellipse Grid.Column="0" 
                                                  WidthRequest="8"
                                                  HeightRequest="8"
-                                                 Fill="{StaticResource BrandPrimary}"
+                                                 Fill="{DynamicResource BrandPrimary}"
                                                  VerticalOptions="Center"
                                                  HorizontalOptions="Center">
                                             <Ellipse.Triggers>

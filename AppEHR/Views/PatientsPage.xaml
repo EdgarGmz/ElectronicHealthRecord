@@ -1,184 +1,632 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:viewmodels="clr-namespace:AppEHR.ViewModels"
+             xmlns:vm="clr-namespace:AppEHR.ViewModels"
              xmlns:models="clr-namespace:AppEHR.Models"
-             xmlns:converters="clr-namespace:AppEHR.Converters"
              xmlns:controls="clr-namespace:AppEHR.Controls"
              x:Class="AppEHR.Views.PatientsPage"
              x:Name="ThisPage"
-             Title="Consultantes">
+             BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0F172A}">
 
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <converters:StringToBooleanConverter x:Key="StringToBooleanConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
+    <ContentPage.BindingContext>
+        <!-- Asignado vía DI en el code-behind -->
+    </ContentPage.BindingContext>
 
-    <Grid>
-        <!-- Background Gradient -->
-        <Grid.Background>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="{AppThemeBinding Light={StaticResource GradientStartLight}, Dark={StaticResource GradientStartDark}}" Offset="0.0" />
-                <GradientStop Color="{AppThemeBinding Light={StaticResource GradientEndLight}, Dark={StaticResource GradientEndDark}}" Offset="1.0" />
-            </LinearGradientBrush>
-        </Grid.Background>
+    <!-- Usamos un Grid principal para controlar el layout de la pantalla -->
+    <Grid RowDefinitions="Auto, Auto, *" Margin="0,0,0,0">
 
-        <Grid RowDefinitions="Auto, Auto, *" Padding="0" RowSpacing="0">
-            
-            <!-- 0. Floating Glassmorphic Weather & Profile Header Bar -->
-            <Border Grid.Row="0"
-                    StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
-                    Background="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
-                    Padding="14,10"
-                    Margin="16,10,16,2">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="20" />
-                </Border.StrokeShape>
-                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
-                    <!-- Left Section: Date, Time & Weather Status -->
-                    <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
-                        <!-- Date Info -->
-                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
-                            <Label Text="📅" FontSize="13" VerticalOptions="Center" />
-                            <Label Text="{Binding FormattedDate}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray800}, Dark={StaticResource Gray200}}" VerticalOptions="Center" />
-                        </HorizontalStackLayout>
-                        
-                        <Label Text="|" TextColor="Gray" FontSize="12" VerticalOptions="Center" />
-                        
-                        <!-- Time Info -->
-                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
-                            <Label Text="🕒" FontSize="13" VerticalOptions="Center" />
-                            <Label Text="{Binding FormattedTime}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" VerticalOptions="Center" />
-                        </HorizontalStackLayout>
-
-                        <!-- Weather Info (Conditional visibility) -->
-                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center" IsVisible="{Binding IsWeatherVisible}">
-                            <Label Text="|" TextColor="Gray" FontSize="12" VerticalOptions="Center" />
-                            <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
-                                <Label Text="{Binding WeatherIcon}" FontSize="13" VerticalOptions="Center" />
-                                <Label Text="{Binding CurrentTemperatureText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource BrandPrimary}, Dark={StaticResource PrimaryDark}}" VerticalOptions="Center" />
-                            </HorizontalStackLayout>
-                        </HorizontalStackLayout>
-                    </HorizontalStackLayout>
-
-                    <!-- Right Section: User Profile & Avatar -->
-                    <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center" HorizontalOptions="End">
-                        <Label Text="{Binding PsychologistName}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" VerticalOptions="Center" />
-                        <Border WidthRequest="32" HeightRequest="32" BackgroundColor="{AppThemeBinding Light='#15D35400', Dark='#30D35400'}" StrokeThickness="0" VerticalOptions="Center">
-                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
-                            <Label Text="{Binding PsychologistInitials}" FontAttributes="Bold" FontSize="11" TextColor="{StaticResource BrandPrimary}" HorizontalOptions="Center" VerticalOptions="Center" />
-                        </Border>
-                    </HorizontalStackLayout>
-                </Grid>
-            </Border>
-
-            <!-- Custom Search Bar -->
-            <Border Grid.Row="1"
-                    StrokeThickness="1" 
-                    Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#1e293b, Default=#cbd5e1}"
-                    Background="{AppThemeBinding Light=#ffffff, Dark=#111827, Default=#ffffff}"
-                    HeightRequest="46"
-                    Padding="12,0"
-                    Margin="16,10,16,10">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12" />
-                </Border.StrokeShape>
-                <Grid ColumnDefinitions="24, *">
-                    <Path Grid.Column="0"
-                          Data="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L19.71,19L18.3,20.41L13.03,15.14C11.9,16.11 10.42,16.7 8.5,16.7A6.5,6.5 0 0,1 2,10.2A6.5,6.5 0 0,1 8.5,3.7M8.5,5.7A4.5,4.5 0 0,0 4,10.2A4.5,4.5 0 0,0 8.5,14.7A4.5,4.5 0 0,0 13,10.2A4.5,4.5 0 0,0 8.5,5.7Z"
-                          Fill="{AppThemeBinding Light=#64748b, Dark=#94A3B8, Default=#64748b}"
-                          Aspect="Uniform"
-                          HeightRequest="16"
-                          WidthRequest="16"
-                          HorizontalOptions="Start"
-                          VerticalOptions="Center" />
-                    <Entry Grid.Column="1"
-                           Text="{Binding SearchQuery}" 
-                           Placeholder="Buscar por nombre o matrícula..." 
-                           TextColor="{AppThemeBinding Light=#0F172A, Dark=White, Default=#0F172A}"
-                           PlaceholderColor="{AppThemeBinding Light=#94a3b8, Dark=#475569, Default=#94a3b8}"
-                           VerticalOptions="Center"
-                           FontSize="14"
-                           Margin="6,0,0,0"/>
-                </Grid>
-            </Border>
-
-            <!-- Refresh List of Consultantes -->
-            <RefreshView Grid.Row="2" Command="{Binding LoadPatientsCommand}" IsRefreshing="{Binding IsBusy}">
-                <CollectionView ItemsSource="{Binding Patients}" SelectionMode="None">
+        <!-- 1. BARRA SUPERIOR FLOTANTE (Clima, Hora y Profesional) -->
+        <Border Grid.Row="0"
+                Margin="16,16,16,10"
+                Padding="16,10"
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                HeightRequest="52">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="26" />
+            </Border.StrokeShape>
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <!-- Reloj y Clima (Lado Izquierdo) -->
+                <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                    <Label Text="📅" FontSize="14" VerticalOptions="Center" />
+                    <Label Text="{Binding FormattedDate}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" VerticalOptions="Center" />
+                    <Label Text="|" TextColor="{AppThemeBinding Light=#CBD5E1, Dark=#475569}" VerticalOptions="Center" />
+                    <Label Text="⏰" FontSize="14" VerticalOptions="Center" />
+                    <Label Text="{Binding FormattedTime}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" VerticalOptions="Center" />
                     
-                    <CollectionView.EmptyView>
-                        <VerticalStackLayout Spacing="8" VerticalOptions="Center" HorizontalOptions="Center" Padding="40">
-                            <Label Text="👥" FontSize="48" HorizontalOptions="Center" />
-                            <Label Text="No se encontraron consultantes" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Gray" />
-                            <Label Text="No hay consultantes registrados que coincidan con la búsqueda." FontSize="12" HorizontalOptions="Center" HorizontalTextAlignment="Center" TextColor="Gray" />
+                    <Label Text="|" TextColor="{AppThemeBinding Light=#CBD5E1, Dark=#475569}" VerticalOptions="Center" IsVisible="{Binding IsWeatherVisible}" />
+                    <Label Text="{Binding WeatherIcon}" FontSize="14" VerticalOptions="Center" IsVisible="{Binding IsWeatherVisible}" />
+                    <Label Text="{Binding CurrentTemperatureText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" VerticalOptions="Center" IsVisible="{Binding IsWeatherVisible}" />
+                </HorizontalStackLayout>
+
+                <!-- Psicólogo e Iniciales (Lado Derecho) -->
+                <HorizontalStackLayout Grid.Column="2" Spacing="8" HorizontalOptions="End" VerticalOptions="Center">
+                    <Label Text="{Binding PsychologistName}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" VerticalOptions="Center" />
+                    <Border WidthRequest="32" HeightRequest="32" BackgroundColor="{DynamicResource BrandPrimaryLight}" StrokeThickness="0" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+                        <Label Text="{Binding PsychologistInitials}" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                </HorizontalStackLayout>
+            </Grid>
+        </Border>
+
+        <!-- 2. BARRA DE BÚSQUEDA EXCLUSIVA DE EXPEDIENTE -->
+        <Border Grid.Row="1"
+                Margin="16,0,16,10"
+                Padding="12,2"
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                HeightRequest="46">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="23" />
+            </Border.StrokeShape>
+            <Grid ColumnDefinitions="24, *, Auto, Auto" ColumnSpacing="6">
+                <!-- Icono Buscar Lupa de fondo -->
+                <Label Grid.Column="0" Text="🔍" FontSize="15" TextColor="Gray" VerticalOptions="Center" HorizontalOptions="Center" />
+
+                <!-- Campo de Entrada de Matrícula -->
+                <Entry Grid.Column="1"
+                       Text="{Binding SearchQuery}"
+                       Placeholder="Ingresa matrícula o empleado..."
+                       FontSize="13"
+                       TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                       PlaceholderColor="Gray"
+                       VerticalOptions="Center"
+                       ReturnCommand="{Binding SearchCommand}" />
+
+                <!-- Botón Limpiar (Solo visible si hay texto) -->
+                <Button Grid.Column="2"
+                        Text="❌"
+                        Command="{Binding ClearSearchCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="Gray"
+                        FontSize="11"
+                        WidthRequest="32"
+                        HeightRequest="32"
+                        Padding="0"
+                        VerticalOptions="Center"
+                        IsVisible="{Binding IsSearchQueryNotEmpty}" />
+
+                <!-- Botón Buscar Explícito -->
+                <Button Grid.Column="3"
+                        Text="Buscar"
+                        Command="{Binding SearchCommand}"
+                        BackgroundColor="{DynamicResource BrandPrimary}"
+                        TextColor="White"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        CornerRadius="16"
+                        HeightRequest="32"
+                        Padding="14,0"
+                        VerticalOptions="Center" />
+            </Grid>
+        </Border>
+
+        <!-- 3. CONTENEDOR DINÁMICO DE CONTENIDO -->
+        <Grid Grid.Row="2">
+
+            <!-- A. VISTA DE ESTADO INICIAL (Invitación a buscar) -->
+            <VerticalStackLayout Spacing="16"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 Margin="30,0"
+                                 IsVisible="{Binding IsInitialState}">
+                <Border WidthRequest="100" HeightRequest="100" BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#1E293B}" StrokeThickness="0" HorizontalOptions="Center">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="50" /></Border.StrokeShape>
+                    <Label Text="📁" FontSize="44" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <Label Text="Consultar Expediente"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                       HorizontalOptions="Center" />
+                <Label Text="Ingresa la matrícula del alumno o número de empleado del personal para visualizar su expediente clínico y notas de evolución."
+                       FontSize="13"
+                       TextColor="Gray"
+                       HorizontalTextAlignment="Center"
+                       HorizontalOptions="Center"
+                       LineBreakMode="WordWrap" />
+            </VerticalStackLayout>
+
+            <!-- B. VISTA DE CARGANDO -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               Color="{DynamicResource BrandPrimary}"
+                               WidthRequest="40"
+                               HeightRequest="40"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+
+            <!-- C. VISTA DE NO ENCONTRADO -->
+            <VerticalStackLayout Spacing="16"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 Margin="30,0"
+                                 IsVisible="{Binding IsNotFound}">
+                <Label Text="⚠️" FontSize="44" HorizontalOptions="Center" />
+                <Label Text="Consultante No Encontrado"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource BrandError}"
+                       HorizontalOptions="Center" />
+                <Label Text="No se localizó ningún paciente con la matrícula proporcionada en la base de datos de producción."
+                       FontSize="12"
+                       TextColor="Gray"
+                       HorizontalTextAlignment="Center"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- D. DETALLE DEL EXPEDIENTE CARGADO -->
+            <Grid RowDefinitions="Auto, Auto, *" IsVisible="{Binding IsExpedientLoaded}">
+
+                <!-- D.1. FICHA COMPACTA DEL CONSULTANTE -->
+                <Border Grid.Row="0"
+                        Margin="16,2,16,10"
+                        Padding="14,12"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                    <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12">
+                        <!-- Iniciales -->
+                        <Border Grid.Column="0" WidthRequest="44" HeightRequest="44" BackgroundColor="{DynamicResource BrandPrimary}" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="22" /></Border.StrokeShape>
+                            <Label Text="{Binding CurrentPatient.User.Initials}" FontSize="16" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        
+                        <!-- Información del Paciente -->
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="{Binding CurrentPatient.User.FullName}" FontSize="14" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#0F172A, Dark=White}" />
+                            <HorizontalStackLayout Spacing="8">
+                                <Label Text="{Binding CurrentPatient.User.EnrollmentNumber}" FontSize="11" TextColor="Gray" />
+                                <Label Text="•" TextColor="LightGray" />
+                                <Label Text="{Binding PatientTypeFormatted}" FontSize="11" FontAttributes="Bold" TextColor="{DynamicResource BrandPrimary}" />
+                            </HorizontalStackLayout>
+                            <Label Text="{Binding CurrentPatient.Career.Name}" FontSize="10" TextColor="Gray" LineBreakMode="TailTruncation" IsVisible="{Binding IsStudentSelected}" />
                         </VerticalStackLayout>
-                    </CollectionView.EmptyView>
 
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:Patient">
-                            <Grid Padding="0,2,0,4">
-                                <Border StrokeThickness="1"
-                                        Stroke="{AppThemeBinding Light=#30FFFFFF, Dark=#20FFFFFF}"
-                                        Background="{AppThemeBinding Light=#90FFFFFF, Dark=#50161622}"
-                                        Padding="16"
-                                        Margin="16,4">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="16" />
-                                    </Border.StrokeShape>
+                        <!-- Botones de Acción Rápida (WhatsApp, Email) -->
+                        <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
+                            <!-- WhatsApp Button -->
+                            <Border WidthRequest="34" HeightRequest="34" BackgroundColor="{AppThemeBinding Light=#E8F5E9, Dark=#1B5E20}" StrokeThickness="0" Padding="6">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="17" /></Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding WhatsAppCommand}" CommandParameter="{Binding CurrentPatient.User.Phone}" />
+                                </Border.GestureRecognizers>
+                                <Path Data="M12.031 2C6.516 2 2.031 6.48 2 11.996c-.001 1.761.46 3.478 1.332 5.002L2 22l5.143-1.348c1.472.802 3.125 1.226 4.815 1.228h.005c5.514 0 9.998-4.48 9.998-9.996C21.96 6.48 17.547 2 12.031 2zm0 18.324c-1.503-.001-2.977-.404-4.264-1.164l-.307-.183-3.17.83.844-3.09-.2-.319c-.836-1.328-1.278-2.873-1.276-4.46.004-4.57 3.72-8.283 8.383-8.283 2.257.001 4.378.882 5.972 2.478 1.593 1.597 2.47 3.722 2.467 5.98-.005 4.57-3.722 8.284-8.384 8.284zm4.59-6.273c-.252-.126-1.492-.736-1.724-.82-.232-.085-.4-.127-.567.126-.167.253-.65.82-.796.988-.146.17-.29.186-.543.06-2.529-1.267-3.535-2.228-4.417-3.743-.232-.397-.08-.612.05-.74.116-.118.252-.296.379-.444.127-.148.17-.253.253-.422.084-.17.042-.316-.02-.443-.064-.126-.568-1.37-.779-1.879-.206-.497-.433-.429-.593-.437l-.506-.01c-.17 0-.443.063-.675.316-.232.253-.886.864-.886 2.107 0 1.243.907 2.443 1.033 2.612.127.168 1.785 2.727 4.326 3.82.604.262 1.077.417 1.444.534.607.192 1.159.165 1.596.1c.487-.073 1.492-.61 1.703-1.2.21-.59.21-1.095.148-1.202-.063-.105-.232-.147-.485-.273z"
+                                      Fill="{AppThemeBinding Light=#2C3E50, Dark=#25D366}"
+                                      HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <!-- Email Button -->
+                            <Border WidthRequest="34" HeightRequest="34" BackgroundColor="{AppThemeBinding Light=#E1F5FE, Dark=#0D47A1}" StrokeThickness="0" Padding="6">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="17" /></Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding EmailCommand}" CommandParameter="{Binding CurrentPatient.User.Email}" />
+                                </Border.GestureRecognizers>
+                                <Path Data="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"
+                                      Fill="{AppThemeBinding Light=#2980B9, Dark=#29B6F6}"
+                                      HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                        </HorizontalStackLayout>
+                    </Grid>
+                </Border>
 
-                                    <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, Auto" RowSpacing="8">
-                                        <!-- Left side: Basic Info -->
-                                        <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="4">
-                                            <Label Text="{Binding User.FullName}"
-                                                   FontSize="16"
-                                                   FontAttributes="Bold"
-                                                   TextColor="{AppThemeBinding Light=#212121, Dark=White}" />
-                                            <Label Text="{Binding User.EnrollmentNumber, StringFormat='Matrícula: {0}'}"
-                                                   FontSize="12"
-                                                   TextColor="Gray"
-                                                   IsVisible="{Binding User.EnrollmentNumber, Converter={StaticResource StringToBooleanConverter}}" />
-                                            <Label Text="{Binding PatientType}"
-                                                   FontSize="11"
-                                                   TextColor="{StaticResource BrandPrimary}"
-                                                   FontAttributes="Bold" />
+                <!-- D.2. PESTAÑAS DE ALTO NIVEL (PSICOLOGÍA Y CLÍNICO) -->
+                <Grid Grid.Row="1" ColumnDefinitions="*, *" ColumnSpacing="8" Margin="16,0,16,10" HeightRequest="38">
+                    <!-- Pestaña Expediente Psicológico -->
+                    <Button Grid.Column="0"
+                            Text="🧠 Psicológico"
+                            Command="{Binding SelectTabCommand}"
+                            CommandParameter="0"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            CornerRadius="8"
+                            TextColor="{AppThemeBinding Light=White, Dark=White}"
+                            BackgroundColor="{DynamicResource BrandPrimary}"
+                            HeightRequest="36">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding IsPsychologyTabActive}" Value="False">
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light=#475569, Dark=#94A3B8}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+
+                    <!-- Pestaña Expediente Clínico -->
+                    <Button Grid.Column="1"
+                            Text="🩺 Clínico"
+                            Command="{Binding SelectTabCommand}"
+                            CommandParameter="1"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            CornerRadius="8"
+                            TextColor="{AppThemeBinding Light=White, Dark=White}"
+                            BackgroundColor="{DynamicResource BrandPrimary}"
+                            HeightRequest="36">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding IsClinicalTabActive}" Value="False">
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light=#475569, Dark=#94A3B8}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </Grid>
+
+                <!-- D.3. CUERPO DE DATOS DE EXPEDIENTE -->
+                <ScrollView Grid.Row="2" Margin="16,0,16,16" Padding="0,0,0,85">
+                    <Grid>
+
+                        <!-- PESTAÑA PSICOLÓGICA -->
+                        <VerticalStackLayout Spacing="14" IsVisible="{Binding IsPsychologyTabActive}">
+                            
+                            <!-- Nivel de Riesgo (Alerta Visual) -->
+                            <Border Padding="12,10" StrokeThickness="0" BackgroundColor="{AppThemeBinding Light=#FEF3C7, Dark=#78350F}" IsVisible="{Binding HasPsychologyRecord}">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="8" /></Border.StrokeShape>
+                                <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8">
+                                    <Label Grid.Column="0" Text="⚠️" FontSize="16" VerticalOptions="Center" />
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                        <Label Text="Evaluación de Riesgo Activo" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#92400E, Dark=#FDE68A}" />
+                                        <HorizontalStackLayout Spacing="10">
+                                            <HorizontalStackLayout Spacing="4">
+                                                <Label Text="Suicidio:" FontSize="10" TextColor="{AppThemeBinding Light=#92400E, Dark=#FDE68A}" />
+                                                <Label Text="{Binding CurrentPsychologyRecord.SuicideRiskLevel}" FontSize="10" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#92400E, Dark=#FDE68A}" />
+                                            </HorizontalStackLayout>
+                                            <HorizontalStackLayout Spacing="4">
+                                                <Label Text="Violencia:" FontSize="10" TextColor="{AppThemeBinding Light=#92400E, Dark=#FDE68A}" />
+                                                <Label Text="{Binding CurrentPsychologyRecord.ViolenceRiskLevel}" FontSize="10" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#92400E, Dark=#FDE68A}" />
+                                            </HorizontalStackLayout>
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+
+                            <!-- Evaluación Inicial -->
+                            <Border StrokeThickness="1"
+                                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                                    Padding="14,12">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                                <VerticalStackLayout Spacing="8">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="📝" FontSize="14" />
+                                        <Label Text="Motivo de Consulta" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                                    </HorizontalStackLayout>
+                                    <Label Text="{Binding CurrentPsychologyRecord.ChiefComplaint, TargetNullValue='No especificado.'}" FontSize="12" TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}" LineBreakMode="WordWrap" />
+
+                                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}" Margin="0,4" />
+
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="🧠" FontSize="14" />
+                                        <Label Text="Antecedentes Psicológicos" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                                    </HorizontalStackLayout>
+                                    <Label Text="{Binding CurrentPsychologyRecord.PsychologicalHistory, TargetNullValue='Sin antecedentes registrados.'}" FontSize="12" TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}" LineBreakMode="WordWrap" />
+
+                                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}" Margin="0,4" />
+
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="🍻" FontSize="14" />
+                                        <Label Text="Consumo de Sustancias" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                                    </HorizontalStackLayout>
+                                    <Label Text="{Binding CurrentPsychologyRecord.SubstanceUse, TargetNullValue='No reportado.'}" FontSize="12" TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}" LineBreakMode="WordWrap" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <!-- Diagnósticos DSM-5 y CIE-10 -->
+                            <Border StrokeThickness="1"
+                                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                                    Padding="14,12">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                                <VerticalStackLayout Spacing="8">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="📋" FontSize="14" />
+                                        <Label Text="Diagnósticos de Salud Mental" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                                    </HorizontalStackLayout>
+                                    
+                                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                            <Label Text="Criterio DSM-5" FontSize="10" FontAttributes="Bold" TextColor="Gray" />
+                                            <Label Text="{Binding CurrentPsychologyRecord.CurrentDiagnosisDsm5, TargetNullValue='Ninguno'}" FontSize="12" TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}" />
+                                        </VerticalStackLayout>
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                            <Label Text="Clasificación CIE-10" FontSize="10" FontAttributes="Bold" TextColor="Gray" />
+                                            <Label Text="{Binding CurrentPsychologyRecord.CurrentDiagnosisCie10, TargetNullValue='Ninguno'}" FontSize="12" TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                    
+                                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}" Margin="0,4" />
+                                    <Label Text="Red de Apoyo" FontSize="10" FontAttributes="Bold" TextColor="Gray" />
+                                    <Label Text="{Binding CurrentPsychologyRecord.SupportNetwork, TargetNullValue='No reportada.'}" FontSize="12" TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <!-- Línea de Tiempo: Sesiones de Evolución -->
+                            <VerticalStackLayout Spacing="8" Margin="0,6,0,0">
+                                <Label Text="Línea del Tiempo de Evolución" FontSize="14" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#1E293B, Dark=#F1F5F9}" Margin="4,0" />
+                                
+                                <Label Text="No hay sesiones de terapia registradas en el historial de evolución." 
+                                       FontSize="12" 
+                                       TextColor="Gray" 
+                                       Margin="4,0" 
+                                       IsVisible="{Binding HasNoSessions}" />
+
+                                <!-- Lista del Timeline (Bindeo Manual) -->
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding TherapySessions}" Spacing="0">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:TherapySession">
+                                            <Grid ColumnDefinitions="36, *" Padding="0">
+                                                
+                                                <!-- Columna 0: Línea vertical y nodo (Mood Emoji) -->
+                                                <Grid Grid.Column="0">
+                                                    <!-- Línea vertical del timeline -->
+                                                    <BoxView WidthRequest="2" 
+                                                             Color="{DynamicResource BrandPrimaryLight}" 
+                                                             HorizontalOptions="Center" 
+                                                             VerticalOptions="Fill" />
+                                                    
+                                                    <!-- Círculo del Emoji del Mood de la sesión -->
+                                                    <Border WidthRequest="28" 
+                                                            HeightRequest="28" 
+                                                            BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#1E293B}"
+                                                            StrokeThickness="1.5" 
+                                                            Stroke="{DynamicResource BrandPrimary}" 
+                                                            HorizontalOptions="Center" 
+                                                            VerticalOptions="Start"
+                                                            Margin="0,4,0,0">
+                                                        <Border.StrokeShape><RoundRectangle CornerRadius="14" /></Border.StrokeShape>
+                                                        <!-- Muestra un emoji por defecto si el mood es texto o mapea emojis -->
+                                                        <Label Text="{Binding MoodEmoji}" 
+                                                               FontSize="12" 
+                                                               HorizontalOptions="Center" 
+                                                               VerticalOptions="Center" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <!-- Columna 1: Contenido de la Tarjeta del Timeline -->
+                                                <VerticalStackLayout Grid.Column="1" Spacing="6" Margin="0,0,0,16">
+                                                    <Border StrokeThickness="1"
+                                                            Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                                                            BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                                                            Padding="12,10">
+                                                        <Border.StrokeShape><RoundRectangle CornerRadius="8" /></Border.StrokeShape>
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding BindingContext.ToggleSessionExpansionCommand, Source={x:Reference ThisPage}}" CommandParameter="{Binding .}" />
+                                                        </Border.GestureRecognizers>
+                                                        <VerticalStackLayout Spacing="4">
+                                                            <!-- Encabezado de Sesión -->
+                                                            <Grid ColumnDefinitions="*, Auto">
+                                                                <VerticalStackLayout Grid.Column="0" Spacing="1">
+                                                                    <Label Text="{Binding SessionTitle}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#1E293B, Dark=White}" />
+                                                                    <Label Text="{Binding FormattedDate}" FontSize="10" TextColor="Gray" />
+                                                                </VerticalStackLayout>
+                                                                <!-- Botón colapsar/expandir visual -->
+                                                                <Label Grid.Column="1" 
+                                                                       Text="{Binding ExpansionArrow}" 
+                                                                       FontSize="11" 
+                                                                       TextColor="Gray" 
+                                                                       VerticalOptions="Center" />
+                                                            </Grid>
+
+                                                            <!-- Contenido Expandible -->
+                                                            <VerticalStackLayout Spacing="6" Margin="0,4,0,0" IsVisible="{Binding IsExpanded}">
+                                                                <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}" />
+                                                                
+                                                                <Label Text="Notas de Evolución" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
+                                                                <Label Text="{Binding EvolutionNotes, TargetNullValue='Sin notas registradas.'}" FontSize="11" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" LineBreakMode="WordWrap" />
+
+                                                                <Label Text="Progreso del Paciente" FontSize="9" FontAttributes="Bold" TextColor="Gray" Margin="0,2,0,0" />
+                                                                <Label Text="{Binding PatientProgress, TargetNullValue='No evaluado.'}" FontSize="11" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" />
+
+                                                                <Label Text="Tareas Asignadas" FontSize="9" FontAttributes="Bold" TextColor="Gray" Margin="0,2,0,0" />
+                                                                <Label Text="{Binding AssignedTasks, TargetNullValue='Ninguna tarea asignada.'}" FontSize="11" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" />
+
+                                                                <Label Text="Plan Siguiente Sesión" FontSize="9" FontAttributes="Bold" TextColor="Gray" Margin="0,2,0,0" />
+                                                                <Label Text="{Binding NextSessionPlan, TargetNullValue='Sin plan de sesión posterior.'}" FontSize="11" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" />
+
+                                                                <Label Text="Terapeuta Asignado" FontSize="9" FontAttributes="Bold" TextColor="Gray" Margin="0,2,0,0" />
+                                                                <Label Text="{Binding Therapist.FullName}" FontSize="10" TextColor="Gray" />
+                                                            </VerticalStackLayout>
+                                                        </VerticalStackLayout>
+                                                    </Border>
+                                                </VerticalStackLayout>
+
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+
+                        <!-- PESTAÑA CLÍNICA -->
+                        <VerticalStackLayout Spacing="14" IsVisible="{Binding IsClinicalTabActive}">
+                            
+                            <!-- Datos Médicos Generales -->
+                            <Border StrokeThickness="1"
+                                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                                    Padding="14,12">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                                <VerticalStackLayout Spacing="8">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="🩺" FontSize="14" />
+                                        <Label Text="Historial Clínico de Salud" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                                    </HorizontalStackLayout>
+                                    
+                                    <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, *" RowSpacing="10" ColumnSpacing="12" Margin="0,4,0,0">
+                                        <!-- Tipo de Sangre -->
+                                        <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="1">
+                                            <Label Text="Grupo Sanguíneo" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
+                                            <Label Text="{Binding CurrentMedicalRecord.BloodType, TargetNullValue='No especificado'}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource BrandPrimary}" />
+                                        </VerticalStackLayout>
+                                        <!-- Fecha Creación -->
+                                        <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="1">
+                                            <Label Text="Apertura Expediente" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
+                                            <Label Text="{Binding CurrentMedicalRecord.CreatedAt, StringFormat='{0:dd/MM/yyyy}'}" FontSize="12" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" />
+                                        </VerticalStackLayout>
+                                        
+                                        <!-- Alergias -->
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Spacing="1">
+                                            <Label Text="Alergias" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
+                                            <Label Text="{Binding CurrentMedicalRecord.Allergies, TargetNullValue='Ninguna alergia reportada.'}" FontSize="12" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" LineBreakMode="WordWrap" />
                                         </VerticalStackLayout>
 
-                                        <!-- Right side: Quick Book button -->
-                                        <Button Grid.Row="0" Grid.Column="1"
-                                                Grid.RowSpan="2"
-                                                Text="📅 Agendar"
-                                                Command="{Binding BindingContext.NavigateToQuickAppointmentCommand, Source={x:Reference ThisPage}}"
-                                                CommandParameter="{Binding .}"
-                                                BackgroundColor="{StaticResource BrandPrimary}"
-                                                TextColor="White"
-                                                FontAttributes="Bold"
-                                                FontSize="12"
-                                                HeightRequest="36"
-                                                CornerRadius="10"
-                                                VerticalOptions="Center" />
-
-                                        <!-- Additional Metadata (e.g. Career) -->
-                                        <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Spacing="4" VerticalOptions="Center">
-                                            <Label Text="🎓" FontSize="12" IsVisible="{Binding Career, Converter={StaticResource StringToBooleanConverter}}" />
-                                            <Label Text="{Binding Career.Name}" FontSize="12" TextColor="Gray" IsVisible="{Binding Career, Converter={StaticResource StringToBooleanConverter}}" />
-                                            
-                                            <Label Text="💼" FontSize="12" IsVisible="{Binding Occupation, Converter={StaticResource StringToBooleanConverter}}" />
-                                            <Label Text="{Binding Occupation}" FontSize="12" TextColor="Gray" IsVisible="{Binding Occupation, Converter={StaticResource StringToBooleanConverter}}" />
-                                        </HorizontalStackLayout>
+                                        <!-- Condiciones Crónicas -->
+                                        <VerticalStackLayout Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Spacing="1">
+                                            <Label Text="Enfermedades Crónicas" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
+                                            <Label Text="{Binding CurrentMedicalRecord.ChronicConditions, TargetNullValue='Ninguna enfermedad crónica reportada.'}" FontSize="12" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" LineBreakMode="WordWrap" />
+                                        </VerticalStackLayout>
                                     </Grid>
-                                </Border>
-                            </Grid>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-            </RefreshView>
 
-            <!-- Bottom Navigation Bar -->
-            <controls:AppNavBar ActiveTab="2" Grid.Row="2" VerticalOptions="End" Margin="16,0,16,10" />
+                                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}" Margin="0,4" />
+                                    
+                                    <Label Text="Medicamentos Activos" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
+                                    <Label Text="{Binding CurrentMedicalRecord.CurrentMedications, TargetNullValue='Ninguno reportado.'}" FontSize="12" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" />
+
+                                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}" Margin="0,4" />
+
+                                    <Label Text="Antecedentes Heredofamiliares" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
+                                    <Label Text="{Binding CurrentMedicalRecord.FamilyHistory, TargetNullValue='Sin antecedentes registrados.'}" FontSize="12" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <!-- Contactos de Emergencia -->
+                            <Border StrokeThickness="1"
+                                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                                    Padding="14,12">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                                <VerticalStackLayout Spacing="8">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="📞" FontSize="14" />
+                                        <Label Text="Contactos de Emergencia" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                                    </HorizontalStackLayout>
+
+                                    <!-- Contacto 1 (Padre/Tutor si existe en Patient) -->
+                                    <Grid ColumnDefinitions="*, Auto" Margin="0,4,0,0" IsVisible="{Binding CurrentPatient.GuardianName, Converter={StaticResource StringToBooleanConverter}}">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="1">
+                                            <Label Text="Padre / Tutor Legal" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
+                                            <Label Text="{Binding CurrentPatient.GuardianName}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#1E293B, Dark=White}" />
+                                            <Label Text="{Binding CurrentPatient.GuardianPhone}" FontSize="11" TextColor="Gray" />
+                                        </VerticalStackLayout>
+                                        <Border Grid.Column="1" WidthRequest="34" HeightRequest="34" BackgroundColor="{AppThemeBinding Light=#E8F5E9, Dark=#1B5E20}" StrokeThickness="0" Padding="6" VerticalOptions="Center">
+                                            <Border.StrokeShape><RoundRectangle CornerRadius="17" /></Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding WhatsAppCommand}" CommandParameter="{Binding CurrentPatient.GuardianPhone}" />
+                                            </Border.GestureRecognizers>
+                                            <Path Data="M12.031 2C6.516 2 2.031 6.48 2 11.996c-.001 1.761.46 3.478 1.332 5.002L2 22l5.143-1.348c1.472.802 3.125 1.226 4.815 1.228h.005c5.514 0 9.998-4.48 9.998-9.996C21.96 6.48 17.547 2 12.031 2zm0 18.324c-1.503-.001-2.977-.404-4.264-1.164l-.307-.183-3.17.83.844-3.09-.2-.319c-.836-1.328-1.278-2.873-1.276-4.46.004-4.57 3.72-8.283 8.383-8.283 2.257.001 4.378.882 5.972 2.478 1.593 1.597 2.47 3.722 2.467 5.98-.005 4.57-3.722 8.284-8.384 8.284zm4.59-6.273c-.252-.126-1.492-.736-1.724-.82-.232-.085-.4-.127-.567.126-.167.253-.65.82-.796.988-.146.17-.29.186-.543.06-2.529-1.267-3.535-2.228-4.417-3.743-.232-.397-.08-.612.05-.74.116-.118.252-.296.379-.444.127-.148.17-.253.253-.422.084-.17.042-.316-.02-.443-.064-.126-.568-1.37-.779-1.879-.206-.497-.433-.429-.593-.437l-.506-.01c-.17 0-.443.063-.675.316-.232.253-.886.864-.886 2.107 0 1.243.907 2.443 1.033 2.612.127.168 1.785 2.727 4.326 3.82.604.262 1.077.417 1.444.534.607.192 1.159.165 1.596.1c.487-.073 1.492-.61 1.703-1.2.21-.59.21-1.095.148-1.202-.063-.105-.232-.147-.485-.273z"
+                                                  Fill="{AppThemeBinding Light=#2C3E50, Dark=#25D366}"
+                                                  HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Contactos Auxiliares en EmergencyContacts -->
+                                    <Label Text="No se registraron otros contactos de emergencia." 
+                                           FontSize="11" 
+                                           TextColor="Gray" 
+                                           IsVisible="{Binding HasNoEmergencyContacts}" />
+
+                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding CurrentMedicalRecord.Patient.EmergencyContacts}" Spacing="8">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="models:EmergencyContact">
+                                                <Grid ColumnDefinitions="*, Auto">
+                                                    <VerticalStackLayout Grid.Column="0" Spacing="1">
+                                                        <Label Text="{Binding Relationship}" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
+                                                        <Label Text="{Binding Name}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#1E293B, Dark=White}" />
+                                                        <Label Text="{Binding Phone}" FontSize="11" TextColor="Gray" />
+                                                    </VerticalStackLayout>
+                                                    <Border Grid.Column="1" WidthRequest="34" HeightRequest="34" BackgroundColor="{AppThemeBinding Light=#E8F5E9, Dark=#1B5E20}" StrokeThickness="0" Padding="6" VerticalOptions="Center">
+                                                        <Border.StrokeShape><RoundRectangle CornerRadius="17" /></Border.StrokeShape>
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding BindingContext.WhatsAppCommand, Source={x:Reference ThisPage}}" CommandParameter="{Binding Phone}" />
+                                                        </Border.GestureRecognizers>
+                                                        <Path Data="M12.031 2C6.516 2 2.031 6.48 2 11.996c-.001 1.761.46 3.478 1.332 5.002L2 22l5.143-1.348c1.472.802 3.125 1.226 4.815 1.228h.005c5.514 0 9.998-4.48 9.998-9.996C21.96 6.48 17.547 2 12.031 2zm0 18.324c-1.503-.001-2.977-.404-4.264-1.164l-.307-.183-3.17.83.844-3.09-.2-.319c-.836-1.328-1.278-2.873-1.276-4.46.004-4.57 3.72-8.283 8.383-8.283 2.257.001 4.378.882 5.972 2.478 1.593 1.597 2.47 3.722 2.467 5.98-.005 4.57-3.722 8.284-8.384 8.284zm4.59-6.273c-.252-.126-1.492-.736-1.724-.82-.232-.085-.4-.127-.567.126-.167.253-.65.82-.796.988-.146.17-.29.186-.543.06-2.529-1.267-3.535-2.228-4.417-3.743-.232-.397-.08-.612.05-.74.116-.118.252-.296.379-.444.127-.148.17-.253.253-.422.084-.17.042-.316-.02-.443-.064-.126-.568-1.37-.779-1.879-.206-.497-.433-.429-.593-.437l-.506-.01c-.17 0-.443.063-.675.316-.232.253-.886.864-.886 2.107 0 1.243.907 2.443 1.033 2.612.127.168 1.785 2.727 4.326 3.82.604.262 1.077.417 1.444.534.607.192 1.159.165 1.596.1c.487-.073 1.492-.61 1.703-1.2.21-.59.21-1.095.148-1.202-.063-.105-.232-.147-.485-.273z"
+                                                              Fill="{AppThemeBinding Light=#2C3E50, Dark=#25D366}"
+                                                              HorizontalOptions="Center" VerticalOptions="Center" />
+                                                    </Border>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <!-- Historial de Enfermería -->
+                            <Border StrokeThickness="1"
+                                    Stroke="{AppThemeBinding Light={StaticResource GlassBorderLight}, Dark={StaticResource GlassBorderDark}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource GlassBgLight}, Dark={StaticResource GlassBgDark}}"
+                                    Padding="14,12">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                                <VerticalStackLayout Spacing="8">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="🏥" FontSize="14" />
+                                        <Label Text="Consultas de Enfermería Recientes" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                                    </HorizontalStackLayout>
+
+                                    <Label Text="Ninguna consulta o atención de enfermería reportada en el historial." 
+                                           FontSize="11" 
+                                           TextColor="Gray" 
+                                           IsVisible="{Binding HasNoNursingConsultations}" />
+
+                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding CurrentMedicalRecord.NursingConsultations}" Spacing="12">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="models:NursingConsultation">
+                                                <VerticalStackLayout Spacing="4">
+                                                    <Grid ColumnDefinitions="*, Auto">
+                                                        <Label Grid.Column="0" Text="{Binding ConsultationDate, StringFormat='{0:dd MMMM yyyy, hh:mm tt}'}" FontSize="11" FontAttributes="Bold" TextColor="{DynamicResource BrandPrimary}" />
+                                                        <Label Grid.Column="1" Text="{Binding Nurse.FullName}" FontSize="10" TextColor="Gray" />
+                                                    </Grid>
+                                                    <Grid ColumnDefinitions="*, *, *" Margin="0,2">
+                                                        <VerticalStackLayout Grid.Column="0">
+                                                            <Label Text="Temperatura" FontSize="8" TextColor="Gray" />
+                                                            <Label Text="{Binding VitalSignsTemperature, StringFormat='{0}°C'}" FontSize="10" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#1E293B, Dark=White}" />
+                                                        </VerticalStackLayout>
+                                                        <VerticalStackLayout Grid.Column="1">
+                                                            <Label Text="P. Arterial" FontSize="8" TextColor="Gray" />
+                                                            <Label Text="{Binding VitalSignsBloodPressureSys, StringFormat='{0}/{1}'}" FontSize="10" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#1E293B, Dark=White}">
+                                                                <Label.Triggers>
+                                                                    <!-- Concatena sistólica y diastólica -->
+                                                                    <DataTrigger TargetType="Label" Binding="{Binding VitalSignsBloodPressureDia}" Value="0">
+                                                                        <Setter Property="Text" Value="{Binding VitalSignsBloodPressureSys}" />
+                                                                    </DataTrigger>
+                                                                </Label.Triggers>
+                                                            </Label>
+                                                        </VerticalStackLayout>
+                                                        <VerticalStackLayout Grid.Column="2">
+                                                            <Label Text="Sat. Oxígeno" FontSize="8" TextColor="Gray" />
+                                                            <Label Text="{Binding VitalSignsOxygenSaturation, StringFormat='{0}%'}" FontSize="10" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#1E293B, Dark=White}" />
+                                                        </VerticalStackLayout>
+                                                    </Grid>
+                                                    <Label Text="Motivo de Consulta:" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
+                                                    <Label Text="{Binding ChiefComplaint}" FontSize="11" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" />
+                                                    
+                                                    <Label Text="Diagnóstico:" FontSize="9" FontAttributes="Bold" TextColor="Gray" />
+                                                    <Label Text="{Binding Diagnosis}" FontSize="11" TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" />
+
+                                                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}" Margin="0,4" />
+                                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+
+                        </VerticalStackLayout>
+
+                    </Grid>
+                </ScrollView>
+
+            </Grid>
+
         </Grid>
+
+        <!-- 4. MENÚ DE NAVEGACIÓN INFERIOR (Consistente con los demás módulos) -->
+        <controls:AppNavBar Grid.Row="2" ActiveTab="1" VerticalOptions="End" Margin="16,0,16,10" />
+
     </Grid>
 
 </ContentPage>

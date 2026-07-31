@@ -408,8 +408,22 @@ namespace AppEHR.ViewModels
                 if (result.Success)
                 {
                     ShowMessage("¡Cita agendada con éxito en el sistema!", false);
-                    // Esperar 2 segundos y volver al Dashboard
-                    await Task.Delay(2000);
+
+                    // Si no está silenciado, mostrar la notificación de confirmación push local
+                    bool isMuted = Preferences.Get("notifications_muted", false);
+                    if (!isMuted && Shell.Current != null && FoundPatient != null)
+                    {
+                        var localTime = scheduledDateTime.ToLocalTime();
+                        var patientName = FoundPatient.User?.FullName ?? "el consultante";
+                        await Shell.Current.DisplayAlertAsync(
+                            "Notificación Push",
+                            $"Se ha agendado una cita para {patientName} el {localTime:dd/MM/yyyy} a las {localTime:hh:mm tt}.",
+                            "Aceptar"
+                        );
+                    }
+
+                    // Esperar 1 segundo y volver al Dashboard
+                    await Task.Delay(1000);
                     await Shell.Current.GoToAsync("..");
                 }
                 else
